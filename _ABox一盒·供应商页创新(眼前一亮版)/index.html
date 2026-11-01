@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=420, initial-scale=1" />
+<title>ABox 一盒 · 供应商页创新（眼前一亮版）</title>
+<style>
+:root{
+  --bg:#F6F0E5; --surface:#FFFFFF; --surface2:#EBE2D2; --surface3:#F1EADC;
+  --ink:#6E5435; --ink-deep:#463620; --ink2:#796C57; --weak:#A99877;
+  --gold:#C9A86A; --gold-deep:#A9824B; --line:#E4D9C5; --warn:#B5563F; --ok:#7E8B4E;
+}
+*{ box-sizing:border-box; }
+html,body{ margin:0; background:#2c2620; color:var(--ink);
+  font-family:'Kaiti SC','STKaiti','KaiTi','ABKai',serif; }
+.wrap{ display:flex; flex-direction:column; align-items:center; gap:22px; padding:26px; }
+.note-bar{ width:100%; max-width:980px; background:#fff; border:1px solid var(--line);
+  border-radius:14px; padding:16px 20px; font-size:13.5px; line-height:1.9; color:var(--ink2); }
+.note-bar h1{ margin:0 0 8px; font-size:20px; color:var(--ink-deep); }
+.note-bar b{ color:var(--ink); }
+.note-bar .chip{ display:inline-block; background:var(--surface3); color:var(--ink); border-radius:6px;
+  padding:1px 8px; margin:2px 4px 2px 0; font-size:12px; }
+.sec{ width:100%; max-width:980px; }
+.sec__h{ font-size:17px; font-weight:700; color:var(--ink-deep); margin:6px 0 12px;
+  border-left:4px solid var(--gold-deep); padding-left:10px; }
+.sec__sub{ font-size:12.5px; color:var(--weak); margin:-6px 0 14px 14px; line-height:1.7; }
+
+/* 概念卡网格 */
+.cards{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+@media(max-width:920px){ .cards{ grid-template-columns:repeat(2,1fr); } }
+@media(max-width:600px){ .cards{ grid-template-columns:1fr; } }
+.card{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px 15px;
+  box-shadow:0 3px 12px rgba(110,84,53,.06); }
+.card__no{ font-family:'Courier New',monospace; font-size:12px; color:var(--gold-deep); font-weight:700; }
+.card__name{ font-size:15px; font-weight:700; color:var(--ink-deep); margin:2px 0 8px; line-height:1.4; }
+.card__wow{ font-size:12.5px; color:var(--ink); line-height:1.7; margin-bottom:8px; }
+.card__why{ font-size:11.5px; color:var(--ink2); line-height:1.7; margin-bottom:10px; }
+.tags{ display:flex; flex-wrap:wrap; gap:6px; }
+.tag{ font-size:10.5px; border-radius:5px; padding:2px 7px; font-family:sans-serif; }
+.tag.ok{ background:#EEF1E2; color:#5E6B33; }
+.tag.mid{ background:#F3ECDD; color:#8A6B3A; }
+.tag.risk{ background:#F6E6E0; color:#9A4A36; }
+.tag.hot{ background:var(--ink-deep); color:#F6F0E5; }
+
+/* 原型区 */
+.protos{ display:flex; gap:24px; flex-wrap:wrap; justify-content:center; }
+.phone{ width:330px; height:700px; background:var(--bg); border-radius:38px;
+  box-shadow:0 20px 50px rgba(0,0,0,.4), 0 0 0 10px #15110c, 0 0 0 12px #2c2620;
+  position:relative; overflow:hidden; flex:0 0 auto; }
+.phead{ height:46px; display:flex; align-items:center; justify-content:space-between; padding:0 18px;
+  font-size:13px; color:var(--ink-deep); font-weight:700; }
+.phead .live{ display:flex; align-items:center; gap:5px; font-size:11px; color:var(--warn); }
+.phead .live i{ width:7px; height:7px; border-radius:50%; background:var(--warn); display:inline-block;
+  animation:blink 1.2s infinite; }
+@keyframes blink{ 50%{ opacity:.25; } }
+.pbody{ position:absolute; top:46px; left:0; right:0; bottom:0; overflow:hidden; }
+.cap{ text-align:center; font-size:11px; color:var(--weak); margin-top:8px; max-width:330px; line-height:1.6; }
+
+/* 直播原型 */
+.live-v{ margin:10px; height:300px; border-radius:14px; position:relative; overflow:hidden;
+  background:linear-gradient(135deg,#3C2C19,#6E5435); color:#F6F0E5; }
+.live-v .taglive{ position:absolute; top:10px; left:10px; background:rgba(181,86,63,.92); color:#fff;
+  font-size:11px; padding:2px 9px; border-radius:5px; font-family:sans-serif; }
+.live-v .big{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-size:46px; opacity:.5; letter-spacing:4px; }
+.live-v .cap2{ position:absolute; bottom:10px; left:12px; right:12px; font-size:12px; opacity:.92; }
+.steps{ margin:12px 12px 0; }
+.step{ display:flex; align-items:center; gap:9px; font-size:12.5px; color:var(--ink2); padding:7px 0;
+  border-bottom:1px dashed var(--line); }
+.step .dot{ width:18px; height:18px; border-radius:50%; background:var(--surface3); color:var(--ink);
+  font-size:11px; display:flex; align-items:center; justify-content:center; flex:0 0 auto;
+  font-family:'Courier New',monospace; }
+.step.done .dot{ background:var(--ok); color:#fff; }
+.step.now .dot{ background:var(--gold-deep); color:#fff; }
+.step.now{ color:var(--ink-deep); font-weight:700; }
+
+/* 朋友圈原型 */
+.feed{ position:absolute; top:0; left:0; right:0; bottom:0; overflow-y:auto; padding:10px; }
+.feed::-webkit-scrollbar{ width:0; }
+.fcard{ background:var(--surface); border-radius:13px; padding:11px 12px; margin-bottom:10px;
+  box-shadow:0 2px 8px rgba(110,84,53,.06); }
+.fcard__top{ display:flex; align-items:center; gap:9px; margin-bottom:8px; }
+.avatar{ width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#C9A86A,#A9824B);
+  color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; flex:0 0 auto; }
+.fcard__name{ font-size:13px; font-weight:700; color:var(--ink); }
+.fcard__time{ font-size:10.5px; color:var(--weak); }
+.fcard__img{ height:120px; border-radius:10px; background:linear-gradient(135deg,#9FB47A,#7E924F);
+  display:flex; align-items:center; justify-content:center; color:#fff; font-size:12px; opacity:.92; margin-bottom:8px; }
+.fcard__txt{ font-size:12.5px; color:var(--ink2); line-height:1.7; }
+.fcard__act{ display:flex; gap:16px; margin-top:8px; font-size:11.5px; color:var(--weak); }
+
+/* 打榜原型 */
+.rank{ padding:12px; }
+.rank__h{ font-size:14px; font-weight:700; color:var(--ink-deep); margin-bottom:4px; }
+.rank__sub{ font-size:11px; color:var(--weak); margin-bottom:12px; }
+.rrow{ display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:12px;
+  padding:10px 12px; margin-bottom:9px; box-shadow:0 2px 8px rgba(110,84,53,.06); position:relative; }
+.medal{ width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:13px; font-weight:700; color:#fff; flex:0 0 auto; font-family:'Courier New',monospace; }
+.m1{ background:var(--gold-deep); } .m2{ background:#9C9183; } .m3{ background:#A9824B; }
+.rinfo{ flex:1; min-width:0; }
+.rinfo__n{ font-size:13.5px; font-weight:700; color:var(--ink); }
+.rinfo__b{ height:6px; border-radius:4px; background:var(--surface3); margin-top:6px; overflow:hidden; }
+.rinfo__b i{ display:block; height:100%; background:linear-gradient(90deg,#C9A86A,#A9824B); }
+.rinfo__c{ font-size:10.5px; color:var(--weak); margin-top:3px; }
+.rcta{ font-size:11px; color:#fff; background:var(--ink-deep); border-radius:16px; padding:6px 12px;
+  flex:0 0 auto; font-family:sans-serif; }
+
+.foot{ width:100%; max-width:980px; background:var(--surface); border:1px solid var(--line);
+  border-radius:14px; padding:16px 20px; font-size:13px; line-height:1.9; color:var(--ink2); }
+.foot b{ color:var(--ink); }
+.foot .risk{ color:var(--warn); font-weight:700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="note-bar">
+    <h1>供应商页创新 · 眼前一亮版</h1>
+    上一版 29 条是<b>「功能补全」视角</b>——把供应商当「信息货架」，补菜单 / 补证照 / 补数据，所以你觉得平、没惊喜。
+    本版换<b>「体验创新」视角</b>——把供应商当成 <b>直播间 / 一个活人 / 一场比赛 / 一个你能养成的对象</b>，
+    靠<b>实时、情绪、互动、惊喜</b>制造「眼前一亮」，而不是靠堆信息。<br>
+    范围：纯原型讨论，不落码。合规底线不变（小程序内不得出现第三方平台名 / 不做二清 / 不做抽奖赌博 / 营养不做声称）。
+    下方 <span class="chip">9 个新概念</span> + <span class="chip">3 张可看原型</span>。
+  </div>
+
+  <!-- ===== 9 个新概念 ===== -->
+  <div class="sec">
+    <div class="sec__h">一、九个「眼前一亮」新方向（非功能补全，是体验创新）</div>
+    <div class="sec__sub">标记：<span class="tag hot">最亮</span> 我私推优先做；<span class="tag ok">合规安全</span> <span class="tag mid">可行中</span> <span class="tag risk">合规注意</span></div>
+    <div class="cards">
+      <div class="card">
+        <div class="card__no">01</div>
+        <div class="card__name">后厨实时直播 · 明厨亮灶</div>
+        <div class="card__wow">点开供应商页，正看到<b>你这盒饭在哪个灶台炒</b>、蒸汽升腾——不是录播，是此刻。</div>
+        <div class="card__why">从「看证照」到「看此刻」，信任从纸面跳到眼前，监管也鼓励明厨亮灶。</div>
+        <div class="tags"><span class="tag hot">最亮</span><span class="tag mid">可行中</span><span class="tag risk">合规注意</span></div>
+      </div>
+      <div class="card">
+        <div class="card__no">02</div>
+        <div class="card__name">主厨 IP · 每日朋友圈</div>
+        <div class="card__wow">每个厨房有个<b>主厨角色</b>：「凌晨 5 点的菜场，挑了最嫩的菠菜」配一张图，像追更一个活人。</div>
+        <div class="card__why">把冷冰冰的「供应商」变成有温度的「人」，连续剧式情感连接，图文即可落地。</div>
+        <div class="tags"><span class="tag hot">最亮</span><span class="tag ok">合规安全</span><span class="tag ok">可行高</span></div>
+      </div>
+      <div class="card">
+        <div class="card__no">03</div>
+        <div class="card__name">厨房养成 · 你这栋楼在养它</div>
+        <div class="card__wow">你们楼的订单让这家厨房<b>升级</b>：路边摊 → 社区名厨 → 金牌中央厨房，解锁成就徽章。</div>
+        <div class="card__why">用户从「消费者」变「养成者」，归属感与复购动机强；纯展示订单量，无赌博。</div>
+        <div class="tags"><span class="tag hot">最亮</span><span class="tag ok">合规安全</span><span class="tag ok">可行高</span></div>
+      </div>
+      <div class="card">
+        <div class="card__no">04</div>
+        <div class="card__name">本周厨神争霸 · 实时打榜</div>
+        <div class="card__wow">各供应商本周被订次数<b>实时排名</b>：「你这一单，把三味屋顶到了第 1」。</div>
+        <div class="card__why">竞技 + 社交货币，用户有「我参与了」的爽感；仅展示订单量排序，不做抽奖。</div>
+        <div class="tags"><span class="tag ok">合规安全</span><span class="tag ok">可行高</span></div>
+      </div>
+      <div class="card">
+        <div class="card__no">05</div>
+        <div class="card__name">从农田到工位 · 一日纪实</div>
+        <div class="card__wow">滑动看这盒饭的旅程：<b>6:00 农贸市场 → 8:30 切配 → 10:00 烹饪 → 11:30 到你工位</b>。</div>
+        <div class="card__why">叙事化透明，把供应链讲成有头有尾的故事，比冷冰冰的「来源」更打动人。</div>
+        <div class="tags"><span class="tag ok">合规安全</span><span class="tag mid">可行中</span></div>
+      </div>
+      <div class="card">
+        <div class="card__no">06</div>
+        <div class="card__name">X 盲盒厨房 · 招牌神秘菜（联动首页）</div>
+        <div class="card__wow">和首页<b>x 盲盒</b>呼应：每家供应商有自己的「神秘招牌」，今天可能是秘制卤味。</div>
+        <div class="card__why">注意：单为「揭晓一道菜」开一整页太重，已降级——x 的悬念与揭晓改走<b>首页轻量处理</b>（自揭晓 / 底部弹层 / 送达订阅消息，见《x 盲盒轻量揭晓方案》）。本概念保留为「神秘招牌历史沉淀」入口，但<b>不单独为揭晓占页</b>。</div>
+        <div class="tags"><span class="tag mid">降级·不占页</span><span class="tag ok">合规安全</span><span class="tag ok">可行高</span></div>
+      </div>
+      <div class="card">
+        <div class="card__no">07</div>
+        <div class="card__name">共创菜单 · 你来点菜我做</div>
+        <div class="card__wow">你提交想吃的菜，每周票选 Top，供应商<b>真的做出来并 @ 提议者</b>。</div>
+        <div class="card__why">UGC 反向供给，用户从被动吃变主动点，被看见的成就感极强。</div>
+        <div class="tags"><span class="tag ok">合规安全</span><span class="tag mid">可行中</span></div>
+      </div>
+      <div class="card">
+        <div class="card__no">08</div>
+        <div class="card__name">解压治愈 · 后厨白噪音</div>
+        <div class="card__wow">短循环视频：切菜声、油锅声、蒸汽声——午休点开<b>解压三分钟</b>。</div>
+        <div class="card__why">给页面加「情绪价值」，让用户愿意多停留；零合规风险，素材好采。</div>
+        <div class="tags"><span class="tag ok">合规安全</span><span class="tag ok">可行高</span></div>
+      </div>
+      <div class="card">
+        <div class="card__no">09</div>
+        <div class="card__name">口味基因检测 · 趣味匹配</div>
+        <div class="card__wow">答几题测出你是<b>重口派 / 养生派 / 尝鲜派</b>，匹配最适合你的供应商，结果可分享。</div>
+        <div class="card__why">社交传播 + 个性化推荐；注意不做任何医学 / 营养声称，纯娱乐标签。</div>
+        <div class="tags"><span class="tag ok">合规安全</span><span class="tag ok">可行高</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 3 张原型 ===== -->
+  <div class="sec">
+    <div class="sec__h">二、三张可看原型（最亮概念落地示意）</div>
+    <div class="protos">
+      <!-- 直播 -->
+      <div>
+        <div class="phone">
+          <div class="phead"><span>三味屋 · 供应商</span><span class="live"><i></i>LIVE</span></div>
+          <div class="pbody">
+            <div class="live-v">
+              <div class="taglive">直播中 · 后厨实况</div>
+              <div class="big">灶台 · 现炒</div>
+              <div class="cap2">川菜 · 主荤 小炒黄牛肉 正在第 3 灶台大火爆炒 —— 你这盒也是这锅</div>
+            </div>
+            <div class="steps">
+              <div class="step done"><span class="dot">1</span>06:00 农贸市场采购 · 已完</div>
+              <div class="step done"><span class="dot">2</span>08:30 清洗切配 · 已完</div>
+              <div class="step now"><span class="dot">3</span>10:00 烹饪 · 进行中</div>
+              <div class="step"><span class="dot">4</span>11:30 送达你工位</div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">原型 1 · 后厨实时直播：信任从「纸面证照」跳到「眼前此刻」。</div>
+      </div>
+      <!-- 朋友圈 -->
+      <div>
+        <div class="phone">
+          <div class="phead"><span>四季鲜蔬 · 主厨日记</span><span style="font-size:11px;color:var(--weak)">关注</span></div>
+          <div class="pbody">
+            <div class="feed">
+              <div class="fcard">
+                <div class="fcard__top"><div class="avatar">蔬</div>
+                  <div><div class="fcard__name">王师傅 · 四季鲜蔬</div><div class="fcard__time">今天 05:20</div></div></div>
+                <div class="fcard__img" style="background:linear-gradient(135deg,#9FB47A,#7E924F)">菜场实拍 · 今晨菠菜</div>
+                <div class="fcard__txt">凌晨的菜场最安静，挑了最嫩的一批菠菜，过水能保住那口翠绿。</div>
+                <div class="fcard__act"><span>赞 128</span><span>评论 23</span></div>
+              </div>
+              <div class="fcard">
+                <div class="fcard__top"><div class="avatar">蔬</div>
+                  <div><div class="fcard__name">王师傅 · 四季鲜蔬</div><div class="fcard__time">昨天 19:40</div></div></div>
+                <div class="fcard__img" style="background:linear-gradient(135deg,#B97A3E,#8F5A26)">收工 · 今日 860 份</div>
+                <div class="fcard__txt">今天这栋楼吃了 860 份，谢谢大家。明天想吃点啥，评论里告诉我。</div>
+                <div class="fcard__act"><span>赞 302</span><span>评论 57</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">原型 2 · 主厨朋友圈：把供应商变成「一个活人」，连续剧式追更。</div>
+      </div>
+      <!-- 打榜 -->
+      <div>
+        <div class="phone">
+          <div class="phead"><span>本周厨神争霸</span><span style="font-size:11px;color:var(--weak)">第 42 周</span></div>
+          <div class="pbody">
+            <div class="rank">
+              <div class="rank__h">你这栋楼撑起的厨神榜</div>
+              <div class="rank__sub">每下一单 = 投一票，实时更新</div>
+              <div class="rrow"><div class="medal m1">1</div>
+                <div class="rinfo"><div class="rinfo__n">三味屋</div>
+                  <div class="rinfo__b"><i style="width:100%"></i></div>
+                  <div class="rinfo__c">本周 1,240 单 · 你贡献 6 单</div></div>
+                <div class="rcta">加一单</div></div>
+              <div class="rrow"><div class="medal m2">2</div>
+                <div class="rinfo"><div class="rinfo__n">老饭盒</div>
+                  <div class="rinfo__b"><i style="width:74%"></i></div>
+                  <div class="rinfo__c">本周 918 单 · 你贡献 3 单</div></div>
+                <div class="rcta">加一单</div></div>
+              <div class="rrow"><div class="medal m3">3</div>
+                <div class="rinfo"><div class="rinfo__n">四季鲜蔬</div>
+                  <div class="rinfo__b"><i style="width:58%"></i></div>
+                  <div class="rinfo__c">本周 712 单 · 你贡献 2 单</div></div>
+                <div class="rcta">加一单</div></div>
+              <div class="rank__sub" style="margin-top:14px">「你这一单，把三味屋顶到了第 1。」</div>
+            </div>
+          </div>
+        </div>
+        <div class="cap">原型 3 · 厨神打榜：竞技 + 社交货币，纯展示订单量，不做抽奖。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 联动与合规 ===== -->
+  <div class="foot">
+    <b>与首页 x 盲盒的联动（已调整）：</b>首页 x 负责「卖悬念」（第 4 格是神秘盒），但<b>「揭谜底」不再单独开供应商页</b>——
+    改走首页轻量处理（送达后 x 格自揭晓 / 点 x 弹层看本周回顾 / 送达订阅消息），见《x 盲盒轻量揭晓方案》。供应商页的「页面级创新」另从 01 后厨直播 / 03 厨房养成 / 04 厨神打榜 中挑选。<br><br>
+    <b>合规提醒（仍是底线）：</b><span class="risk">①</span> 直播 / 朋友圈出镜人员需获授权，避免隐私争议；
+    <span class="risk">②</span> 打榜 / 养成 <b>只能展示真实订单量</b>，绝不能做抽奖、抽奖式排名或充值加成（涉赌博 / 诱导）；
+    <span class="risk">③</span> 口味基因检测等趣味标签 <b>不得做任何医学或营养声称</b>；
+    <span class="risk">④</span> 全页不出现任何第三方平台名称 / 标识 / 链接（五项禁令）。<br><br>
+    <b>下一步：</b>你从 9 个里挑 1–3 个想深入的，我把它们做成完整页（含全部模块与状态），或先和首页 X 一起落码到原型。
+  </div>
+
+</div>
+</body>
+</html>

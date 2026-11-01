@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>ABox 一盒 · 成为团长（方案 B · 数字主角）</title>
+<style>
+  :root {
+    --bg-cream: #F6F0E5; --bg-cream-light: #FBF7EE; --text-brown: #6E5435; --text-brown-light: #8B7355;
+    --accent-gold: #C9A876; --accent-gold-dark: #B8915C; --border-soft: #E6D9C0;
+    --shadow: 0 1px 2px rgba(110,84,53,.06), 0 4px 12px rgba(110,84,53,.07);
+    --shadow-lg: 0 2px 6px rgba(110,84,53,.08), 0 12px 32px rgba(110,84,53,.14);
+    --font-kai: "KaiTi","STKaiti","楷体","Kaiti SC",serif;
+    --radius-md: 14px; --radius-pill: 24px; --sp-4: 20px; --sp-5: 28px; --fs-sm: 12px; --fs-md: 14px; --fs-title: 15.5px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: var(--font-kai); background:#2A2118; color:var(--text-brown); -webkit-font-smoothing:antialiased; }
+  .stage-flex { display:flex; justify-content:center; align-items:flex-start; padding:32px 16px 60px; }
+  .phone-shell { width:375px; max-width:100%; background:var(--bg-cream); border-radius:24px; box-shadow:var(--shadow-lg),0 0 0 2px rgba(201,168,118,.3); overflow:hidden; }
+  .scroll { max-height:760px; overflow-y:auto; }
+  .scroll::-webkit-scrollbar { width:6px; }
+  .scroll::-webkit-scrollbar-thumb { background:rgba(201,168,118,.45); border-radius:4px; }
+
+  .hero { background:linear-gradient(135deg,#6E5435 0%,#9A7B4F 100%); color:var(--bg-cream); padding:40px var(--sp-4) 34px; text-align:center; }
+  .hero__eyebrow { font-size:11px; letter-spacing:3px; opacity:.85; border:1px solid rgba(246,240,229,.45); border-radius:var(--radius-pill); display:inline-block; padding:3px 14px; }
+  .hero__num { font-size:38px; font-weight:bold; color:var(--accent-gold); letter-spacing:1px; margin-top:18px; line-height:1.2; }
+  .hero__sub { font-size:var(--fs-md); opacity:.92; margin-top:10px; }
+
+  .body { padding: var(--sp-5) var(--sp-4) 0; }
+  .ladder { text-align:center; font-size:var(--fs-md); color:var(--text-brown-light); line-height:1.8; }
+  .ladder b { color:var(--accent-gold-dark); }
+
+  .paths { margin-top: var(--sp-5); display:flex; flex-direction:column; gap:12px; }
+  .path { background:var(--bg-cream-light); border:1px solid var(--border-soft); border-radius:var(--radius-md); box-shadow:var(--shadow); padding:14px 16px; }
+  .path__t { font-size:var(--fs-title); font-weight:600; }
+  .path__d { font-size:var(--fs-sm); color:var(--text-brown-light); line-height:1.7; margin-top:3px; }
+  .path__btn { display:block; width:100%; height:40px; line-height:40px; text-align:center; margin-top:12px; background:var(--text-brown); color:var(--bg-cream); border-radius:var(--radius-pill); font-size:var(--fs-sm); letter-spacing:2px; box-shadow:var(--shadow); border:none; font-family:var(--font-kai); }
+  .path__btn--ghost { background:transparent; color:var(--accent-gold-dark); border:1px solid var(--accent-gold); box-shadow:none; }
+
+  .foot { font-size:11px; color:var(--text-brown-light); padding:var(--sp-4) var(--sp-4) var(--sp-5); line-height:1.8; margin-top:16px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="stage-flex">
+  <div class="phone-shell">
+    <div class="scroll">
+      <div class="hero">
+        <span class="hero__eyebrow">团长招募</span>
+        <div class="hero__num">每单提 8% – 12%</div>
+        <div class="hero__sub">按每单售价计提 · 例：一单 ¥25.80 约提 ¥2.06 – ¥3.10</div>
+      </div>
+      <div class="body">
+        <div class="ladder">见习 <b>8%</b> → 正式 <b>9%</b> → 金牌 <b>10%</b> → 首席 <b>12%</b><br>级别越高，赚越多</div>
+        <div class="paths">
+          <div class="path">
+            <div class="path__t">自己当团长</div>
+            <div class="path__d">办公室相熟的人，把大家想要的凑成团、顺手带回来；绑定办公楼、填资料，提交即生效，立刻 8% 接单。</div>
+            <button class="path__btn">申请成为团长</button>
+          </div>
+          <div class="path">
+            <div class="path__t">介绍朋友当</div>
+            <div class="path__d">发专属链接，他转正你拿一次性奖励（¥30/人·示例，仅单层）。</div>
+            <button class="path__btn path__btn--ghost">介绍给合适的同事</button>
+          </div>
+        </div>
+      </div>
+      <div class="foot">团长即办公室相熟同事，取货时顺手带给大家；见习 30 天未促单自动取消资格。</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

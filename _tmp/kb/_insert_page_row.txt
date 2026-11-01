@@ -1,0 +1,1 @@
+| 往期菜单（无 P 编号 · **2026-10-30 新增**） | 我的 → 往期菜单（`pages/meal-history/meal-history`）· 逐日回看过往套餐，**只作记录、不可补订** | M01-02 | **U2** | `ab_set_meal`、`ab_set_meal_item`、`ab_dish` |

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 出品方页改造稿 v0.4（请客版）</title>
+<style>
+@font-face {
+  font-family: 'ABoxKai';
+  src: url('ab-kaiti.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'ABoxKai', 'STKaiti', 'KaiTi', 'SimSun', serif;
+  background: #E8DFCF;
+  color: #3A322A;
+  min-height: 100vh;
+  padding: 32px 16px 56px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1010px; margin: 0 auto; }
+
+.doc-head { margin-bottom: 22px; }
+.doc-head h1 { font-size: 20px; font-weight: normal; color: #3A322A; letter-spacing: 0.5px; }
+.doc-head p { margin-top: 7px; font-size: 13px; color: #796C57; line-height: 1.85; }
+.doc-head em { font-style: normal; color: #6E5435; }
+
+.toolbar { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 20px; }
+.btn {
+  font-family: inherit; font-size: 13px; color: #6E5435;
+  background: #FFFDF9; border: 1px solid rgba(110,84,53,0.28);
+  border-radius: 8px; padding: 7px 15px; cursor: pointer;
+}
+.btn:hover { background: #F6F0E5; }
+.btn.is-on { background: #6E5435; color: #FFFDF9; border-color: #6E5435; }
+
+.stage { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+
+.phone {
+  width: 375px; flex: none; min-height: 820px;
+  background: #F6F0E5; border-radius: 22px; overflow: hidden;
+  box-shadow: 0 2px 24px rgba(58,50,42,0.14);
+  padding: 26px 20px 30px;
+}
+
+.hd { display: flex; align-items: center; margin-bottom: 18px; }
+.hd__name { font-size: 21px; color: #3A322A; letter-spacing: 1px; }
+.hd__cat {
+  margin-left: 8px; font-size: 11px; color: #FFFFFF; background: #6E5435;
+  padding: 2px 7px; border-radius: 4px; letter-spacing: 0.5px;
+}
+.hd__badge {
+  margin-left: auto; font-size: 11px; padding: 3px 9px; border-radius: 4px; letter-spacing: 0.5px;
+}
+.hd__badge--on { color: #0F6E56; background: #E1F5EE; border: 1px solid rgba(15,110,86,0.3); }
+.hd__badge--off { color: #8A5A2B; background: #FAEEDA; border: 1px solid rgba(186,117,23,0.35); }
+
+.card {
+  background: #FFFDF9; border: 1px solid rgba(110,84,53,0.16);
+  border-radius: 14px; padding: 16px 18px; margin-bottom: 12px;
+}
+.card__label { font-size: 12px; color: #9A8C79; letter-spacing: 0.5px; }
+
+/* ---- 触发区：这道菜 ---- */
+.dish {
+  background: #FFFDF9; border: 1px solid rgba(110,84,53,0.16);
+  border-radius: 14px; padding: 18px; margin-bottom: 12px;
+}
+.dish__label { font-size: 12px; color: #9A8C79; letter-spacing: 0.5px; }
+.dish__name { margin-top: 9px; font-size: 22px; color: #3A322A; letter-spacing: 1.5px; }
+.dish__meta { margin-top: 8px; font-size: 13px; color: #6E5435; line-height: 1.8; }
+
+/* ---- 主 CTA：请客 ---- */
+.treat {
+  margin-top: 4px; padding: 20px 18px; border-radius: 14px;
+  background: #6E5435; cursor: pointer; margin-bottom: 8px;
+}
+.treat__label { font-size: 12px; color: rgba(255,253,249,0.66); letter-spacing: 0.5px; }
+.treat__main { margin-top: 8px; font-size: 21px; color: #FFFDF9; letter-spacing: 2px; }
+.treat__sub { margin-top: 8px; font-size: 13px; color: rgba(255,253,249,0.86); line-height: 1.85; }
+.treat__go { margin-top: 12px; font-size: 13px; color: #FFFDF9; letter-spacing: 1px; }
+.treat__go span { border-bottom: 1px solid rgba(255,253,249,0.5); padding-bottom: 2px; }
+
+.rule { font-size: 11px; color: #9A8C79; line-height: 1.9; margin-bottom: 14px; text-align: center; }
+
+/* ---- 镜子：你请过的人 ---- */
+.mirror {
+  background: #FFFDF9; border: 1px solid rgba(15,110,86,0.32);
+  border-radius: 14px; padding: 18px; margin-bottom: 12px;
+}
+.mirror__label { font-size: 12px; color: #0F6E56; letter-spacing: 1px; }
+.mirror__num { margin-top: 9px; font-size: 32px; color: #0F6E56; line-height: 1.1; letter-spacing: 1px; }
+.mirror__unit { font-size: 15px; color: #0F6E56; margin-left: 4px; }
+.mirror__sub { margin-top: 8px; font-size: 13px; color: #3A322A; line-height: 1.85; }
+.mirror__hint { margin-top: 8px; font-size: 12px; color: #796C57; line-height: 1.85; }
+
+/* ---- 已送出 ---- */
+.sent {
+  background: #FFFDF9; border: 1px solid rgba(110,84,53,0.22);
+  border-radius: 14px; padding: 18px; margin-bottom: 12px;
+}
+.sent__label { font-size: 12px; color: #9A8C79; letter-spacing: 0.5px; }
+.sent__num { margin-top: 9px; font-size: 26px; color: #3A322A; letter-spacing: 1px; }
+.sent__unit { font-size: 14px; color: #6E5435; margin-left: 4px; }
+.bar { margin-top: 12px; height: 6px; background: #EFE7D8; border-radius: 3px; overflow: hidden; }
+.bar__fill { height: 100%; background: #6E5435; border-radius: 3px; }
+.who { margin-top: 13px; padding-top: 11px; border-top: 1px dashed rgba(110,84,53,0.24); }
+.who__row { display: flex; font-size: 13px; color: #3A322A; padding: 4px 0; }
+.who__st { margin-left: auto; font-size: 12px; color: #0F6E56; }
+.who__st--wait { color: #9A8C79; }
+.sent__again {
+  margin-top: 14px; padding: 11px 0; text-align: center;
+  border: 1px solid rgba(110,84,53,0.45); border-radius: 10px;
+  font-size: 14px; color: #6E5435; letter-spacing: 1px; cursor: pointer;
+}
+
+/* ---- 次级入口 ---- */
+.minor {
+  display: flex; align-items: center; padding: 13px 18px;
+  background: #FFFDF9; border: 1px solid rgba(110,84,53,0.16);
+  border-radius: 12px; margin-bottom: 12px; cursor: pointer;
+}
+.minor__t { font-size: 14px; color: #3A322A; }
+.minor__s { margin-left: auto; font-size: 12px; color: #9A8C79; }
+
+.exit {
+  margin-top: 14px; padding: 16px 18px; border-radius: 14px;
+  background: #6E5435; cursor: pointer;
+}
+.exit__label { font-size: 12px; color: rgba(255,253,249,0.66); letter-spacing: 0.5px; }
+.exit__main { margin-top: 6px; font-size: 16px; color: #FFFDF9; letter-spacing: 1px; }
+.exit__go { margin-top: 7px; font-size: 12px; color: rgba(255,253,249,0.8); letter-spacing: 1px; }
+
+.ft { margin-top: 24px; text-align: center; }
+.ft__lic { font-size: 12px; color: #796C57; line-height: 2; }
+.ft__note { margin-top: 8px; font-size: 11px; color: #9A8C79; line-height: 1.9; }
+
+.off-note {
+  background: #FFFDF9; border: 1px dashed rgba(138,90,43,0.45);
+  border-radius: 14px; padding: 18px; margin-bottom: 14px;
+}
+.off-note__t { font-size: 16px; color: #8A5A2B; letter-spacing: 0.5px; }
+.off-note__p { margin-top: 10px; font-size: 13px; color: #5F5445; line-height: 1.95; }
+
+.src {
+  display: none; margin-top: 10px; padding-top: 9px;
+  border-top: 1px dashed rgba(110,84,53,0.28);
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 11px; line-height: 1.75; color: #8A7A64; word-break: break-all;
+}
+body[data-src="on"] .src { display: block; }
+
+.view { display: none; }
+body[data-mode="can"] .view-can { display: block; }
+body[data-mode="sent"] .view-sent { display: block; }
+body[data-mode="off"] .view-off { display: block; }
+
+.notes { flex: 1; min-width: 290px; max-width: 480px; }
+.notes h2 { font-size: 15px; font-weight: normal; color: #3A322A; margin-bottom: 12px; letter-spacing: 0.5px; }
+.notes ul { list-style: none; }
+.notes li {
+  font-size: 13px; color: #5F5445; line-height: 1.9;
+  padding: 9px 0; border-top: 1px solid rgba(110,84,53,0.14);
+}
+.notes li:first-child { border-top: none; }
+.notes li b { font-weight: normal; color: #6E5435; }
+.notes .warn { color: #8A5A2B; }
+.notes .key {
+  background: #FFFDF9; border-left: 3px solid #6E5435;
+  padding: 11px 13px; border-radius: 0 8px 8px 0; color: #3A322A;
+}
+.notes .math {
+  background: #FFFDF9; border: 1px solid rgba(15,110,86,0.28); border-radius: 10px;
+  padding: 12px 14px; font-size: 12px; color: #3A322A; line-height: 2;
+}
+.notes .math i { font-style: normal; color: #0F6E56; }
+</style>
+</head>
+<body data-mode="can" data-src="off">
+
+<div class="wrap">
+
+  <div class="doc-head">
+    <h1>ABox 一盒 · 出品方页改造稿 v0.4（请客版 · 评审用）</h1>
+    <p>上一版投票的毛病：「做」了要等一周才吃到，回馈太慢。这一版换成<em>立刻有回音的动作</em>——<br>
+       看到这道菜是谁做的、被吃过多少次，你此刻就能<em>让人也尝一口</em>。</p>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn is-on" data-mode="can">可请</button>
+    <button class="btn" data-mode="sent">已送出</button>
+    <button class="btn" data-mode="off">暂未供应</button>
+    <button class="btn" id="btnSrc">数据来源</button>
+  </div>
+
+  <div class="stage">
+
+    <div class="phone">
+
+      <!-- ============ 可请 ============ -->
+      <div class="view view-can">
+        <div class="hd">
+          <span class="hd__name">三味屋</span>
+          <span class="hd__cat">川菜</span>
+          <span class="hd__badge hd__badge--on">本周在供</span>
+        </div>
+
+        <div class="dish">
+          <div class="dish__label">明天这一格里是</div>
+          <div class="dish__name">香煎鸡腿</div>
+          <div class="dish__meta">这栋楼吃过 1,240 次 · 赢过 4 次竞选</div>
+          <div class="src">ab_order 份数聚合（本楼 building_group）+ 竞选夺冠次数。这一段是<b>触发器</b>：先让人产生「这个不错」，才有下一步的「想让人也尝尝」</div>
+        </div>
+
+        <div class="treat">
+          <div class="treat__label">觉得好，就让人也尝尝</div>
+          <div class="treat__main">请 TA 吃这一盒</div>
+          <div class="treat__sub">你付钱 · TA 明天中午收到<br>同一栋楼的人，走的就是你这一趟配送</div>
+          <div class="treat__go"><span>选个人请 ›</span></div>
+          <div class="src" style="border-top-color: rgba(255,253,249,0.35); color: rgba(255,253,249,0.62);">⭐ 内容与动作的关系：这一页不是「顺便加个请客按钮」，而是<b>内容负责产生冲动、按钮负责承接冲动</b>——分开两边都成立不了</div>
+        </div>
+
+        <div class="rule">
+          只能请<b>同一栋楼</b>的人 · 一次最多 10 份<br>
+          发到微信好友或群里，谁点谁领，24 小时没领自动退回
+        </div>
+
+        <div class="mirror">
+          <div class="mirror__label">你请过的人</div>
+          <div><span class="mirror__num">6</span><span class="mirror__unit"> 位</span></div>
+          <div class="mirror__sub">其中 4 位后来自己也订了</div>
+          <div class="mirror__hint">⭐ 这块是「镜子」不是「名片」：它讲的是你带来的改变，不是我们有多好 —— 只有关于自己的东西，人才会持续做、也会拿去说</div>
+          <div class="src">ab_order WHERE gift_from_user_id=? 统计被请人数；「后来自己订了」= 该用户后续有过自付订单。⚠️ 这条统计须在受赠人<b>授权后</b>才回写给请客者，否则是泄露他人行为</div>
+        </div>
+
+        <div class="minor">
+          <span class="minor__t">下周吃什么 · 正在投票</span>
+          <span class="minor__s">10/12 截止 ›</span>
+        </div>
+
+        <div class="exit">
+          <div class="exit__label">明天你吃的是它做的</div>
+          <div class="exit__main">香煎鸡腿</div>
+          <div class="exit__go">去看看 ›</div>
+        </div>
+
+        <div class="ft">
+          <div class="ft__lic">
+            食品经营许可证　JY11105…　有效期至 2027-04-18<br>
+            营业执照　91110114…
+          </div>
+          <div class="ft__note">
+            证照编号可至国家企业信用信息公示系统核对<br>
+            本页不提供任何跳转与复制入口
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 已送出 ============ -->
+      <div class="view view-sent">
+        <div class="hd">
+          <span class="hd__name">三味屋</span>
+          <span class="hd__cat">川菜</span>
+          <span class="hd__badge hd__badge--on">本周在供</span>
+        </div>
+
+        <div class="sent">
+          <div class="sent__label">你请的这一轮</div>
+          <div><span class="sent__num">已领 7</span><span class="sent__unit"> / 10 份</span></div>
+          <div class="bar"><div class="bar__fill" style="width: 70%;"></div></div>
+          <div class="who">
+            <div class="who__row">王**<span class="who__st">已领</span></div>
+            <div class="who__row">李**<span class="who__st">已领</span></div>
+            <div class="who__row">张**<span class="who__st">已领</span></div>
+            <div class="who__row">还有 3 份没人领<span class="who__st who__st--wait">待领</span></div>
+          </div>
+          <div class="sent__again">再发一次</div>
+          <div class="src">⭐「还有 3 份没人领」刻意不藏 —— 藏了用户就不知道该补发，坦诚反而促成第二次动作</div>
+        </div>
+
+        <div class="mirror">
+          <div class="mirror__label">你请过的人</div>
+          <div><span class="mirror__num">6</span><span class="mirror__unit"> 位</span></div>
+          <div class="mirror__sub">其中 4 位后来自己也订了</div>
+        </div>
+
+        <div class="exit">
+          <div class="exit__label">明天你吃的是它做的</div>
+          <div class="exit__main">香煎鸡腿</div>
+          <div class="exit__go">去看看 ›</div>
+        </div>
+
+        <div class="ft">
+          <div class="ft__lic">
+            食品经营许可证　JY11105…　有效期至 2027-04-18<br>
+            营业执照　91110114…
+          </div>
+          <div class="ft__note">
+            证照编号可至国家企业信用信息公示系统核对<br>
+            本页不提供任何跳转与复制入口
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 暂未供应 ============ -->
+      <div class="view view-off">
+        <div class="hd">
+          <span class="hd__name">四季鲜蔬</span>
+          <span class="hd__cat">素菜</span>
+          <span class="hd__badge hd__badge--off">暂未供应</span>
+        </div>
+
+        <div class="off-note">
+          <div class="off-note__t">这家现在不在供应名单里</div>
+          <div class="off-note__p">
+            资质正在核验中，核验完成后会恢复供应。<br>
+            ⛔ 刻意<b>不写预计日期</b> —— 凭空的日期做不到就是失信。
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__label">它上一次供应</div>
+          <div class="card__label" style="margin-top: 7px; font-size: 15px; color: #3A322A; letter-spacing: 1px;">9 月 28 日 · 蒜蓉西兰花</div>
+          <div class="card__label" style="margin-top: 5px;">在你这栋楼被吃过 86 次</div>
+        </div>
+
+        <div class="exit">
+          <div class="exit__label">这家的下一档还没排</div>
+          <div class="exit__main">看看明天是谁做的</div>
+          <div class="exit__go">去看看 ›</div>
+          <div class="src" style="border-top-color: rgba(255,253,249,0.35); color: rgba(255,253,249,0.62);">⛔ 未供应态绝不给死路 —— 出口必须换一个仍然成立的动作</div>
+        </div>
+
+        <div class="ft">
+          <div class="ft__note" style="margin-top: 8px;">
+            未在供应名单中的出品方，暂不展示其证照编号<br>
+            核验完成后这里会同步更新
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="notes">
+      <h2>评审要点</h2>
+      <ul>
+        <li class="key"><b>上一版投票我承认有毛病：「做」完要等一周才吃到，回馈太慢，那不叫「做」。</b>
+          这一版换成<b>立刻有回音</b>的动作：此刻看到这道菜，此刻就能让人尝到，明天中午结果就到。</li>
+        <li><b>内容与动作是一体的，不是两件事。</b>这一页不是「顺便加个请客按钮」——
+          <b>内容负责产生冲动（这栋楼吃过 1,240 次），按钮负责承接冲动（请 TA 吃这一盒）</b>。拆开两边都成立不了。</li>
+        <li class="math">
+          <b>算一笔账</b>（假设推演，非实测）：1,000 活跃用户，10% 每月请一次、平均 3 盒<br>
+          ⇒ 直接增量 <i>300 盒/月 ≈ ¥7,740</i><br>
+          ⇒ 收礼人中约 90 位没订过 ABox，按 40% 转化 <i>≈ 36 位新订户/月</i><br>
+          ⇒ 这批人后续月贡献 <i>≈ ¥7,430</i>（人均月订 8 天）<br>
+          <b>获客成本 = 0 —— 盒饭是用户掏钱买的，不是你补贴的。</b>
+        </li>
+        <li><b>「你请过 6 位 · 其中 4 位后来自己也订了」是这页最值钱的一块。</b>
+          它是<b>镜子</b>不是名片：讲的是你带来的改变。只有关于自己的东西，人才会持续做、也会拿去说。
+          ⚠️ 但必须受赠人授权后<b>才回写</b>给请客者，否则等于泄露他人行为。</li>
+        <li><b>写字楼是天然适配的场景。</b>同事就在同一栋楼 ⇒ 赠送范围天然落在既有配送半径内，
+          不用扩配送、不用加运力。这是别的外卖做不了、而你能做的原因。</li>
+        <li><b>「还有 3 份没人领」刻意不藏。</b>藏了用户就不知道该补发；坦诚的缺口反而促成第二次动作。</li>
+        <li class="warn"><b>三个必须先过的坎：</b>① <b>只能请同一栋楼</b>——跨楼配送不成立，这条是硬约束
+          ② 微信「送礼物」有官方能力，自建赠礼链路是否触碰规范<b>需先查</b>
+          ③ 卡片文案<b>不得带收益诱导</b>（既有合规纪律：分享文案已去收益诱导）。
+          这是<b>赠予</b>不是分销，但仍要过一遍。</li>
+        <li><b>成本：</b>需新增赠送单（受益人是他人）+ 领取态 + 24h 自动退款。比投票那张表重一些，但都是订单侧的扩展，不碰结算口径（钱进来的方向没变）。</li>
+        <li><b>投票没扔，降级成小入口。</b>它是每周的事，请客是每月的事，频次不冲突；但这一页的主 CTA 只能有一个。</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var body = document.body;
+var modeBtns = document.querySelectorAll('.btn[data-mode]');
+var btnSrc = document.getElementById('btnSrc');
+
+for (var i = 0; i < modeBtns.length; i++) {
+  modeBtns[i].onclick = function () {
+    body.setAttribute('data-mode', this.getAttribute('data-mode'));
+    for (var j = 0; j < modeBtns.length; j++) modeBtns[j].classList.remove('is-on');
+    this.classList.add('is-on');
+  };
+}
+btnSrc.onclick = function () {
+  var on = body.getAttribute('data-src') === 'on';
+  body.setAttribute('data-src', on ? 'off' : 'on');
+  btnSrc.classList.toggle('is-on', !on);
+};
+</script>
+
+</body>
+</html>

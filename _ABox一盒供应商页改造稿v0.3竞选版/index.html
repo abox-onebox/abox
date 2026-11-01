@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 出品方页改造稿 v0.3（竞选版）</title>
+<style>
+@font-face {
+  font-family: 'ABoxKai';
+  src: url('ab-kaiti.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'ABoxKai', 'STKaiti', 'KaiTi', 'SimSun', serif;
+  background: #E8DFCF;
+  color: #3A322A;
+  min-height: 100vh;
+  padding: 32px 16px 56px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1010px; margin: 0 auto; }
+
+.doc-head { margin-bottom: 22px; }
+.doc-head h1 { font-size: 20px; font-weight: normal; color: #3A322A; letter-spacing: 0.5px; }
+.doc-head p { margin-top: 7px; font-size: 13px; color: #796C57; line-height: 1.85; }
+.doc-head em { font-style: normal; color: #6E5435; }
+
+.toolbar { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 20px; }
+.btn {
+  font-family: inherit; font-size: 13px; color: #6E5435;
+  background: #FFFDF9; border: 1px solid rgba(110,84,53,0.28);
+  border-radius: 8px; padding: 7px 15px; cursor: pointer;
+}
+.btn:hover { background: #F6F0E5; }
+.btn.is-on { background: #6E5435; color: #FFFDF9; border-color: #6E5435; }
+
+.stage { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+
+.phone {
+  width: 375px; flex: none; min-height: 820px;
+  background: #F6F0E5; border-radius: 22px; overflow: hidden;
+  box-shadow: 0 2px 24px rgba(58,50,42,0.14);
+  padding: 26px 20px 30px;
+}
+
+.hd { display: flex; align-items: center; margin-bottom: 18px; }
+.hd__name { font-size: 21px; color: #3A322A; letter-spacing: 1px; }
+.hd__cat {
+  margin-left: 8px; font-size: 11px; color: #FFFFFF; background: #6E5435;
+  padding: 2px 7px; border-radius: 4px; letter-spacing: 0.5px;
+}
+.hd__badge {
+  margin-left: auto; font-size: 11px; padding: 3px 9px; border-radius: 4px; letter-spacing: 0.5px;
+}
+.hd__badge--on { color: #0F6E56; background: #E1F5EE; border: 1px solid rgba(15,110,86,0.3); }
+.hd__badge--off { color: #8A5A2B; background: #FAEEDA; border: 1px solid rgba(186,117,23,0.35); }
+
+.card {
+  background: #FFFDF9; border: 1px solid rgba(110,84,53,0.16);
+  border-radius: 14px; padding: 16px 18px; margin-bottom: 12px;
+}
+.card__label { font-size: 12px; color: #9A8C79; letter-spacing: 0.5px; }
+
+/* ---- 战绩卡 ---- */
+.record {
+  background: #FFFDF9; border: 1px solid rgba(15,110,86,0.32);
+  border-radius: 14px; padding: 18px 18px 16px; margin-bottom: 12px;
+}
+.record__label { font-size: 12px; color: #0F6E56; letter-spacing: 1px; }
+.record__rate { margin-top: 9px; font-size: 34px; color: #0F6E56; line-height: 1.1; letter-spacing: 1px; }
+.record__unit { font-size: 15px; color: #0F6E56; margin-left: 5px; }
+.record__sub { margin-top: 7px; font-size: 13px; color: #3A322A; }
+.record__best { margin-top: 7px; font-size: 12px; color: #796C57; line-height: 1.8; }
+
+/* ---- 竞选卡 ---- */
+.poll { background: #FFFDF9; border: 1px solid rgba(110,84,53,0.22); border-radius: 14px; padding: 18px; margin-bottom: 12px; }
+.poll__label { font-size: 12px; color: #9A8C79; letter-spacing: 0.5px; }
+.poll__dish { margin-top: 9px; font-size: 20px; color: #3A322A; letter-spacing: 1.5px; }
+.poll__meta { margin-top: 7px; font-size: 13px; color: #6E5435; }
+
+.bar { margin-top: 12px; height: 6px; background: #EFE7D8; border-radius: 3px; overflow: hidden; }
+.bar__fill { height: 100%; background: #6E5435; border-radius: 3px; }
+.bar__fill--win { background: #0F6E56; }
+.bar__fill--lose { background: #C9BCA6; }
+
+.rival { margin-top: 13px; padding-top: 11px; border-top: 1px dashed rgba(110,84,53,0.24); }
+.rival__row { display: flex; font-size: 12px; color: #9A8C79; padding: 3px 0; }
+.rival__row b { font-weight: normal; color: #3A322A; }
+.rival__n { margin-left: auto; }
+
+.vote {
+  margin-top: 15px; padding: 12px 0; text-align: center;
+  background: #6E5435; color: #FFFDF9; border-radius: 10px;
+  font-size: 15px; letter-spacing: 2px; cursor: pointer;
+}
+.vote--done { background: #F6F0E5; color: #9A8C79; border: 1px solid rgba(110,84,53,0.22); }
+.poll__rule { margin-top: 11px; font-size: 11px; color: #9A8C79; line-height: 1.85; }
+
+/* ---- 结果卡 ---- */
+.result {
+  background: #FFFDF9; border-radius: 14px; padding: 20px 18px 18px; margin-bottom: 12px;
+  border: 1px solid rgba(15,110,86,0.32);
+}
+.result--lose { border: 1px solid rgba(110,84,53,0.22); }
+.result__label { font-size: 12px; color: #9A8C79; letter-spacing: 0.5px; }
+.result__word { margin-top: 10px; font-size: 27px; color: #0F6E56; letter-spacing: 3px; }
+.result--lose .result__word { color: #8A7A64; }
+.result__dish { margin-top: 9px; font-size: 18px; color: #3A322A; letter-spacing: 1px; }
+.result__meta { margin-top: 7px; font-size: 13px; color: #6E5435; }
+.result__next { margin-top: 12px; font-size: 13px; color: #3A322A; line-height: 1.9; }
+.result__cons { margin-top: 9px; font-size: 12px; color: #796C57; line-height: 1.85; }
+
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.tag {
+  font-size: 12px; color: #6E5435; background: #F6F0E5;
+  border: 1px solid rgba(110,84,53,0.2); border-radius: 6px; padding: 3px 9px;
+}
+
+.exit {
+  margin-top: 16px; padding: 16px 18px; border-radius: 14px;
+  background: #6E5435; cursor: pointer;
+}
+.exit__label { font-size: 12px; color: rgba(255,253,249,0.66); letter-spacing: 0.5px; }
+.exit__main { margin-top: 6px; font-size: 16px; color: #FFFDF9; letter-spacing: 1px; }
+.exit__go { margin-top: 7px; font-size: 12px; color: rgba(255,253,249,0.8); letter-spacing: 1px; }
+
+.ft { margin-top: 24px; text-align: center; }
+.ft__lic { font-size: 12px; color: #796C57; line-height: 2; }
+.ft__note { margin-top: 8px; font-size: 11px; color: #9A8C79; line-height: 1.9; }
+
+.off-note {
+  background: #FFFDF9; border: 1px dashed rgba(138,90,43,0.45);
+  border-radius: 14px; padding: 18px; margin-bottom: 14px;
+}
+.off-note__t { font-size: 16px; color: #8A5A2B; letter-spacing: 0.5px; }
+.off-note__p { margin-top: 10px; font-size: 13px; color: #5F5445; line-height: 1.95; }
+
+.src {
+  display: none; margin-top: 10px; padding-top: 9px;
+  border-top: 1px dashed rgba(110,84,53,0.28);
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 11px; line-height: 1.75; color: #8A7A64; word-break: break-all;
+}
+body[data-src="on"] .src { display: block; }
+
+.view { display: none; }
+body[data-mode="voting"] .view-voting { display: block; }
+body[data-mode="won"] .view-won { display: block; }
+body[data-mode="lost"] .view-lost { display: block; }
+body[data-mode="off"] .view-off { display: block; }
+
+.notes { flex: 1; min-width: 290px; max-width: 480px; }
+.notes h2 { font-size: 15px; font-weight: normal; color: #3A322A; margin-bottom: 12px; letter-spacing: 0.5px; }
+.notes ul { list-style: none; }
+.notes li {
+  font-size: 13px; color: #5F5445; line-height: 1.9;
+  padding: 9px 0; border-top: 1px solid rgba(110,84,53,0.14);
+}
+.notes li:first-child { border-top: none; }
+.notes li b { font-weight: normal; color: #6E5435; }
+.notes .warn { color: #8A5A2B; }
+.notes .key {
+  background: #FFFDF9; border-left: 3px solid #6E5435;
+  padding: 11px 13px; border-radius: 0 8px 8px 0; color: #3A322A;
+}
+</style>
+</head>
+<body data-mode="voting" data-src="off">
+
+<div class="wrap">
+
+  <div class="doc-head">
+    <h1>ABox 一盒 · 出品方页改造稿 v0.3（竞选版 · 评审用）</h1>
+    <p>这一版不再往页面上摆任何信息。出品方从「<em>被公示的对象</em>」变成「<em>选手</em>」，
+       这个页面从「资质栏」变成「<em>下周菜单的竞选场</em>」。</p>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn is-on" data-mode="voting">投票中</button>
+    <button class="btn" data-mode="won">开奖 · 赢了</button>
+    <button class="btn" data-mode="lost">开奖 · 没赢</button>
+    <button class="btn" data-mode="off">暂未供应</button>
+    <button class="btn" id="btnSrc">数据来源</button>
+  </div>
+
+  <div class="stage">
+
+    <div class="phone">
+
+      <!-- ============ 投票中 ============ -->
+      <div class="view view-voting">
+        <div class="hd">
+          <span class="hd__name">三味屋</span>
+          <span class="hd__cat">川菜</span>
+          <span class="hd__badge hd__badge--on">本周在供</span>
+        </div>
+
+        <div class="record">
+          <div class="record__label">这栋楼投出来的战绩</div>
+          <div><span class="record__rate">68</span><span class="record__unit">% 胜率</span></div>
+          <div class="record__sub">参赛 12 次 · 赢过 8 次</div>
+          <div class="record__best">最受挺的一道：香煎鸡腿（赢过 4 次）</div>
+          <div class="src">新增 ab_menu_poll（周期 + 候选 + 一人一票）+ ab_menu_poll_vote。胜率 = 该 supplier 菜品夺冠次数 / 参赛次数。样本 &lt; 5 次不显示胜率（早期数据会失真）</div>
+        </div>
+
+        <div class="poll">
+          <div class="poll__label">正在竞选 10/14（周三）这一格</div>
+          <div class="poll__dish">香煎鸡腿</div>
+          <div class="poll__meta">327 票 · 第 1 / 共 4 道</div>
+          <div class="bar"><div class="bar__fill" style="width: 38%;"></div></div>
+          <div class="rival">
+            <div class="rival__row"><b>香煎鸡腿</b> · 三味屋<span class="rival__n">327</span></div>
+            <div class="rival__row">番茄牛腩 · 老饭盒<span class="rival__n">291</span></div>
+            <div class="rival__row">蒜蓉西兰花 · 四季鲜蔬<span class="rival__n">145</span></div>
+            <div class="rival__row">冬瓜排骨汤 · 汤师傅<span class="rival__n">88</span></div>
+          </div>
+          <div class="vote" id="btnVote">投它一票</div>
+          <div class="poll__rule">10/12 24:00 截止 · 一人一票<br>票数最高的那道<b>一定</b>排进 10/14 —— 这一句是硬承诺，做不到就是骗人</div>
+          <div class="src">候选池零 DDL：ab_dish WHERE supplier_id=? AND status=1 AND 近 N 天未排 ⇒ 自动出候选，不用人工维护。只有投票记录需落库</div>
+        </div>
+
+        <div class="card">
+          <div class="card__label">它还有 5 道没上过</div>
+          <div class="tags">
+            <span class="tag">红烧肉</span>
+            <span class="tag">麻婆豆腐</span>
+            <span class="tag">水煮鱼</span>
+            <span class="tag">蒜泥白肉</span>
+            <span class="tag">干煸豆角</span>
+          </div>
+          <div class="src">ab_dish 历史去重 WHERE supplier_id=? AND 近 30 天未排。下次的候选从这里出</div>
+        </div>
+
+        <div class="exit">
+          <div class="exit__label">明天你吃的是它做的</div>
+          <div class="exit__main">香煎鸡腿</div>
+          <div class="exit__go">去看看 ›</div>
+        </div>
+
+        <div class="ft">
+          <div class="ft__lic">
+            食品经营许可证　JY11105…　有效期至 2027-04-18<br>
+            营业执照　91110114…
+          </div>
+          <div class="ft__note">
+            证照编号可至国家企业信用信息公示系统核对<br>
+            本页不提供任何跳转与复制入口
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 赢了 ============ -->
+      <div class="view view-won">
+        <div class="hd">
+          <span class="hd__name">三味屋</span>
+          <span class="hd__cat">川菜</span>
+          <span class="hd__badge hd__badge--on">本周在供</span>
+        </div>
+
+        <div class="result">
+          <div class="result__label">10/14（周三）竞选结果</div>
+          <div class="result__word">赢　了</div>
+          <div class="result__dish">香煎鸡腿 · 412 票</div>
+          <div class="bar"><div class="bar__fill bar__fill--win" style="width: 46%;"></div></div>
+          <div class="result__next">已排进 10/14（周三）这一格</div>
+          <div class="result__cons">这栋楼 1,312 人投了票 —— 你吃的这盒，是大家挑出来的</div>
+          <div class="src">开奖后本块锁定为结果态，不再可投。⭐ 结果必须可验证：菜单真排了这道菜，否则整个机制一天就穿帮</div>
+        </div>
+
+        <div class="record">
+          <div class="record__label">这栋楼投出来的战绩</div>
+          <div><span class="record__rate">69</span><span class="record__unit">% 胜率</span></div>
+          <div class="record__sub">参赛 13 次 · 赢过 9 次</div>
+          <div class="record__best">香煎鸡腿已赢过 5 次</div>
+        </div>
+
+        <div class="exit">
+          <div class="exit__label">10/14 那天吃不吃</div>
+          <div class="exit__main">到时提醒我</div>
+          <div class="exit__go">10/13 晚上告诉你 ›</div>
+          <div class="src" style="border-top-color: rgba(255,253,249,0.35); color: rgba(255,253,249,0.62);">受 T-1 模型约束：今天不能订 10/14 的，只能提醒。订阅消息一次性授权，正好匹配</div>
+        </div>
+
+        <div class="ft">
+          <div class="ft__lic">
+            食品经营许可证　JY11105…　有效期至 2027-04-18<br>
+            营业执照　91110114…
+          </div>
+          <div class="ft__note">
+            证照编号可至国家企业信用信息公示系统核对<br>
+            本页不提供任何跳转与复制入口
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 没赢 ============ -->
+      <div class="view view-lost">
+        <div class="hd">
+          <span class="hd__name">三味屋</span>
+          <span class="hd__cat">川菜</span>
+          <span class="hd__badge hd__badge--on">本周在供</span>
+        </div>
+
+        <div class="result result--lose">
+          <div class="result__label">10/14（周三）竞选结果</div>
+          <div class="result__word">这次没赢</div>
+          <div class="result__dish">水煮鱼 · 第 3 / 4 · 87 票</div>
+          <div class="bar"><div class="bar__fill bar__fill--lose" style="width: 10%;"></div></div>
+          <div class="result__next">赢的是「番茄牛腩 · 老饭盒」</div>
+          <div class="result__cons">它还在候选池里，下次还能再参战</div>
+          <div class="src">⭐ 诚实展示失败是本机制的信用来源 —— 只报赢不报输，用户两次就识破。输的菜不删，留在池里</div>
+        </div>
+
+        <div class="record">
+          <div class="record__label">这栋楼投出来的战绩</div>
+          <div><span class="record__rate">62</span><span class="record__unit">% 胜率</span></div>
+          <div class="record__sub">参赛 13 次 · 赢过 8 次</div>
+          <div class="record__best">水煮鱼参赛 3 次，还没赢过</div>
+        </div>
+
+        <div class="exit">
+          <div class="exit__label">明天你吃的是它做的</div>
+          <div class="exit__main">香煎鸡腿</div>
+          <div class="exit__go">去看看 ›</div>
+        </div>
+
+        <div class="ft">
+          <div class="ft__lic">
+            食品经营许可证　JY11105…　有效期至 2027-04-18<br>
+            营业执照　91110114…
+          </div>
+          <div class="ft__note">
+            证照编号可至国家企业信用信息公示系统核对<br>
+            本页不提供任何跳转与复制入口
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 暂未供应 ============ -->
+      <div class="view view-off">
+        <div class="hd">
+          <span class="hd__name">四季鲜蔬</span>
+          <span class="hd__cat">素菜</span>
+          <span class="hd__badge hd__badge--off">暂未供应</span>
+        </div>
+
+        <div class="off-note">
+          <div class="off-note__t">这家现在不在供应名单里</div>
+          <div class="off-note__p">
+            资质正在核验中，核验完成后会恢复供应。<br>
+            ⛔ 刻意<b>不写预计日期</b> —— 凭空的日期做不到就是失信。
+          </div>
+          <div class="src">由 audit_status 驱动。未供应 ≠ 不可信，所以下面仍保留战绩，不把两件事混为一谈</div>
+        </div>
+
+        <div class="record">
+          <div class="record__label">这栋楼投出来的战绩</div>
+          <div><span class="record__rate">54</span><span class="record__unit">% 胜率</span></div>
+          <div class="record__sub">参赛 11 次 · 赢过 6 次</div>
+          <div class="record__best">最受挺的一道：蒜蓉西兰花（赢过 3 次）</div>
+        </div>
+
+        <div class="card">
+          <div class="card__label">它上一次供应</div>
+          <div class="card__label" style="margin-top: 7px; font-size: 15px; color: #3A322A; letter-spacing: 1px;">9 月 28 日 · 蒜蓉西兰花</div>
+          <div class="card__label" style="margin-top: 5px;">在你这栋楼被吃过 86 次</div>
+        </div>
+
+        <div class="exit">
+          <div class="exit__label">这家的下一档还没排</div>
+          <div class="exit__main">看看明天是谁做的</div>
+          <div class="exit__go">去看看 ›</div>
+          <div class="src" style="border-top-color: rgba(255,253,249,0.35); color: rgba(255,253,249,0.62);">⛔ 未供应态绝不给死路 —— 出口必须换一个仍然成立的动作</div>
+        </div>
+
+        <div class="ft">
+          <div class="ft__note" style="margin-top: 8px;">
+            未在供应名单中的出品方，暂不展示其证照编号<br>
+            核验完成后这里会同步更新
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="notes">
+      <h2>评审要点</h2>
+      <ul>
+        <li class="key"><b>前三版我犯的是同一个错：往页面上摆信息。</b>资质是信息、核验是信息、口碑是信息、排期还是信息。你连着否掉的不是某一版的内容，是「信息页」这个品类本身 —— 所以这次<b>一个信息位都不加，改的是这个页面存在的理由</b>。</li>
+        <li><b>出品方的角色从「被公示的对象」变成「选手」。</b>合规要求我必须公示它，那我就顺手把它放到赛场上。它有什么证不重要了，重要的是<b>它的菜赢过几次</b>——「胜率 68%」比「91% 好吃」有张力得多，因为前者有输赢。</li>
+        <li><b>1+1&gt;2 的准确位置：投票数就是需求预测。</b>票数最高的那道一定排进下周 —— 于是用户在替你做需求调研，而且是免费的。备货更准（盒饭第二大成本是损耗）、投过票的人几乎必订（那是他自己挑的）、开票前就知道大概多少份。<b>这不是「让用户开心」这种虚价值，是可归因的收入与成本改善。</b></li>
+        <li><b>它把「单一套餐」的弱点变成了特点。</b>玉子屋式单一菜单最大的心理阻力是「我没得选」。投票之后它变成「<b>我们一起定的</b>」—— 决定仍然只有一个，但制造它的过程有用户一份。效率模型一点没动。</li>
+        <li><b>频次问题根治了。</b>不用等推送、不用每周固定看 —— 用户会在<b>想让哪道菜赢的时候</b>自己来，而且一周来两次（投票 + 看开奖）。</li>
+        <li class="warn"><b>两条硬纪律，做不到就别上：</b>① 票数最高的<b>一定</b>上桌（运营不能推翻，否则两次就穿帮）② <b>输了必须照实显示</b>（只报赢不报输 = 假的，且输的菜留池不删）。</li>
+        <li class="warn"><b>两个真风险：</b>① 供应商看到自己「没赢」可能不高兴 —— 建议主语始终是「菜」不是「家」，且给它看的是票数不是排名 ② 运营要接受「最高票必上」这个约束，供应链排班会变被动。这两条需要你先判断能不能接受。</li>
+        <li><b>成本：需 1 张新表</b>（投票记录）。候选池<b>零 DDL</b>——<code>ab_dish WHERE supplier_id=? AND status=1 AND 近 N 天未排</code> 自动出候选。⚠️ 会打破「零 DDL」（第 5 支迁移已经破过一次，部署须确认迁移真跑）。</li>
+        <li><b>合规守住：</b>投票是点选、无 UGC ⇒ 不需要 msgSecCheck；无第三方平台名 / 链接 / 可跳转物 / 可复制口令；出参不含 status、commission、shareRate、联系方式；证照仍在页脚。</li>
+        <li><b>可以再叠一层（非必需）：「试吃官」</b> —— 每周抽 N 人先吃新菜，吃完必打分。它同时是营销、新品测试、口碑内容三件事，但要不要单独开一页再说。</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var body = document.body;
+var modeBtns = document.querySelectorAll('.btn[data-mode]');
+var btnSrc = document.getElementById('btnSrc');
+var btnVote = document.getElementById('btnVote');
+
+for (var i = 0; i < modeBtns.length; i++) {
+  modeBtns[i].onclick = function () {
+    body.setAttribute('data-mode', this.getAttribute('data-mode'));
+    for (var j = 0; j < modeBtns.length; j++) modeBtns[j].classList.remove('is-on');
+    this.classList.add('is-on');
+  };
+}
+btnSrc.onclick = function () {
+  var on = body.getAttribute('data-src') === 'on';
+  body.setAttribute('data-src', on ? 'off' : 'on');
+  btnSrc.classList.toggle('is-on', !on);
+};
+btnVote.onclick = function () {
+  var done = btnVote.classList.toggle('vote--done');
+  btnVote.textContent = done ? '已投 · 10/12 开奖' : '投它一票';
+};
+</script>
+
+</body>
+</html>

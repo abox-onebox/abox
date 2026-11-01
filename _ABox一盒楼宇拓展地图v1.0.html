@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ABox 一盒 · 楼宇拓展作战地图</title>
+<style>
+/* ── token 真源（生成注入，禁手改）── */
+:root{
+  --bg: #F6F0E5;
+  --surface: #FFFDF8;
+  --surface2: #F7F1E4;
+  --surface3: #FBF6EC;
+  --text: #6E5435;
+  --text2: #796C57;
+  --text-disabled: #A79A85;
+  --gold: #C9A876;
+  --gold-deep: #936F3A;
+  --gold-deepest: #8A6620;
+  --border: #E4D8C3;
+  --border-strong: #D6CBB8;
+  --ok: #5B7C3A;
+  --warn: #C44536;
+  --info: #4A6FA5;
+  --ok-bg: #F1F5EA;
+  --ok-bd: #BBCBA6;
+  --warn-bg: #FBF0EE;
+  --warn-bd: #E3BFB8;
+  --info-bg: #EDF1F8;
+  --info-bd: #B4C4DA;
+  --mut-bg: #F7F2E8;
+  --mut-bd: #E4D8C3;
+  --gold-bg: #FBF4E6;
+  --gold-bd: #DCC79C;
+  --ok-fg: #597939;
+  --warn-fg: #C24436;
+  --info-fg: #4A6FA5;
+  --gold-fg: #8D6A38;
+  --from: #FFF6E0;
+  --to: #FFEED5;
+  --brand-meituan: #FFD400;
+  --brand-meituan-text: #000000;
+  --brand-taobao: #FF6A00;
+  --brand-taobao-text: #000000;
+  --brand-jd: #E1251B;
+  --brand-jd-text: #FFFFFF;
+  --font-display: 'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif;
+  --font-body: -apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif;
+  --font-num: 'SF Mono','Roboto Mono',Consolas,monospace;
+  --r-sm: 4px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --sp-1: 6px;
+  --sp-2: 10px;
+  --sp-3: 14px;
+  --sp-4: 20px;
+  --sp-5: 28px;
+}
+/* ── 共享外壳 ── */
+/* ─────────────────────────────────────────────────────────────
+   P0 工具集 · 共享页面外壳
+   ⚠️ 本文件**零颜色字面量**：一切颜色只能来自 `:root` token（由生成器注入）。
+      构建期断言这一条（搜不到 # / rgb( / hsl( ），否则品牌必然各写各的。
+   ⚠️ 字体分层：楷体只用于**标题 / 品牌字 / 金额大字**，正文与表格用无衬线栈。
+   ───────────────────────────────────────────────────────────── */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--gold-deep); }
+
+/* ── 顶栏 ── */
+.top {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 20;
+}
+.top .logo {
+  font-family: var(--font-display);
+  font-size: 19px; letter-spacing: .04em; color: var(--text);
+}
+.top .sub { font-size: 12px; color: var(--text2); }
+.top .spacer { flex: 1; }
+.top .ver { font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); }
+
+/* ── 页头 ── */
+.hero { padding: var(--sp-4) var(--sp-4) 0; }
+.hero h1 {
+  font-family: var(--font-display); font-size: 25px; font-weight: 400;
+  margin: 0 0 4px; letter-spacing: .02em;
+}
+.hero p { margin: 0; color: var(--text2); font-size: 13px; max-width: 78ch; }
+
+/* ── 布局 ── */
+.wrap {
+  display: flex; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4) var(--sp-5);
+  align-items: flex-start;
+}
+/* ⚠️ 侧栏必须**自己能滚**（`max-height` + `overflow-y: auto`），这不是装饰：
+   `position: sticky` 的元素一旦高于视口可用高度，底部会被**钉住不动** ——
+   滚动页面也带不上来（必须滚到**整页最底**才够得到，因为那时 sticky 才脱离钉住）。
+   实测（1440×900 笔记本，最常见的办公尺寸）：6 个带侧栏的工具里有 5 个的
+   「筛选 / 操作（导出 · 导入 · 重置）」整组够不到；G1/G2/F3 在 1080 下也够不到。
+   附带好处：对 sticky 元素 `scrollIntoView` 是无效的（滚动页面它不动），
+   给侧栏自己的滚动区之后，控件才可能被自动带进视野（自动化探针同理）。
+   62px = `.top` 的实际高度（与 `top` 一致，改一处要一起改）。 */
+.side {
+  width: 310px; flex: 0 0 310px; position: sticky; top: 62px;
+  max-height: calc(100vh - 62px - var(--sp-3));
+  overflow-y: auto; overscroll-behavior: contain;
+}
+.main { flex: 1; min-width: 0; }
+
+/* ── 卡片 ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-3);
+}
+.card > h2 {
+  font-family: var(--font-display); font-size: 16px; font-weight: 400;
+  margin: 0 0 var(--sp-2); letter-spacing: .02em;
+  display: flex; align-items: center; gap: 8px;
+}
+.card > h2 .n { font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); }
+.hint { font-size: 12px; color: var(--text2); margin: 0 0 var(--sp-2); }
+
+/* ── 表格 ── */
+.tw { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left; font-weight: 500; color: var(--text2);
+  font-size: 11.5px; letter-spacing: .04em;
+  padding: 7px 9px; border-bottom: 1px solid var(--border-strong);
+  white-space: nowrap; background: var(--surface2);
+}
+td { padding: 8px 9px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: var(--surface3); }
+td.num, th.num { text-align: right; font-family: var(--font-num); }
+td.mono { font-family: var(--font-num); font-size: 12px; }
+.big {
+  font-family: var(--font-display); font-size: 22px; line-height: 1.2;
+}
+
+/* ── 徽标 ── */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 8px; border-radius: 999px;
+  font-size: 11.5px; white-space: nowrap;
+  border: 1px solid var(--mut-bd); background: var(--mut-bg); color: var(--text2);
+}
+.pill.ok { border-color: var(--ok-bd); background: var(--ok-bg); color: var(--ok-fg); }
+.pill.warn { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.pill.info { border-color: var(--info-bd); background: var(--info-bg); color: var(--info-fg); }
+.pill.gold { border-color: var(--gold-bd); background: var(--gold-bg); color: var(--gold-fg); }
+.pill.dim { color: var(--text-disabled); }
+
+/* ── 表单 ── */
+label.f { display: block; margin-bottom: var(--sp-2); }
+label.f > span {
+  display: block; font-size: 11.5px; color: var(--text2);
+  letter-spacing: .04em; margin-bottom: 3px;
+}
+input, select, textarea {
+  width: 100%; padding: 6px 9px;
+  background: var(--surface3); color: var(--text);
+  border: 1px solid var(--border-strong); border-radius: var(--r-md);
+  font-family: var(--font-body); font-size: 13px;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--gold); background: var(--surface);
+}
+input[type=number] { font-family: var(--font-num); }
+.row2 { display: flex; gap: var(--sp-2); }
+.row2 > * { flex: 1; min-width: 0; }
+
+/* ── 按钮 ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 13px; border-radius: var(--r-md);
+  border: 1px solid var(--border-strong); background: var(--surface);
+  color: var(--text); font-size: 13px; cursor: pointer;
+}
+.btn:hover { background: var(--surface2); border-color: var(--gold); }
+.btn.primary {
+  background: var(--text); border-color: var(--text); color: var(--surface);
+  font-weight: 500;
+}
+.btn.primary:hover { background: var(--gold-deep); border-color: var(--gold-deep); }
+.btn.sm { padding: 3px 9px; font-size: 12px; }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--text2); }
+.btn.ghost:hover { background: var(--surface2); }
+.btnbar { display: flex; flex-wrap: wrap; gap: var(--sp-1); margin-bottom: var(--sp-2); }
+
+/* ── 指标格 ── */
+/* ⚠️ 阈值要按**实际可用宽度**定：侧栏 310px − 卡片左右 padding 40px = 270px，
+       minmax 定 132px 时 2×132+10(gap)=274 > 270 ⇒ 永远只排 1 列（看着像没生效）。 */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(116px, 1fr)); gap: var(--sp-1); }
+.kpi {
+  background: var(--surface3); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 9px 11px;
+}
+.kpi .k { font-size: 11.5px; color: var(--text2); letter-spacing: .04em; }
+.kpi .v { font-family: var(--font-display); font-size: 21px; line-height: 1.3; }
+.kpi .u { font-size: 12px; color: var(--text2); font-family: var(--font-body); }
+.kpi.warn { border-color: var(--warn-bd); background: var(--warn-bg); }
+.kpi.ok { border-color: var(--ok-bd); background: var(--ok-bg); }
+
+/* ── 提示条 ──
+   ⚠️ 必须是**块级正常流**，绝不能写 `display: flex`：
+      提示条文案里普遍有行内 <b> / <br> / <span class="mono">。容器一旦是 flex，
+      这些行内片段就各自变成**独立的 flex 子项**，被挤成一条条窄列、每个子项还自己
+      内部换行 —— 长文案整段会散开（G2 概览那两条实测就是 9 个子项排一行，字距被拉满、
+      末行也被撑开）。**副作用迟发**：文案短、能挤进一行时看着完全正常（G1/M1 就是这样
+      过关的），所以这个坑很晚才露头。
+      原来是 flex + `gap: 8px`；块级子元素之间的留白改由下面两条规则承担。 */
+.note {
+  display: block;
+  padding: 8px 11px; border-radius: var(--r-md);
+  border: 1px solid var(--mut-bd); background: var(--mut-bg);
+  font-size: 12.5px; color: var(--text2); margin-bottom: var(--sp-3);
+}
+.note.warn { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.note.ok { border-color: var(--ok-bd); background: var(--ok-bg); color: var(--ok-fg); }
+.note.info { border-color: var(--info-bd); background: var(--info-bg); color: var(--info-fg); }
+.note b { color: inherit; }
+/* 块级子元素之间留白（替代原来的 flex gap: 8px）—— 行内元素不受影响 */
+.note > div + div { margin-top: 6px; }
+/* 药丸横排（原来靠 flex 的 gap 撑开，块级流下要自己给左边距） */
+.note > .pill + .pill { margin-left: 4px; }
+
+/* ── 分段控件（tab）── */
+.seg { display: flex; gap: 2px; padding: 3px; background: var(--surface2); border-radius: var(--r-md); border: 1px solid var(--border); }
+.seg button {
+  border: 0; background: transparent; color: var(--text2);
+  padding: 5px 13px; border-radius: var(--r-sm); cursor: pointer; font: inherit; font-size: 13px;
+}
+.seg button.on { background: var(--surface); color: var(--text); font-weight: 500; }
+
+/* ── 条形图 ── */
+.bar { height: 8px; border-radius: 999px; background: var(--surface2); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--gold); }
+.bar.warn > i { background: var(--warn); }
+.bar.ok > i { background: var(--ok); }
+
+/* ── 自检条 ── */
+.gate {
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--surface3); padding: 8px 11px; font-size: 12.5px;
+}
+.gate .g { display: flex; gap: 7px; align-items: baseline; padding: 1px 0; }
+.gate .g i { font-style: normal; font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); flex: 0 0 auto; }
+.gate .g .t { color: var(--text2); }
+.gate .g.bad .t { color: var(--warn-fg); }
+
+/* ── 页脚 ── */
+.foot {
+  padding: var(--sp-4); color: var(--text-disabled); font-size: 11.5px;
+  border-top: 1px solid var(--border); margin-top: var(--sp-5);
+}
+
+/* ── 窄屏：单列堆叠（断点与项目后台一致，避免出现第二份断点表述）── */
+@media (max-width: 768px) {
+  .wrap { flex-direction: column; padding: var(--sp-2); }
+  /* ⚠️ 落到单列后必须**解除**侧栏的自身滚动区：否则手机上会出现一个 1/4 屏高的小滚动盒，
+        里面的卡片被裁掉一半 —— 那是「为修一个坑造一个新坑」。 */
+  .side { width: 100%; flex: auto; position: static; max-height: none; overflow-y: visible; }
+  .hero { padding: var(--sp-3) var(--sp-2) 0; }
+  table { font-size: 12px; }
+}
+
+/* ── 本系统 ── */
+/* ─────────────────────────────────────────────────────────────
+   G1 楼宇拓展作战地图 · 本系统样式
+   ⚠️ 零颜色字面量：颜色一律走 token（构建期判据②会拦）。
+   ───────────────────────────────────────────────────────────── */
+
+/* 线索表列多（12 列）⇒ 给一个最小宽度，窄屏走横向滚动而不是把单元格挤成竖排 */
+#main .tw table { min-width: 1180px; }
+
+/* 行内编辑器要"看得出能改"：比普通文本稍窄、底色区分，聚焦时高亮 */
+#main td input,
+#main td select {
+  padding: 3px 6px;
+  font-size: 12.5px;
+  background: var(--surface2);
+  border-color: var(--border);
+}
+#main td input[data-t="1"] { min-width: 132px; }
+#main td input:focus,
+#main td select:focus {
+  background: var(--surface);
+  border-color: var(--gold);
+}
+#main td input[type="number"] { width: 62px; text-align: right; }
+#main td input[type="date"] { width: 122px; font-family: var(--font-num); font-size: 11.5px; }
+
+/* 待办表：逾期行整行可扫出来（不靠颜色单独承载信息，另配「逾 N 天」标签） */
+#main tbody tr[data-lead] td:first-child { white-space: nowrap; }
+
+/* 漏斗条：数值在条上方，条本身只表达量级 */
+#main .bar { height: 10px; }
+
+/* 挑选器（新增线索表单里的「楼群」下拉）在窄侧栏里别撑破 */
+#side select { max-width: 100%; }
+
+</style></head><body>
+<header class="top"><div class="logo">ABox 一盒</div><div class="sub">楼宇拓展作战地图 · 内部工具</div><div class="spacer"></div><div class="ver">版本 <span id="ver"></span> · 基准日 <span id="date"></span></div></header>
+<div class="hero"><h1>楼宇拓展作战地图</h1><p>把「跑楼」从凭手感变成有命中率的过程 —— 谈过的楼不再散在聊天记录里：谁在跟、谈到哪、下一步做什么、为什么没成，一屏看完，并且告诉你该先攻哪栋。</p></div>
+<div class="wrap"><aside class="side" id="side"></aside><main class="main" id="main"></main></div>
+<footer class="foot" id="foot">ABox 一盒 · G1 楼宇拓展作战地图v1.0 · 楼名/地址/覆盖人数取自 ab_building（seed.ts 真源），阶段由 ab_building.status 映射 · 楼层数/入驻公司数/周边餐饮均价/已进楼层与跟进记录为<b>演示占位</b>，上手后按实际替换 · 改动只存本机浏览器，不上传任何数据</footer>
+<script>
+window.TOOL_VERSION = "v1.0";
+window.SPEC = {"_generated_by":"_tmp/p0/g1/extract.py","_doctrine":"真源与人工调研分开标注；阶段由 status 映射；打分权重可调且必须和为 1；日期一律存相对偏移（否则产物第二天整体过期）。","brand":{"name":"ABox 一盒","company":"北京巡礼之年科技有限公司"},"tokens":{"value":{"bg":"#F6F0E5","surface":"#FFFDF8","surface2":"#F7F1E4","surface3":"#FBF6EC","text":"#6E5435","text2":"#796C57","text-disabled":"#A79A85","gold":"#C9A876","gold-deep":"#936F3A","gold-deepest":"#8A6620","border":"#E4D8C3","border-strong":"#D6CBB8","ok":"#5B7C3A","warn":"#C44536","info":"#4A6FA5","ok-bg":"#F1F5EA","ok-bd":"#BBCBA6","warn-bg":"#FBF0EE","warn-bd":"#E3BFB8","info-bg":"#EDF1F8","info-bd":"#B4C4DA","mut-bg":"#F7F2E8","mut-bd":"#E4D8C3","gold-bg":"#FBF4E6","gold-bd":"#DCC79C","ok-fg":"#597939","warn-fg":"#C24436","info-fg":"#4A6FA5","gold-fg":"#8D6A38","from":"#FFF6E0","to":"#FFEED5","brand-meituan":"#FFD400","brand-meituan-text":"#000000","brand-taobao":"#FF6A00","brand-taobao-text":"#000000","brand-jd":"#E1251B","brand-jd-text":"#FFFFFF","font-display":"'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif","font-body":"-apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif","font-num":"'SF Mono','Roboto Mono',Consolas,monospace","r-sm":"4px","r-md":"10px","r-lg":"16px","sp-1":"6px","sp-2":"10px","sp-3":"14px","sp-4":"20px","sp-5":"28px"},"_src":"_ABox一盒设计token真源v2.1/design-tokens.css"},"env":{"unitPrice":25.8,"supplierTotal":14.0,"distributionCenter":5.0,"cutoffHour":24,"commission":{"trainee":0.08,"formal":0.09,"gold":0.1,"chief":0.12},"_src":"abox-onebox/.env.example"},"buildings":{"list":[{"id":1,"groupId":1,"name":"国贸三期 A 座","address":"建国门外大街 1 号 A 座","city":"北京","district":"朝阳区","population":520,"status":1},{"id":2,"groupId":1,"name":"国贸三期 B 座","address":"建国门外大街 1 号 B 座","city":"北京","district":"朝阳区","population":480,"status":1},{"id":3,"groupId":1,"name":"国贸三期 C 座","address":"建国门外大街 1 号 C 座","city":"北京","district":"朝阳区","population":310,"status":2},{"id":4,"groupId":1,"name":"国贸三期 D 座","address":"建国门外大街 1 号 D 座","city":"北京","district":"朝阳区","population":250,"status":1},{"id":5,"groupId":2,"name":"建外 SOHO 北区","address":"东三环中路 39 号","city":"北京","district":"朝阳区","population":480,"status":1},{"id":6,"groupId":3,"name":"银泰中心 1 栋","address":"建国门外大街 2 号 1 栋","city":"北京","district":"朝阳区","population":360,"status":1},{"id":7,"groupId":3,"name":"银泰中心 2 栋","address":"建国门外大街 2 号 2 栋","city":"北京","district":"朝阳区","population":320,"status":1},{"id":8,"groupId":4,"name":"华贸 1 号楼","address":"建国路 79 号 1 号楼","city":"北京","district":"朝阳区","population":380,"status":1},{"id":9,"groupId":4,"name":"华贸 2 号楼","address":"建国路 79 号 2 号楼","city":"北京","district":"朝阳区","population":280,"status":1},{"id":10,"groupId":4,"name":"华贸 3 号楼","address":"建国路 79 号 3 号楼","city":"北京","district":"朝阳区","population":260,"status":3},{"id":11,"groupId":5,"name":"远洋光华 AB 座","address":"光华路 9 号 AB 座","city":"北京","district":"朝阳区","population":320,"status":1},{"id":12,"groupId":5,"name":"远洋光华 C 座","address":"光华路 9 号 C 座","city":"北京","district":"朝阳区","population":200,"status":1}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts","_note":"status 三态：1 营业中 / 2 待开通 / 3 已暂停；population 是运营估算覆盖人数，非实时统计"},"buildingGroups":{"list":[{"id":1,"name":"国贸三期组","city":"北京","district":"朝阳区","status":1},{"id":2,"name":"建外 SOHO 组","city":"北京","district":"朝阳区","status":1},{"id":3,"name":"银泰中心组","city":"北京","district":"朝阳区","status":1},{"id":4,"name":"华贸组","city":"北京","district":"朝阳区","status":1},{"id":5,"name":"远洋光华组","city":"北京","district":"朝阳区","status":1}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts"},"stages":{"list":[{"key":"lead","label":"线索","rank":0,"tone":"dim","kind":"funnel","why":"知道这栋楼，但还没接触过对接人"},{"key":"contacted","label":"接触","rank":1,"tone":"info","kind":"funnel","why":"已联系上对接人（行政 / 前台 / 物业）"},{"key":"tasted","label":"试吃","rank":2,"tone":"gold","kind":"funnel","why":"已安排试吃或试供，等对方反馈"},{"key":"signed","label":"签约","rank":3,"tone":"gold","kind":"funnel","why":"已签、待开通（对应楼栋状态「待开通」）"},{"key":"live","label":"上线","rank":4,"tone":"ok","kind":"funnel","why":"已在出餐（对应楼栋状态「营业中」）"},{"key":"paused","label":"已暂停","rank":5,"tone":"warn","kind":"side","why":"曾上线、现停；要写「什么时候评估恢复」"},{"key":"dropped","label":"已放弃","rank":-1,"tone":"warn","kind":"lost","why":"明确不成；**必须写原因**，否则两周后就忘了为什么没成"}],"funnelKeys":["lead","contacted","tasted","signed","live"],"sideKeys":["paused"],"lostKeys":["dropped"]},"factors":{"list":[{"key":"people","label":"楼内人数","weight":0.3,"unit":"人","kind":"ramp","cap":600,"why":"密度生意的核心；同一栋楼 100 单与 20 单配送成本几乎一样，毛利差 5 倍","src":"真源（population）"},{"key":"cluster","label":"楼群协同（同组已上线楼数）","weight":0.25,"unit":"栋","kind":"ramp","cap":2,"why":"同楼群已有上线楼 ⇒ 配送与备餐可复用，边际成本显著低（这是 ABox 真正的杠杆）","src":"算出（真源楼栋 + 阶段）"},{"key":"mealPrice","label":"周边餐饮均价","weight":0.2,"unit":"元/餐","kind":"range","floor":15,"cap":40,"why":"均价越高，¥25.80 四菜一饭的性价比优势越大；低于 15 元/餐则没有价格空间","src":"人工调研"},{"key":"companies","label":"入驻公司数","weight":0.15,"unit":"家","kind":"ramp","cap":40,"why":"公司多 ⇒ 口味分散、单次决策影响小，但总盘子大；也意味着要多点位","src":"人工调研"},{"key":"floors","label":"楼层数","weight":0.1,"unit":"层","kind":"ramp","cap":35,"why":"楼层多 ⇒ 可分层渗透，天花板高；层少则很快见顶","src":"人工调研"}],"bands":[{"key":"A","label":"优先攻","min":75,"tone":"ok","why":"排进本周动作"},{"key":"B","label":"可以谈","min":60,"tone":"gold","why":"有空档再上"},{"key":"C","label":"先放着","min":0,"tone":"dim","why":"不投人力，等密度溢出"}],"minFactors":3},"seedStageMap":{"1":"live","2":"signed","3":"paused"},"leads":{"list":[{"id":"S-01","src":"seed","buildingId":1,"name":"国贸三期 A 座","address":"建国门外大街 1 号 A 座","city":"北京","district":"朝阳区","groupId":1,"population":520,"floors":38,"companies":26,"mealPrice":32,"floorsEntered":8,"stage":"live","owner":"祝总","nextAction":"与 A 座行政确认 10 月档期与可放点位","nextDueOffset":2,"reached":null,"loseReason":null,"touches":[{"atOffset":-9,"by":"祝总","what":"前台转行政，拿到对接人微信"},{"atOffset":-2,"by":"祝总","what":"发了报价单与试吃安排，对方要内部过一下"}],"note":"楼栋状态「营业中」→ 阶段「live」"},{"id":"S-02","src":"seed","buildingId":2,"name":"国贸三期 B 座","address":"建国门外大街 1 号 B 座","city":"北京","district":"朝阳区","groupId":1,"population":480,"floors":34,"companies":24,"mealPrice":32,"floorsEntered":6,"stage":"live","owner":"祝总","nextAction":"约 B 座行政现场看取餐点位（电梯厅 / 茶水间）","nextDueOffset":4,"reached":null,"loseReason":null,"touches":[{"atOffset":-8,"by":"祝总","what":"电话沟通，对方关心出餐时间能否 11:30 前"},{"atOffset":-1,"by":"祝总","what":"补发了 11:30 送达的说明与实拍图"}],"note":"楼栋状态「营业中」→ 阶段「live」"},{"id":"S-03","src":"seed","buildingId":3,"name":"国贸三期 C 座","address":"建国门外大街 1 号 C 座","city":"北京","district":"朝阳区","groupId":1,"population":310,"floors":30,"companies":18,"mealPrice":30,"floorsEntered":0,"stage":"signed","owner":"祝总","nextAction":"C 座行政确认开通时间（已签约，卡在对方装修）","nextDueOffset":7,"reached":null,"loseReason":null,"touches":[{"atOffset":-20,"by":"祝总","what":"签约完成"},{"atOffset":-6,"by":"祝总","what":"对方说装修延到 10 月中，先挂起"}],"note":"楼栋状态「待开通」→ 阶段「signed」"},{"id":"S-04","src":"seed","buildingId":4,"name":"国贸三期 D 座","address":"建国门外大街 1 号 D 座","city":"北京","district":"朝阳区","groupId":1,"population":250,"floors":28,"companies":15,"mealPrice":30,"floorsEntered":4,"stage":"live","owner":"祝总","nextAction":"D 座补一个 6F 的点位（当前只覆盖 2 个楼层）","nextDueOffset":3,"reached":null,"loseReason":null,"touches":[{"atOffset":-11,"by":"祝总","what":"已上线"},{"atOffset":-4,"by":"祝总","what":"6F 前台说可以帮忙放一份样品"}],"note":"楼栋状态「营业中」→ 阶段「live」"},{"id":"S-05","src":"seed","buildingId":5,"name":"建外 SOHO 北区","address":"东三环中路 39 号","city":"北京","district":"朝阳区","groupId":2,"population":480,"floors":22,"companies":40,"mealPrice":28,"floorsEntered":3,"stage":"live","owner":"祝总","nextAction":"北区谈第二个点位（南区已覆盖）","nextDueOffset":-1,"reached":null,"loseReason":null,"touches":[{"atOffset":-14,"by":"祝总","what":"已上线南区"},{"atOffset":-3,"by":"祝总","what":"南区反馈挺好，问能不能加一个点"}],"note":"楼栋状态「营业中」→ 阶段「live」"},{"id":"S-06","src":"seed","buildingId":6,"name":"银泰中心 1 栋","address":"建国门外大街 2 号 1 栋","city":"北京","district":"朝阳区","groupId":3,"population":360,"floors":30,"companies":22,"mealPrice":34,"floorsEntered":5,"stage":"live","owner":"祝总","nextAction":"1 栋按楼层推一轮（当前只有 5 层有单）","nextDueOffset":6,"reached":null,"loseReason":null,"touches":[{"atOffset":-12,"by":"祝总","what":"已上线"},{"atOffset":-5,"by":"祝总","what":"把楼层清单给了团长，让她逐层扫"}],"note":"楼栋状态「营业中」→ 阶段「live」"},{"id":"S-07","src":"seed","buildingId":7,"name":"银泰中心 2 栋","address":"建国门外大街 2 号 2 栋","city":"北京","district":"朝阳区","groupId":3,"population":320,"floors":30,"companies":20,"mealPrice":34,"floorsEntered":4,"stage":"live","owner":"祝总","nextAction":"2 栋核对中午出餐量是否够（上周有 2 次提前售完）","nextDueOffset":1,"reached":null,"loseReason":null,"touches":[{"atOffset":-10,"by":"祝总","what":"已上线"},{"atOffset":-2,"by":"祝总","what":"有两天下单量超出备货，需要上调报量"}],"note":"楼栋状态「营业中」→ 阶段「live」"},{"id":"S-08","src":"seed","buildingId":8,"name":"华贸 1 号楼","address":"建国路 79 号 1 号楼","city":"北京","district":"朝阳区","groupId":4,"population":380,"floors":32,"companies":20,"mealPrice":36,"floorsEntered":6,"stage":"live","owner":"祝总","nextAction":"把团长覆盖到 8F 以上（当前只到 6F）","nextDueOffset":2,"reached":null,"loseReason":null,"touches":[{"atOffset":-13,"by":"祝总","what":"已上线"},{"atOffset":-3,"by":"祝总","what":"跟团长过了一遍高层公司名单"}],"note":"楼栋状态「营业中」→ 阶段「live」"},{"id":"S-09","src":"seed","buildingId":9,"name":"华贸 2 号楼","address":"建国路 79 号 2 号楼","city":"北京","district":"朝阳区","groupId":4,"population":280,"floors":26,"companies":16,"mealPrice":36,"floorsEntered":4,"stage":"live","owner":"祝总","nextAction":"2 号楼上调报量（周五明显不够卖）","nextDueOffset":0,"reached":null,"loseReason":null,"touches":[{"atOffset":-12,"by":"祝总","what":"已上线"},{"atOffset":-4,"by":"祝总","what":"周五 12:10 就没了，多人问"}],"note":"楼栋状态「营业中」→ 阶段「live」"},{"id":"S-10","src":"seed","buildingId":10,"name":"华贸 3 号楼","address":"建国路 79 号 3 号楼","city":"北京","district":"朝阳区","groupId":4,"population":260,"floors":24,"companies":12,"mealPrice":34,"floorsEntered":2,"stage":"paused","owner":"祝总","nextAction":"评估 3 号楼是否恢复（当时因为装修停的，现在装修完了）","nextDueOffset":5,"reached":null,"loseReason":null,"touches":[{"atOffset":-30,"by":"祝总","what":"已上线"},{"atOffset":-21,"by":"祝总","what":"对方楼里整体装修，暂停"},{"atOffset":-7,"by":"祝总","what":"路过看到装修完工"}],"note":"楼栋状态「已暂停」→ 阶段「paused」"},{"id":"S-11","src":"seed","buildingId":11,"name":"远洋光华 AB 座","address":"光华路 9 号 AB 座","city":"北京","district":"朝阳区","groupId":5,"population":320,"floors":20,"companies":28,"mealPrice":33,"floorsEntered":4,"stage":"live","owner":"祝总","nextAction":"AB 座加一个 B 座侧门点位","nextDueOffset":3,"reached":null,"loseReason":null,"touches":[{"atOffset":-15,"by":"祝总","what":"已上线"},{"atOffset":-5,"by":"祝总","what":"A 座侧门出入的人比正门还多"}],"note":"楼栋状态「营业中」→ 阶段「live」"},{"id":"S-12","src":"seed","buildingId":12,"name":"远洋光华 C 座","address":"光华路 9 号 C 座","city":"北京","district":"朝阳区","groupId":5,"population":200,"floors":18,"companies":14,"mealPrice":33,"floorsEntered":2,"stage":"live","owner":"祝总","nextAction":"C 座先观察两周（份数一直在 5 上下，不够密度）","nextDueOffset":-2,"reached":null,"loseReason":null,"touches":[{"atOffset":-16,"by":"祝总","what":"已上线"},{"atOffset":-6,"by":"祝总","what":"日均 5 份，暂时不值得再投人力"}],"note":"楼栋状态「营业中」→ 阶段「live」"},{"id":"C-01","src":"manual","buildingId":null,"name":"演示·国贸三期 E 座","address":"建国门外大街 1 号 E 座","city":"北京","district":"朝阳区","groupId":1,"population":420,"floors":30,"companies":19,"mealPrice":31,"floorsEntered":0,"stage":"contacted","owner":"祝总","nextAction":"拿到 E 座行政的电话（B 座行政说她认识）","nextDueOffset":3,"reached":null,"loseReason":null,"touches":[{"atOffset":-4,"by":"祝总","what":"B 座行政提到 E 座也在同一物业，可以引荐"}],"note":"人工登记（演示占位）"},{"id":"C-02","src":"manual","buildingId":null,"name":"演示·嘉里中心 A 座","address":"光华路 1 号 A 座","city":"北京","district":"朝阳区","groupId":5,"population":560,"floors":34,"companies":22,"mealPrice":45,"floorsEntered":0,"stage":"tasted","owner":"祝总","nextAction":"等对方行政回复试吃评价（已送 10 份）","nextDueOffset":1,"reached":null,"loseReason":null,"touches":[{"atOffset":-7,"by":"祝总","what":"物业引荐到行政，同意先试吃"},{"atOffset":-2,"by":"祝总","what":"送了 10 份到 12F 会议室"}],"note":"人工登记（演示占位）"},{"id":"C-03","src":"manual","buildingId":null,"name":"演示·环球金融中心","address":"东三环中路 1 号","city":"北京","district":"朝阳区","groupId":2,"population":700,"floors":40,"companies":null,"mealPrice":48,"floorsEntered":0,"stage":"lead","owner":"","nextAction":"","nextDueOffset":null,"reached":null,"loseReason":null,"touches":[],"note":"人工登记（演示占位）"},{"id":"C-04","src":"manual","buildingId":null,"name":"演示·京汇大厦","address":"建国路 87 号","city":"北京","district":"朝阳区","groupId":4,"population":240,"floors":16,"companies":9,"mealPrice":22,"floorsEntered":0,"stage":"dropped","owner":"祝总","nextAction":"","nextDueOffset":null,"reached":"contacted","loseReason":"对方物业要求抽 30% 分成，且必须先交 3 万元进场费 —— 单楼份数撑不起，直接放掉","touches":[{"atOffset":-25,"by":"祝总","what":"物业报价：抽成 30% + 进场费 3 万"},{"atOffset":-18,"by":"祝总","what":"算了下这笔账，放掉"}],"note":"人工登记（演示占位）"},{"id":"C-05","src":"manual","buildingId":null,"name":"演示·银泰中心 3 栋","address":"建国门外大街 2 号 3 栋","city":"北京","district":"朝阳区","groupId":3,"population":300,"floors":26,"companies":null,"mealPrice":null,"floorsEntered":0,"stage":"lead","owner":"","nextAction":"","nextDueOffset":null,"reached":null,"loseReason":null,"touches":[],"note":"人工登记（演示占位）"}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts","_note":"楼名 / 地址 / 楼群 / 覆盖人数取自 seed.ts（真源）；阶段由 ab_building.status 映射。**楼层数 / 入驻公司数 / 周边餐饮均价 / 已进楼层 是人工调研字段**（原型里没有）；跟进记录（谁在跟 / 下一步 / 谈过什么）同样是人工填的 —— 这些值都是**演示占位**，上手后请按实际调研替换，替换后潜力分与漏斗会自动重算。（「已放弃」的行必须填 `reached`＝谈到过哪一步，否则漏斗算不出它走到哪就断了。）"},"buildDay":"2026-09-24","_srcs":{"tokens":"_ABox一盒设计token真源v2.1/design-tokens.css","biz":"abox-onebox/packages/shared-utils/src/biz.ts","seed":"abox-onebox/apps/api-server/src/database/seeds/seed.ts"}};
+/* ─────────────────────────────────────────────────────────────
+   P0 工具集 · 共享工具函数（纯函数为主，不碰业务）
+   ⚠️ 必须以「普通脚本」形式可被 eval（构建期启动冒烟要用），
+      故不使用 ESM 语法，只挂 `window.U`。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var U = {};
+
+  /* ── DOM ── */
+  U.$ = function (sel, root) { return (root || document).querySelector(sel); };
+  U.$$ = function (sel, root) {
+    return Array.prototype.slice.call((root || document).querySelectorAll(sel));
+  };
+  /** 绑定事件：一律挂到 document，用 closest 分发（兄弟节点挂错容器是本项目踩过的坑） */
+  U.on = function (evt, sel, fn) {
+    document.addEventListener(evt, function (e) {
+      var t = e.target && e.target.closest ? e.target.closest(sel) : null;
+      if (t) fn(e, t);
+    });
+  };
+
+  /* ── 文本 ── */
+  U.esc = function (s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  };
+  /** 数值格式化；null/undefined/NaN 一律回显 '—'（不要显示 NaN） */
+  U.num = function (v, d) {
+    if (v == null || v === '' || !isFinite(Number(v))) return '—';
+    return Number(v).toFixed(d == null ? 2 : d);
+  };
+  /** 金额：¥ + 两位小数 */
+  U.y = function (v, d) {
+    if (v == null || v === '' || !isFinite(Number(v))) return '—';
+    return '¥' + Number(v).toFixed(d == null ? 2 : d);
+  };
+  /** 分 → 元（项目内金额一律「存分、显示元」，避免浮点） */
+  U.fen2y = function (fen, d) {
+    if (fen == null || !isFinite(Number(fen))) return '—';
+    return '¥' + (Number(fen) / 100).toFixed(d == null ? 2 : d);
+  };
+  U.y2fen = function (y) { return Math.round(Number(y || 0) * 100); };
+  /** 归一两位小数（复刻 biz.ts 的 round2 语义：先乘后再四舍五入） */
+  U.round2 = function (n) { return Math.round((Number(n) + Number.EPSILON) * 100) / 100; };
+
+  /* ── 日期（一律 YYYY-MM-DD 字符串 · 本地时区 · 不碰 UTC）── */
+  U.pad2 = function (n) { return (n < 10 ? '0' : '') + n; };
+  U.today = function (d) {
+    d = d || new Date();
+    return d.getFullYear() + '-' + U.pad2(d.getMonth() + 1) + '-' + U.pad2(d.getDate());
+  };
+  /** 字符串 → Date（本地零点）；非法返回 null —— 绝不返回 Invalid Date 让它往下跑 */
+  U.dt = function (s) {
+    if (!s) return null;
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s).trim());
+    if (!m) return null;
+    var d = new Date(+m[1], +m[2] - 1, +m[3]);
+    return isNaN(d.getTime()) ? null : d;
+  };
+  U.addDays = function (s, n) {
+    var d = U.dt(s); if (!d) return null;
+    d.setDate(d.getDate() + n);
+    return U.today(d);
+  };
+  /** b − a 的天数（两个 YYYY-MM-DD）；任一非法返回 null */
+  U.diffDays = function (a, b) {
+    var x = U.dt(a), y2 = U.dt(b);
+    if (!x || !y2) return null;
+    return Math.round((y2.getTime() - x.getTime()) / 86400000);
+  };
+  /** 校验：是不是合法的 YYYY-MM-DD（且日期真实存在，如 2026-02-30 判非法） */
+  U.isDate = function (s) {
+    var d = U.dt(s);
+    return !!d && U.today(d) === String(s).trim();
+  };
+
+  /* ── 本地存储（file:// 下 localStorage 可能直接抛异常，必须容错）── */
+  U.store = {
+    get: function (k, dflt) {
+      try {
+        var v = g.localStorage.getItem(k);
+        return v == null ? dflt : JSON.parse(v);
+      } catch (e) { return dflt; }
+    },
+    set: function (k, v) {
+      try { g.localStorage.setItem(k, JSON.stringify(v)); return true; }
+      catch (e) { return false; }
+    },
+    del: function (k) {
+      try { g.localStorage.removeItem(k); return true; } catch (e) { return false; }
+    },
+    /** 存储是否可用（不可用时页面要提示「本次改动不会保存」） */
+    ok: function () {
+      try {
+        g.localStorage.setItem('__t', '1'); g.localStorage.removeItem('__t');
+        return true;
+      } catch (e) { return false; }
+    },
+  };
+
+  /* ── 导出 / 导入 ── */
+  U.download = function (name, text, mime) {
+    var blob = new Blob([text], { type: (mime || 'text/plain') + ';charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 0);
+  };
+  U.pickFile = function (accept, fn) {
+    var i = document.createElement('input');
+    i.type = 'file'; i.accept = accept || '.json';
+    i.onchange = function () {
+      var f = i.files && i.files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function () { fn(String(r.result), f); };
+      r.readAsText(f, 'utf-8');
+    };
+    i.click();
+  };
+  /** CSV：单元格内的引号/逗号/换行都要转义，否则 Excel 打开就串列 */
+  U.toCSV = function (rows) {
+    return rows.map(function (r) {
+      return r.map(function (c) {
+        var s = c == null ? '' : String(c);
+        return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      }).join(',');
+    }).join('\r\n');
+  };
+
+  /* ── 数组 ── */
+  U.groupBy = function (arr, keyFn) {
+    var out = {};
+    (arr || []).forEach(function (x) {
+      var k = keyFn(x);
+      (out[k] = out[k] || []).push(x);
+    });
+    return out;
+  };
+  U.sum = function (arr, fn) {
+    return (arr || []).reduce(function (s, x) { return s + (Number(fn ? fn(x) : x) || 0); }, 0);
+  };
+  U.sortBy = function (arr, fn, dir) {
+    var d = dir === 'desc' ? -1 : 1;
+    return (arr || []).slice().sort(function (a, b) {
+      var x = fn(a), y2 = fn(b);
+      if (x == null && y2 == null) return 0;
+      if (x == null) return 1;        /* 空值恒排末尾，不参与方向翻转 */
+      if (y2 == null) return -1;
+      return x < y2 ? -d : x > y2 ? d : 0;
+    });
+  };
+
+  g.U = U;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ─────────────────────────────────────────────────────────────
+   G1 楼宇拓展作战地图 · 纯逻辑层
+
+   ⭐ 三件事各自有唯一实现，页面与判据都调它们：
+      · 潜力分 = Σ(归一化因子 × 权重) ÷ 有数据因子的权重和 × 100
+      · 漏斗转化按「**到过的最高阶段**」累计算（不是「当前停在哪」——
+        停在「签约」的 1 栋也一定到过「线索」，用停留数算转化率会得到 >100% 的假数）
+      · 已谈/在谈 = 阶段 rank ≥ 1 **或** 有过接触记录；这一集合必须「各有下一步」
+
+   ⚠️ 缺调研的因子**不能当 0 算**（那会把「没调研」惩罚成「这栋楼不行」）。
+      做法：只对有数据的因子按归一化权重加权，并显式返回 `missing` 与 `estimated`；
+      页面对 estimated 的分数必须打「估计值」标记。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var U = g.U, SPEC = g.SPEC;
+  var STAGES = SPEC.stages.list || [];
+  var FACTORS = SPEC.factors.list || [];
+  var BANDS = SPEC.factors.bands || [];
+  var MIN_F = Number(SPEC.factors.minFactors || 3);
+  var LEADS = SPEC.leads.list || [];
+
+  var STAGE = {}, RANK = {};
+  STAGES.forEach(function (s) { STAGE[s.key] = s; RANK[s.key] = s.rank; });
+  var FUNNEL = SPEC.stages.funnelKeys || [];
+  var FRANK = {};
+  FUNNEL.forEach(function (k, i) { FRANK[k] = i; });
+
+  var BLD = {}, GRP = {};
+  (SPEC.buildings.list || []).forEach(function (b) { BLD[b.id] = b; });
+  (SPEC.buildingGroups.list || []).forEach(function (x) { GRP[x.id] = x; });
+
+  function round6(x) { return Math.round(x * 1e6) / 1e6; }
+  function clamp01(x) { return x < 0 ? 0 : (x > 1 ? 1 : x); }
+
+  /* ── 因子归一化 ────────────────────────────────────────── */
+  /** ramp：raw / cap（截到 1）；range：把 [floor, cap] 线性拉到 [0,1] */
+  function normalize(f, raw) {
+    if (raw == null || raw === '' || isNaN(Number(raw))) return null;
+    var v = Number(raw);
+    if (f.kind === 'range') {
+      var lo = Number(f.floor), hi = Number(f.cap);
+      if (!(hi > lo)) return null;
+      return clamp01((v - lo) / (hi - lo));
+    }
+    if (!(Number(f.cap) > 0)) return null;
+    return clamp01(v / Number(f.cap));
+  }
+
+  /** 同楼群**其他**已上线楼数（不含自己）—— 协同来自邻居，不是自己 */
+  function clusterLive(lead, all) {
+    return (all || []).filter(function (x) {
+      return x.groupId === lead.groupId && x.id !== lead.id && x.stage === 'live';
+    }).length;
+  }
+
+  function rawOf(lead, key, all) {
+    if (key === 'people') return lead.population;
+    if (key === 'cluster') return clusterLive(lead, all);
+    if (key === 'mealPrice') return lead.mealPrice;
+    if (key === 'companies') return lead.companies;
+    if (key === 'floors') return lead.floors;
+    return null;
+  }
+
+  function weightsOf(w) {
+    var out = {};
+    FACTORS.forEach(function (f) { out[f.key] = w && w[f.key] != null ? Number(w[f.key]) : f.weight; });
+    return out;
+  }
+  function weightSum(w) {
+    var s = 0; FACTORS.forEach(function (f) { s += w[f.key]; });
+    return round6(s);
+  }
+
+  function bandOf(value) {
+    for (var i = 0; i < BANDS.length; i++) if (value >= BANDS[i].min) return BANDS[i];
+    return null;
+  }
+
+  function score(lead, weights, all) {
+    var w = weightsOf(weights);
+    var rows = [], presentW = 0, hit = 0;
+    FACTORS.forEach(function (f) {
+      var raw = rawOf(lead, f.key, all);
+      var nrm = normalize(f, raw);
+      var wt = w[f.key];
+      rows.push({ key: f.key, label: f.label, raw: raw, norm: nrm, weight: wt,
+                  contrib: nrm == null ? null : round6(nrm * wt),
+                  missing: nrm == null, unit: f.unit, why: f.why, src: f.src,
+                  cap: f.cap, floor: f.floor });
+      if (nrm != null) { presentW += wt; hit += nrm * wt; }
+    });
+    var value = presentW > 0 ? Math.round(hit / presentW * 100) : null;
+    var missing = rows.filter(function (x) { return x.missing; });
+    /* ⚠️ 有数据因子太少就**不给分**：刚登记的线索若只填了人数，会靠「楼群协同」一项
+       （上限才 2 栋，极易满格）拿到 100 分 —— 那是个假分数，不如显示「数据不足」。 */
+    var insufficient = (rows.length - missing.length) < MIN_F;
+    if (insufficient) value = null;
+    return {
+      factors: rows, value: value, band: value == null ? null : bandOf(value),
+      presentWeight: round6(presentW), totalWeight: weightSum(w),
+      presentCount: rows.length - missing.length, factorCount: rows.length,
+      minFactors: MIN_F, insufficient: insufficient,
+      missing: missing.map(function (x) { return x.label; }),
+      /* 有因子缺失 ⇒ 分数是**估计值**（等价于假定缺失项不拖后腿，故可能偏高） */
+      estimated: missing.length > 0 && !insufficient,
+      reason: insufficient
+        ? '数据不足（仅 ' + (rows.length - missing.length) + '/' + rows.length
+          + ' 个因子有数据，至少需 ' + MIN_F + ' 个）'
+        : null,
+    };
+  }
+
+  /* ── 阶段与漏斗 ────────────────────────────────────────── */
+  /** 到过的最高阶段：已上线/已暂停都到过「上线」；已放弃取手填的 reached */
+  function reachedKey(lead) {
+    if (lead.stage === 'dropped') return lead.reached || null;
+    if (lead.stage === 'paused') return 'live';
+    return lead.stage;
+  }
+  function reachedRank(lead) { var k = reachedKey(lead); return k == null ? null : FRANK[k]; }
+
+  function funnel(all) {
+    var list = all || LEADS;
+    var rows = FUNNEL.map(function (k, i) {
+      var at = list.filter(function (l) { return l.stage === k; });
+      var reached = list.filter(function (l) { var r = reachedRank(l); return r != null && r >= i; });
+      var prevReached = i === 0 ? reached.length
+        : list.filter(function (l) { var r = reachedRank(l); return r != null && r >= i - 1; }).length;
+      return {
+        key: k, label: STAGE[k].label, rank: i, tone: STAGE[k].tone, why: STAGE[k].why,
+        at: at.length, reached: reached.length,
+        convFromPrev: (i === 0 || prevReached === 0) ? null : reached.length / prevReached,
+        convFromTop: reached.length ? reached.length / Math.max(1, list.filter(function (l) {
+          var r = reachedRank(l); return r != null && r >= 0; }).length) : 0,
+      };
+    });
+    var lost = list.filter(function (l) { return STAGE[l.stage].kind === 'lost'; });
+    var side = list.filter(function (l) { return STAGE[l.stage].kind === 'side'; });
+    var noReach = lost.filter(function (l) { return reachedRank(l) == null; });
+    return {
+      rows: rows, lost: lost, side: side, noReach: noReach,
+      total: list.length,
+      /* ⚠️ 「当前停在『上线』」与「到过『上线』」是两回事：已暂停的楼到过、但当前不在。
+         名字写清楚，别在上层再把两者混用（KPI 上曾把 11 当成「已上线」，实际营业中只有 10）。 */
+      liveAt: rows.length ? rows[rows.length - 1].at : 0,
+      liveReached: rows.length ? rows[rows.length - 1].reached : 0,
+      lostReasons: lost.filter(function (l) { return l.loseReason; })
+        .map(function (l) { return { id: l.id, name: l.name, at: reachedKey(l), reason: l.loseReason }; }),
+    };
+  }
+
+  /* ── 谈过没谈过 · 下一步 ───────────────────────────────── */
+  function isEngaged(lead) {
+    return RANK[lead.stage] >= 1 || (lead.touches || []).length > 0;
+  }
+  /** 需要写「下一步」的：谈过、且不是「已放弃」（放弃的要写的是原因） */
+  function needsNext(lead) { return isEngaged(lead) && lead.stage !== 'dropped'; }
+
+  function lastTouch(lead) {
+    var ts = (lead.touches || []).slice().sort(function (a, b) { return a.atOffset < b.atOffset ? 1 : -1; });
+    return ts.length ? ts[0] : null;
+  }
+  /** 停滞天数 = −最近一次接触的偏移（接触记录存的是「相对今天的偏移」，负=过去） */
+  function staleDays(lead, today) {
+    var t = lastTouch(lead);
+    return t ? -Number(t.atOffset) : null;
+  }
+  function touchDate(t, today) { return U.addDays(today, Number(t.atOffset)); }
+  /** 到期信息：偏移本身就是「几天后」（负=逾期），绝对日期按今天换算 */
+  function dueInfo(lead, today) {
+    if (lead.nextDueOffset == null || lead.nextDueOffset === '') return null;
+    var off = Number(lead.nextDueOffset);
+    if (!isFinite(off)) return null;
+    return { due: U.addDays(today, off), offset: off, days: off, overdue: off < 0, isToday: off === 0 };
+  }
+  function penetration(lead) {
+    return Number(lead.floors) > 0 ? Number(lead.floorsEntered || 0) / Number(lead.floors) : null;
+  }
+
+  /** 台账缺陷（结构问题，必须修）与待办（日常动作）**分开返回** */
+  function issues(all, today) {
+    var list = all || LEADS;
+    var engaged = list.filter(isEngaged);
+    var noOwner = [], noAction = [], badDue = [], noReason = [], noReach = [];
+    engaged.forEach(function (l) {
+      if (!needsNext(l)) return;
+      if (!l.owner) noOwner.push(l);
+      if (!l.nextAction) noAction.push(l);
+      var d = dueInfo(l, today);
+      if (l.nextAction && !d) badDue.push(l);
+    });
+    list.forEach(function (l) {
+      if (l.stage === 'dropped' && !l.loseReason) noReason.push(l);
+      if (l.stage === 'dropped' && reachedRank(l) == null) noReach.push(l);
+    });
+    return {
+      engaged: engaged, needNext: list.filter(needsNext),
+      noOwner: noOwner, noAction: noAction, badDue: badDue,
+      noReason: noReason, noReach: noReach,
+      bad: noOwner.length + noAction.length + badDue.length + noReason.length + noReach.length,
+    };
+  }
+
+  /** 待办清单：谈过的楼按「下一步到期日」排（逾期的排最前，没日期的排最后） */
+  function todos(all, today) {
+    var list = (all || LEADS).filter(needsNext);
+    return U.sortBy(list.map(function (l) {
+      var d = dueInfo(l, today);
+      return { lead: l, due: d, stale: staleDays(l, today) };
+    }), function (x) { return x.due ? x.due.days : 1e9; }, 'asc');
+  }
+
+  function leadOf(id, all) {
+    return (all || LEADS).filter(function (l) { return l.id === id; })[0] || null;
+  }
+
+  /** 筛选：阶段 / 楼群 / 分档 / 关键词（空条件即不过滤） */
+  function filterLeads(all, f, weights, today) {
+    var q = (f && f.q ? String(f.q) : '').trim().toLowerCase();
+    return (all || LEADS).filter(function (l) {
+      if (f && f.stage && l.stage !== f.stage) return false;
+      if (f && f.groupId && String(l.groupId) !== String(f.groupId)) return false;
+      if (f && f.band) {
+        var s = score(l, weights, all);
+        if (!s.band || s.band.key !== f.band) return false;
+      }
+      if (f && f.overdue) { var d = dueInfo(l, today); if (!d || !d.overdue) return false; }
+      if (q) {
+        var hay = [l.name, l.address, l.owner, l.nextAction, (l.note || '')].join(' ').toLowerCase();
+        if (hay.indexOf(q) < 0) return false;
+      }
+      return true;
+    });
+  }
+
+  function ranked(all, weights) {
+    return U.sortBy((all || LEADS).map(function (l) {
+      var s = score(l, weights, all);
+      return { lead: l, score: s };
+    }), function (x) { return x.score.value; }, 'desc');
+  }
+
+  /* ── 汇总 ─────────────────────────────────────────────── */
+  function summary(all, weights, today) {
+    var list = all || LEADS;
+    var fn = funnel(list), is = issues(list, today), td = todos(list, today);
+    var acts = list.filter(function (l) { return l.owner; });
+    var overdue = td.filter(function (x) { return x.due && x.due.overdue; });
+    var scored = list.map(function (l) { return score(l, weights, list); })
+      .filter(function (s) { return s.value != null; });
+    var bands = { A: 0, B: 0, C: 0 };
+    scored.forEach(function (s) { if (s.band) bands[s.band.key] += 1; });
+    return {
+      funnel: fn, issues: is, todos: td, overdue: overdue,
+      total: list.length, seedCount: list.filter(function (l) { return l.src === 'seed'; }).length,
+      manualCount: list.filter(function (l) { return l.src === 'manual'; }).length,
+      engaged: is.engaged.length, live: fn.liveAt, liveReached: fn.liveReached,
+      lost: fn.lost.length, side: fn.side.length,
+      bands: bands, avgScore: scored.length
+        ? Math.round(scored.reduce(function (a, s) { return a + s.value; }, 0) / scored.length) : null,
+      estimatedCount: scored.filter(function (s) { return s.estimated; }).length,
+      insufficientCount: list.length - scored.length,
+      ownerCount: acts.length,
+      weeks: (function () {   /* 未来 7 天要到期 / 今天 / 已逾期 */
+        var t = { overdue: 0, today: 0, soon: 0 };
+        td.forEach(function (x) {
+          if (!x.due) return;
+          if (x.due.overdue) t.overdue += 1; else if (x.due.isToday) t.today += 1;
+          else if (x.due.days <= 7) t.soon += 1;
+        });
+        return t;
+      })(),
+    };
+  }
+
+  g.Model = {
+    STAGES: STAGES, STAGE: STAGE, RANK: RANK, FUNNEL: FUNNEL, FRANK: FRANK,
+    FACTORS: FACTORS, BANDS: BANDS, MIN_FACTORS: MIN_F, LEADS: LEADS, BLD: BLD, GRP: GRP,
+    stageOf: function (k) { return STAGE[k] || null; },
+    normalize: normalize, clusterLive: clusterLive, weightsOf: weightsOf,
+    weightSum: weightSum, bandOf: bandOf, score: score,
+    reachedKey: reachedKey, reachedRank: reachedRank, funnel: funnel,
+    isEngaged: isEngaged, needsNext: needsNext, lastTouch: lastTouch,
+    staleDays: staleDays, touchDate: touchDate, dueInfo: dueInfo, penetration: penetration,
+    issues: issues, todos: todos, leadOf: leadOf,
+    filterLeads: filterLeads, ranked: ranked, summary: summary, round6: round6,
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ─────────────────────────────────────────────────────────────
+   G1 楼宇拓展作战地图 · 判据层（纯函数 · 一份实现）
+
+   ⚠️ 作用域与独立性：
+      · ④ 潜力分、⑨ 漏斗计数、⑩ 转化率 —— **独立再算一遍**（不走 Model 的 normalize/funnel），
+        否则「用同一实现验自己」＝恒绿。
+      · ⑦ 的**结构缺陷**与**待办**分开返回：谈过的楼缺「下一步」是结构缺陷（必须修），
+        「下一步到期了/逾期了」是日常待办（不是缺陷）—— 混在一起会让判据永远红或永远绿。
+      · 官方验收判据「已谈/在谈的楼全部入库且各有下一步」= ① (全部入库) + ⑦ (各有下一步)。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  function run(ctx) {
+    var SPEC = g.SPEC, M = g.Model;
+    var rows = [];
+    var add = function (name, ok, detail) { rows.push({ name: name, ok: !!ok, detail: detail || '' }); };
+
+    var all = ctx.leads || M.LEADS;
+    var weights = M.weightsOf(ctx.weights);
+    var today = ctx.today || (g.U && g.U.today()) || SPEC.today;
+
+    /* ── 判据自己的索引与常量（直读 SPEC，不复用 Model）── */
+    var FACTORS = SPEC.factors.list || [];
+    var BANDS = SPEC.factors.bands || [];
+    var MIN_F = Number(SPEC.factors.minFactors || 3);
+    var STAGES = SPEC.stages.list || [];
+    var FUNNEL = SPEC.stages.funnelKeys || [];
+    var SRC_BLD = {}; (SPEC.buildings.list || []).forEach(function (b) { SRC_BLD[b.id] = b; });
+    var STAGE_OF = {}; STAGES.forEach(function (s) { STAGE_OF[s.key] = s; });
+    var FRANK = {}; FUNNEL.forEach(function (k, i) { FRANK[k] = i; });
+
+    /* ① 官方判据前半：已谈/在谈的楼**全部入库**（真源楼栋一栋不漏 + 阶段映射正确） */
+    var seeded = all.filter(function (l) { return l.src === 'seed'; });
+    var missBld = Object.keys(SRC_BLD).filter(function (id) {
+      return !seeded.some(function (l) { return String(l.buildingId) === String(id); });
+    });
+    var stageMis = seeded.filter(function (l) {
+      var b = SRC_BLD[l.buildingId];
+      return !b || l.stage !== SPEC.seedStageMap[String(b.status)];
+    });
+    add('① 真源楼栋全部入库且阶段 = status 映射', missBld.length === 0 && stageMis.length === 0,
+      missBld.length ? '缺楼栋 ' + missBld.join(',')
+        : (stageMis.length ? '阶段不符 ' + stageMis.map(function (x) { return x.id; }).join(',')
+          : seeded.length + ' 栋（营业中→上线 / 待开通→签约 / 已暂停→已暂停）'));
+
+    /* ② 线索字段合法 */
+    var ids = {}, dup = [], badField = [];
+    all.forEach(function (l) {
+      if (ids[l.id]) dup.push(l.id); ids[l.id] = true;
+      if (!l.id || ['seed', 'manual'].indexOf(l.src) < 0) badField.push(l.id || '(无 id)');
+      if (!STAGE_OF[l.stage]) badField.push(l.id + ':阶段非法');
+      if (!(Number(l.population) > 0)) badField.push(l.id + ':覆盖人数非正');
+      /* 日期字段一律是**整数相对偏移**（负=过去/逾期）；存绝对日期见 ⑮ */
+      var off = l.nextDueOffset;
+      if (off != null && off !== '' && !(isFinite(Number(off)) && Number(off) === Math.round(Number(off)))) {
+        badField.push(l.id + ':到期偏移非整数');
+      }
+      (l.touches || []).forEach(function (t) {
+        var a = Number(t.atOffset);
+        if (!isFinite(a) || a !== Math.round(a) || a > 0) badField.push(l.id + ':接触偏移非法');
+      });
+    });
+    add('② 线索字段合法（id 唯一 · 阶段/来源/人数/整数偏移）', dup.length === 0 && badField.length === 0,
+      dup.length ? '重复 id ' + dup.join(',') : (badField.length ? badField.slice(0, 3).join('；') : all.length + ' 条'));
+
+    /* ③ 因子权重：齐全、非负、和为 1 */
+    var wsum = 0, wbad = [];
+    FACTORS.forEach(function (f) {
+      var w = weights[f.key];
+      if (!(w >= 0) || !isFinite(w)) wbad.push(f.key);
+      wsum += Number(w) || 0;
+    });
+    add('③ 因子权重齐全 · 非负 · 和为 1', wbad.length === 0 && Math.abs(wsum - 1) < 1e-9,
+      wbad.length ? '权重非法：' + wbad.join(',') : wsum.toFixed(6));
+
+    /* ④ 潜力分 = Σ(归一化因子 × 权重) ÷ 有数据权重和 × 100 —— 独立复算 */
+    var calcBad = [];
+    all.forEach(function (l) {
+      var pw = 0, hit = 0, nMiss = 0;
+      FACTORS.forEach(function (f) {
+        var raw = f.key === 'people' ? l.population
+          : f.key === 'mealPrice' ? l.mealPrice
+            : f.key === 'companies' ? l.companies
+              : f.key === 'floors' ? l.floors
+                : f.key === 'cluster' ? all.filter(function (x) {
+                  return x.groupId === l.groupId && x.id !== l.id && x.stage === 'live'; }).length
+                  : null;
+        if (raw == null || raw === '' || isNaN(Number(raw))) { nMiss += 1; return; }
+        var v = Number(raw), nrm;
+        if (f.kind === 'range') nrm = Math.min(1, Math.max(0, (v - Number(f.floor)) / (Number(f.cap) - Number(f.floor))));
+        else nrm = Math.min(1, Math.max(0, v / Number(f.cap)));
+        pw += weights[f.key]; hit += nrm * weights[f.key];
+      });
+      var expect = pw > 0 ? Math.round(hit / pw * 100) : null;
+      var got = M.score(l, weights, all);
+      var present = FACTORS.length - nMiss;
+      /* 有数据因子不足 ⇒ 判据与实现**都必须**不给分（假分数比没分数更坏） */
+      if (present < MIN_F) expect = null;
+      if (got.value !== expect || got.missing.length !== nMiss) {
+        calcBad.push(l.id + ' 期望 ' + expect + ' 实得 ' + got.value + '（缺 ' + nMiss + ' 项）');
+      }
+    });
+    add('④ 潜力分 = Σ(归一化 × 权重) ÷ 有数据权重（独立复算）', calcBad.length === 0,
+      calcBad.length ? calcBad.slice(0, 2).join('；') : all.length + ' 条全部一致');
+
+    /* ⑤ 分值域与分档阈值单调 */
+    var scores = all.map(function (l) { return M.score(l, weights, all).value; }).filter(function (v) { return v != null; });
+    var rangeOk = scores.every(function (v) { return v >= 0 && v <= 100; });
+    var bandOk = BANDS.every(function (b, i) { return i === 0 || BANDS[i - 1].min > b.min; });
+    var bandHit = scores.every(function (v) { var b = M.bandOf(v); return !!b && v >= b.min; });
+    add('⑤ 分值域 0–100 · 分档阈值严格递减且能命中', rangeOk && bandOk && bandHit,
+      scores.length + ' 条 · 阈值 ' + BANDS.map(function (b) { return b.key + '≥' + b.min; }).join(' / '));
+
+    /* ⑥ 缺调研的因子**被显式列出**（不当 0 算）· 因子太少**直接不给分**（不给假分数） */
+    var estBad = [];
+    all.forEach(function (l) {
+      var s = M.score(l, weights, all);
+      if (s.missing.length && !(s.estimated || s.insufficient)) estBad.push(l.id + ':缺项未标估计');
+      if (!s.missing.length && (s.estimated || s.insufficient)) estBad.push(l.id + ':无缺项却标估计');
+      if (s.presentWeight < s.totalWeight - 1e-9 && !(s.estimated || s.insufficient)) estBad.push(l.id + ':权重不全未标估计');
+      if (s.insufficient && s.value != null) estBad.push(l.id + ':不足 ' + MIN_F + ' 项却给了分');
+      if (!s.insufficient && s.value == null) estBad.push(l.id + ':因子够却没给分');
+      if (s.insufficient && !s.reason) estBad.push(l.id + ':未说明为何不给分');
+    });
+    var withMiss = all.filter(function (l) { return M.score(l, weights, all).missing.length; });
+    var insuff = all.filter(function (l) { return M.score(l, weights, all).insufficient; });
+    add('⑥ 缺调研因子显式列出 · 不足 ' + MIN_F + ' 项不给分', estBad.length === 0,
+      estBad.length ? estBad.slice(0, 2).join('；')
+        : withMiss.length + ' 条缺项'
+          + (withMiss.length ? '（' + withMiss.map(function (l) {
+            var s = M.score(l, weights, all);
+            return l.id + ':' + s.missing.length + (s.insufficient ? '不足' : '折算'); }).slice(0, 3).join(' ') + '）' : '')
+          + (insuff.length ? ' · ' + insuff.length + ' 条不给分' : ''));
+
+    /* ⑦ 官方判据后半：已谈/在谈的楼**各有下一步**（owner + 下一步 + 到期日） */
+    var is = M.issues(all, today);
+    add('⑦ 已谈/在谈的楼各有下一步（负责人 + 下一步 + 到期日）', is.engaged.length > 0 && is.bad === 0,
+      (is.engaged.length ? is.engaged.length + ' 栋已谈/在谈' : '无已谈在谈的楼')
+      + (is.bad ? ' · 缺陷：' + [is.noOwner.length && ('缺负责人 ' + is.noOwner.length),
+        is.noAction.length && ('缺下一步 ' + is.noAction.length),
+        is.badDue.length && ('到期日非法 ' + is.badDue.length),
+        is.noReason.length && ('放弃未写原因 ' + is.noReason.length),
+        is.noReach.length && ('放弃未记谈到哪 ' + is.noReach.length)].filter(Boolean).join(' / ')
+        : ' · 无结构缺陷'));
+
+    /* ⑧ 已放弃的楼都写了原因（否则两周后就忘了为什么没成） */
+    var dropped = all.filter(function (l) { return l.stage === 'dropped'; });
+    add('⑧ 已放弃的线索都写了原因',
+      dropped.every(function (l) { return !!l.loseReason && l.loseReason.length >= 8; }),
+      dropped.length ? dropped.map(function (l) { return l.id; }).join(',') + ' 条已放弃' : '无已放弃线索');
+
+    /* ⑨ 漏斗计数 —— 独立复算（含「到过的最高阶段」累计口径） */
+    var fn = M.funnel(all);
+    function reachedKeyOf(l) {
+      if (l.stage === 'dropped') return l.reached || null;
+      if (l.stage === 'paused') return 'live';
+      return l.stage;
+    }
+    var cntBad = [];
+    FUNNEL.forEach(function (k, i) {
+      var at = all.filter(function (l) { return l.stage === k; }).length;
+      var reached = all.filter(function (l) {
+        var rk = reachedKeyOf(l); return rk != null && FRANK[rk] >= i; }).length;
+      if (fn.rows[i].at !== at) cntBad.push(k + ' 停留 ' + fn.rows[i].at + '≠' + at);
+      if (fn.rows[i].reached !== reached) cntBad.push(k + ' 到达 ' + fn.rows[i].reached + '≠' + reached);
+    });
+    add('⑨ 漏斗「停留数」与「到达数」均为独立复算', cntBad.length === 0,
+      cntBad.length ? cntBad.slice(0, 3).join('；')
+        : fn.rows.map(function (r) { return r.label + ' 停' + r.at + '/到' + r.reached; }).join(' · '));
+
+    /* ⑩ 转化率 = 相邻阶段「到达数」之比（用停留数算会得到 >100% 的假数） */
+    var convBad = [];
+    fn.rows.forEach(function (r, i) {
+      if (i === 0) return;
+      var prev = fn.rows[i - 1].reached;
+      var expect = prev === 0 ? null : r.reached / prev;
+      if (expect == null ? r.convFromPrev != null : Math.abs(r.convFromPrev - expect) > 1e-12) {
+        convBad.push(r.label);
+      }
+    });
+    var reachedTop = fn.rows[0].reached;
+    add('⑩ 转化率 = 相邻阶段到达数之比', convBad.length === 0 && reachedTop > 0,
+      convBad.length ? '不符：' + convBad.join(',')
+        : fn.rows.slice(1).map(function (r) {
+          return r.label + ' ' + (r.convFromPrev * 100).toFixed(0) + '%'; }).join(' · '));
+
+    /* ⑪ 待办清单能**点到具体线索 id**（不可行动的清单一律不要） */
+    var td = M.todos(all, today);
+    var tdBad = td.filter(function (x) { return !x.lead.id || !x.lead.name || !x.lead.nextAction; });
+    add('⑪ 待办清单每条都点到具体线索 id', td.length > 0 && tdBad.length === 0 && is.needNext.length === td.length,
+      td.length + ' 条待办' + (tdBad.length ? '，其中 ' + tdBad.length + ' 条缺 id/名称/下一步' : '')
+      + '（逾 ' + td.filter(function (x) { return x.due && x.due.overdue; }).length + ' · 今 '
+      + td.filter(function (x) { return x.due && x.due.isToday; }).length + '）');
+
+    /* ⑫ seed 行的楼名/地址/人数逐字等于真源（防手改） */
+    var srcBad = seeded.filter(function (l) {
+      var b = SRC_BLD[l.buildingId];
+      return !b || l.name !== b.name || l.address !== b.address
+        || Number(l.population) !== Number(b.population) || Number(l.groupId) !== Number(b.groupId);
+    });
+    add('⑫ 真源行的楼名/地址/人数/楼群逐字等于 seed.ts', srcBad.length === 0,
+      srcBad.length ? srcBad.map(function (l) { return l.id; }).join(',') + ' 行被改' : seeded.length + ' 行一致');
+
+    /* ⑬ 停滞天数按**最近一次**接触算，非空非负 */
+    var staleBad = [];
+    all.forEach(function (l) {
+      var n = M.staleDays(l, today);
+      if ((l.touches || []).length && !(n >= 0)) staleBad.push(l.id + ':' + n);
+      if (!(l.touches || []).length && n != null) staleBad.push(l.id + ':无接触却有停滞天数');
+    });
+    add('⑬ 停滞天数 = 今天 − 最近一次接触（非空非负）', staleBad.length === 0,
+      staleBad.length ? staleBad.slice(0, 3).join('；')
+        : '最长停滞 ' + Math.max.apply(null, all.map(function (l) {
+          var n = M.staleDays(l, today); return n == null ? -1 : n; })) + ' 天');
+
+    /* ⑭ 真源 / 人工调研 / 演示占位 三层必须显式标注（诚实底线） */
+    var note = (SPEC.leads && SPEC.leads._note) || '';
+    add('⑭ 真源与演示占位已显式标注',
+      note.indexOf('真源') >= 0 && note.indexOf('演示占位') >= 0 && note.indexOf('人工调研') >= 0
+      && all.every(function (l) { return !!l.note; }),
+      note.slice(0, 60) + '…');
+
+    /* ⑮ 日期一律存**相对偏移** —— 存绝对日期的话产物第二天就整体过期
+       （演示数据全变「逾期」、判据跟着漂），是这类工具最常见的失效。 */
+    var badOff = all.filter(function (l) {
+      if (l.nextActionDue != null || l.actionDue != null) return true;
+      if ((l.touches || []).some(function (t) { return t.at != null; })) return true;
+      if (l.nextDueOffset != null && l.nextDueOffset !== ''
+        && !(isFinite(Number(l.nextDueOffset)))) return true;
+      return false;
+    });
+    var touchOk = all.every(function (l) {
+      return (l.touches || []).every(function (t) {
+        var a = Number(t.atOffset);
+        return isFinite(a) && a === Math.round(a) && a <= 0;
+      });
+    });
+    var hasOverdue = all.some(function (l) {
+      return isFinite(Number(l.nextDueOffset)) && Number(l.nextDueOffset) < 0; });
+    add('⑮ 日期一律存相对偏移（产物不会第二天整体过期）',
+      badOff.length === 0 && touchOk && hasOverdue,
+      badOff.length ? '存了绝对日期：' + badOff.map(function (l) { return l.id; }).join(',')
+        : all.length + ' 条 · 接触 ' + all.reduce(function (s, l) {
+          return s + (l.touches || []).length; }, 0) + ' 条 · 含逾期样本 ' + (hasOverdue ? '有' : '无'));
+
+    var bad = rows.filter(function (r) { return !r.ok; }).length;
+    return { rows: rows, bad: bad, ok: bad === 0, summary: M.summary(all, weights, today) };
+  }
+
+  g.SelfCheck = { run: run };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ─────────────────────────────────────────────────────────────
+   G1 楼宇拓展作战地图 · DOM 壳
+
+   ⚠️ 两条踩过的坑，这里都按规矩办：
+      ① 监听一律挂 document + closest 分发（挂容器会漏兄弟节点里的控件）；
+      ② 侧栏输入框改动时**只重绘主区**（重绘整页会丢焦点、数字输一半就断），
+         主区行内编辑则重绘主区 + 按 (data-lead, data-field) 复原焦点。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var SPEC = g.SPEC, U = g.U, M = g.Model, SC = g.SelfCheck;
+  var KEY = 'abox.g1.map.v1';
+  var VERSION = g.TOOL_VERSION;
+  var STAMP = VERSION + '|' + (SPEC.leads.list || []).length + '|' + SPEC.today;
+
+  var ST = { leads: [], weights: {}, filt: { stage: '', groupId: '', band: '', overdue: false, q: '' },
+             today: '', msg: '', focus: null };
+
+  function cloneSpecLeads() { return JSON.parse(JSON.stringify(SPEC.leads.list || [])); }
+  function defaultWeights() {
+    var w = {}; M.FACTORS.forEach(function (f) { w[f.key] = f.weight; }); return w;
+  }
+
+  function load() {
+    var saved = U.store.get(KEY, null);
+    if (saved && saved.stamp === STAMP && saved.leads && saved.leads.length) {
+      ST.leads = saved.leads;
+      ST.weights = saved.weights || defaultWeights();
+    } else {
+      ST.leads = cloneSpecLeads();
+      ST.weights = defaultWeights();
+    }
+    M.FACTORS.forEach(function (f) { if (ST.weights[f.key] == null) ST.weights[f.key] = f.weight; });
+    ST.today = U.today();
+  }
+  function save() { return U.store.set(KEY, { stamp: STAMP, leads: ST.leads, weights: ST.weights }); }
+  function resetAll() {
+    U.store.del(KEY);
+    ST.leads = cloneSpecLeads(); ST.weights = defaultWeights();
+    ST.msg = { ok: true, text: '已恢复演示数据（你改过的值都清掉了）' };
+  }
+
+  function rows() { return M.filterLeads(ST.leads, ST.filt, ST.weights, ST.today); }
+  function todoRows() { return M.todos(ST.leads, ST.today); }
+  function sum() { return M.summary(ST.leads, ST.weights, ST.today); }
+  function sc(l) { return M.score(l, ST.weights, ST.leads); }
+
+  /* ── 左栏 ── */
+  function sideHTML() {
+    var wsum = M.weightSum(ST.weights);
+    var off = Math.abs(wsum - 1) > 1e-9;
+    return ''
+      + '<div class="card"><h2>筛选 <span class="n" id="filtCount">' + rows().length + ' / '
+      + ST.leads.length + ' 条</span></h2>'
+      + '<label class="f"><span>关键词（楼名 / 地址 / 负责人 / 下一步）</span>'
+      + '<input data-param="q" value="' + U.esc(ST.filt.q) + '" placeholder="如：国贸"></label>'
+      + '<label class="f"><span>阶段</span><select data-param="stage"><option value="">全部阶段</option>'
+      + M.STAGES.map(function (s) {
+        return '<option value="' + s.key + '"' + (ST.filt.stage === s.key ? ' selected' : '') + '>'
+          + s.label + '</option>'; }).join('')
+      + '</select></label>'
+      + '<label class="f"><span>楼群</span><select data-param="groupId"><option value="">全部楼群</option>'
+      + (SPEC.buildingGroups.list || []).map(function (x) {
+        return '<option value="' + x.id + '"' + (String(ST.filt.groupId) === String(x.id) ? ' selected' : '') + '>'
+          + U.esc(x.name) + '</option>'; }).join('')
+      + '</select></label>'
+      + '<label class="f"><span>潜力分档</span><select data-param="band"><option value="">全部分档</option>'
+      + M.BANDS.map(function (b) {
+        return '<option value="' + b.key + '"' + (ST.filt.band === b.key ? ' selected' : '') + '>'
+          + b.key + ' · ' + b.label + '（≥' + b.min + '）</option>'; }).join('')
+      + '</select></label>'
+      + '<div class="btnbar"><button class="btn" data-act="filt-overdue">'
+      + (ST.filt.overdue ? '✔ 只看逾期' : '只看逾期下一班') + '</button>'
+      + '<button class="btn ghost" data-act="filt-clear">清空筛选</button></div>'
+      + '</div>'
+
+      + '<div class="card"><h2>打分权重 <span class="n" id="wSum">'
+      + (off ? '和为 ' + wsum.toFixed(2) + ' ⚠️ 应为 1' : '和为 1.00') + '</span></h2>'
+      + '<p class="hint">规则 + 权重，不需要训练。改完立刻重算全表分数。</p>'
+      + M.FACTORS.map(function (f) {
+        return '<label class="f"><span>' + U.esc(f.label) + '（' + f.unit + '）</span>'
+          + '<input data-w="' + f.key + '" type="number" step="0.05" min="0" max="1" value="'
+          + ST.weights[f.key] + '"></label>';
+      }).join('')
+      + '<div class="btnbar"><button class="btn" data-act="w-normalize">归一化到 1</button>'
+      + '<button class="btn ghost" data-act="w-reset">恢复默认</button></div>'
+      + '<div id="wWarn">' + (off ? '<div class="note warn">权重和不为 1 ⇒ 分数仍按「有数据因子的权重和」归一化，'
+        + '但<b>跨行可比性</b>会变差。点「归一化到 1」即可。</div>' : '') + '</div>'
+      + '</div>'
+
+      + '<div class="card"><h2>新增线索</h2>'
+      + '<label class="f"><span>楼名</span><input data-param="n-name" placeholder="如：某某大厦 A 座"></label>'
+      + '<label class="f"><span>地址</span><input data-param="n-addr" placeholder="如：建国路 88 号"></label>'
+      + '<label class="f"><span>楼群</span><select data-param="n-group">'
+      + (SPEC.buildingGroups.list || []).map(function (x) {
+        return '<option value="' + x.id + '">' + U.esc(x.name) + '</option>'; }).join('')
+      + '</select></label>'
+      + '<div class="row2">'
+      + '<label class="f"><span>人数</span><input data-param="n-pop" type="number" min="0" placeholder="0"></label>'
+      + '<label class="f"><span>楼层数</span><input data-param="n-floors" type="number" min="0" placeholder="0"></label>'
+      + '</div>'
+      + '<div class="row2">'
+      + '<label class="f"><span>公司数</span><input data-param="n-companies" type="number" min="0" placeholder="0"></label>'
+      + '<label class="f"><span>餐饮均价</span><input data-param="n-price" type="number" min="0" step="0.5" placeholder="0"></label>'
+      + '</div>'
+      + '<div class="btnbar"><button class="btn primary" data-act="add">加进线索库</button>'
+      + '<button class="btn ghost" data-act="reset-all">恢复演示数据</button></div>'
+      + (ST.msg ? '<div class="note ' + (ST.msg.ok ? 'ok' : 'warn') + '">' + U.esc(ST.msg.text) + '</div>' : '')
+      + '<div class="hint">新增的线索进「线索」阶段，人物字段先留空 —— 缺的因子会进「待调研」清单，'
+      + '不会当成不行的楼。</div>'
+      + '</div>'
+
+      + '<div class="card"><h2>导出</h2>'
+      + '<div class="btnbar"><button class="btn" data-act="dl-csv">导出线索表 CSV</button>'
+      + '<button class="btn ghost" data-act="dl-md">导出跟进清单 .md</button></div>'
+      + '<div class="hint">改动存在本机浏览器（不上传）。换机器请用导出件带过去。</div>'
+      + '</div>';
+  }
+
+  /* ── 主区 ── */
+  function kpiHTML(s) {
+    var k = function (label, val, unit, tone) {
+      return '<div class="kpi' + (tone ? ' ' + tone : '') + '"><div class="k">' + label + '</div>'
+        + '<div class="v">' + val + (unit ? '<span class="u">' + unit + '</span>' : '') + '</div></div>';
+    };
+    return '<div class="card"><h2>拓展概览 <span class="n">基准日 ' + ST.today + '</span></h2>'
+      + '<div class="kpis">'
+      + k('线索总数', s.total, '栋')
+      + k('已谈/在谈', s.engaged, '栋')
+      + k('营业中·已上线', s.live, '栋', 'ok')
+      + k('已暂停', s.side, '栋', s.side ? 'warn' : '')
+      + k('已放弃', s.lost, '栋')
+      + k('平均潜力分', s.avgScore == null ? '—' : s.avgScore, '')
+      + k('待办下一步', s.todos.length, '条')
+      + k('已逾期', s.weeks.overdue, '条', s.weeks.overdue ? 'warn' : '')
+      + k('7 天内到期', s.weeks.today + s.weeks.soon, '条')
+      + '</div>'
+      + '<div class="hint" style="margin-top:10px">A 档 ' + s.bands.A + ' · B 档 ' + s.bands.B
+      + ' · C 档 ' + s.bands.C
+      + (s.estimatedCount ? ' ｜ ' + s.estimatedCount + ' 栋的分数是<b>估计值</b>（有调研字段没填，见「待调研」清单）' : '')
+      + (s.insufficientCount ? ' ｜ ' + s.insufficientCount + ' 栋<b>数据不足未给分</b>' : '')
+      + '</div>'
+      + (s.issues.bad ? '<div class="note warn" style="margin-top:10px">台账有 ' + s.issues.bad
+        + ' 处结构缺陷（谈过的楼缺下一步 / 放弃没写原因）—— 见下方「台账缺陷」。</div>'
+        : '<div class="note ok" style="margin-top:10px">台账结构完整：已谈/在谈的 '
+          + s.engaged + ' 栋都有负责人、下一步、到期日。</div>')
+      + '</div>';
+  }
+
+  function funnelHTML(s) {
+    var fn = s.funnel;
+    var maxReached = Math.max.apply(null, fn.rows.map(function (r) { return r.reached; }).concat([1]));
+    return '<div class="card"><h2>拓展漏斗 <span class="n">到达数（不是停留数）</span></h2>'
+      + '<p class="hint">转化率按「<b>到过的最高阶段</b>」算 —— 停在「签约」的 1 栋也一定到过「线索」，'
+      + '用停留数算会得到大于 100% 的假数。</p>'
+      + fn.rows.map(function (r, i) {
+        return '<div style="margin-bottom:9px">'
+          + '<div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:3px">'
+          + '<span><b>' + r.label + '</b> <span class="pill ' + r.tone + '">停 ' + r.at + '</span>'
+          + (i > 0 && r.convFromPrev != null ? ' <span class="hint" style="display:inline">转化 '
+            + (r.convFromPrev * 100).toFixed(0) + '%</span>' : '') + '</span>'
+          + '<span class="mono" style="color:var(--text2)">到达 ' + r.reached + ' / ' + fn.total + '</span></div>'
+          + '<div class="bar ' + (r.tone === 'ok' ? 'ok' : '') + '"><i style="width:'
+          + Math.round(r.reached / maxReached * 100) + '%"></i></div></div>';
+      }).join('')
+      + '<div style="margin-top:12px">'
+      + (fn.side.length ? '<div class="note warn"><div><b>侧支 · 已暂停 ' + fn.side.length + ' 栋</b>'
+        + '<div class="hint" style="margin:2px 0 4px">曾上线、现停；要写「什么时候评估恢复」</div>'
+        + fn.side.map(function (l) { return '<span class="pill warn" style="margin:0 4px 4px 0">'
+          + U.esc(l.name) + '</span>'; }).join('') + '</div></div>' : '')
+      + (fn.lostReasons.length ? '<div class="note warn"><div><b>侧支 · 已放弃 ' + fn.lost.length
+        + ' 栋</b><div class="hint" style="margin:2px 0 4px">必须写原因 —— 否则两周后就忘了为什么没成</div>'
+        + fn.lostReasons.map(function (x) {
+          return '<div style="margin:4px 0"><span class="pill">' + U.esc(x.name) + ' · 谈到「'
+            + (M.STAGE[x.at] ? M.STAGE[x.at].label : '?') + '」就断了</span>'
+            + '<div class="hint" style="margin-top:2px">' + U.esc(x.reason) + '</div></div>'; }).join('')
+        + '</div></div>' : '')
+      + (fn.noReach.length ? '<div class="note warn">有 ' + fn.noReach.length
+        + ' 栋已放弃但没记「谈到哪就断了」⇒ 漏斗算不出它走到过哪。'
+        + fn.noReach.map(function (l) { return l.id; }).join(',') + '</div>' : '')
+      + '</div></div>';
+  }
+
+  function todosHTML(s) {
+    var td = s.todos;
+    if (!td.length) return '<div class="card"><h2>下一步</h2><div class="note ok">✔ 没有待办</div></div>';
+    return '<div class="card"><h2>下一步 <span class="n">' + td.length + ' 条 · 按到期日排</span></h2>'
+      + '<p class="hint">这是本工具每天真正要打开看的一块：今天该找谁、说什么。</p>'
+      + '<div class="tw"><table><thead><tr><th style="width:66px">到期</th><th style="width:180px">楼</th>'
+      + '<th>下一步</th><th style="width:78px">负责人</th><th style="width:74px">停滞</th>'
+      + '</tr></thead><tbody>'
+      + td.map(function (x) {
+        var d = x.due;
+        var tag = !d ? '<span class="pill">未定</span>'
+          : d.overdue ? '<span class="pill warn">逾 ' + (-d.days) + ' 天</span>'
+            : d.isToday ? '<span class="pill gold">今天</span>'
+              : '<span class="pill">' + d.days + ' 天后</span>';
+        return '<tr data-lead="' + U.esc(x.lead.id) + '">'
+          + '<td>' + tag + '<div class="hint" style="margin-top:2px">' + U.esc(d ? d.due : '') + '</div></td>'
+          + '<td><b>' + U.esc(x.lead.name) + '</b>'
+          + '<div class="pill ' + M.STAGE[x.lead.stage].tone + '" style="margin-top:3px">'
+          + M.STAGE[x.lead.stage].label + '</div></td>'
+          + '<td>' + U.esc(x.lead.nextAction) + '</td>'
+          + '<td>' + (x.lead.owner ? U.esc(x.lead.owner) : '<span class="pill warn">未指派</span>') + '</td>'
+          + '<td class="num mono">' + (x.stale == null ? '—' : x.stale + ' 天') + '</td></tr>';
+      }).join('') + '</tbody></table></div></div>';
+  }
+
+  function tableHTML() {
+    var list = rows();
+    var rank = M.ranked(list, ST.weights);
+    var role = {};
+    rank.forEach(function (x, i) { role[x.lead.id] = i; });
+    var ordered = U.sortBy(list, function (l) { return role[l.id]; }, 'asc');
+    return '<div class="card"><h2>线索表 <span class="n">' + list.length + ' 条 · 按潜力分降序</span></h2>'
+      + '<p class="hint">带 <span class="pill dim">～</span> 的是<b>估计值</b>（有调研字段没填）。'
+      + '直接改单元格即可，分数、漏斗、待办会立刻跟着重算。</p>'
+      + '<div class="tw"><table><thead><tr>'
+      + '<th style="width:44px">分</th><th style="width:52px">档</th><th style="width:190px">楼</th>'
+      + '<th style="width:66px">阶段</th><th class="num" style="width:58px">人数</th>'
+      + '<th class="num" style="width:52px">层</th><th class="num" style="width:54px">公司</th>'
+      + '<th class="num" style="width:62px">均价</th><th class="num" style="width:56px">已进</th>'
+      + '<th style="width:150px">负责人 / 下一步</th><th style="width:112px">到期</th>'
+      + '<th style="width:62px">停滞</th></tr></thead><tbody>'
+      + ordered.map(function (l) {
+        var s = sc(l);
+        var st = cell;
+        return '<tr data-lead="' + U.esc(l.id) + '">'
+          + '<td class="num mono"><b>' + (s.value == null ? '—' : s.value) + '</b>'
+          + (s.estimated ? '<div class="pill dim" title="' + U.esc(s.missing.join('、')) + '">～</div>' : '')
+          + (s.insufficient ? '<div class="pill warn" title="' + U.esc(s.reason) + '">缺</div>' : '')
+          + '</td>'
+          + '<td>' + (s.band ? '<span class="pill ' + s.band.tone + '">' + s.band.key + '</span>' : '—') + '</td>'
+          + '<td><b>' + U.esc(l.name) + '</b>'
+          + '<div class="hint" style="margin-top:2px">' + U.esc(l.address) + ' · '
+          + U.esc((SPEC.buildingGroups.list.filter(function (x) { return x.id === l.groupId; })[0] || {}).name || '—')
+          + ' · ' + (l.src === 'seed' ? '真源' : '人工') + '</div>'
+          + '<div class="hint" style="margin-top:2px">' + U.esc(l.note) + '</div></td>'
+          + '<td>' + st('stage', l, null) + '</td>'
+          + '<td class="num">' + st('population', l, { num: 1 }) + '</td>'
+          + '<td class="num">' + st('floors', l, { num: 1 }) + '</td>'
+          + '<td class="num">' + st('companies', l, { num: 1 }) + '</td>'
+          + '<td class="num">' + st('mealPrice', l, { num: 1 }) + '</td>'
+          + '<td class="num">' + st('floorsEntered', l, { num: 1 }) + '</td>'
+          + '<td>' + st('owner', l, { txt: 1 }) + st('nextAction', l, { txt: 1 }) + '</td>'
+          + '<td>' + st('nextDueOffset', l, { date: 1 }) + '</td>'
+          + '<td class="num mono">' + (function () {
+            var n = M.staleDays(l, ST.today); return n == null ? '—' : n + ' 天'; })() + '</td>'
+          + '</tr>';
+      }).join('') + '</tbody></table></div></div>';
+  }
+
+  function missingHTML() {
+    var gaps = ST.leads.map(function (l) { return { l: l, s: sc(l) }; })
+      .filter(function (x) { return x.s.missing.length; })
+      .sort(function (a, b) { return b.s.missing.length - a.s.missing.length; });
+    if (!gaps.length) {
+      return '<div class="card"><h2>待调研 <span class="n">已补齐</span></h2>'
+        + '<div class="note ok">✔ 所有线索的评分因子都已有数据（无估计值）</div></div>';
+    }
+    var insuff = gaps.filter(function (x) { return x.s.insufficient; });
+    return '<div class="card"><h2>待调研 <span class="n">' + gaps.length + ' 栋有缺口'
+      + (insuff.length ? ' · ' + insuff.length + ' 栋数据不足未给分' : '') + '</span></h2>'
+      + '<p class="hint">缺的因子<b>不按 0 计分</b>（那等于把「没调研」惩罚成「这栋楼不行」），'
+      + '而是按有数据因子的权重折算 ⇒ 分数是<b>估计值</b>，可能偏高。'
+      + '有数据因子少于 ' + M.MIN_FACTORS + ' 项时<b>直接不给分</b> —— 靠一两个因子算出来的分是假分数。</p>'
+      + '<div class="tw"><table><thead><tr><th style="width:190px">楼</th>'
+      + '<th style="width:96px">当前分</th><th>缺哪几项</th></tr></thead><tbody>'
+      + gaps.map(function (x) {
+        return '<tr data-lead="' + U.esc(x.l.id) + '"><td><b>' + U.esc(x.l.name) + '</b></td>'
+          + '<td class="num mono">' + (x.s.value == null
+            ? '<span class="pill warn">数据不足</span>'
+            : x.s.value + ' <span class="pill dim">～</span>') + '</td>'
+          + '<td>' + x.s.missing.map(function (m) { return '<span class="pill warn">' + U.esc(m) + '</span>'; }).join(' ')
+          + ((M.FACTORS.length - x.s.missing.length) < M.MIN_FACTORS
+            ? ' <span class="hint" style="display:inline">仅 ' + (M.FACTORS.length - x.s.missing.length)
+              + '/' + M.FACTORS.length + ' 项有数据 ⇒ 不足 ' + M.MIN_FACTORS + ' 项，不给分</span>' : '')
+          + '</td></tr>';
+      }).join('') + '</tbody></table></div></div>';
+  }
+
+  function factorsHTML() {
+    var wsum = M.weightSum(ST.weights);
+    return '<div class="card"><h2>打分模型 <span class="n">规则 + 权重 · 和为 ' + wsum.toFixed(2) + '</span></h2>'
+      + '<p class="hint">每一项都是「这栋楼值不值得进」的属性，不是「我们已经做到哪」。'
+      + '归一化：ramp 型 = 值 ÷ 上限（截到 1）；range 型 = 把 [下限, 上限] 线性拉到 0–1。</p>'
+      + '<div class="tw"><table><thead><tr><th style="width:190px">因子</th><th style="width:66px">权重</th>'
+      + '<th style="width:130px">归一化</th><th style="width:96px">数据来源</th><th>为什么算它</th>'
+      + '</tr></thead><tbody>'
+      + M.FACTORS.map(function (f) {
+        var norm = f.kind === 'range' ? '（值 − ' + f.floor + '）÷ ' + (f.cap - f.floor) + '，截到 0–1'
+          : '值 ÷ ' + f.cap + '，截到 0–1';
+        return '<tr><td><b>' + U.esc(f.label) + '</b></td>'
+          + '<td class="num mono">' + ST.weights[f.key].toFixed(2) + '</td>'
+          + '<td class="mono" style="font-size:11.5px">' + U.esc(norm) + '</td>'
+          + '<td><span class="pill ' + (f.src === '真源（population）' ? 'ok' : (f.src === '算出（真源楼栋 + 阶段）' ? 'info' : 'gold')) + '">'
+          + U.esc(f.src) + '</span></td>'
+          + '<td class="hint" style="color:var(--text2)">' + U.esc(f.why) + '</td></tr>';
+      }).join('')
+      + '</tbody></table></div>'
+      + '<p class="hint" style="margin-top:10px">分档：' + M.BANDS.map(function (b) {
+        return b.key + ' ≥ ' + b.min + '（' + b.label + '，' + b.why + '）'; }).join(' · ') + '。</p>'
+      + '</div>';
+  }
+
+  function issuesHTML(s) {
+    var is = s.issues;
+    if (!is.bad) {
+      return '<div class="card"><h2>台账缺陷 <span class="n">无</span></h2>'
+        + '<div class="note ok">✔ 已谈/在谈的 ' + is.engaged.length
+        + ' 栋都有负责人 + 下一步 + 到期日；已放弃的都写了原因、记了谈到哪。</div></div>';
+    }
+    var blk = function (title, arr, why) {
+      if (!arr.length) return '';
+      return '<div class="note warn" style="margin-bottom:8px"><div><b>' + title + ' ×' + arr.length + '</b>'
+        + '<div class="hint" style="margin:2px 0 4px">' + why + '</div>'
+        + arr.map(function (l) { return '<span class="pill warn" style="margin:0 4px 4px 0">#'
+          + U.esc(l.id) + ' ' + U.esc(l.name) + '</span>'; }).join('') + '</div></div>';
+    };
+    return '<div class="card"><h2>台账缺陷 <span class="n">' + is.bad + ' 处</span></h2>'
+      + '<p class="hint">都是「谈过但没记全」—— 这正是 G1 要解决的那个问题（谈过的楼散在聊天记录里）。</p>'
+      + blk('缺负责人', is.noOwner, '没人跟 ⇒ 一定会忘')
+      + blk('缺下一步', is.noAction, '没写「下一步做什么」⇒ 这条线索等于停了')
+      + blk('到期日非法或缺失', is.badDue, '写了下一步却没写什么时候做')
+      + blk('已放弃但没写原因', is.noReason, '两周后就忘了为什么没成，会重复踩同一个坑')
+      + blk('已放弃但没记「谈到哪」', is.noReach, '漏斗算不出它走到过哪一步')
+      + '</div>';
+  }
+
+  function gateHTML() {
+    var r = SC.run(ctxOf());
+    return '<div class="card"><h2>自检 <span class="n">' + (r.ok ? '全绿' : r.bad + ' 项不符') + '</span></h2>'
+      + '<div class="gate">' + r.rows.map(function (x, i) {
+        return '<div class="g' + (x.ok ? '' : ' bad') + '"><i>' + String(i + 1).padStart(2, '0') + '</i>'
+          + '<span class="t">' + (x.ok ? '✔ ' : '✗ ') + U.esc(x.name)
+          + (x.detail ? ' —— ' + U.esc(x.detail) : '') + '</span></div>';
+      }).join('') + '</div></div>';
+  }
+
+  function renderSide() { var el = U.$('#side'); if (el) el.innerHTML = sideHTML(); }
+  /* 只刷侧栏那一个条数（整栏重绘会丢输入焦点，故单独更新） */
+  function updateCount() {
+    var e = U.$('#filtCount');
+    if (e) e.textContent = rows().length + ' / ' + ST.leads.length + ' 条';
+  }
+  /* 改权重时也只重绘主区（保输入焦点）⇒ 侧栏那句提示必须**定向更新**。
+     ⚠️ 之前只重绘主区、不动侧栏，结果是：权重和明明 ≠ 1，警告却一条都不显示 ——
+     一个「只在你停止输入后才出现」的警告等于没有警告。 */
+  function updateWSum() {
+    var wsum = M.weightSum(ST.weights), off = Math.abs(wsum - 1) > 1e-9;
+    var h = U.$('#wSum');
+    if (h) h.textContent = off ? '和为 ' + wsum.toFixed(2) + ' ⚠️ 应为 1' : '和为 1.00';
+    var box = U.$('#wWarn');
+    if (box) box.innerHTML = off
+      ? '<div class="note warn">权重和不为 1 ⇒ 分数仍按「有数据因子的权重和」归一化，'
+        + '但<b>跨行可比性</b>会变差。点「归一化到 1」即可。</div>' : '';
+  }
+  function renderMain() {
+    var el = U.$('#main');
+    if (!el) return;
+    var s = sum();
+    el.innerHTML = kpiHTML(s) + funnelHTML(s) + todosHTML(s) + tableHTML()
+      + missingHTML() + issuesHTML(s) + factorsHTML() + gateHTML();
+    restoreFocus();
+  }
+  function render() { renderSide(); renderMain(); }
+
+  /* 主区重绘后复原焦点（行内编辑不被重绘打断） */
+  function restoreFocus() {
+    var f = ST.focus;
+    if (!f) return;
+    var sel = f.lead ? '[data-lead="' + f.lead + '"][data-field="' + f.field + '"]'
+      : '[data-param="' + f.field + '"]';
+    var back = U.$(sel);
+    if (back) { back.focus(); try { back.setSelectionRange(f.pos, f.pos); } catch (e) { /* number 型不支持 */ } }
+  }
+
+  /* 单元格编辑器工厂（挂在 Model 上，供判据与探针复用同一份写法） */
+  function cell(field, lead, opt) {
+    var v = lead[field];
+    var attrs = ' data-lead="' + U.esc(lead.id) + '" data-field="' + field + '"';
+    if (field === 'stage') {
+      return '<select' + attrs + '>' + M.STAGES.map(function (s) {
+        return '<option value="' + s.key + '"' + (v === s.key ? ' selected' : '') + '>' + s.label + '</option>';
+      }).join('') + '</select>';
+    }
+    if (opt && opt.date) {
+      /* 存的是**相对偏移**，输入框要的是绝对日期 ⇒ 以今天为基准换算（产物因此永不失效） */
+      var abs = (v == null || v === '') ? '' : (U.addDays(ST.today, Number(v)) || '');
+      return '<input type="date"' + attrs + ' value="' + U.esc(abs) + '">';
+    }
+    if (opt && opt.txt) {
+      return '<input' + attrs + ' data-t="1" value="' + U.esc(v == null ? '' : v) + '"'
+        + (field === 'nextAction' ? ' placeholder="下一步做什么"' : ' placeholder="谁在跟"') + '>';
+    }
+    return '<input type="number"' + attrs + ' value="' + (v == null ? '' : v) + '" min="0"'
+      + (field === 'mealPrice' ? ' step="0.5"' : ' step="1"') + '>';
+  }
+
+  function ctxOf() {
+    return { leads: ST.leads, weights: M.weightsOf(ST.weights), today: ST.today };
+  }
+
+  /* ── 交互 ── */
+  function onClick(e, t) {
+    var act = t.getAttribute('data-act');
+    if (!act) return;
+    if (act === 'filt-overdue') { ST.filt.overdue = !ST.filt.overdue; render(); return; }
+    if (act === 'filt-clear') {
+      ST.filt = { stage: '', groupId: '', band: '', overdue: false, q: '' }; render(); return;
+    }
+    if (act === 'w-normalize') {
+      var s = M.weightSum(ST.weights);
+      if (s > 0) {
+        var w = {};
+        M.FACTORS.forEach(function (f) { w[f.key] = Math.round(ST.weights[f.key] / s * 1000) / 1000; });
+        /* 四舍五入后可能差 0.001，补给权重最大的一项，保证和恰为 1 */
+        var diff = Math.round((1 - M.weightSum(w)) * 1000) / 1000;
+        if (diff !== 0) {
+          var top = M.FACTORS.slice().sort(function (a, b) { return w[b.key] - w[a.key]; })[0];
+          w[top.key] = Math.round((w[top.key] + diff) * 1000) / 1000;
+        }
+        ST.weights = w;
+      }
+      ST.msg = { ok: true, text: '权重已归一化到 1' };
+      save(); render(); return;
+    }
+    if (act === 'w-reset') { ST.weights = defaultWeights(); ST.msg = { ok: true, text: '权重已恢复默认' }; save(); render(); return; }
+    if (act === 'reset-all') { resetAll(); render(); return; }
+    if (act === 'add') {
+      var q = function (k) { var el = U.$('[data-param="' + k + '"]'); return el ? String(el.value || '').trim() : ''; };
+      /* ⚠️ 空输入必须存 null（「还没调研」），**不能**兜底成 0（「已登记为 0」）——
+         0 会让这个因子算「有数据」，新线索靠「同楼群协同」凑满 3 项就拿到一个假分数，
+         而且它永远不会进「待调研」清单。缺调研 ≠ 数值为 0，这是两件事。 */
+      var nz = function (k) { var s = q(k); if (s === '') return null; var v = Number(s); return isFinite(v) ? v : null; };
+      var name = q('n-name');
+      if (!name) { ST.msg = { ok: false, text: '楼名不能为空' }; render(); return; }
+      var gid = Number(q('n-group')) || 1;
+      var n = ST.leads.filter(function (l) { return l.src === 'manual'; }).length + 1;
+      var id = 'C-' + String(n).padStart(2, '0');
+      while (ST.leads.some(function (l) { return l.id === id; })) { n += 1; id = 'C-' + String(n).padStart(2, '0'); }
+      ST.leads.push({
+        id: id, src: 'manual', buildingId: null, name: name, address: q('n-addr') || '（待补）',
+        city: '北京', district: '朝阳区', groupId: gid,
+        population: nz('n-pop'), floors: nz('n-floors'),
+        companies: nz('n-companies'), mealPrice: nz('n-price'),
+        floorsEntered: 0, stage: 'lead', owner: '', nextAction: '', nextDueOffset: null,
+        reached: null, loseReason: null, touches: [], note: '人工登记',
+      });
+      ST.msg = { ok: true, text: '已加入 ' + id + '「' + name + '」（进「线索」阶段，人物字段先留空）' };
+      save(); render(); return;
+    }
+    if (act === 'dl-csv') {
+      var head = ['id', '来源', '楼名', '地址', '楼群', '阶段', '潜力分', '分档', '缺调研项',
+        '人数', '楼层数', '公司数', '周边餐饮均价', '已进楼层', '负责人', '下一步', '下一步到期',
+        '最近接触', '停滞天', '放弃原因'];
+      var lines = [head];
+      M.ranked(ST.leads, ST.weights).forEach(function (x) {
+        var l = x.lead, sc2 = x.score;
+        var gname = (SPEC.buildingGroups.list.filter(function (y) { return y.id === l.groupId; })[0] || {}).name || '';
+        var lt = M.lastTouch(l);
+        var di = M.dueInfo(l, ST.today);
+        lines.push([l.id, l.src === 'seed' ? '真源' : '人工', l.name, l.address, gname,
+          M.STAGE[l.stage].label, sc2.value == null ? '' : sc2.value,
+          sc2.band ? sc2.band.key : '', sc2.missing.join(' / '),
+          l.population, l.floors, l.companies, l.mealPrice, l.floorsEntered,
+          l.owner, l.nextAction, di ? di.due : '', lt ? M.touchDate(lt, ST.today) : '',
+          M.staleDays(l, ST.today) == null ? '' : M.staleDays(l, ST.today), l.loseReason || '']);
+      });
+      U.download('ABox楼宇拓展线索表-' + ST.today + '.csv', '\ufeff' + U.toCSV(lines), 'text/csv');
+      ST.msg = { ok: true, text: '已导出 ' + (lines.length - 1) + ' 条线索' }; render(); return;
+    }
+    if (act === 'dl-md') {
+      var td = M.todos(ST.leads, ST.today);
+      var out = ['# ABox 一盒 · 楼宇拓展跟进清单', '', '基准日 ' + ST.today + ' · 共 ' + td.length + ' 条', ''];
+      var overdue = td.filter(function (x) { return x.due && x.due.overdue; });
+      if (overdue.length) {
+        out.push('## ⚠️ 已逾期 ' + overdue.length + ' 条', '');
+        overdue.forEach(function (x) {
+          out.push('- **' + x.lead.name + '**（' + M.STAGE[x.lead.stage].label + '）'
+            + '—— 逾 ' + (-x.due.days) + ' 天 · ' + x.lead.owner + ' · ' + x.lead.nextAction);
+        });
+        out.push('');
+      }
+      out.push('## 全部待办（按到期日）', '');
+      td.forEach(function (x) {
+        var when = !x.due ? '未定' : (x.due.overdue ? '逾期 ' + (-x.due.days) + ' 天'
+          : (x.due.isToday ? '今天' : x.due.days + ' 天后(' + x.due.due + ')'));
+        out.push('- [' + when + '] **' + x.lead.name + '** · ' + M.STAGE[x.lead.stage].label
+          + ' ｜ ' + x.lead.owner + ' ｜ ' + x.lead.nextAction
+          + (x.stale == null ? '' : '（最近接触 ' + x.stale + ' 天前）'));
+      });
+      U.download('ABox楼宇拓展跟进清单-' + ST.today + '.md', out.join('\n'), 'text/markdown');
+      ST.msg = { ok: true, text: '已导出跟进清单' }; render(); return;
+    }
+  }
+
+  function onInput(e, t) {
+    /* 权重（侧栏）—— 只重绘主区，侧栏输入框不动，焦点自然保留 */
+    var wk = t.getAttribute('data-w');
+    if (wk) {
+      ST.weights[wk] = Number(t.value) || 0;
+      save(); renderMain(); updateWSum(); return;
+    }
+    /* 侧栏筛选 —— 关键词框是文本输入，整栏重绘会打断输入 ⇒ 只刷主区 + 条数；
+       下拉类控件没有输入焦点问题，整栏重绘（顺带把「N / M 条」刷新） */
+    var pk = t.getAttribute('data-param');
+    if (pk && pk.indexOf('n-') !== 0) {
+      if (pk === 'q') ST.filt.q = t.value;
+      else if (pk === 'stage') ST.filt.stage = t.value;
+      else if (pk === 'groupId') ST.filt.groupId = t.value;
+      else if (pk === 'band') ST.filt.band = t.value;
+      save();
+      if (pk === 'q') { renderMain(); updateCount(); } else { render(); }
+      return;
+    }
+    /* 主区行内编辑 —— 重绘后按 (data-lead, data-field) 复原焦点 */
+    var lid = t.getAttribute('data-lead'), f = t.getAttribute('data-field');
+    if (!lid || !f) return;
+    var l = ST.leads.filter(function (x) { return x.id === lid; })[0];
+    if (!l) return;
+    ST.focus = { lead: lid, field: f, pos: t.selectionStart == null ? 0 : t.selectionStart };
+    if (f === 'stage') l.stage = t.value;
+    else if (f === 'nextDueOffset') l.nextDueOffset = t.value ? U.diffDays(ST.today, t.value) : null;
+    else if (f === 'owner' || f === 'nextAction') l[f] = t.value;
+    else l[f] = t.value === '' ? null : Number(t.value);
+    save(); renderMain();
+  }
+
+  function boot() {
+    load();
+    var v = U.$('#ver'); if (v) v.textContent = VERSION;
+    var d = U.$('#date'); if (d) d.textContent = ST.today;
+    U.on('click', '[data-act]', onClick);
+    U.on('input', 'input, select', onInput);
+    U.on('change', 'input, select', onInput);
+    render();
+    document.documentElement.setAttribute('data-tool-ready', '1');
+  }
+
+  M.CELL = cell;
+  g.G1 = {
+    state: function () { return ST; },
+    leads: function () { return ST.leads; },
+    filtered: rows, todos: todoRows, summary: sum, score: sc,
+    ctx: ctxOf,
+    selfcheck: function () { return SC.run(ctxOf()); },
+    addLead: function (o) {
+      ST.leads.push(Object.assign({
+        id: 'T-' + (ST.leads.length + 1), src: 'manual', buildingId: null, city: '北京',
+        district: '朝阳区', floorsEntered: 0, stage: 'lead', owner: '', nextAction: '',
+        nextDueOffset: null, reached: null, loseReason: null, touches: [], note: '人工登记',
+      }, o));
+      renderMain(); return ST.leads[ST.leads.length - 1];
+    },
+    render: render, renderMain: renderMain,
+  };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script></body></html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 技术派工包（2026-10-26 · 已核实 16 条）</title>
+<style>
+  :root{
+    --brown:#6E5435; --brown-d:#4a3a22; --cream:#F6F0E5; --cream-2:#efe6d6;
+    --line:#d9cbb4; --ok:#3f7d4f; --part:#b07d2b; --gap:#b23b3b; --na:#7a7a7a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"楷体","KaiTi","STKaiti",simkai,serif;color:var(--brown-d);background:var(--cream);line-height:1.65;}
+  header{background:var(--brown);color:var(--cream);padding:22px 28px;}
+  header h1{margin:0 0 4px;font-size:23px;letter-spacing:2px;}
+  header p{margin:0;font-size:13.5px;opacity:.92;}
+  .wrap{max-width:1140px;margin:0 auto;padding:18px 22px 60px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13.5px;}
+  .card h3{margin:0 0 10px;color:var(--brown);font-size:15px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0;}
+  table th,table td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top;}
+  table th{background:var(--cream-2);color:var(--brown);}
+  .v-ok{color:var(--ok);font-weight:bold;}
+  .v-part{color:var(--part);font-weight:bold;}
+  .v-gap{color:var(--gap);font-weight:bold;}
+  .code{font-family:Consolas,Monaco,monospace;font-size:12px;background:var(--cream-2);padding:1px 5px;border-radius:3px;color:#5a4326;word-break:break-all;}
+  .wo{border:1px solid var(--line);border-radius:10px;background:#fff;padding:16px 20px;margin:18px 0;}
+  .wo h2{font-size:17px;margin:0 0 3px;color:var(--brown);}
+  .wo .sub{font-size:12.5px;color:#8a6a3a;margin-bottom:12px;}
+  .wo h4{font-size:13.5px;margin:12px 0 4px;color:var(--brown);}
+  .alert{background:#fceaea;border-left:4px solid var(--gap);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .warn{background:#fbf3e3;border-left:4px solid var(--part);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .good{background:#eaf3e8;border-left:4px solid var(--ok);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  ul{margin:6px 0 6px 18px;padding:0;}
+  li{margin:3px 0;}
+  .tag{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;}
+  .t-gap{background:#fceaea;color:var(--gap);border:1px solid #e8b4b4;}
+  .t-part{background:#fbf3e3;color:var(--part);border:1px solid #e0caa0;}
+  footer{font-size:12px;color:var(--na);text-align:center;margin-top:30px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>ABox 一盒 · 技术派工包</h1>
+  <p>2026-10-26 ｜ 来源：123 条探针表 P0 25 条 + 五批代码走查（已核 16 条）｜ <b>本包只派「已核实」的活，未核的另列自查，不拿猜测当需求</b></p>
+</header>
+
+<div class="wrap">
+
+  <div class="alert">
+    <b>使用说明（请先看这一条）：</b>本包把内容分成四档。<b>A 档</b>是已用代码证据 + 可执行测试钉死的缺陷，可直接开工；
+    <b>B 档</b>是建议清理项；<b>C 档</b>是我<b>尚未核实</b>的条目，只能作为「自查题」交给技术自己答，<b>不算缺陷</b>；
+    <b>D 档</b>是需要祝总先拍板的业务决策，<b>您不定，技术无从下手</b>。<br>
+    另请在开工前先看<b>附录「已核实不用动」</b>——那里 8 条看起来可疑但已确认防住，别重复劳动。
+  </div>
+
+  <div class="card">
+    <h3>一、总览</h3>
+    <table>
+      <tr><th style="width:8%">档</th><th style="width:14%">性质</th><th style="width:12%">条数</th><th>说明</th></tr>
+      <tr><td><b>A</b></td><td class="v-gap">已核实 · 必修</td><td>5 组</td><td>含资金、安全审计、内控、可观测性；每组附现状 / 修法 / 验收标准</td></tr>
+      <tr><td><b>B</b></td><td class="v-part">建议清理</td><td>1 条</td><td>不可达死代码，将来改建单逻辑会变成越权敞口</td></tr>
+      <tr><td><b>C</b></td><td>未核实 · 自查</td><td>5 条</td><td>只有问题与判定标准，<b>需技术自己核</b>，不要当缺陷直接改</td></tr>
+      <tr><td><b>D</b></td><td class="v-part">需您先拍板</td><td>5 条</td><td>业务规则未定，技术无法开工</td></tr>
+    </table>
+    <p style="margin-top:8px;font-size:13px;">
+      另：探针表里<b>P0 25 条中我已核 12 条</b>，其中 8 条结论是「已防住 / 不用动」（见附录）。
+      也就是说，P0 里真正要花钱修的，集中在本包 A 档这 5 组。
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>二、A 档 · 已核实必修（5 组）</h3>
+    <table>
+      <tr><th style="width:6%">#</th><th style="width:22%">工单</th><th style="width:10%">性质</th><th style="width:30%">一句话现状</th><th>验收方式</th></tr>
+      <tr><td>A1</td><td>支付单边账补单</td><td class="v-gap">真缺口</td><td>用户扣款成功、回调丢失 → 钱扣了单没了，且无人知晓</td><td>制造回调丢失后跑查单任务，订单与微信侧一致</td></tr>
+      <tr><td>A2</td><td>幂等键 Redis 降级改 fail-closed</td><td class="v-gap">真缺口</td><td>Redis 一抖动，幂等保护永久静默失效</td><td><b>已有测试脚本</b>，跑绿即通过</td></tr>
+      <tr><td>A3</td><td>AI 禁止清单「解除」补留痕</td><td class="v-gap">真缺口</td><td>解除动作物理删除，查无此人查无此事</td><td>解除后能从日志查出谁、何时、解了哪条</td></tr>
+      <tr><td>A4</td><td>发券面额上限与限量绕过</td><td class="v-part">内控缺失</td><td>面额无上限；不传券种 ID 可整段绕过总量限制</td><td>不传券种 ID 应报错；超限应拒且计数不涨</td></tr>
+      <tr><td>A5</td><td>跑批可观测性（一组四小项）</td><td class="v-part">看不见</td><td>任务没跑、日志写失败，都是「没人知道」的状态</td><td>停进程 1 小时，监控应报心跳丢失</td></tr>
+    </table>
+  </div>
+
+  <div class="wo">
+    <h2>A1 · 支付单边账：补一个主动查单任务<span class="tag t-gap">真缺口 · 资金</span></h2>
+    <div class="sub">对应探针表 P3 ｜ 证据：<span class="code">modules/payment/wxpay.service.ts</span> ｜ <span class="code">tasks/</span> 全部 9 个任务</div>
+
+    <h4>现状（代码事实）</h4>
+    <ul>
+      <li><span class="code">wxpay.service.ts</span> 对外只有四个方法：下单、解析回调、回调钩子、模拟支付</li>
+      <li><b>反向验证</b>：全仓 <span class="code">grep queryOrder / closeOrder / 主动查单 / 补单</span> <b>零命中</b></li>
+      <li>9 个定时任务（cutoff / commission-settle / auto-confirm / delivery-generate / leader-expire / meal-publish / reconciliation / supplier-share / page-track-cleanup）中<b>没有查单类</b></li>
+    </ul>
+
+    <h4>后果</h4>
+    <div class="alert">
+      用户微信端扣款成功，但回调没打到服务器 ⇒ 订单停在「待支付」⇒ 超时关单。<br>
+      <b>结果：用户的钱扣了、单没了，而我们完全不知道。</b>每次发生都要靠用户主动投诉才发现 —— 而用户往往先怀疑自己手机坏了。
+      这是本包唯一一条「每天都在可能发生、且发生时无人知晓」的资金缺口。
+    </div>
+
+    <h4>修法</h4>
+    <ul>
+      <li>新增定时查单任务：扫描「已创建预支付、超过 N 分钟仍未回调」的订单，逐笔调微信 <span class="code">queryOrder</span></li>
+      <li>查到<b>已支付</b> → 推进订单状态并补发后续动作（通知、配送单计入）；查到<b>未支付/已关闭</b> → 关单</li>
+      <li>连续查不到结果的订单（超过重试上限）→ 落异常清单并告警，<b>不要静默丢弃</b></li>
+    </ul>
+
+    <h4>验收标准</h4>
+    <ul>
+      <li>用 mock 制造一次「回调丢失」，跑查单任务后：订单状态与微信侧<b>完全一致</b></li>
+      <li>同一笔订单连续跑两次查单：<b>不重复入账、不重复发通知</b></li>
+      <li>查不到的订单能在异常清单里被看见（而不是只在日志里一行）</li>
+    </ul>
+  </div>
+
+  <div class="wo">
+    <h2>A2 · 幂等键：Redis 抖动后永久降级，改成 fail-closed<span class="tag t-gap">真缺口 · 资金</span></h2>
+    <div class="sub">证据：<span class="code">common/cache/kv.service.ts:112-130</span> ｜ <b>已附可执行测试</b></div>
+
+    <h4>现状（代码事实）</h4>
+    <ul>
+      <li><span class="code">:126</span> <span class="code">catch {</span> —— <b>不区分异常类型</b>，连接失败 / 超时 / 命令报错一律捕获</li>
+      <li><span class="code">:127</span> <span class="code">degraded = true</span> → <span class="code">:128</span> 递归走<b>进程内内存 Map</b></li>
+      <li><b>反向验证</b>：<span class="code">degraded = true</span> 全文件 7 处；<span class="code">= false</span> 仅 1 处且是 <span class="code">:27</span> 的字段声明 ⇒ <b>运行期零复位</b>，需重启</li>
+      <li>加重因素：<span class="code">enableOfflineQueue: false</span> + <span class="code">maxRetriesPerRequest: 1</span>（<span class="code">:38-45</span>）⇒ 亚秒级抖动立刻抛错触发降级，<b>不是罕见分支</b></li>
+    </ul>
+
+    <div class="alert">
+      <b>已有可执行复现</b>：<span class="code">abox-onebox/scripts/test-kv-idempotency-degradation.mjs</span><br>
+      实况：两个实例对<b>同一个幂等键</b> <span class="code">setNx</span> <b>都返回 true</b> ⇒ 同一请求可执行两次；
+      且不抛错、业务完全无感，只在日志留一行 WARN。连跑 3 次结果一致（PASS 7 / FAIL 1）。
+    </div>
+
+    <h4>修法（三选一，推荐第一项）</h4>
+    <ul>
+      <li><b>推荐 · fail-closed</b>：Redis 驱动下 <span class="code">setNx</span> 抛错<b>直接向上抛</b>，不降级 —— 与本项目队列的既有口径统一（文档原文：队列「Redis 驱动连不上是 fail-closed 抛错，不静默降级」）</li>
+      <li><b>次选 · 可自愈降级</b>：保留降级，加后台探活，Redis 恢复后把 <span class="code">degraded</span> 复位</li>
+      <li><b>最小 · 至少吵起来</b>：日志从 <span class="code">WARN</span> 升到 <span class="code">ERROR</span> 并接入告警</li>
+    </ul>
+
+    <h4>验收标准</h4>
+    <ul>
+      <li>运行 <span class="code">node abox-onebox/scripts/test-kv-idempotency-degradation.mjs</span> ⇒ <b>退出码 0</b>（当前为 1）</li>
+      <li>注意：改成 fail-closed 后，该测试第①条断言（「不抛错」）的<b>预期语义需同步更新为「抛错」</b>，请一并维护测试，别让它恒绿</li>
+    </ul>
+  </div>
+
+  <div class="wo">
+    <h2>A3 · AI 禁止清单的「解除」动作补留痕<span class="tag t-gap">真缺口 · 安全审计</span></h2>
+    <div class="sub">对应探针表 L13 ｜ 证据：<span class="code">common/services/op-blocklist.service.ts</span> ｜ <span class="code">modules/admin/op-blocklist/op-blocklist.controller.ts</span></div>
+
+    <h4>现状（代码事实 · 不对称）</h4>
+    <table>
+      <tr><th style="width:16%">动作</th><th style="width:30%">实现</th><th>留痕</th></tr>
+      <tr><td><b>列入</b>禁令 <span class="code">add()</span></td><td><span class="code">:29-42</span></td><td class="v-ok">完整记录 <span class="code">createdBy</span></td></tr>
+      <tr><td><b>解除</b>禁令 <span class="code">remove()</span></td><td><span class="code">:44-46</span> <span class="code">repo.delete()</span></td><td class="v-gap"><b>零留痕 · 物理删除</b></td></tr>
+    </table>
+    <ul>
+      <li>controller <span class="code">:45</span> 的 <span class="code">remove</span> <b>签名里连操作人参数都没有</b>（<span class="code">add</span> 有 <span class="code">@CurrentAdmin</span>）</li>
+      <li>解除后连「这条禁令曾经存在过」都查不出来</li>
+      <li>加成项：<span class="code">common/interceptors/op-blocklist.interceptor.ts:48</span> 是 <b>fail-open</b>（查询失败 → warn + 放行助手写操作）</li>
+    </ul>
+
+    <div class="alert">
+      这张表管的是「<b>AI 知识助手能执行哪些写操作</b>」的安全闸门。<br>
+      两者叠加 ⇒ <b>想让 AI 做一件被禁的事，只需一个有 admin 权限的 HTTP 请求，事后查无此人、查无此事。</b>
+    </div>
+
+    <h4>修法</h4>
+    <ul>
+      <li>给 <span class="code">remove</span> 补 <span class="code">@CurrentAdmin</span> + <span class="code">@OperationLog</span>（最小改法）</li>
+      <li>或改成软删：加 <span class="code">deletedBy</span> / <span class="code">deletedAt</span>，保留「曾被解除」的事实</li>
+      <li>或把「解除」纳入 <span class="code">operation-request</span> 高危审批流（最严）</li>
+      <li>建议同时评估 interceptor 的 fail-open 是否应改为 fail-closed</li>
+    </ul>
+
+    <h4>验收标准</h4>
+    <ul>
+      <li>解除一条禁令后，<span class="code">ab_operation_log</span> 能查到：<b>谁、何时、解除了哪一条</b></li>
+      <li>解除后的禁令在库里仍有可查记录（若采用软删方案）</li>
+    </ul>
+  </div>
+
+  <div class="wo">
+    <h2>A4 · 发券：面额无上限 + 总量限制可整段绕过<span class="tag t-part">内控缺失</span></h2>
+    <div class="sub">对应探针表 F10 ｜ 证据：<span class="code">modules/coupon/dto/coupon.dto.ts</span> ｜ <span class="code">modules/coupon/coupon.service.ts:136</span></div>
+
+    <div class="warn">
+      <b>先澄清一个被夸大的说法</b>：此前有「一次输错就是百万级事故」的表述，<b>经核实不成立</b>。
+      <span class="code">discountOf()</span> 返回 <span class="code">Math.min(面额, 订单额)</span>，且 <span class="code">payAmountFen = Math.max(0, …)</span>
+      ⇒ <b>一张天价券最多免掉一单 ¥25.80</b>。性质是「慢性内控漏洞」，不是资金爆雷。请按真实等级排期，不必紧急。
+    </div>
+
+    <h4>现状（代码事实）</h4>
+    <ul>
+      <li><b>面额无上限</b>：<span class="code">coupon.dto.ts</span> 两处 <span class="code">faceValueFen</span> 只有 <span class="code">@Min(1)</span>，<b>没有 @Max</b>；反向验证全仓无面额上限常量</li>
+      <li><b>限量可绕过</b>：<span class="code">coupon.service.ts:136</span> 全部限量校验写在 <span class="code">if (input.couponDefId)</span> 里头，
+        而该字段在 DTO 里标了 <span class="code">@IsOptional()</span> ⇒ <b>不传它发券，totalLimit 判断整段不执行，连 issuedCount 都不回写</b></li>
+      <li><b>已防住的部分</b>：券归属校验在（<span class="code">uc.userId !== userId</span>），别按这条去问责</li>
+    </ul>
+
+    <h4>修法</h4>
+    <ul>
+      <li><span class="code">faceValueFen</span> 补 <span class="code">@Max</span>（数值请祝总定，建议不超过单份餐价）</li>
+      <li>把限量校验<b>移出 <span class="code">if</span> 块</b>，或将 <span class="code">couponDefId</span> 改为必填</li>
+      <li><span class="code">issuedCount</span> 必须回写 —— 目前这个通道<b>连计数都没有</b>，系统对它零感知</li>
+    </ul>
+
+    <h4>验收标准</h4>
+    <ul>
+      <li>不传 <span class="code">couponDefId</span> 发券 ⇒ 返回<b>明确的参数错误</b>，而不是静默成功</li>
+      <li>超过 <span class="code">totalLimit</span> 发券 ⇒ 拒绝，且 <span class="code">issuedCount</span> <b>不增长</b></li>
+      <li>面额填超过上限的值 ⇒ 校验拦截</li>
+    </ul>
+  </div>
+
+  <div class="wo">
+    <h2>A5 · 跑批与日志的可观测性（一组四小项）<span class="tag t-part">看不见</span></h2>
+    <div class="sub">对应探针表 T1 / T2 + 走查新发现 X3 / X6 ｜ 证据：<span class="code">tasks/schedule.service.ts:64</span></div>
+
+    <div class="alert">
+      <b>这一组的共性是「静默失败」</b>：本包 A2 是「Redis 抖动没人知道」、A3 是「解除禁令没人知道」，
+      这一组是「<b>跑批没跑、日志没写，也没人知道</b>」。四次独立发现指向同一个系统性取向，建议作为一个主题整体处理。
+    </div>
+
+    <h4>现状（代码事实）</h4>
+    <table>
+      <tr><th style="width:16%">小项</th><th>证据</th></tr>
+      <tr>
+        <td><b>T1 无执行记录</b></td>
+        <td><b>反向验证</b>：全仓实体与迁移中 <span class="code">grep schedule_run / lastRun / runLog</span> <b>零命中</b>，没有任何任务执行记录表。
+          <span class="code">schedule.service.ts:64</span> 注释自承：「要查『昨夜跑批跑了什么』看日志，<b>不查表</b>」—— 这是明确的设计声明，不是漏写</td>
+      </tr>
+      <tr>
+        <td><b>T2 无心跳告警</b></td>
+        <td>失败只有 <span class="code">logger.error</span>（<span class="code">:158</span>）、成功 <span class="code">logger.log</span>（<span class="code">:152</span>）。
+          <b>没有心跳检测</b> ⇒ 「进程压根没起来 / 任务没被调度」这种<b>不抛异常的情况</b>，完全无人知晓</td>
+      </tr>
+      <tr>
+        <td><b>X3 日志写失败被吞</b></td>
+        <td><span class="code">common/interceptors/operation-log.interceptor.ts:240</span>：整个写库包在 try/catch，失败<b>只打一行 WARN</b>。
+          取舍本身合理（不能因日志表炸了让退款审批失败），但<b>无补偿、无告警</b></td>
+      </tr>
+      <tr>
+        <td><b>X6 日志表只涨不清</b></td>
+        <td><span class="code">ab_operation_log</span> 全仓<b>零清理任务</b>；对账不平也会往里写（<span class="code">reconciliation.task.ts:54</span>）。
+          对比 <span class="code">ab_page_track</span> 有 <span class="code">page-track-cleanup.task.ts</span> 每日 03:30 清理</td>
+      </tr>
+    </table>
+
+    <div class="warn">
+      <b>为什么 T2 值得单独当回事</b>：如果 <span class="code">cutoff.task</span>（截单）某天没跑成 ——
+      当天所有订单都没截单，<b>供应商照做、系统还在收新单</b>。第一个发现的人是谁？多久发现？
+      答案是：靠用户投诉。而它失败时<b>不会抛异常</b>（如果进程没起来），现有告警抓不到。
+    </div>
+
+    <h4>修法</h4>
+    <ul>
+      <li><b>① 加心跳</b>：关键任务（cutoff / commission-settle / delivery-generate）跑完写一条「我跑过了」的记录（表或结构化日志），监控按<b>预期时刻没来</b>告警</li>
+      <li><b>② 连续失败告警</b>：同一任务连续 2 次失败必须触达到人（分钟级）</li>
+      <li><b>③ 日志写失败升级</b>：WARN → ERROR 并接入告警；再加「每日日志条数心跳」，骤降即说明写入在静默失败</li>
+      <li><b>④ 留存与归档</b>：先定留存期（建议与财务对账周期对齐），照 <span class="code">page-track-cleanup</span> 的样子做<b>先归档再删</b>的任务</li>
+    </ul>
+
+    <h4>验收标准</h4>
+    <ul>
+      <li><b>把进程停掉 1 小时</b>，监控系统应报「任务心跳丢失」—— 这是唯一能证明 T2 真修好的测试</li>
+      <li>人为让日志表不可写，应触发 ERROR 级告警（而不是只有一行 WARN）</li>
+      <li>跑批看板或查询接口能回答「每个任务上次几点跑的、成功还是失败」</li>
+    </ul>
+  </div>
+
+  <div class="wo">
+    <h2>B 档 · 建议清理：一条不可达的死代码<span class="tag t-part">建议</span></h2>
+    <div class="sub">对应探针表 V2 ｜ 证据：<span class="code">modules/order/leader-order.service.ts</span> 的 <span class="code">applyScope</span></div>
+
+    <h4>现状</h4>
+    <ul>
+      <li><span class="code">applyScope</span> 第二分支是 <span class="code">(teamLeaderId IS NULL AND buildingId = …)</span> —— 看起来像「同楼任意团长都能操作任何单」</li>
+      <li><b>但它是不可达的</b>：建单必经 <span class="code">resolveLeader()</span>（<span class="code">order.service.ts:1602-1620</span>）三级 fallback，拿不到就直接抛 <span class="code">LEADER_NOT_FOUND</span>；<span class="code">order.service.ts:337</span> 无条件写 <span class="code">teamLeaderId</span></li>
+      <li>反向验证：全仓无把 <span class="code">teamLeaderId</span> 置空的写点（换绑楼栋那一处除外）</li>
+    </ul>
+
+    <div class="warn">
+      <b>危险不在今天在明天</b>：一旦将来有人改建单逻辑让 <span class="code">teamLeaderId</span> 可空，
+      这条分支会让权限边界从「自己的单」<b>静默放大到「整栋楼」</b>，而那时没人会想起这里还有一行代码。
+    </div>
+
+    <p><b>修法</b>：先确认生产库 <span class="code">teamLeaderId IS NULL</span> 的行数为 0，确认后<b>删掉该分支</b>，并补一条断言防止它复发。</p>
+  </div>
+
+  <div class="card">
+    <h3>三、C 档 · 未核实，交技术自查（5 条）</h3>
+    <div class="warn">
+      <b>这 5 条我没有核过</b>，只有问题与判定标准。<b>请勿直接当作缺陷去改</b> —— 请先自查，把结论（已实现 / 部分 / 缺口）填回来。
+      这五条我从探针表里保留了原样的「判定标准」与「去哪验」，可直接照着查。
+    </div>
+    <table>
+      <tr><th style="width:6%">#</th><th style="width:14%">自查项</th><th style="width:34%">判定标准（照这个查）</th><th>去哪验</th></tr>
+      <tr>
+        <td>C1</td><td><b>H9</b> 佣金冲正覆盖</td>
+        <td>任何退款完成的佣金必须被冲正，冲不平的差异入异常清单；余额流水能一键回溯到具体订单；不存在「佣金先拿走、订单后退款」的资金损失路径</td>
+        <td><span class="code">finance/reversal.service.ts</span> 调用点是否在 <span class="code">settleRefundDb</span> 之后；<span class="code">ab_balance</span> 流水有无 reversal 类型</td>
+      </tr>
+      <tr>
+        <td>C2</td><td><b>Q1</b> 配送单生成幂等</td>
+        <td>生成幂等，重复执行不丢手工调整；配送单总份数与同日已付款订单份数自动对平，不平则告警</td>
+        <td><span class="code">delivery.service.ts:292 generateByDate</span> / <span class="code">:392 aggregateOrderQuantity</span>；<span class="code">tasks/delivery-generate.task.ts</span></td>
+      </tr>
+      <tr>
+        <td>C3</td><td><b>Q7</b> 日结五方对平</td>
+        <td>存在日结对平视图/报表，差异自动列出明细；这是所有财务口径的地基，不平则当天不许关账</td>
+        <td><span class="code">finance/reconciliation.service.ts</span> + <span class="code">tasks/reconciliation.task.ts</span>；有无五方维度</td>
+      </tr>
+      <tr>
+        <td>C4</td><td><b>S2</b> 打款失败回滚</td>
+        <td>打款以第三方返回为准才置最终态；失败必须回到可重试状态；同一提现单并发审批只有一次生效</td>
+        <td><span class="code">finance/withdraw-admin.service.ts</span>；有无状态机与 version 乐观锁</td>
+      </tr>
+      <tr>
+        <td>C5</td><td><b>S5</b> 对账任务在不在跑</td>
+        <td>任务有执行记录可查；差异落到可导出的差异表；超阈值有告警触达到人。<b>「跑了但没人看」等同于「没跑」</b></td>
+        <td><span class="code">tasks/reconciliation.task.ts</span> + 生产 schedule 执行日志（与 A5 的 T1 强相关，可合并处理）</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>四、D 档 · 需祝总先拍板（5 条，您不定技术无从下手）</h3>
+    <div class="alert">
+      这 5 条<b>不是技术能决定的</b>。它们要么缺业务规则、要么缺「要不要这个能力」的判断。
+      建议您在派工前先把这五条的答案定下来，技术才能开工。
+    </div>
+    <table>
+      <tr><th style="width:6%">#</th><th style="width:14%">待拍板项</th><th style="width:40%">需要您回答什么</th><th>不定会怎样</th></tr>
+      <tr>
+        <td>D1</td><td><b>B5</b> 非营业日</td>
+        <td>周末 / 法定节假日 / 供应商休市，到底营不营业？若营业，春节呢？若休市，提前多久、已下的单怎么处理</td>
+        <td>现在<b>全仓无任何营业日概念</b>；周五晚下单、次日是周六 —— 谁来做、谁来送，没有答案</td>
+      </tr>
+      <tr>
+        <td>D2</td><td><b>W1</b> 一键停售</td>
+        <td>要不要这个能力？停售时：首页停止接单 / 已下单用户通知 / 自动退款退券 —— 这三件是一键还是三步手工</td>
+        <td>供应商断供或大雪时，只能逐笔手工处理几百单</td>
+      </tr>
+      <tr>
+        <td>D3</td><td><b>S1</b> 提现规则</td>
+        <td>起提金额、到账时限、收不收手续费、单日上限、能否当日重复申请 —— <b>五个数值</b></td>
+        <td>规则没定，每次团长问都要现场答，容易前后不一致</td>
+      </tr>
+      <tr>
+        <td>D4</td><td><b>E5</b> 批量退款</td>
+        <td>要不要「按配送日 / 楼宇一键批量退款」？中途失败要不要支持断点续退</td>
+        <td>整栋楼停供时只能几百笔手工点，且部分失败容易漏</td>
+      </tr>
+      <tr>
+        <td>D5</td><td><b>R1</b> 楼宇停用</td>
+        <td>一栋楼停用/改名时，已下单的人怎么办？通知谁、退不退、谁来退</td>
+        <td>可能出现「下了单但楼没了」的悬空订单</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>五、附录 · 已核实「不用动」（请勿重复劳动）</h3>
+    <div class="good">
+      以下 8 条看起来可疑、我已经逐条查过，<b>结论是已防住或已正确实现</b>。请不要因为「名单上有」就去改它们 ——
+      其中 S3 / T3 两条我此前<b>判断错过</b>（误报为缺口），已在第二批纠正，特此留档避免二次误判。
+    </div>
+    <table>
+      <tr><th style="width:8%">编号</th><th style="width:24%">项</th><th style="width:12%">结论</th><th>关键证据</th></tr>
+      <tr><td><b>S3</b></td><td>提现并发超扣</td><td class="v-ok">已防住</td><td>写钱路径系统性用<b>乐观锁</b>（<span class="code">version + 1</span> + <span class="code">WHERE version = :v</span>），withdraw / balance-admin / commission / refund / reversal / delivery 全覆盖；且「申请即冻结」非直接扣款</td></tr>
+      <tr><td><b>T3</b></td><td>手动补跑重复入账</td><td class="v-ok">天然幂等</td><td><span class="code">WHERE status='pending'</span> 条件更新，更新到 0 行即跳过。<b>注释写的「不带锁」不等于不幂等</b></td></tr>
+      <tr><td><b>Q2</b></td><td>配送状态推进</td><td class="v-ok">已修复</td><td><span class="code">delivery.service.ts:869/922</span> 逐单条件更新 + 乐观锁；<span class="code">advanced=0</span> 时<b>不静默</b>，会生成可排查的提示；刻意不用动态状态值以保静态可判定，配 <span class="code">check-order-edges.mjs</span> 门禁</td></tr>
+      <tr><td><b>V1</b></td><td>水平越权 IDOR</td><td class="v-ok">系统性防住</td><td>全局 <span class="code">APP_GUARD JwtAuthGuard</span> fail-closed（<span class="code">common.module.ts:86</span>）；<span class="code">@Public</span> 仅 10 处且各有注释理由；身份一律 <span class="code">@CurrentUser().sub</span>，无端点从请求体取 userId</td></tr>
+      <tr><td><b>V2</b></td><td>垂直越权</td><td class="v-ok">防住</td><td>双主体按路径前缀隔离（<span class="code">jwt-auth.guard.ts:26</span>）；<span class="code">leader.guard.ts</span> 明令「禁止仅凭 JWT 内的 isLeader 放行」，每次回查数据库</td></tr>
+      <tr><td><b>V3</b></td><td>金额与数量篡改</td><td class="v-ok">已防住</td><td>价格<b>恒由服务端算</b>（<span class="code">order.service.ts:220/275</span> 读配置，不取前端传价）；<span class="code">main.ts:212-214</span> <span class="code">whitelist + forbidNonWhitelisted</span> ⇒ 前端传 price 直接被拒；份数 <span class="code">@IsInt @Min(1)</span>，上限在 <span class="code">:230</span> 按配置校验</td></tr>
+      <tr><td><b>C9</b></td><td>并发重复下单</td><td class="v-ok">正确</td><td>幂等三段齐全（占位 <span class="code">SET EX NX</span> 原子 / 回填 <span class="code">10006+data</span> / 失败删键）；端上把 <span class="code">10006</span> 按<b>成功</b>解包；<span class="code">e2e-m1</span> 三条断言守着</td></tr>
+      <tr><td>统计口径</td><td>报表与订单同源</td><td class="v-ok">无滞后</td><td>直查订单表、无缓存无快照；「有效订单」<b>只有一处判定</b>（<span class="code">stats.service.ts:225</span> 注释原话「不许多处实现」）</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>六、上次没做完的事（交接用）</h3>
+    <ul>
+      <li><b>已交付的测试脚本</b>：<span class="code">abox-onebox/scripts/test-kv-idempotency-degradation.mjs</span>（对应 A2）。
+        当前<b>未纳入门禁</b>（项目有 35 道 <span class="code">gate.mjs</span>，挂入需评估影响）。是否纳入请祝总决定。</li>
+      <li><b>待观察项 X1</b>：<span class="code">user.service.ts:141-145</span> 换绑办公楼会清空 <span class="code">teamLeaderId</span>，日志自承「待重算」但全仓无重算实现
+        ⇒ 该用户再下单会 fallback 到「本楼 id 最小的在职团长」，<b>佣金可能给错人</b>。触发条件窄（只在真换楼时），建议观察而非现在改。</li>
+      <li><b>剩余未核</b>：探针表 P0 25 条中我已核 12 条；本包 C 档 5 条 + D 档 5 条 = 10 条仍未核。
+        如需我把 C 档 5 条也核实掉（把「自查题」变成「确证结论」），可以继续安排。</li>
+    </ul>
+  </div>
+
+  <footer>
+    ABox 一盒 · 技术派工包 ｜ 2026-10-26 ｜ A 档每条均附代码行号与可证伪的验收标准，可直接开工
+  </footer>
+
+</div>
+</body>
+</html>

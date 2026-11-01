@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 线上联调部署清单 v1.0</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --card:#FFFFFF;
+    --ink:#2E2924; --ink-2:#796C57; --ink-3:#9A8B72;
+    --brown:#6E5435; --brown-soft:#E8DDC9; --line:#DCD2C0; --line-2:#EDE5D6;
+    --red:#9A3412; --red-bg:#FBEDE4; --red-line:#E8C9B4;
+    --amber:#8A6A12; --amber-bg:#FBF3DD; --amber-line:#E8D8A8;
+    --green:#3F6B4A; --green-bg:#EAF1EA; --green-line:#C3D6C5;
+    --code-bg:#FAF6EE;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+    font-size:15px;line-height:1.78;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:44px 26px 100px}
+
+  header{border-bottom:2px solid var(--brown);padding-bottom:20px;margin-bottom:8px}
+  h1{font-family:KaiTi,"STKaiti",simkai,"楷体",serif;font-size:29px;font-weight:700;
+     margin:0 0 8px;letter-spacing:.06em;color:var(--brown)}
+  .sub{color:var(--ink-2);font-size:13.5px}
+  .ver{display:inline-block;margin-left:10px;padding:1px 9px;border:1px solid var(--brown-soft);
+       border-radius:99px;font-size:12px;color:var(--brown);background:#FFF}
+
+  .prog{position:sticky;top:0;z-index:20;background:rgba(246,240,229,.95);
+    backdrop-filter:blur(6px);border-bottom:1px solid var(--line);
+    padding:10px 0;margin:0 0 24px;font-size:13px;color:var(--ink-2)}
+  .prog b{color:var(--brown);font-variant-numeric:tabular-nums}
+  .bar{display:inline-block;width:150px;height:7px;background:#E3D8C4;border-radius:99px;
+       vertical-align:1px;margin:0 10px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:var(--brown);transition:width .25s}
+
+  .toc{background:#FFF;border:1px solid var(--line);border-radius:3px;padding:16px 20px;margin:0 0 30px}
+  .toc .tt{font-weight:700;font-size:13px;color:var(--ink-2);letter-spacing:.1em;margin-bottom:9px}
+  .toc ol{margin:0;padding-left:22px;font-size:14px;columns:2;column-gap:34px}
+  @media(max-width:760px){.toc ol{columns:1}}
+  .toc li{margin:3px 0;break-inside:avoid}
+  .toc a{color:var(--brown);text-decoration:none}
+  .toc a:hover{text-decoration:underline}
+
+  section{margin:0 0 40px;scroll-margin-top:70px}
+  h2{font-family:KaiTi,"STKaiti",simkai,"楷体",serif;font-size:21px;font-weight:700;
+     color:var(--brown);margin:0 0 6px;padding-left:12px;border-left:4px solid var(--brown);
+     letter-spacing:.04em}
+  .lead{color:var(--ink-2);font-size:13.5px;margin:0 0 16px;padding-left:16px}
+  h3{font-size:15px;font-weight:700;margin:22px 0 9px;color:var(--ink)}
+  p{margin:0 0 12px}
+
+  .step{background:#FFF;border:1px solid var(--line);border-radius:3px;padding:0;margin:14px 0;overflow:hidden}
+  .step-h{display:flex;align-items:center;gap:10px;padding:11px 15px;
+          background:#FBF8F2;border-bottom:1px solid var(--line-2)}
+  .step-h .sn{font-family:KaiTi,"STKaiti",simkai,"楷体",serif;font-size:15px;font-weight:700;
+              color:var(--brown);white-space:nowrap}
+  .step-h .st{font-size:14px;font-weight:700}
+  .step-h .who{margin-left:auto;font-size:11.5px;color:var(--ink-2);white-space:nowrap}
+  .step-b{padding:15px 17px}
+  .step-b > p:last-child{margin-bottom:0}
+
+  .badge{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11.5px;
+         font-weight:700;letter-spacing:.03em;white-space:nowrap;border:1px solid}
+  .b-you{background:var(--red-bg);color:var(--red);border-color:var(--red-line)}
+  .b-me{background:var(--green-bg);color:var(--green);border-color:var(--green-line)}
+  .b-both{background:var(--brown-soft);color:var(--brown);border-color:var(--brown-soft)}
+  .b-warn{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-line)}
+  .b-ok{background:var(--green-bg);color:var(--green);border-color:var(--green-line)}
+  .b-key{background:var(--brown-soft);color:var(--brown);border-color:var(--brown-soft)}
+  .b-no{background:#F1EFE8;color:#5F5E5A;border-color:#D3D1C7}
+
+  .cmdbox{margin:10px 0;position:relative}
+  .cmd{background:var(--code-bg);border:1px solid var(--line);border-left:3px solid var(--brown);
+       border-radius:2px;padding:11px 46px 11px 13px;margin:0;
+       font-family:Consolas,"Courier New",monospace;font-size:12.7px;line-height:1.72;
+       color:#3A3227;white-space:pre-wrap;word-break:break-all;overflow-x:auto}
+  .cp{position:absolute;top:6px;right:6px;background:#FFF;border:1px solid var(--line);
+      border-radius:2px;font-size:11px;padding:2px 8px;cursor:pointer;color:var(--brown);
+      font-family:inherit}
+  .cp:hover{background:var(--brown);color:#F6F0E5;border-color:var(--brown)}
+  .cp.done{background:var(--green);color:#FFF;border-color:var(--green)}
+  .cmdlab{font-size:12px;color:var(--ink-2);margin:12px 0 3px;letter-spacing:.03em}
+
+  .chkline{display:flex;gap:9px;align-items:flex-start;padding:9px 0;
+           border-top:1px solid var(--line-2);font-size:14px}
+  .chkline:first-of-type{border-top:0}
+  .chkline input{width:16px;height:16px;accent-color:var(--brown);cursor:pointer;margin-top:4px;flex:none}
+  .chkline span{flex:1}
+  .chkline.on span{opacity:.45;text-decoration:line-through;text-decoration-color:var(--ink-3)}
+
+  .callout{border:1px solid var(--line);border-left:4px solid var(--amber);
+    background:var(--amber-bg);border-radius:3px;padding:14px 18px;margin:14px 0}
+  .callout.danger{border-left-color:var(--red);background:var(--red-bg)}
+  .callout.ok{border-left-color:var(--green);background:var(--green-bg)}
+  .callout .ct{font-weight:700;margin-bottom:6px;font-size:14px}
+  .callout p:last-child{margin-bottom:0}
+
+  table{width:100%;border-collapse:separate;border-spacing:0;background:#FFF;
+        border:1px solid var(--line);border-radius:3px;overflow:hidden;font-size:14px;margin:12px 0}
+  th{background:var(--brown);color:#F6F0E5;text-align:left;padding:9px 12px;
+     font-weight:600;font-size:13px;letter-spacing:.04em}
+  td{padding:9px 12px;border-top:1px solid var(--line-2);vertical-align:top}
+  tbody tr:nth-child(even) td{background:#FDFBF7}
+  td.k{width:150px;white-space:nowrap;font-weight:700;font-size:13px;color:var(--brown)}
+  code{font-family:Consolas,"Courier New",monospace;background:#F1E9DA;border:1px solid #E3D8C4;
+       border-radius:2px;padding:1px 5px;font-size:12.5px;color:#5A4526}
+  .ph{background:#FFF3D6;border:1px solid #E8D8A8;border-radius:2px;padding:0 4px;
+      font-family:Consolas,monospace;font-size:12.5px;color:#8A6A12}
+
+  .kv{display:grid;grid-template-columns:150px 1fr;gap:0;font-size:14px;
+      border:1px solid var(--line);border-radius:3px;overflow:hidden;background:#FFF;margin:12px 0}
+  .kv > div{padding:9px 12px;border-top:1px solid var(--line-2)}
+  .kv > div:nth-child(-n+2){border-top:0}
+  .kv > div:nth-child(odd){background:#FBF8F2;font-weight:700;font-size:13px;color:var(--brown)}
+  @media(max-width:700px){.kv{grid-template-columns:1fr}.kv>div:nth-child(odd){border-top:1px solid var(--line-2)}}
+
+  .strike{color:var(--ink-3);text-decoration:line-through}
+  footer{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);
+         font-size:12.5px;color:var(--ink-3)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>线上联调部署清单</h1>
+  <div class="sub">
+    目标：让同事在任何网络下打开小程序体验版与运营后台，不再依赖同一个 WiFi。
+    <br>本清单<b>只做内部联调</b>，不包含小程序上线、提审、备案、支付开通。
+    <span class="ver">v1.0 · 2026-09-29</span>
+  </div>
+</header>
+
+<div class="prog">
+  完成度 <b id="pg-n">0</b> / <b id="pg-t">0</b>
+  <span class="bar"><i id="pg-bar"></i></span>
+  <span id="pg-pct">0%</span>
+  <span style="float:right">勾选自动保存在本机浏览器</span>
+</div>
+
+<div class="toc">
+  <div class="tt">目录</div>
+  <ol>
+    <li><a href="#s0">结论先行：这次可以不备案</a></li>
+    <li><a href="#s1">本次明确不做的事</a></li>
+    <li><a href="#s2">十步操作（A 路径 · 零备案）</a></li>
+    <li><a href="#s3">同事侧：三步拿到可测版本</a></li>
+    <li><a href="#s4">三条安全红线（公网必做）</a></li>
+    <li><a href="#s5">以后升级到正式域名（B 路径）</a></li>
+    <li><a href="#s6">执行勾选清单</a></li>
+  </ol>
+</div>
+
+<section id="s0">
+<h2>零 · 结论先行：这次可以不备案</h2>
+<p class="lead">这是本清单最重要的一条结论。它决定你是"今天就能开测"还是"等 1–20 个工作日"。</p>
+
+<p>备案之所以绕不过，是因为两条规则叠加：域名解析到境内服务器必须备案、小程序正式环境只认已备案的 HTTPS 域名。
+但这两条规则<b>都有一个专门留给测试阶段的口子</b>——腾讯云官方口径与微信的调试模式。</p>
+
+<div class="callout ok">
+  <div class="ct">腾讯云官方文档原话</div>
+  <p>"若域名不解析到腾讯云中国境内云资源，<b>仅通过服务器公网 IP 直接访问测试，可暂不备案</b>。"</p>
+  <p>"只购买云服务器不使用域名，不需要备案。当您不使用域名解析指向服务器时，不需要进行备案。"</p>
+</div>
+
+<p>于是有两条路。<b>建议两条并行</b>：今天先走 A，让同事马上测起来；同时把备案提交上去（反正迟早要），备案通过后切 B。</p>
+
+<table>
+<thead><tr><th style="width:130px">对比项</th><th>A 路径 · 零备案（本清单主线）</th><th>B 路径 · 备案后（以后升级）</th></tr></thead>
+<tbody>
+<tr><td class="k">访问方式</td><td><code>http://公网IP:8080</code></td><td><code>https://域名</code></td></tr>
+<tr><td class="k">能不能今天测</td><td><b>能</b>，买完机器当天就能开测</td><td>要等备案：腾讯云初审 1–2 个工作日 + 管局 ≤20 个工作日</td></tr>
+<tr><td class="k">小程序端</td><td>同事需在体验版里<b>打开调试</b>才能请求接口</td><td>后台配好合法域名，同事直接进，无需调试</td></tr>
+<tr><td class="k">后台端</td><td>浏览器直接开 <code>http://IP:8080</code>，<b>零门槛</b></td><td>同左，只是换成域名</td></tr>
+<tr><td class="k">传输</td><td>HTTP 明文</td><td>HTTPS</td></tr>
+<tr><td class="k">代价</td><td>同事每次重进要重开调试；明文传输</td><td>等待周期，但一次到位</td></tr>
+</tbody>
+</table>
+
+<div class="callout">
+  <div class="ct"><span class="badge b-warn">注意</span> A 路径下同事为什么必须开调试</div>
+  <p>微信在真机体验版会校验两件事：域名是否在后台的 request 合法域名列表里、域名是否已备案。
+  <code>http://IP:8080</code> 两条都不满足。右上角菜单里的"打开调试"正是微信留给内测的开关，打开后跳过这两项校验。</p>
+  <p>代价是：<b>同事每次重新进入小程序都要重开一次调试</b>。这是 A 路径唯一的日常摩擦点。</p>
+</div>
+</section>
+
+<section id="s1">
+<h2>一 · 本次明确不做的事</h2>
+<p class="lead">先把这些划掉，你就知道这次的活儿有多小。</p>
+
+<table>
+<thead><tr><th style="width:190px">事项</th><th>本次</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td class="k">域名 ICP 备案</td><td><span class="badge b-no">不做</span></td><td>走 IP 直连，不触发备案拦截</td></tr>
+<tr><td class="k">小程序备案</td><td><span class="badge b-no">不做</span></td><td>那是提审上架的前置，本次不上架</td></tr>
+<tr><td class="k">服务类目 / 提审</td><td><span class="badge b-no">不做</span></td><td>体验版无需审核</td></tr>
+<tr><td class="k">食品经营许可</td><td><span class="badge b-no">不做</span></td><td><b>前提是测试期间不真收款、不对外经营</b>，见下方红框</td></tr>
+<tr><td class="k">微信支付商户号</td><td><span class="badge b-no">不做</span></td><td>测试走免支付；体验版本身也不支持微信支付</td></tr>
+<tr><td class="k">EDI / ICP 经营许可证</td><td><span class="badge b-no">不做</span></td><td>自营定性下本就不需要（2026-09-29 已裁决）</td></tr>
+<tr><td class="k">HTTPS 证书</td><td><span class="badge b-no">本次不做</span></td><td>IP 无法签发正规证书；以后有了域名再配</td></tr>
+</tbody>
+</table>
+
+<div class="callout danger">
+  <div class="ct"><span class="badge b-you">硬红线</span> 测试期间不要真收款</div>
+  <p>一旦同事在小程序里<b>真实下单并真实付款</b>（哪怕是 25.8 元），性质就从"内部联调"变成"对外经营"，
+  食品经营许可、明码标价、外卖新规那套义务会立刻适用——而你现在还没有证。</p>
+  <p>建议做法：测试期把价格置 0 或走线下结算，只验证流程与数据；<b>真收款留到拿到食品经营许可之后</b>。</p>
+</div>
+</section>
+
+<section id="s2">
+<h2>二 · 十步操作（A 路径 · 零备案）</h2>
+<p class="lead">命令全部取自本项目真实的 deploy.sh、docker-compose.prod.yml 与 Dockerfile，不是通用模板。</p>
+
+<div class="step">
+  <div class="step-h"><span class="sn">A1</span><span class="st">买一台腾讯云轻量应用服务器</span>
+    <span class="who"><span class="badge b-you">你做 · 控制台</span></span></div>
+  <div class="step-b">
+    <p>腾讯云控制台 → 轻量应用服务器 → 新建。</p>
+    <div class="kv">
+      <div>机型</div><div><b>4 核 8G</b>（建议一步到位，别买 2C4G）</div>
+      <div>地域</div><div>境内，选离北京近的（如北京 / 上海）</div>
+      <div>镜像</div><div><b>系统镜像 → Ubuntu 22.04</b>（不要选应用镜像）</div>
+      <div>计费</div><div>包年包月。这次虽不备案，但以后备案要求时长 ≥3 个月，先买够省事</div>
+    </div>
+    <div class="callout">
+      <div class="ct"><span class="badge b-warn">注意</span> 为什么 4C8G 不能省</div>
+      <p>这台机上要跑 MySQL + Redis + API + nginx，<b>而且要在机上构建两个 Node 镜像</b>，构建峰值最吃内存。
+      2C4G 的典型症状是构建时进程被杀，报 <code>Killed</code> 且<b>没有任何其它报错</b>。</p>
+    </div>
+    <p>买完把<b>公网 IP</b> 记下来，后面全程用 <span class="ph">你的公网IP</span> 指代它。</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-h"><span class="sn">A2</span><span class="st">防火墙只开两个端口</span>
+    <span class="who"><span class="badge b-you">你做 · 控制台</span></span></div>
+  <div class="step-b">
+    <p>轻量服务器 → 防火墙 → 添加规则：</p>
+    <table>
+    <thead><tr><th style="width:110px">端口</th><th>用途</th><th>是否必须</th></tr></thead>
+    <tbody>
+    <tr><td class="k">22</td><td>SSH 登录</td><td>必须</td></tr>
+    <tr><td class="k">8080</td><td>后台页面 + API 的<b>唯一对外入口</b></td><td>必须</td></tr>
+    <tr><td class="k">80 / 443</td><td>本次用不到</td><td><span class="badge b-no">不开</span></td></tr>
+    <tr><td class="k">3306 / 6379</td><td>MySQL / Redis</td><td><span class="badge b-you">绝不开</span></td></tr>
+    </tbody>
+    </table>
+    <div class="callout danger">
+      <div class="ct"><span class="badge b-you">硬禁忌</span> 3306 / 6379 一旦对公网开放</div>
+      <p>等于把数据库裸露在网上。这两个服务在编排里<b>只走容器内网</b>，宿主机不映射端口，不需要也不应该对外。</p>
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-h"><span class="sn">A3</span><span class="st">登录服务器并初始化环境</span>
+    <span class="who"><span class="badge b-both">你或我 · SSH</span></span></div>
+  <div class="step-b">
+    <p>本机有 OpenSSH，可直接在终端登录（把 IP 换成你的）：</p>
+    <div class="cmdbox"><pre class="cmd">ssh root@&lt;IP&gt;</pre><button class="cp">复制</button></div>
+
+    <p class="cmdlab">① 固定时区（订单截单全靠它，错了会"差 8 小时"）</p>
+    <div class="cmdbox"><pre class="cmd">timedatectl set-timezone Asia/Shanghai &amp;&amp; timedatectl | grep "Time zone"</pre><button class="cp">复制</button></div>
+
+    <p class="cmdlab">② 加 2G swap（防构建期内存不足被杀）</p>
+    <div class="cmdbox"><pre class="cmd">fallocate -l 2G /swapfile &amp;&amp; chmod 600 /swapfile &amp;&amp; mkswap /swapfile &amp;&amp; swapon /swapfile &amp;&amp; echo '/swapfile none swap sw 0 0' &gt;&gt; /etc/fstab &amp;&amp; free -h | grep -i swap</pre><button class="cp">复制</button></div>
+
+    <p class="cmdlab">③ 装 Docker 并设置开机自启</p>
+    <div class="cmdbox"><pre class="cmd">curl -fsSL https://get.docker.com | sh</pre><button class="cp">复制</button></div>
+    <div class="cmdbox"><pre class="cmd">systemctl enable --now docker</pre><button class="cp">复制</button></div>
+
+    <p class="cmdlab">判据：两条都要出版本号，<code>compose</code> 必须存在（V1 的 <code>docker-compose</code> 不够用）</p>
+    <div class="cmdbox"><pre class="cmd">docker --version
+docker compose version</pre><button class="cp">复制</button></div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-h"><span class="sn">A4</span><span class="st">拉代码</span>
+    <span class="who"><span class="badge b-both">你或我 · SSH</span></span></div>
+  <div class="step-b">
+    <div class="cmdbox"><pre class="cmd">cd /opt &amp;&amp; git clone &lt;你的仓库地址&gt; abox-onebox &amp;&amp; cd abox-onebox</pre><button class="cp">复制</button></div>
+    <p class="cmdlab">判据：三个文件都得在</p>
+    <div class="cmdbox"><pre class="cmd">ls docker-compose.prod.yml scripts/deploy.sh .env.example</pre><button class="cp">复制</button></div>
+    <div class="cmdbox"><pre class="cmd">chmod +x scripts/*.sh</pre><button class="cp">复制</button></div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-h"><span class="sn">A5</span><span class="st">写 .env.prod</span>
+    <span class="who"><span class="badge b-you">你填值</span></span></div>
+  <div class="step-b">
+    <div class="cmdbox"><pre class="cmd">cp .env.example .env.prod &amp;&amp; chmod 600 .env.prod</pre><button class="cp">复制</button></div>
+
+    <p class="cmdlab">先生成两个随机密钥（各跑一次，输出抄下来）</p>
+    <div class="cmdbox"><pre class="cmd">openssl rand -base64 32
+openssl rand -base64 32</pre><button class="cp">复制</button></div>
+
+    <div class="cmdbox"><pre class="cmd">nano /opt/abox-onebox/.env.prod</pre><button class="cp">复制</button></div>
+
+    <table>
+    <thead><tr><th style="width:210px">变量</th><th>填什么</th></tr></thead>
+    <tbody>
+    <tr><td class="k">PROVIDER_MODE</td><td><span class="badge b-you">必须写 real</span> 见 §4 红线一</td></tr>
+    <tr><td class="k">JWT_SECRET</td><td>上面生成的第一个随机串</td></tr>
+    <tr><td class="k">MYSQL_ROOT_PASSWORD</td><td>上面生成的第二个随机串（两个 MySQL 密码都要改）</td></tr>
+    <tr><td class="k">WX_MINI_APPID</td><td>小程序 AppID（微信公众平台 → 开发 → 开发设置）</td></tr>
+    <tr><td class="k">WX_MINI_SECRET</td><td>小程序 AppSecret（同上页面，只显示一次）</td></tr>
+    </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-h"><span class="sn">A6</span><span class="st">跑部署脚本</span>
+    <span class="who"><span class="badge b-both">你或我 · SSH</span></span></div>
+  <div class="step-b">
+    <p class="cmdlab">先空跑一遍看有没有明显问题</p>
+    <div class="cmdbox"><pre class="cmd">./scripts/deploy.sh --dry-run</pre><button class="cp">复制</button></div>
+    <p class="cmdlab">再真跑，约 8–15 分钟（含两个镜像的构建）</p>
+    <div class="cmdbox"><pre class="cmd">./scripts/deploy.sh</pre><button class="cp">复制</button></div>
+    <div class="callout">
+      <div class="ct"><span class="badge b-ok">正常现象</span> 首次部署 2/7 阶段报"备份失败"</div>
+      <p>因为还没有历史备份可备。属预期内，不是故障，继续跑即可。</p>
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-h"><span class="sn">A7</span><span class="st">验收三条判据</span>
+    <span class="who"><span class="badge b-both">你或我 · SSH</span></span></div>
+  <div class="step-b">
+    <p class="cmdlab">判据一：四个容器都在跑（api / mysql / redis / admin）</p>
+    <div class="cmdbox"><pre class="cmd">docker compose -f docker-compose.prod.yml --env-file .env.prod ps</pre><button class="cp">复制</button></div>
+
+    <p class="cmdlab">判据二：健康检查返回 ready</p>
+    <div class="cmdbox"><pre class="cmd">curl -s http://127.0.0.1:8080/api/v1/health/ready; echo</pre><button class="cp">复制</button></div>
+
+    <p class="cmdlab">判据三：<span class="badge b-key">最容易漏</span> 两支迁移都必须显示 [X]</p>
+    <div class="cmdbox"><pre class="cmd">docker compose -f docker-compose.prod.yml --env-file .env.prod run --rm --no-deps --entrypoint sh api -c \
+  'node node_modules/typeorm/cli.js migration:show -d apps/api-server/dist/database/data-source.js'</pre><button class="cp">复制</button></div>
+    <div class="callout danger">
+      <div class="ct"><span class="badge b-you">硬禁忌</span> "部署脚本显示迁移已执行"不算数</div>
+      <p>必须亲眼看到 <code>Init1700000000000</code> 和 <code>ParityFix1700000000001</code> <b>两支都是 [X]</b>。
+      TypeORM 找不到迁移时<b>不报错、退出码 0</b>，部署流程照样显示成功——而所有建表语句从未执行，
+      后面会表现为"接口通了但一查就空表错误"，排查方向会完全跑偏。</p>
+    </div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-h"><span class="sn">A8</span><span class="st">后台先自测：同事端的这一步是零改动的</span>
+    <span class="who"><span class="badge b-both">你或我 · 浏览器</span></span></div>
+  <div class="step-b">
+    <p>浏览器打开 <code>http://&lt;IP&gt;:8080</code>。</p>
+    <div class="callout ok">
+      <div class="ct"><span class="badge b-ok">好消息</span> 后台不需要改任何配置</div>
+      <p><code>admin-web</code> 的接口基址写的是 <code>import.meta.env.VITE_API_BASE_URL ?? '/api/v1'</code>——
+      不传就用<b>相对路径</b>，而容器内的 nginx 已经把 <code>/api/</code> 反代到 API 容器。
+      所以只要 8080 能打开，后台就是通的。</p>
+    </div>
+    <p class="cmdlab">服务端侧再确认一次页面能出</p>
+    <div class="cmdbox"><pre class="cmd">curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8080/</pre><button class="cp">复制</button></div>
+    <p>返回 <code>200</code> 即通过。<b>这一步通过，后台就已经可以给同事用了。</b></p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-h"><span class="sn">A9</span><span class="st">把小程序指向服务器并上传体验版</span>
+    <span class="who"><span class="badge b-both">本地 · 微信开发者工具</span></span></div>
+  <div class="step-b">
+    <div class="callout">
+      <div class="ct"><span class="badge b-warn">注意</span> 小程序端这一步<b>必须改</b>，改了还得重新构建</div>
+      <p>与后台不同，小程序的基址是
+      <code>import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1'</code>——
+      不设就指向 localhost，真机上必然请求失败。而 <code>VITE_*</code> 是<b>构建期注入</b>的，改完必须重新构建。</p>
+    </div>
+
+    <p class="cmdlab">在 <code>apps/miniprogram/.env</code> 里写（没有就复制样例）</p>
+    <div class="cmdbox"><pre class="cmd">cd apps/miniprogram &amp;&amp; cp .env.example .env</pre><button class="cp">复制</button></div>
+    <div class="cmdbox"><pre class="cmd">VITE_API_BASE_URL=http://&lt;IP&gt;:8080/api/v1
+VITE_WX_MINI_APPID=&lt;你的小程序AppID&gt;</pre><button class="cp">复制</button></div>
+
+    <p class="cmdlab">构建（在仓库根目录）</p>
+    <div class="cmdbox"><pre class="cmd">pnpm run build:mp</pre><button class="cp">复制</button></div>
+
+    <p>产物在 <code>apps/miniprogram/dist/build/mp-weixin</code>。用微信开发者工具导入该目录 → 右上角"上传" → 填版本号与备注。</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-h"><span class="sn">A10</span><span class="st">加体验成员 + 生成体验版二维码</span>
+    <span class="who"><span class="badge b-you">你做 · 微信公众平台</span></span></div>
+  <div class="step-b">
+    <p>① 成员管理：<code>mp.weixin.qq.com</code> → 管理 → 成员管理 → 体验成员 → 添加，把同事的<b>微信号</b>加进去。</p>
+    <p>② 发布体验版：管理 → 版本管理 → 开发版本 → 下拉"选为体验版" → 生成二维码，发给同事。</p>
+    <div class="kv">
+      <div>人数上限</div><div>企业主体且未发布的小程序，体验成员 <b>30–60 人</b>（个人主体只有 15 人），内部测试够用</div>
+      <div>有效期</div><div><b>体验版本身不过期</b>；但<b>二维码 7 天有效</b>，过期重新生成即可</div>
+      <div>权限</div><div>非体验成员即使拿到二维码也会被拦截，所以加人是必需步骤</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section id="s3">
+<h2>三 · 同事侧：三步拿到可测版本</h2>
+<p class="lead">这段可以直接转发给同事。</p>
+
+<div class="step">
+  <div class="step-h"><span class="sn">C1</span><span class="st">后台：浏览器直接打开</span>
+    <span class="who"><span class="badge b-you">同事做</span></span></div>
+  <div class="step-b">
+    <p>手机或电脑浏览器打开 <code>http://&lt;IP&gt;:8080</code>，用你（管理员）分配的账号登录即可。
+    <b>没有任何额外步骤</b>，也不受小程序那套域名规则约束。</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-h"><span class="sn">C2</span><span class="st">小程序：扫码进入</span>
+    <span class="who"><span class="badge b-you">同事做</span></span></div>
+  <div class="step-b">
+    <p>用微信扫你发的体验版二维码。若提示无权限，说明微信号没被加进体验成员名单，回去补 A10 第①步。</p>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-h"><span class="sn">C3</span><span class="st">打开调试</span>
+    <span class="who"><span class="badge b-you">同事做</span></span></div>
+  <div class="step-b">
+    <p>进入小程序后：右上角 <code>···</code> → 打开调试 → 按提示重新进入。</p>
+    <div class="callout">
+      <div class="ct"><span class="badge b-warn">注意</span> 每次重进都要重开一次</div>
+      <p>这是 A 路径唯一的日常摩擦点。同事如果反馈"页面一直转圈 / 请求失败"，
+      <b>先问有没有开调试</b>——十次有九次是这个原因。</p>
+      <p>等备案通过切到 B 路径后，这一步就永久省掉了。</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<section id="s4">
+<h2>四 · 三条安全红线（公网必做，做完再发二维码）</h2>
+<p class="lead">服务器一旦有公网 IP，就不只是"你们能访问"，而是"全网都能访问"。下面三条不是建议，是必做。</p>
+
+<div class="callout danger">
+  <div class="ct"><span class="badge b-you">红线一</span> PROVIDER_MODE 必须显式写 real</div>
+  <p>项目 <code>.env.example</code> 默认是 <code>mock</code>，其语义是：<b>任意 code 免密登录任意身份 + 支付自动置为已支付</b>。
+  在本机开发时这是便利；放到公网，等于<b>任何人访问你的 IP 就能以任意身份登录后台</b>，
+  而且服务照常启动、<b>零报错</b>，你不会收到任何提示。</p>
+  <p><code>REQUIRED_IN_PROD</code> 只防"漏配"，防不了"配成 mock"。必须自己确认这一行写的是 <code>real</code>。</p>
+</div>
+
+<div class="callout danger">
+  <div class="ct"><span class="badge b-you">红线二</span> 上线前扫一遍默认口令账号</div>
+  <p>种子数据里可能带开发用明文口令账号（<code>dev_plain</code>）。生产环境必须清掉或改密。</p>
+  <p>项目里有现成工具：<code>apps/api-server/scripts/set-admin-password.mjs</code>，直连数据库改
+  <code>ab_admin_user.password_hash</code>，<b>不经 HTTP、不需要先登录</b>——这点很关键，
+  否则会陷入"要改密码得先登录、登录又要密码"的锁死循环。</p>
+  <p>它必须在 <b>api 容器内</b>跑（MySQL 未映射宿主端口）。先跑 <code>--scan</code> 列出待处理账号，再改密并回读复验。</p>
+</div>
+
+<div class="callout danger">
+  <div class="ct"><span class="badge b-you">红线三</span> 8080 是明文 HTTP</div>
+  <p>所有请求（含登录口令）在链路上是明文的。测试期可接受，但要清楚代价：</p>
+  <p>① <b>别在上面用真实的生产密码</b>——给同事单独开测试账号；<br>
+  ② 若想收紧，可在防火墙把 8080 的来源 IP 限制为办公室出口 IP，或在 nginx 加一层 Basic Auth；<br>
+  ③ 备案通过切 HTTPS 后，这条自动解除。</p>
+</div>
+</section>
+
+<section id="s5">
+<h2>五 · 以后升级到正式域名（B 路径）</h2>
+<p class="lead">备案是迟早要做的——它还是小程序上线的唯一不可压缩项。建议现在就提交，与测试并行。</p>
+
+<table>
+<thead><tr><th style="width:70px">序</th><th>做什么</th><th>周期</th></tr></thead>
+<tbody>
+<tr><td class="k">B1</td><td>查域名备案接入商是不是腾讯云（决定走新增备案还是接入备案）</td><td>今天 10 分钟</td></tr>
+<tr><td class="k">B2</td><td>提交 ICP 备案，注意收到 12381 短信后 <b>24 小时内</b>完成核验，过期作废</td><td>初审 1–2 个工作日 + 管局 ≤20 个工作日</td></tr>
+<tr><td class="k">B3</td><td>备案通过后加 DNS 解析，指向这台服务器</td><td>分钟级</td></tr>
+<tr><td class="k">B4</td><td>certbot 签证书，宿主机 nginx 上 443</td><td>分钟级</td></tr>
+<tr><td class="k">B5</td><td>小程序后台配 request 合法域名（<b>必须 HTTPS、不能有端口、不能用 IP</b>）</td><td>分钟级</td></tr>
+<tr><td class="k">B6</td><td>同事从此<b>免开调试</b>，直接进体验版</td><td>—</td></tr>
+</tbody>
+</table>
+
+<p>B1–B4 的逐条命令在《<b>_ABox一盒后台从零部署腾讯云操作手册v1.0.html</b>》的第 8 步里；
+怎么查备案、怎么提交备案的图文步骤在《<b>_ABox一盒备案与上云手把手图文指南v1.0.html</b>》里，两份都在工作区根目录。</p>
+
+<div class="callout">
+  <div class="ct"><span class="badge b-warn">注意</span> 切换时只有一处要改</div>
+  <p>小程序端的 <code>VITE_API_BASE_URL</code> 要从 <code>http://IP:8080/api/v1</code> 改成
+  <code>https://域名/api/v1</code>，<b>改完必须重新 <code>pnpm run build:mp</code> 并重新上传体验版</b>。
+  后台侧因为用的是相对路径，<b>不用动</b>。</p>
+</div>
+</section>
+
+<section id="s6">
+<h2>六 · 执行勾选清单</h2>
+<p class="lead">照着勾就能走完，进度存在本机浏览器。</p>
+
+<div style="background:#FFF;border:1px solid var(--line);border-radius:3px;padding:14px 18px">
+  <h3 style="margin-top:0">A 路径 · 让同事今天就能测</h3>
+  <label class="chkline"><input type="checkbox"><span>A1 买好 4C8G 内网轻量服务器，记下公网 IP</span></label>
+  <label class="chkline"><input type="checkbox"><span>A2 防火墙只开 22 与 8080（3306/6379 绝不开）</span></label>
+  <label class="chkline"><input type="checkbox"><span>A3 SSH 登录、固定时区、加 2G swap、装好 Docker</span></label>
+  <label class="chkline"><input type="checkbox"><span>A4 拉代码，确认三个关键文件在</span></label>
+  <label class="chkline"><input type="checkbox"><span>A5 写好 .env.prod，<b>PROVIDER_MODE 已确认是 real</b></span></label>
+  <label class="chkline"><input type="checkbox"><span>A6 deploy.sh 先 dry-run 再真跑，跑完无红</span></label>
+  <label class="chkline"><input type="checkbox"><span>A7 三判据全过，尤其迁移<b>两支都是 [X]</b></span></label>
+  <label class="chkline"><input type="checkbox"><span>A8 浏览器打开 http://IP:8080 能看到后台登录页</span></label>
+  <label class="chkline"><input type="checkbox"><span>A9 小程序 .env 改基址 → build:mp → 上传体验版</span></label>
+  <label class="chkline"><input type="checkbox"><span>A10 同事已加入体验成员，二维码已发出</span></label>
+  <label class="chkline"><input type="checkbox"><span>C3 已告知同事"每次重进要打开调试"</span></label>
+
+  <h3>安全红线（发二维码之前必须做完）</h3>
+  <label class="chkline"><input type="checkbox"><span>红线一：确认 .env.prod 里 PROVIDER_MODE=real</span></label>
+  <label class="chkline"><input type="checkbox"><span>红线二：跑过 set-admin-password.mjs --scan，默认口令账号已清理</span></label>
+  <label class="chkline"><input type="checkbox"><span>红线三：给同事开的是<b>独立测试账号</b>，不是生产管理员密码</span></label>
+  <label class="chkline"><input type="checkbox"><span>已确认测试期间<b>不真收款</b></span></label>
+
+  <h3>B 路径 · 并行推进（谁卡全局谁先做）</h3>
+  <label class="chkline"><input type="checkbox"><span>B1 已查清域名备案接入商与状态</span></label>
+  <label class="chkline"><input type="checkbox"><span>B2 已提交 ICP 备案（并盯住 12381 短信核验）</span></label>
+</div>
+</section>
+
+<footer>
+  ABox 一盒 · 线上联调部署清单 v1.0 · 2026-09-29 · 北京巡礼之年科技有限公司<br>
+  适用范围：<b>仅内部联调</b>。涉及对外经营、真实收款、小程序提审时，请改用《后台从零部署腾讯云操作手册》与《备案与上云手把手图文指南》。<br>
+  命令来源：本项目 deploy.sh / docker-compose.prod.yml / apps/admin-web/nginx.conf / apps/miniprogram/src/constants/env.ts 实际内容核对所得。
+</footer>
+
+</div>
+<script>
+(function(){
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('.chkline input[type=checkbox]'));
+  var KEY = 'abox-online-test-v1';
+  var total = boxes.length;
+  document.getElementById('pg-t').textContent = total;
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e){ saved = {}; }
+
+  function refresh(){
+    var n = 0;
+    boxes.forEach(function(cb,i){
+      if (cb.checked) n++;
+      cb.parentNode.classList.toggle('on', cb.checked);
+    });
+    document.getElementById('pg-n').textContent = n;
+    var pct = total ? Math.round(n*100/total) : 0;
+    document.getElementById('pg-pct').textContent = pct + '%';
+    document.getElementById('pg-bar').style.width = pct + '%';
+  }
+  boxes.forEach(function(cb,i){
+    if (saved[i]) cb.checked = true;
+    cb.addEventListener('change', function(){
+      saved[i] = cb.checked;
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch(e){}
+      refresh();
+    });
+  });
+  refresh();
+
+  document.querySelectorAll('.cp').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var pre = btn.parentNode.querySelector('.cmd');
+      if (!pre) return;
+      var txt = pre.innerText;
+      var done = function(){
+        btn.classList.add('done'); btn.textContent = '已复制';
+        setTimeout(function(){ btn.classList.remove('done'); btn.textContent = '复制'; }, 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(done, function(){ fallback(txt, done); });
+      } else { fallback(txt, done); }
+    });
+  });
+  function fallback(txt, cb){
+    var ta = document.createElement('textarea');
+    ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); cb(); } catch(e){}
+    document.body.removeChild(ta);
+  }
+})();
+</script>
+</body>
+</html>

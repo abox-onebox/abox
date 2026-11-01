@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 菜品弹窗 三种弹出方式</title>
+<style>
+:root{
+  --bg:#F6F0E5; --surface:#FFFFFF; --surface2:#EBE2D2; --surface3:#F1EADC;
+  --ink:#6E5435; --ink-deep:#463620; --ink2:#796C57; --weak:#A99877;
+  --gold:#C9A876; --gold-deep:#A9824B; --line:#E4D9C5;
+}
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body{ margin:0; background:#2A2118; font-family:'Kaiti SC','STKaiti','KaiTi',serif; color:var(--ink); }
+.page{ max-width:1320px; margin:0 auto; padding:36px 24px 60px; }
+.page h1{ color:#F6F0E5; font-size:22px; letter-spacing:2px; margin:0; }
+.page .sub{ color:#A99877; font-size:12.5px; margin-top:10px; letter-spacing:1px; line-height:2; }
+.row{ display:flex; gap:26px; flex-wrap:wrap; justify-content:center; margin-top:38px; }
+.cellv{ display:flex; flex-direction:column; align-items:center; gap:12px; }
+.cellv__tag{ font-size:13px; letter-spacing:2px; color:#C9A876; border:1px solid rgba(201,168,118,.4); border-radius:20px; padding:4px 16px; }
+.cellv__note{ font-size:11.5px; color:#8f7f68; letter-spacing:1px; }
+
+/* ===== 手机框 ===== */
+.phone{ width:375px; height:812px; background:var(--bg); border-radius:36px; position:relative; overflow:hidden;
+  box-shadow:0 20px 50px rgba(0,0,0,.5), 0 0 0 10px #15110c; }
+.statusbar{ height:40px; display:flex; align-items:center; justify-content:space-between; padding:0 22px;
+  font-size:13px; color:var(--ink-deep); font-weight:700; }
+.mp-head{ padding:6px 18px 12px; }
+.mp-title{ font-size:17px; font-weight:700; color:var(--ink-deep); }
+.mp-hint{ font-size:11px; color:var(--weak); margin-top:4px; letter-spacing:.5px; }
+.mp-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:0 14px; }
+.mcell{ position:relative; background:#fff; border-radius:12px; padding:6px; cursor:pointer;
+  transition:transform .12s ease; }
+.mcell:active{ transform:scale(.97); }
+.mcell__badge{ position:absolute; top:12px; left:12px; z-index:2; width:22px; height:22px; border-radius:6px;
+  background:var(--ink-deep); color:#F6F0E5; font-size:12px; font-weight:700; font-family:'Courier New',monospace;
+  display:flex; align-items:center; justify-content:center; }
+.mcell__img{ width:100%; aspect-ratio:1/1; border-radius:8px; display:flex; align-items:center; justify-content:center;
+  color:#fff; font-size:12px; }
+.mcell--x .mcell__img{ background:linear-gradient(135deg,#5C4327,#3C2C19); color:var(--gold); }
+.mcell--x .mcell__img .qx{ font-size:34px; font-weight:700; }
+.mcell__name{ font-size:13.5px; font-weight:700; color:var(--ink); margin:7px 2px 2px; }
+.mcell__from{ font-size:10.5px; color:var(--gold-deep); margin:0 2px 4px; }
+.mp-foot{ padding:16px 18px 0; font-size:11px; color:var(--weak); line-height:1.8; }
+
+/* ===== 弹窗共用内容 ===== */
+.dhero{ position:relative; height:120px; display:flex; flex-direction:column; justify-content:flex-end; padding:16px 18px; color:#fff; }
+.dhero__name{ font-size:22px; font-weight:700; text-shadow:0 1px 5px rgba(0,0,0,.35); }
+.dhero__sup{ font-size:12.5px; margin-top:4px; opacity:.94; text-shadow:0 1px 4px rgba(0,0,0,.3); }
+.dishintro{ padding:14px 18px 2px; }
+.dishintro b{ font-size:14px; color:var(--ink-deep); letter-spacing:1px; }
+.dishintro p{ font-size:13px; line-height:1.8; color:var(--ink2); margin:6px 0 0; }
+.suptitle{ display:flex; align-items:baseline; justify-content:space-between;
+  font-size:14px; font-weight:700; color:var(--ink-deep); border-left:3px solid var(--gold-deep);
+  padding-left:9px; margin:16px 18px 12px; }
+.suptitle__hint{ font-size:10.5px; font-weight:400; color:var(--weak); letter-spacing:.5px; }
+/* 图片放大层（三机型通用，z-index 高于 .fp 的 60） */
+.pv{ position:absolute; inset:0; z-index:80; background:rgba(18,14,9,.94);
+  display:flex; align-items:center; justify-content:center; visibility:hidden; opacity:0; transition:opacity .18s; }
+.pv.on{ visibility:visible; opacity:1; }
+.pv__img{ width:80%; aspect-ratio:1/1; border-radius:16px; display:flex; align-items:center; justify-content:center;
+  color:rgba(255,255,255,.5); font-size:15px; letter-spacing:4px; transform:scale(.92); transition:transform .18s; }
+.pv.on .pv__img{ transform:scale(1); }
+.pv__scrim{ position:absolute; top:0; left:0; right:0; height:76px; pointer-events:none;
+  background:linear-gradient(rgba(0,0,0,.32), rgba(0,0,0,0)); }
+.pv__grab{ position:absolute; top:0; left:0; right:0; height:44px;
+  display:flex; align-items:center; justify-content:center; pointer-events:none; }
+.pv__grab i{ display:block; width:38px; height:4px; border-radius:2px; background:rgba(255,255,255,.62); }
+.pv__n{ position:absolute; bottom:32px; left:0; right:0; text-align:center;
+  color:rgba(255,255,255,.75); font-size:12px; letter-spacing:2px; }
+.pv__hint{ position:absolute; bottom:13px; left:0; right:0; text-align:center;
+  color:rgba(255,255,255,.40); font-size:10.5px; letter-spacing:1.5px; }
+.pv__img{ touch-action:none; }
+.photos{ display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:0 16px; }
+.photo{ background:#fff; border-radius:12px; overflow:hidden; }
+.photo__img{ aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.5); font-size:12px; letter-spacing:3px;  cursor:pointer; }
+.quallink{ text-align:right; padding:14px 18px 0; font-size:12.5px; color:var(--gold-deep); }
+.pnote{ font-size:11px; color:var(--weak); line-height:1.7; padding:12px 18px 0; }
+.xintro{ padding:16px 18px 4px; }
+.xintro p{ font-size:13.5px; line-height:1.85; color:var(--ink2); margin:0 0 12px; }
+.xintro b{ color:var(--ink-deep); }
+.xchips{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+.xchips span{ background:var(--surface3); color:var(--ink); border-radius:18px; padding:6px 13px; font-size:12.5px; }
+.xn{ background:#fff; border-radius:12px; padding:12px 14px; font-size:13px; line-height:1.8; color:var(--ink2); }
+
+/* ===== 方案 A：全屏右滑入 ===== */
+.fp{ position:absolute; inset:0; background:var(--bg); z-index:60; transform:translateX(100%);
+  transition:transform .32s cubic-bezier(.2,.8,.2,1); overflow-y:auto; }
+.fp.on{ transform:translateX(0); }
+.fp__bar{ position:sticky; top:0; z-index:2; display:flex; align-items:center; gap:12px; padding:12px 16px;
+  background:rgba(246,240,229,.92); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+.fp__back{ font-size:24px; color:var(--ink-deep); line-height:1; cursor:pointer; }
+.fp__t{ font-size:15px; font-weight:700; color:var(--ink-deep); letter-spacing:1px; }
+
+/* ===== 方案 B：居中模态卡 ===== */
+.mk{ position:absolute; inset:0; z-index:60; visibility:hidden; }
+.mk.on{ visibility:visible; }
+.mk__mask{ position:absolute; inset:0; background:rgba(40,30,18,.5); opacity:0; transition:opacity .25s; }
+.mk.on .mk__mask{ opacity:1; }
+.mk__card{ position:absolute; left:22px; right:22px; top:50%; max-height:80%; overflow-y:auto; background:var(--bg);
+  border-radius:20px; box-shadow:0 18px 50px rgba(0,0,0,.35); opacity:0; transform:translateY(-50%) scale(.9);
+  transition:opacity .25s, transform .25s; }
+.mk.on .mk__card{ opacity:1; transform:translateY(-50%) scale(1); }
+/* 隐藏原生滚动条（Windows Chrome 会显示灰色条并切破右侧圆角） */
+.mk__card::-webkit-scrollbar{ display:none; width:0; height:0; }
+.mk__card{ scrollbar-width:none; -ms-overflow-style:none; }
+.mk__grab{ position:sticky; top:0; height:0; z-index:6; overflow:visible; cursor:pointer; }
+.mk__grab i{ position:absolute; top:11px; left:50%; margin-left:-19px; display:block;
+  width:38px; height:4px; border-radius:2px; background:rgba(255,255,255,.94);
+  box-shadow:0 1px 5px rgba(30,20,10,.45); transition:transform .18s ease; }
+.mk__grab:active i{ transform:scaleX(1.16); }
+
+/* ===== 方案 C：原位展开 ===== */
+.ex{ position:absolute; inset:0; z-index:60; visibility:hidden; }
+.ex.on{ visibility:visible; }
+.ex__body{ position:absolute; background:var(--bg); overflow-y:auto; border-radius:12px;
+  transition:top .34s cubic-bezier(.2,.8,.2,1), left .34s cubic-bezier(.2,.8,.2,1),
+    width .34s cubic-bezier(.2,.8,.2,1), height .34s cubic-bezier(.2,.8,.2,1), border-radius .34s; }
+.ex__grab{ position:sticky; top:0; height:0; z-index:6; overflow:visible; cursor:pointer; }
+.ex__grab i{ position:absolute; top:11px; left:50%; margin-left:-19px; display:block;
+  width:38px; height:4px; border-radius:2px; background:rgba(255,255,255,.94);
+  box-shadow:0 1px 5px rgba(30,20,10,.45); transition:transform .18s ease; }
+.ex__grab:active i{ transform:scaleX(1.16); }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>菜品弹窗 · 三种弹出方式</h1>
+  <p class="page__note sub">
+    同一个「菜品详情」内容（菜品介绍 + 出品方实拍 + 资质入口），三种打开交互。<br>
+    每个手机框里点任意菜品格（含 x 盲盒格）体验；挑定哪一种，我就把首页落成那种。
+  </p>
+
+  <div class="row">
+    <div class="cellv">
+      <span class="cellv__tag">方案 A · 全屏右滑入</span>
+      <div class="phone" data-v="a">
+        <div class="statusbar"><span>9:41</span><span>5G</span></div>
+        <div class="mp-head">
+          <div class="mp-title">明日组合</div>
+          <div class="mp-hint">点一个菜格试试 →</div>
+        </div>
+        <div class="mp-grid"></div>
+        <div class="mp-foot">本盒四格来自四家 · 米饭集散中心统一供应</div>
+      </div>
+      <span class="cellv__note">像翻到新页面 · 内容容量最大 · 关闭最自然</span>
+    </div>
+
+    <div class="cellv">
+      <span class="cellv__tag">方案 B · 居中模态卡</span>
+      <div class="phone" data-v="b">
+        <div class="statusbar"><span>9:41</span><span>5G</span></div>
+        <div class="mp-head">
+          <div class="mp-title">明日组合</div>
+          <div class="mp-hint">点一个菜格试试 →</div>
+        </div>
+        <div class="mp-grid"></div>
+        <div class="mp-foot">本盒四格来自四家 · 米饭集散中心统一供应</div>
+      </div>
+      <span class="cellv__note">轻快聚焦 · 适合快速看一眼 · 不离开当前页</span>
+    </div>
+
+    <div class="cellv">
+      <span class="cellv__tag">方案 C · 原位展开</span>
+      <div class="phone" data-v="c">
+        <div class="statusbar"><span>9:41</span><span>5G</span></div>
+        <div class="mp-head">
+          <div class="mp-title">明日组合</div>
+          <div class="mp-hint">点一个菜格试试 →</div>
+        </div>
+        <div class="mp-grid"></div>
+        <div class="mp-foot">本盒四格来自四家 · 米饭集散中心统一供应</div>
+      </div>
+      <span class="cellv__note">点哪格开哪格 · 像掀开盒子里的一格 · 品牌感最强</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const dishes = [
+  { letter:'A', name:'小炒黄牛肉', sup:'三味屋', color:'linear-gradient(135deg,#C0634A,#9A452F)',
+    intro:'三味屋的招牌 · 黄牛肉嫩、微辣下饭，是店里点单率最高的一道。主料黄牛肉、青椒、小米辣，每份约 180g。' },
+  { letter:'B', name:'红烧排骨', sup:'老饭盒', color:'linear-gradient(135deg,#B97A3E,#8F5A26)',
+    intro:'老饭盒的拿手菜 · 排骨炖得软烂，咸鲜里带一点甜，老少皆宜。主料排骨、姜葱、冰糖，每份约 200g。' },
+  { letter:'o', name:'蒜蓉菠菜', sup:'四季鲜蔬', color:'linear-gradient(135deg,#9FB47A,#7E924F)',
+    intro:'四季鲜蔬的时令素菜 · 蒜蓉口味，清爽不腻。主料菠菜、蒜蓉，每份约 150g。' },
+  { letter:'x', name:'今日 x 盲盒', sup:'ABox 惊喜盒', color:'linear-gradient(135deg,#5C4327,#3C2C19)', isX:true }
+];
+const PHOTOS = [
+  { t:'营业执照', bg:'linear-gradient(135deg,#8A7B63,#6B5D47)' },
+  { t:'门头', bg:'linear-gradient(135deg,#A68A5E,#7E6540)' },
+  { t:'大厅', bg:'linear-gradient(135deg,#C4B28E,#9F8A66)' },
+  { t:'仓库', bg:'linear-gradient(135deg,#9BA383,#75805F)' }
+];
+
+function photosHTML(){
+  return PHOTOS.map((p,i)=>'<div class="photo"><div class="photo__img" style="background:'+p.bg+'" onclick="openPview(this,\'photo\','+i+')">'+p.t+'</div></div>').join('');
+}
+function dishHTML(d){
+  if(d.isX){
+    return '<div class="dhero" style="background:'+d.color+'">'+
+      '<div class="dhero__name">x · 今日神秘盒</div>'+
+      '<div class="dhero__sup">ABox 惊喜 · 送达到手才揭晓</div></div>'+
+      '<div class="xintro"><p>前三格已够大多数人吃饱，第四格若再放同样分量的一道，很多人会吃不完、甚至造成浪费。'+
+      '所以我们把它改成 <b>每日一换的惊喜盒</b>——内容可能是：</p>'+
+      '<div class="xchips"><span>小零食</span><span>小水果</span><span>小粗粮</span>'+
+      '<span>小糕点</span><span>小卤味</span><span>鸡蛋糕</span></div>'+
+      '<p class="xn">中午没吃完？带回去下午吃。轻、小、耐放，正是为"别浪费"而设计；'+
+      '内容由 ABox 每日统筹，下单时不揭晓，送达时揭晓，保留盲盒惊喜。</p></div>'+
+      '<p class="pnote">x 盒为 ABox 自有惊喜盒，不挂具体供应商证照；盒内均为独立小包装、可安全存放的食品。</p>';
+  }
+  return '<div class="dhero" style="background:linear-gradient(rgba(0,0,0,.22),rgba(0,0,0,.04)),'+d.color+'; cursor:pointer" onclick="openPview(this,\'hero\')">'+
+    '<div class="dhero__name">'+d.letter+' · '+d.name+'</div>'+
+    '<div class="dhero__sup">来自 '+d.sup+'</div></div>'+
+    '<div class="dishintro"><b>关于这道菜</b>'+
+      '<p>'+d.intro+'</p></div>'+
+    '<div class="suptitle"><span>'+d.sup+' · 门店实拍</span><span class="suptitle__hint">点图可看大图</span></div>'+
+    '<div class="photos">'+photosHTML()+'</div>'+
+    '<div class="quallink">查看 '+d.sup+' 完整资质 ›</div>'+
+    '<p class="pnote">照片为示意占位，落码时替换为该出品方真实实拍。</p>';
+}
+
+/* 渲染三组格子 */
+document.querySelectorAll('.phone').forEach(phone=>{
+  phone.querySelector('.mp-grid').innerHTML = dishes.map((d,i)=>{
+    const img = d.isX
+      ? '<div class="mcell__img"><span class="qx">?</span></div>'
+      : '<div class="mcell__img" style="background:'+d.color+'">菜品实拍</div>';
+    return '<div class="mcell'+(d.isX?' mcell--x':'')+'" data-i="'+i+'">'+
+      '<div class="mcell__badge">'+d.letter+'</div>'+img+
+      '<div class="mcell__name">'+d.name+'</div>'+
+      '<div class="mcell__from">'+d.sup+' ›</div></div>';
+  }).join('');
+  phone.querySelectorAll('.mcell').forEach(cell=>{
+    cell.addEventListener('click', ()=>openDish(phone, cell, dishes[+cell.dataset.i]));
+  });
+});
+
+/* ===== 三种打开方式 ===== */
+function openDish(phone, cell, d){
+  phone._curDish = d;
+  const v = phone.dataset.v;
+  if(v==='a'){
+    let fp = phone.querySelector('.fp');
+    if(!fp){
+      fp = document.createElement('div'); fp.className='fp'; phone.appendChild(fp);
+      fp.addEventListener('click', e=>{ if(e.target===fp) closeDish(phone); });
+    }
+    fp.innerHTML = '<div class="fp__bar"><span class="fp__back">‹</span><span class="fp__t">菜品详情</span></div>'+dishHTML(d);
+    fp.querySelector('.fp__back').addEventListener('click', ()=>closeDish(phone));
+    fp.classList.add('on');
+  }
+  if(v==='b'){
+    let mk = phone.querySelector('.mk');
+    if(!mk){
+      mk = document.createElement('div'); mk.className='mk'; phone.appendChild(mk);
+      mk.innerHTML = '<div class="mk__mask"></div><div class="mk__card"><div class="mk__grab" role="button" aria-label="关闭"><i></i></div></div>';
+      mk.querySelector('.mk__mask').addEventListener('click', ()=>closeDish(phone));
+      mk.querySelector('.mk__grab').addEventListener('click', ()=>closeDish(phone));
+    }
+    mk.querySelector('.mk__card').innerHTML = '<div class="mk__grab" role="button" aria-label="关闭"><i></i></div>'+dishHTML(d);
+    mk.querySelector('.mk__grab').addEventListener('click', ()=>closeDish(phone));
+    mk.classList.add('on');
+  }
+  if(v==='c'){
+    const pr = phone.getBoundingClientRect();
+    const r = cell.getBoundingClientRect();
+    let ex = phone.querySelector('.ex');
+    if(!ex){
+      ex = document.createElement('div'); ex.className='ex'; phone.appendChild(ex);
+      ex.innerHTML = '<div class="ex__body"></div>';
+      ex.addEventListener('click', e=>{ if(e.target===ex) closeDish(phone); });
+    }
+    const body = ex.querySelector('.ex__body');
+    body.innerHTML = '<div class="ex__grab" role="button" aria-label="关闭"><i></i></div>'+dishHTML(d);
+    body.querySelector('.ex__grab').addEventListener('click', ()=>closeDish(phone));
+    body.style.top = (r.top-pr.top)+'px';
+    body.style.left = (r.left-pr.left)+'px';
+    body.style.width = r.width+'px';
+    body.style.height = r.height+'px';
+    body.style.borderRadius = '12px';
+    ex.classList.add('on');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      body.style.top='0px'; body.style.left='0px'; body.style.width='100%'; body.style.height='100%'; body.style.borderRadius='0px';
+    }));
+  }
+}
+function closeDish(phone){
+  const v = phone.dataset.v;
+  if(v==='a') phone.querySelector('.fp').classList.remove('on');
+  if(v==='b') phone.querySelector('.mk').classList.remove('on');
+  if(v==='c') phone.querySelector('.ex').classList.remove('on');
+}
+
+/* ===== 图片放大（三机型通用） ===== */
+function openPview(el, mode, idx){
+  const phone = el.closest('.phone');
+  let pv = phone.querySelector('.pv');
+  if(!pv){
+    pv = document.createElement('div'); pv.className='pv'; phone.appendChild(pv);
+    pv.innerHTML = '<div class="pv__scrim"></div><div class="pv__grab"><i></i></div>'
+      + '<div class="pv__img"></div><div class="pv__n"></div><div class="pv__hint">下拉图片，或点按任意处关闭</div>';
+    pv.addEventListener('click', e=>{ if(e.target===pv) closePview(pv); });
+    bindPvGesture(pv, ()=>closePview(pv));
+  }
+  const d = phone._curDish;
+  const img = pv.querySelector('.pv__img'), n = pv.querySelector('.pv__n');
+  if(mode==='hero'){
+    img.style.background = d.color; img.textContent = d.letter; n.textContent = '';
+  } else {
+    const p = PHOTOS[idx];
+    img.style.background = p.bg; img.textContent = p.t;
+    n.textContent = (idx+1)+' / '+PHOTOS.length;
+  }
+  pv.classList.add('on');
+}
+function closePview(pv){ pv.classList.remove('on'); }
+/* ===== 下拉关闭手势 + Esc（手不用够到右上角） ===== */
+document.addEventListener('keydown', function(e){
+  if(e.key !== 'Escape') return;
+  document.querySelectorAll('.phone').forEach(function(phone){
+    const pv = phone.querySelector('.pv');
+    if(pv && pv.classList.contains('on')) closePview(pv);
+    else closeDish(phone);
+  });
+});
+function bindPvGesture(pvEl, doClose){
+  const img = pvEl.querySelector('.pv__img');
+  let y0 = 0, dy = 0, dragging = false;
+  function reset(){ img.style.transition=''; img.style.transform=''; pvEl.style.background=''; pvEl.style.opacity=''; }
+  img.addEventListener('pointerdown', function(e){
+    y0 = e.clientY; dy = 0; dragging = true; img.style.transition = 'none';
+  });
+  window.addEventListener('pointermove', function(e){
+    if(!dragging) return;
+    dy = Math.max(0, e.clientY - y0);
+    img.style.transform = 'translateY('+dy+'px) scale('+(1-Math.min(dy/1400,.1))+')';
+    pvEl.style.background = 'rgba(18,14,9,'+(0.94*(1-Math.min(dy/500,.62)))+')';
+  });
+  window.addEventListener('pointerup', function(){
+    if(!dragging) return;
+    dragging = false;
+    if(dy > 90){
+      img.style.transition = 'transform .2s ease-out';
+      img.style.transform = 'translateY('+(dy+60)+'px) scale(.9)';
+      pvEl.style.opacity = '0';
+      setTimeout(function(){ doClose(); reset(); }, 200);
+    } else {
+      img.style.transition = 'transform .18s cubic-bezier(.2,.8,.2,1)';
+      img.style.transform = ''; pvEl.style.background = '';
+    }
+    dy = 0;
+  });
+}
+</script>
+</body>
+</html>

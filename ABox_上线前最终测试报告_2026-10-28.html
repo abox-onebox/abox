@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 上线前最终测试报告（2026-10-28）</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --ink:#3A3128; --brown:#6E5435; --line:#E2D8C6;
+    --card:#FFFDF8; --red:#B23A2E; --redbg:#FBEDEB; --green:#3F6B45;
+    --greenbg:#EDF4EE; --amber:#8A6212; --amberbg:#FBF3E0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:32px 20px;background:var(--bg);color:var(--ink);
+    font-family:"KaiTi","simkai","STKaiti",serif;line-height:1.75;font-size:15px}
+  .wrap{max-width:1000px;margin:0 auto}
+  h1{font-size:26px;color:var(--brown);margin:0 0 6px;border-bottom:2px solid var(--brown);padding-bottom:12px}
+  h2{font-size:19px;color:var(--brown);margin:34px 0 12px;padding-left:10px;border-left:4px solid var(--brown)}
+  h3{font-size:16px;color:var(--ink);margin:20px 0 8px}
+  .meta{color:#7A6E5C;font-size:13px;margin-bottom:24px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:18px 20px;margin:14px 0}
+  .verdict{background:var(--redbg);border:1px solid var(--red);border-radius:6px;padding:18px 20px;margin:18px 0}
+  .verdict b{color:var(--red);font-size:17px}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px;background:var(--card)}
+  th{background:#EFE7D7;color:var(--brown);text-align:left;padding:9px 10px;border:1px solid var(--line);font-weight:normal}
+  td{padding:8px 10px;border:1px solid var(--line);vertical-align:top}
+  .tag{display:inline-block;padding:1px 8px;border-radius:3px;font-size:12px;margin-right:6px}
+  .t-red{background:var(--redbg);color:var(--red);border:1px solid var(--red)}
+  .t-green{background:var(--greenbg);color:var(--green);border:1px solid var(--green)}
+  .t-amber{background:var(--amberbg);color:var(--amber);border:1px solid var(--amber)}
+  code{background:#EFE7D7;padding:1px 5px;border-radius:3px;font-family:Consolas,monospace;font-size:13px}
+  pre{background:#F2EADC;border:1px solid var(--line);border-radius:4px;padding:12px;overflow-x:auto;
+    font-family:Consolas,monospace;font-size:13px;line-height:1.6}
+  ul{margin:8px 0;padding-left:22px}
+  li{margin:4px 0}
+  .k{color:var(--brown);font-weight:bold}
+  .small{font-size:13px;color:#7A6E5C}
+  .foot{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:#8B806E}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>ABox 一盒 · 上线前最终测试报告</h1>
+<div class="meta">
+  测试日期：2026-10-28　基线：<code>ops/guardrails-20261027</code> @ <code>7265a7c</code>　测试环境：154.8.164.180（8080 admin / 8081 h5）<br>
+  范围：技术按 2026-10-27 报告改完一轮后的复测　<b>不含资质合规</b>（按您要求排除）
+</div>
+
+<div class="verdict">
+  <b>结论：暂不建议按当前状态直接上线。</b><br>
+  功能层面已大幅改善（昨日多数问题已修），但存在 <b>3 项阻断级问题</b>，其中 <b>2 项会让小程序完全不可用</b>。
+  三项都属「配置 / 部署」性质，<b>改起来不慢</b>，处置完即可上线。
+</div>
+
+<h2>一、阻断级问题（上线前必须处置）</h2>
+
+<div class="card">
+<h3><span class="tag t-red">阻断 1</span>8081 的 Cookie 闸门会把小程序整端挡死</h3>
+<p><span class="k">现象：</span>8081 端口所有路径（含 <code>/api/</code>）一律返回 <b>401</b>。实测：</p>
+<pre>/                      -> 401
+/api/v1/health/ready   -> 401
+/api/v1/auth/login     -> 401
+/api/v1/pay/notify     -> 401</pre>
+<p><span class="k">为什么它挡的是小程序：</span></p>
+<ul>
+  <li>小程序接口地址写死 8081：<code>apps/miniprogram/.env</code> 与构建产物内均为 <code>http://154.8.164.180:8081/api/v1</code>（已 grep 产物确认）</li>
+  <li>闸门是 <b>server 级</b> <code>if ($abox_gate_pass = 0) { return 401; }</code>，覆盖静态页与 <code>/api/</code> 反代，不是只挡页面</li>
+  <li>小程序端 <code>request.ts</code> <b>不带 Cookie</b>（已 grep 确认无 Cookie 相关代码），也无从通过 <code>?gate=</code> 换取 —— 那条换 Cookie 的分支只在浏览器访问 <code>/</code> 时触发</li>
+</ul>
+<p><span class="k">闸门本身是对的：</span>它修的正是我上次提的 P0（<code>?devCode=任意</code> 可免密切换任意身份 + 8081 对外开放）。注释里也写清了为何用 Cookie 而非 Basic 认证。<b>问题只在于它把 API 一起挡了。</b></p>
+<p><span class="k">建议改法：</span>闸门只作用于静态页面，<b>放行 <code>/api/</code></b> —— API 侧本来就有 JWT 鉴权（我实测无 token / 伪造 token 均被 <code>10002</code> 拦下）。或上线前直接撤掉闸门。</p>
+</div>
+
+<div class="card">
+<h3><span class="tag t-red">阻断 2</span>支付回调在 8081 同样被挡 401</h3>
+<p>实测对照：</p>
+<pre>8080 /api/v1/pay/notify -> 201  （可达）
+8081 /api/v1/pay/notify -> 401  （被闸门挡）</pre>
+<p><span class="k">后果：</span>微信支付回调走 8081，被挡 ⇒ 用户付了钱、系统不知道，订单停在待支付。这正是 P3「支付单边账」的触发路径。mock 模式下看不出来，一旦切真实支付立刻爆。</p>
+<p>与阻断 1 同一个根因，放行 <code>/api/</code> 即可一并解决。</p>
+</div>
+
+<div class="card">
+<h3><span class="tag t-red">阻断 3</span>事故根因的修复代码尚未部署（也未提交）</h3>
+<p><span class="k">昨天那个 P0 的现象确实消失了</span>——同一订单三个端点各打 5 次，全部 <code>code=0</code>：</p>
+<pre>列表  GET /orders           [0,0,0,0,0]  正常
+详情  GET /orders/:no       [0,0,0,0,0]  正常
+支付  GET /:no/pay-result   [0,0,0,0,0]  正常</pre>
+<p><span class="k">但它是被重启掩盖的，不是修好的。</span>三个证据：</p>
+<ul>
+  <li><b>uptime 21 小时</b> ⇒ 服务起于昨晚 20:53，而昨日故障发生在 16:37，<b>在重启之前</b></li>
+  <li>根因修复（<code>bodyParser: false</code> + 自研 <code>request-body.middleware.ts</code>）<b>仍在工作区、未提交</b>：<code>main.ts</code> / <code>app.module.ts</code> / <code>request.ts</code> 等 5 改 2 新增</li>
+  <li><b>线上实测仍是旧行为</b>：GET 带非法请求体 → 依然 <code>10001</code>（修复后 GET 不该解析体）
+    <pre>GET /api/v1/health/ready  无体 -> 200   |  带非法体 -> 10001 Unexpected token 'n'...</pre>
+  </li>
+</ul>
+<p><span class="k">风险：</span>故障随时可能复发，且复发时<b>同样不打日志、健康检查全绿</b>（原注释已写明），届时仍要靠猜。这批改动质量很高（抽了 policy 纯函数、注释详尽），<b>缺的只是提交与部署</b>。</p>
+</div>
+
+<h2>二、上线前必处理（不阻断但必须清掉）</h2>
+
+<div class="card">
+<h3><span class="tag t-amber">必改 1</span>门禁未全绿，红灯里混着真信号</h3>
+<table>
+  <tr><th style="width:130px">门禁</th><th style="width:110px">结果</th><th>失败项与性质</th></tr>
+  <tr>
+    <td><code>gate.mjs all</code></td>
+    <td><b>30 / 31</b><br><span class="small">昨日 31/31</span></td>
+    <td><b>format</b> —— 恰好是本次新增的两个未提交文件：<code>request-body.policy.ts</code>、<code>request-body.spec.ts</code>。说明这批改动还没跑完门禁。</td>
+  </tr>
+  <tr>
+    <td><code>gate.mjs verify</code></td>
+    <td><b>4 / 6</b></td>
+    <td><b>e2e:m3</b>（1327/1351，失败 24 条）、<b>e2e:coupon-blindbox</b>（29/30，失败 1 条）</td>
+  </tr>
+</table>
+<p><span class="k">两条我已定性为「用例过时」，不是功能缺陷：</span></p>
+<ul>
+  <li><b>D52 operator 菜单</b>：断言写死「<code>/system/</code> 只允许 1 项 = queue」，实际命中 <code>["/system/queue","/system/sales-pause"]</code>。但代码里 <code>OPERATOR_EXTRA_MENUS</code> 是<b>刻意</b>加了第二条（注释说明了原因）。⇒ 改断言，不是改权限。</li>
+  <li><b>X盲盒·落库</b>：用例第 205 行读的是接口出参 <code>blindBoxName</code>，而本次改造成服务端遮蔽后，未送达<b>本就不下发内容</b>（这正是要的效果）。⇒ 用例应改判 <code>blindBoxPending === true</code>。</li>
+</ul>
+<p><span class="k">其余 23 条：</span>我单独重跑 e2e:m3 得到 44 失败，与门禁里的 24 条差 20 条 ⇒ 差值来自 seed 数据状态。<b>建议技术逐条甄别</b>，但不建议带着红灯上线——红灯看久了，真问题也会被当成噪声。</p>
+</div>
+
+<div class="card">
+<h3><span class="tag t-amber">必改 2</span>后台种子账号仍是明文口令</h3>
+<p>e2e 日志中反复出现：</p>
+<pre>[AuthService] ERROR 后台账号 admin 仍是种子明文口令（dev_plain:），上线前必须改为 scrypt 哈希
+[AuthService] ERROR 后台账号 sanweiwu 仍是种子明文口令（dev_plain:）
+[AuthService] ERROR 后台账号 finance 仍是种子明文口令（dev_plain:）</pre>
+<p>生产库按惯例不跑 seed，但仍建议<b>上线前逐账号确认</b>：这三个账号在生产是否存在、口令是否已改为哈希。若存在且是明文，等同于后台可被直接登录。</p>
+</div>
+
+<div class="card">
+<h3><span class="tag t-amber">阻塞</span>管理员密码已失效，后台四项未复测</h3>
+<p>昨日可用的 <code>pm_admin</code> 现在返回「账号或密码错误（<b>还可尝试 4 次</b>）」。</p>
+<p><span class="k">我停止了尝试</span> —— 后台有 5 次失败锁 900 秒的机制，继续试会把测试队伍正在用的号一起锁死。</p>
+<p><b>因此以下四项沿用昨日结论，本次未复测</b>（今日提交中无相关代码改动，风险较低）：一键停售、楼宇停用闸门（60006/60007/60012/60013）、停用阈值配置、退款审批。<br>
+<span class="small">您若给新密码，我可立即补测并更新结论。</span></p>
+</div>
+
+<h2>三、已验证通过（可放心）</h2>
+
+<table>
+  <tr><th style="width:30px">#</th><th style="width:190px">项目</th><th style="width:90px">结果</th><th>证据</th></tr>
+  <tr>
+    <td>1</td>
+    <td><b>nginx 止血正则化</b><br><span class="small">昨日 P0：大小写绕过</span></td>
+    <td><span class="tag t-green">已修</span></td>
+    <td>6 种变形全部 <b>404</b>：<code>mock/paid</code>、<code>MOCK/paid</code>、<code>MoCK/paid</code>、<code>mock/PAID</code>、<code>mock/paid/</code>、<code>MOCK/paid/</code>。已上线生效。</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td><b>提现规则 D3（您拍板的五值）</b></td>
+    <td><span class="tag t-green">已落码</span></td>
+    <td>自检脚本 <b>13/13 全绿</b>；<code>40024</code>/<code>40025</code> 在 enum 与 ERROR_MESSAGE 两处均登记；校验在事务内；状态口径不含 rejected/failed。<b>线上实测 <code>minWithdrawFen=0</code> ⇒ 起提不限已生效</b>。</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td><b>P0·C9 并发重复下单</b><br><span class="small">此前从未核过、疑直接资损</span></td>
+    <td><span class="tag t-green">防住</span></td>
+    <td>同一幂等键 6 线程并发 → <b>只落 1 笔</b>（<code>0</code>×1 + <code>10006</code>×5，49ms）；重放正确回填原单号。</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td><b>盲盒服务端遮蔽</b></td>
+    <td><span class="tag t-green">通过</span></td>
+    <td>未送达：<code>blindBoxName=null</code> + <code>blindBoxPending=true</code>；取消后（终态）：<code>blindBoxPending=false</code>，不再挂占位行。</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td><b>鉴权与越权</b></td>
+    <td><span class="tag t-green">通过</span></td>
+    <td>无 token、伪造 token → <code>10002</code>；读他人订单 → 被拒 <code>30010</code>。</td>
+  </tr>
+  <tr>
+    <td>6</td>
+    <td><b>昨日 P0 现象</b></td>
+    <td><span class="tag t-green">消失</span></td>
+    <td>订单详情 / 支付结果 5/5 正常（但见阻断 3：靠重启，非修代码）。</td>
+  </tr>
+  <tr>
+    <td>7</td>
+    <td><b>静态基线</b></td>
+    <td><span class="tag t-green">全绿</span></td>
+    <td><code>tsc --noEmit</code> <b>0 错误</b>；全量单测 <b>189/189</b>（20 套件，较昨日 +52）；依赖容器 <b>202 处注入点无遗漏</b>（今日线上崩过的那一型，无第二颗雷）；团长协议全文页构建通过。</td>
+  </tr>
+</table>
+
+<h2>四、更正我自己昨天的一个结论</h2>
+<div class="card">
+<p>昨日报告写「停用阈值线上实际是 <b>0</b>，导致 60006/60007 永远出不来」——<b>这条撤回</b>。</p>
+<p>重读判据：<code>suspend-gate.ts</code> 是 <code>total &gt; threshold</code>，默认 <b>20</b>。昨日我用「1 笔订单就触发 60012」反推阈值=0，<b>忽略了当时那栋楼已被测试队伍下了很多单</b> —— 实际累计超过 20 笔才触发，阈值大概率就是默认的 20。</p>
+<p><span class="k">影响：</span>昨日据此建议「确认期望值并同步改文档」，<b>该建议作废</b>。请以默认 20 为准，不必改配置。<span class="small">（确切值仍需后台配置页确认，待密码。）</span></p>
+</div>
+
+<h2>五、上线前处置清单（按顺序）</h2>
+<table>
+  <tr><th style="width:40px">序</th><th style="width:230px">动作</th><th style="width:90px">性质</th><th>判据（做完怎么算成了）</th></tr>
+  <tr><td>1</td><td>8081 闸门放行 <code>/api/</code>（或撤闸门）</td><td><span class="tag t-red">阻断</span></td><td>不带 Cookie 打 <code>8081/api/v1/health/ready</code> 返回 <b>200</b>；<code>/pay/notify</code> 返回 <b>201</b></td></tr>
+  <tr><td>2</td><td>提交并部署请求体修复（<code>bodyParser:false</code> + 中间件）</td><td><span class="tag t-red">阻断</span></td><td>GET 带非法体 → <b>不再返回 10001</b>（应正常返回或受控报错且有日志）</td></tr>
+  <tr><td>3</td><td>跑 <code>prettier --write</code> 后重跑 <code>gate.mjs all</code></td><td><span class="tag t-amber">必改</span></td><td>31/31</td></tr>
+  <tr><td>4</td><td>修正两条过时用例（D52 菜单、盲盒出参）</td><td><span class="tag t-amber">必改</span></td><td><code>verify</code> 中这两条转绿</td></tr>
+  <tr><td>5</td><td>甄别 e2e:m3 剩余失败项</td><td><span class="tag t-amber">必改</span></td><td><code>verify</code> 6/6，或逐条书面豁免</td></tr>
+  <tr><td>6</td><td>确认 admin / sanweiwu / finance 口令</td><td><span class="tag t-amber">必改</span></td><td>生产无明文口令账号</td></tr>
+  <tr><td>7</td><td>给测试队伍发 8081 的 gate 链接</td><td><span class="tag t-amber">必改</span></td><td>同事能打开 H5（凭据在 <code>deploy/h5/gate.d/</code>，不在 git 里）</td></tr>
+</table>
+
+<h2>六、本次未覆盖（需人手点）</h2>
+<ul>
+  <li><b>小程序真机</b>：我只能打接口，无法手点界面、无法验渲染与交互</li>
+  <li><b>H5 页面</b>：被闸门挡住，无凭据无法打开</li>
+  <li><b>后台界面</b>：无可用管理员账号</li>
+  <li><b>真实微信支付</b>：环境为 mock（<code>mockEscaped:true</code>），免鉴权改支付状态的能力仍在，切真实支付前需复核</li>
+</ul>
+
+<div class="foot">
+  生成时间：2026-10-28　·　所有结论均基于实跑与线上实测，非推断　·　复现命令见各条目<br>
+  涉及服务器改动的三项（放行 /api/、部署修复、口令）建议由运维执行并回读确认
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 出品方页改造稿 v0.1</title>
+<style>
+@font-face {
+  font-family: 'ABoxKai';
+  src: url('ab-kaiti.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'ABoxKai', 'STKaiti', 'KaiTi', 'SimSun', serif;
+  background: #E8DFCF;
+  color: #3A322A;
+  min-height: 100vh;
+  padding: 32px 16px 56px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 980px; margin: 0 auto; }
+
+.doc-head { margin-bottom: 24px; }
+.doc-head h1 { font-size: 20px; font-weight: normal; color: #3A322A; letter-spacing: 0.5px; }
+.doc-head p { margin-top: 6px; font-size: 13px; color: #796C57; line-height: 1.8; }
+
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+.btn {
+  font-family: inherit; font-size: 13px; color: #6E5435;
+  background: #FFFDF9; border: 1px solid rgba(110,84,53,0.28);
+  border-radius: 8px; padding: 7px 16px; cursor: pointer;
+}
+.btn:hover { background: #F6F0E5; }
+.btn.is-on { background: #6E5435; color: #FFFDF9; border-color: #6E5435; }
+
+.stage { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+
+.phone {
+  width: 375px; flex: none; min-height: 780px;
+  background: #F6F0E5; border-radius: 22px; overflow: hidden;
+  box-shadow: 0 2px 24px rgba(58,50,42,0.14);
+  padding: 26px 20px 30px;
+}
+
+.hd { display: flex; align-items: center; margin-bottom: 18px; }
+.hd__name { font-size: 21px; color: #3A322A; letter-spacing: 1px; }
+.hd__cat {
+  margin-left: 8px; font-size: 11px; color: #FFFFFF; background: #6E5435;
+  padding: 2px 7px; border-radius: 4px; letter-spacing: 0.5px;
+}
+.hd__badge {
+  margin-left: auto; font-size: 11px; padding: 3px 9px; border-radius: 4px; letter-spacing: 0.5px;
+}
+.hd__badge--on { color: #0F6E56; background: #E1F5EE; border: 1px solid rgba(15,110,86,0.3); }
+.hd__badge--off { color: #8A5A2B; background: #FAEEDA; border: 1px solid rgba(186,117,23,0.35); }
+
+.verdict {
+  border: 1px solid rgba(15,110,86,0.3); background: linear-gradient(0deg, #FFFFFF, #FFFFFF);
+  border-radius: 14px; padding: 20px 18px 18px; margin-bottom: 14px;
+  background: #FFFDF9;
+}
+.verdict__top { display: flex; align-items: center; gap: 7px; margin-bottom: 12px; }
+.verdict__ico { font-size: 13px; color: #0F6E56; }
+.verdict__word { font-size: 17px; color: #085041; letter-spacing: 2px; }
+.verdict__num { font-size: 30px; color: #6E5435; line-height: 1.1; letter-spacing: 1px; }
+.verdict__unit { font-size: 14px; color: #6E5435; margin-left: 2px; }
+.verdict__cap { margin-top: 6px; font-size: 13px; color: #3A322A; line-height: 1.7; }
+.verdict__sub { margin-top: 8px; font-size: 12px; color: #796C57; line-height: 1.8; }
+
+.card {
+  background: #FFFDF9; border: 1px solid rgba(110,84,53,0.16);
+  border-radius: 14px; padding: 16px 18px; margin-bottom: 12px;
+}
+.card__label { font-size: 12px; color: #9A8C79; letter-spacing: 0.5px; }
+.card__main { margin-top: 7px; font-size: 16px; color: #3A322A; line-height: 1.7; }
+.card__sub { margin-top: 5px; font-size: 12px; color: #796C57; line-height: 1.8; }
+
+.log { position: relative; margin-top: 12px; padding-left: 2px; }
+.log::before {
+  content: ''; position: absolute; left: 3px; top: 14px; bottom: 14px;
+  width: 1px; background: rgba(110,84,53,0.25);
+}
+.log__row { display: flex; align-items: center; padding: 7px 0; position: relative; }
+.log__dot { width: 7px; height: 7px; border-radius: 50%; background: #6E5435; flex: none; z-index: 1; }
+.log__dot--off { background: #F6F0E5; border: 1px dashed #9A8C79; }
+.log__date { margin-left: 11px; font-size: 12px; color: #9A8C79; width: 44px; flex: none; }
+.log__txt { font-size: 13px; color: #3A322A; }
+.log__txt--off { color: #9A8C79; }
+
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.tag {
+  font-size: 12px; color: #6E5435; background: #F6F0E5;
+  border: 1px solid rgba(110,84,53,0.2); border-radius: 6px; padding: 3px 9px;
+}
+
+.exit {
+  margin-top: 16px; padding: 16px 18px; border-radius: 14px;
+  background: #6E5435; cursor: pointer;
+}
+.exit__label { font-size: 12px; color: rgba(255,253,249,0.66); letter-spacing: 0.5px; }
+.exit__main { margin-top: 6px; font-size: 16px; color: #FFFDF9; letter-spacing: 1px; }
+.exit__go { margin-top: 7px; font-size: 12px; color: rgba(255,253,249,0.8); letter-spacing: 1px; }
+
+.ft { margin-top: 24px; text-align: center; }
+.ft__lic { font-size: 12px; color: #796C57; line-height: 2; }
+.ft__note { margin-top: 8px; font-size: 11px; color: #9A8C79; line-height: 1.9; }
+
+.off-note {
+  background: #FFFDF9; border: 1px dashed rgba(138,90,43,0.45);
+  border-radius: 14px; padding: 18px; margin-bottom: 14px;
+}
+.off-note__t { font-size: 16px; color: #8A5A2B; letter-spacing: 0.5px; }
+.off-note__p { margin-top: 10px; font-size: 13px; color: #5F5445; line-height: 1.95; }
+
+.src {
+  display: none; margin-top: 10px; padding-top: 9px;
+  border-top: 1px dashed rgba(110,84,53,0.28);
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 11px; line-height: 1.75; color: #8A7A64; word-break: break-all;
+}
+body[data-src="on"] .src { display: block; }
+
+body[data-mode="on"] .view-off { display: none; }
+body[data-mode="off"] .view-on { display: none; }
+
+.notes { flex: 1; min-width: 280px; max-width: 460px; }
+.notes h2 { font-size: 15px; font-weight: normal; color: #3A322A; margin-bottom: 12px; letter-spacing: 0.5px; }
+.notes ul { list-style: none; }
+.notes li {
+  font-size: 13px; color: #5F5445; line-height: 1.9;
+  padding: 9px 0; border-top: 1px solid rgba(110,84,53,0.14);
+}
+.notes li:first-child { border-top: none; }
+.notes li b { font-weight: normal; color: #6E5435; }
+.notes .warn { color: #8A5A2B; }
+</style>
+</head>
+<body data-mode="on" data-src="off">
+
+<div class="wrap">
+
+  <div class="doc-head">
+    <h1>ABox 一盒 · 出品方页改造稿 v0.1（评审用）</h1>
+    <p>入口：首页「来自：三味屋 ›」。设计目标 = <b>几秒内消除疑虑，把人送回下单页</b>。成功指标是本页的返回下单转化率，不是停留时长。</p>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn is-on" id="btnOn">在供应</button>
+    <button class="btn" id="btnOff">暂未供应</button>
+    <button class="btn" id="btnSrc">数据来源</button>
+  </div>
+
+  <div class="stage">
+
+    <div class="phone">
+
+      <!-- ============ 在供应 ============ -->
+      <div class="view-on">
+        <div class="hd">
+          <span class="hd__name">三味屋</span>
+          <span class="hd__cat">川菜</span>
+          <span class="hd__badge hd__badge--on">在供中</span>
+        </div>
+
+        <div class="verdict">
+          <div class="verdict__top">
+            <span class="verdict__ico">◈</span>
+            <span class="verdict__word">放心吃</span>
+          </div>
+          <div>
+            <span class="verdict__num">1,240</span><span class="verdict__unit">次</span>
+          </div>
+          <div class="verdict__cap">你这栋楼的同事，吃过它 1,240 次</div>
+          <div class="verdict__sub">其中 91% 说好吃 · 最近被夸的是 10 月 8 日的香煎鸡腿</div>
+          <div class="src">本楼 building_group 内 SUM(ab_order 份数) WHERE supplier_id=?；好评率 = ab_dish_rating rating=1 / 总数。⚠️ 样本 &lt; 20 时整块降级为「还在攒评价」，不显示百分比</div>
+        </div>
+
+        <div class="card">
+          <div class="card__label">2026 年核验记录</div>
+          <div class="log">
+            <div class="log__row">
+              <span class="log__dot"></span>
+              <span class="log__date">03-12</span>
+              <span class="log__txt">证照在有效期内</span>
+            </div>
+            <div class="log__row">
+              <span class="log__dot"></span>
+              <span class="log__date">06-09</span>
+              <span class="log__txt">证照在有效期内</span>
+            </div>
+            <div class="log__row">
+              <span class="log__dot"></span>
+              <span class="log__date">09-15</span>
+              <span class="log__txt">已换发新版证照</span>
+            </div>
+            <div class="log__row">
+              <span class="log__dot log__dot--off"></span>
+              <span class="log__date">12月</span>
+              <span class="log__txt log__txt--off">待核验</span>
+            </div>
+          </div>
+          <div class="src">拟新增「核验台账」（ab_supplier_audit_log）：现有 ab_supplier.audited_at 只有最后一次时间，撑不起一条时间线。每季度核验一次，第 4 次在未到期时显示「待核验」（诚实留空，不假装做完了）</div>
+        </div>
+
+        <div class="card">
+          <div class="card__label">它一次只出一道</div>
+          <div class="card__main">香煎鸡腿 · 本周</div>
+          <div class="card__sub">不是没别的，是每盒里它只占最拿手的那一格</div>
+          <div class="src">ab_meal_assignment(本周) → ab_set_meal_item WHERE supplier_id=? LIMIT 1；零新增数据，纯叙事</div>
+        </div>
+
+        <div class="card">
+          <div class="card__label">这段时间它还出过</div>
+          <div class="tags">
+            <span class="tag">红烧肉</span>
+            <span class="tag">麻婆豆腐</span>
+            <span class="tag">蒜蓉西兰花</span>
+            <span class="tag">番茄牛腩</span>
+            <span class="tag">干煸豆角</span>
+            <span class="tag">冬瓜排骨汤</span>
+          </div>
+          <div class="src">ab_set_meal_item 历史去重 WHERE supplier_id=? ORDER BY meal_date DESC LIMIT 6</div>
+        </div>
+
+        <div class="exit">
+          <div class="exit__label">明天你吃的是它做的</div>
+          <div class="exit__main">香煎鸡腿</div>
+          <div class="exit__go">去看看 ›</div>
+          <div class="src" style="border-top-color: rgba(255,253,249,0.35); color: rgba(255,253,249,0.62);">仅当明日 ab_meal_assignment 的套餐里有本出品方时才渲染，否则整块隐藏 —— 不许出现「去看看」却没有东西可看</div>
+        </div>
+
+        <div class="ft">
+          <div class="ft__lic">
+            食品经营许可证　JY11105…　有效期至 2027-04-18<br>
+            营业执照　91110114…
+          </div>
+          <div class="ft__note">
+            证照编号可至国家企业信用信息公示系统核对<br>
+            本页不提供任何跳转与复制入口
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 暂未供应 ============ -->
+      <div class="view-off">
+        <div class="hd">
+          <span class="hd__name">四季鲜蔬</span>
+          <span class="hd__cat">素菜</span>
+          <span class="hd__badge hd__badge--off">暂未供应</span>
+        </div>
+
+        <div class="off-note">
+          <div class="off-note__t">这家现在不在供应名单里</div>
+          <div class="off-note__p">
+            资质正在核验中，核验完成后会恢复供应。<br>
+            在此期间，它的菜品不会出现在明天的套餐里。
+          </div>
+          <div class="src">由 audit_status 驱动。⚠️ 刻意<b>不写预计日期</b>：没有可承诺的数据时写「预计 X 日」是凭空许诺，一旦做不到就是失信。现有 buildDetailNote 已区分核验中／已过期／未合作三种情况</div>
+        </div>
+
+        <div class="card">
+          <div class="card__label">它上一次供应</div>
+          <div class="card__main">9 月 28 日 · 蒜蓉西兰花</div>
+          <div class="card__sub">在你这栋楼被吃过 86 次</div>
+          <div class="src">MAX(ab_meal_assignment.meal_date) WHERE supplier_id=? AND building_group=?；计数同「这一栋楼」口径</div>
+        </div>
+
+        <div class="card">
+          <div class="card__label">2026 年核验记录</div>
+          <div class="log">
+            <div class="log__row">
+              <span class="log__dot"></span>
+              <span class="log__date">03-08</span>
+              <span class="log__txt">证照在有效期内</span>
+            </div>
+            <div class="log__row">
+              <span class="log__dot"></span>
+              <span class="log__date">06-11</span>
+              <span class="log__txt">证照在有效期内</span>
+            </div>
+            <div class="log__row">
+              <span class="log__dot log__dot--off"></span>
+              <span class="log__date">09月</span>
+              <span class="log__txt log__txt--off">核验中</span>
+            </div>
+          </div>
+          <div class="src">未过期则历史核验记录仍展示 —— 停供是经营决策，不等于它变得不可信；抹掉过去的可信记录是把两件事混为一谈</div>
+        </div>
+
+        <div class="ft">
+          <div class="ft__note" style="margin-top: 8px;">
+            未在供应名单中的出品方，暂不展示其证照编号<br>
+            核验完成后这里会同步更新
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="notes">
+      <h2>评审要点</h2>
+      <ul>
+        <li><b>第一屏是结论，不是证照。</b>「放心吃 + 1,240 次」先落地，证照降到页脚。用户点进来是为了消除疑虑，不是来查编号的。</li>
+        <li><b>核验日历是本稿的核心。</b>把「它有证」（过去时快照）变成「我们每季度去查一次，而且你能看到每次结果」（现在进行时）。<code>audited_at</code> 已有单次时间，扩成台账即可。</li>
+        <li><b>给次数，不给评分。</b>「4.8 分」抽象且可疑；「你这栋楼 1,240 次 · 91% 好吃」具体且可验证。</li>
+        <li><b>末尾有出口。</b>「明天你吃的是它做的 · 去看看 ›」把人送回下单页——这是本页唯一该被考核的转化率。</li>
+        <li class="warn"><b>三条非许诺纪律。</b>① 样本 &lt; 20 不显示百分比；② 核验未完成就显示「待核验」，不假装做完了；③ 暂未供应<b>不写预计恢复日期</b>——凭空的日期做不到就是失信。</li>
+        <li><b>暂未供应态不是空白页。</b>保留历史核验记录（停供 ≠ 变不可信），补「上一次供应」让页面仍是活的。</li>
+        <li><b>合规守住：</b>无第三方平台名称/链接/可跳转物/可复制口令；出参不含 status（合作中/备选）、commission、shareRate、联系方式；证照仍展示，只是降位。</li>
+        <li><b>待你裁决：</b>要不要上「挑刺档案」（主动展示被吐槽次数与 TOP 原因 + 已改进说明）。它可信度最高，但页面上会出现负面字眼。</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var body = document.body;
+var btnOn = document.getElementById('btnOn');
+var btnOff = document.getElementById('btnOff');
+var btnSrc = document.getElementById('btnSrc');
+
+btnOn.onclick = function () {
+  body.setAttribute('data-mode', 'on');
+  btnOn.classList.add('is-on');
+  btnOff.classList.remove('is-on');
+};
+btnOff.onclick = function () {
+  body.setAttribute('data-mode', 'off');
+  btnOff.classList.add('is-on');
+  btnOn.classList.remove('is-on');
+};
+btnSrc.onclick = function () {
+  var on = body.getAttribute('data-src') === 'on';
+  body.setAttribute('data-src', on ? 'off' : 'on');
+  btnSrc.classList.toggle('is-on', !on);
+};
+</script>
+
+</body>
+</html>

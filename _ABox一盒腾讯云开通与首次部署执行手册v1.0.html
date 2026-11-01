@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 腾讯云开通与首次部署执行手册 v1.0</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --surface:#FFFDF8; --surface2:#F7F1E4; --surface3:#FBF6EC;
+    --text:#6E5435; --text2:#796C57; --text-disabled:#A79A85;
+    --gold:#C9A876; --gold-deep:#936F3A; --gold-deepest:#8A6620;
+    --border:#E4D8C3; --border-strong:#D6CBB8;
+    --ok:#5B7C3A; --warn:#C44536; --info:#4A6FA5;
+    --ok-bg:#F1F5EA; --ok-bd:#BBCBA6;
+    --warn-bg:#FBF0EE; --warn-bd:#E3BFB8;
+    --info-bg:#EDF1F8; --info-bd:#B4C4DA;
+    --mut-bg:#F7F2E8; --mut-bd:#E4D8C3;
+    --gold-bg:#FBF4E6; --gold-bd:#DCC79C;
+    --ok-fg:#597939; --warn-fg:#C24436; --info-fg:#4A6FA5; --gold-fg:#8D6A38;
+    --font-display:'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif;
+    --font-body:-apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif;
+    --font-num:'SF Mono','Roboto Mono',Consolas,monospace;
+    --r-sm:4px; --r-md:10px; --r-lg:16px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--font-body); font-size:15px; line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1040px; margin:0 auto; padding:48px 28px 96px;}
+
+  /* ---------- 页头 ---------- */
+  .doc-head{
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--r-lg); padding:34px 36px 30px; position:relative; overflow:hidden;
+  }
+  .doc-head::before{
+    content:""; position:absolute; inset:0 0 auto 0; height:3px;
+    background:linear-gradient(90deg,var(--gold-deep),var(--gold) 45%,var(--gold-bd, #DCC79C) 100%);
+  }
+  .brand-line{
+    font-family:var(--font-display); font-size:13px; letter-spacing:.14em;
+    color:var(--gold-fg); margin:0 0 10px;
+  }
+  h1{
+    font-family:var(--font-display); font-size:30px; line-height:1.35;
+    margin:0 0 14px; font-weight:600; color:var(--text); letter-spacing:.01em;
+  }
+  .meta{display:flex; flex-wrap:wrap; gap:8px 22px; font-size:13px; color:var(--text2); margin-top:16px;}
+  .meta b{font-weight:600; color:var(--gold-fg);}
+
+  /* ---------- 通用 ---------- */
+  h2{
+    font-family:var(--font-display); font-size:22px; font-weight:600;
+    margin:56px 0 6px; padding-bottom:10px; border-bottom:2px solid var(--border);
+    color:var(--text); letter-spacing:.01em;
+  }
+  h2 .num{
+    display:inline-block; min-width:30px; font-family:var(--font-num);
+    font-size:15px; color:var(--gold-fg); font-weight:400; margin-right:6px;
+  }
+  h3{
+    font-family:var(--font-display); font-size:17px; font-weight:600;
+    margin:32px 0 10px; color:var(--gold-deepest);
+  }
+  h3::before{
+    content:""; display:inline-block; width:3px; height:14px; background:var(--gold);
+    border-radius:2px; margin-right:9px; vertical-align:-1px;
+  }
+  h4{font-size:15px; font-weight:600; margin:22px 0 8px; color:var(--text);}
+  p{margin:10px 0;}
+  ul,ol{margin:10px 0; padding-left:22px;}
+  li{margin:5px 0;}
+  code{
+    font-family:var(--font-num); font-size:13px;
+    background:var(--surface3); border:1px solid var(--border);
+    border-radius:var(--r-sm); padding:1px 6px; color:var(--gold-deepest);
+  }
+  pre{
+    background:#3B3125; color:#EFE6D6; border-radius:var(--r-md);
+    padding:14px 18px; overflow-x:auto; font-family:var(--font-num);
+    font-size:13px; line-height:1.7; margin:12px 0;
+  }
+  pre code{background:none; border:none; padding:0; color:inherit; font-size:13px;}
+  strong{font-weight:600; color:var(--text);}
+  a{color:var(--info-fg);}
+
+  /* ---------- 提示块 ---------- */
+  .note{
+    border-radius:var(--r-md); padding:14px 18px; margin:16px 0;
+    border:1px solid var(--mut-bd); background:var(--mut-bg); font-size:14px;
+  }
+  .note .tag{
+    display:inline-block; font-family:var(--font-display); font-size:12px;
+    font-weight:600; letter-spacing:.08em; margin-right:8px; padding:1px 8px;
+    border-radius:999px; vertical-align:1px;
+  }
+  .note-trap{background:var(--warn-bg); border-color:var(--warn-bd);}
+  .note-trap .tag{background:#F3DAD5; color:var(--warn-fg);}
+  .note-key{background:var(--gold-bg); border-color:var(--gold-bd);}
+  .note-key .tag{background:#F1E2C4; color:var(--gold-fg);}
+  .note-info{background:var(--info-bg); border-color:var(--info-bd);}
+  .note-info .tag{background:#DCE5F1; color:var(--info-fg);}
+  .note-ok{background:var(--ok-bg); border-color:var(--ok-bd);}
+  .note-ok .tag{background:#E2EBD3; color:var(--ok-fg);}
+
+  /* ---------- 表格 ---------- */
+  .tbl-wrap{overflow-x:auto; margin:16px 0;}
+  table{
+    width:100%; border-collapse:collapse; background:var(--surface);
+    font-size:14px; border:1px solid var(--border); border-radius:var(--r-md);
+    overflow:hidden;
+  }
+  thead th{
+    background:var(--surface2); text-align:left; font-weight:600;
+    font-family:var(--font-display); font-size:14px; color:var(--gold-deepest);
+    padding:11px 14px; border-bottom:1px solid var(--border-strong);
+    white-space:nowrap;
+  }
+  tbody td{padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:nth-child(even){background:var(--surface3);}
+  td.num,th.num{font-family:var(--font-num); white-space:nowrap;}
+  .cc{text-align:center;}
+
+  /* ---------- 状态徽标 ---------- */
+  .badge{
+    display:inline-block; font-size:12px; font-weight:600; font-family:var(--font-body);
+    padding:1px 9px; border-radius:999px; white-space:nowrap; line-height:1.6;
+  }
+  .b-ok{background:var(--ok-bg); color:var(--ok-fg); border:1px solid var(--ok-bd);}
+  .b-warn{background:var(--warn-bg); color:var(--warn-fg); border:1px solid var(--warn-bd);}
+  .b-info{background:var(--info-bg); color:var(--info-fg); border:1px solid var(--info-bd);}
+  .b-mut{background:var(--mut-bg); color:var(--text2); border:1px solid var(--mut-bd);}
+  .b-gold{background:var(--gold-bg); color:var(--gold-fg); border:1px solid var(--gold-bd);}
+
+  /* ---------- 结论卡 ---------- */
+  .verdict{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:14px; margin:22px 0;
+  }
+  .vcard{
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--r-md); padding:18px 20px; position:relative;
+  }
+  .vcard::before{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:3px;
+    background:var(--gold); border-radius:var(--r-md) 0 0 var(--r-md);
+  }
+  .vcard .vt{
+    font-family:var(--font-display); font-size:15px; font-weight:600;
+    color:var(--gold-deepest); margin:0 0 8px;
+  }
+  .vcard p{margin:6px 0; font-size:14px; color:var(--text2);}
+  .vcard p strong{color:var(--text);}
+
+  /* ---------- 清单 ---------- */
+  .chk{list-style:none; padding-left:0; margin:14px 0;}
+  .chk li{position:relative; padding-left:30px; margin:9px 0; font-size:14px;}
+  .chk li::before{
+    content:""; position:absolute; left:0; top:5px;
+    width:15px; height:15px; border:1.5px solid var(--border-strong);
+    border-radius:var(--r-sm); background:var(--surface);
+  }
+
+  /* ---------- 步骤表 ---------- */
+  .step-id{
+    font-family:var(--font-num); font-size:12px; font-weight:600;
+    color:var(--surface); background:var(--gold-deep);
+    padding:2px 7px; border-radius:var(--r-sm); white-space:nowrap;
+  }
+  .step-id.a{background:var(--gold-deep);}
+  .step-id.b{background:var(--info-fg);}
+  .step-id.c{background:var(--ok-fg);}
+
+  /* ---------- 目录 ---------- */
+  .toc{
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--r-md); padding:20px 24px; margin:26px 0 4px;
+  }
+  .toc-t{font-family:var(--font-display); font-size:15px; font-weight:600; color:var(--gold-deepest); margin:0 0 10px;}
+  .toc ol{margin:0; padding-left:20px; columns:2; column-gap:34px;}
+  .toc li{font-size:14px; margin:5px 0; break-inside:avoid;}
+  .toc a{color:var(--text2); text-decoration:none; border-bottom:1px dotted var(--border-strong);}
+  .toc a:hover{color:var(--gold-deepest);}
+
+  /* ---------- 依赖链图 ---------- */
+  .chain{background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); padding:22px; margin:18px 0; overflow-x:auto;}
+  .chain svg{display:block; margin:0 auto; max-width:100%; height:auto;}
+
+  /* ---------- 页脚 ---------- */
+  .foot{
+    margin-top:64px; padding-top:22px; border-top:1px solid var(--border);
+    font-size:13px; color:var(--text-disabled);
+  }
+  .foot p{margin:4px 0;}
+
+  @media (max-width:680px){
+    .wrap{padding:26px 16px 64px;}
+    h1{font-size:23px;}
+    h2{font-size:19px;}
+    .toc ol{columns:1;}
+    .doc-head{padding:24px 20px;}
+  }
+  @media print{
+    body{background:#fff;}
+    .wrap{max-width:none; padding:0;}
+    h2{page-break-after:avoid;}
+    table,.note,.vcard{page-break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-head">
+    <p class="brand-line">ABOX 一盒 · 上线执行层</p>
+    <h1>腾讯云开通与首次部署执行手册</h1>
+    <p style="margin:0; color:var(--text2); font-size:15px;">
+      补的是《部署运维手册 v1.0》没覆盖的那一段：<strong>云厂商侧怎么买、服务器第一次上机怎么跑、哪几条命令的判据不能看"绿了就过"</strong>。
+    </p>
+    <div class="meta">
+      <span><b>版本</b> v1.0</span>
+      <span><b>日期</b> 2026-09-24</span>
+      <span><b>主体</b> 北京巡礼之年科技有限公司</span>
+      <span><b>前置</b> M5 外部条件阻塞期</span>
+      <span><b>性质</b> 执行清单（可逐条打勾）</span>
+    </div>
+  </header>
+
+  <nav class="toc">
+    <p class="toc-t">目 录</p>
+    <ol>
+      <li><a href="#s1">结论先行：腾讯云选得对不对</a></li>
+      <li><a href="#s2">三个坑（只有查了才敢说的）</a></li>
+      <li><a href="#s3">买什么 / 不买什么 / 多少钱</a></li>
+      <li><a href="#s4">阶段 A · 云资源开通</a></li>
+      <li><a href="#s5">阶段 B · 首次部署</a></li>
+      <li><a href="#s6">阶段 C · 域名与小程序（并行）</a></li>
+      <li><a href="#s7">谁卡谁：依赖链一图</a></li>
+      <li><a href="#s8">现在能做 vs 必须等</a></li>
+      <li><a href="#s9">需你确认的三件事</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============================================================ -->
+  <h2 id="s1"><span class="num">01</span>结论先行：腾讯云选得对不对</h2>
+
+  <div class="verdict">
+    <div class="vcard">
+      <p class="vt">选得对，但别指望它帮你省时间</p>
+      <p><strong>腾讯云合适。</strong>但决定你什么时候能上线的，不是云厂商，是<strong>备案接入</strong>和<strong>资质</strong>。</p>
+      <p>三家境内云都能过微信审核。纠结"选哪家"最多影响一两天的操作手感，<strong>不影响上线日期</strong>。</p>
+    </div>
+    <div class="vcard">
+      <p class="vt">真实好处只有三条</p>
+      <p>① 微信、微信支付、腾讯云备案、COS、CDN、SSL 同账号体系，少一轮跨厂商资料往返。</p>
+      <p>② 轻量应用服务器便宜且够用。</p>
+      <p>③ 备案主体与小程序主体一致性核验更顺。</p>
+    </div>
+    <div class="vcard">
+      <p class="vt">最该担心的是这条</p>
+      <p><strong>ICP 备案与接入商绑定。</strong>你的域名如果原备案不在腾讯云，换过来必须办<strong>接入备案（1–20 工作日）</strong>；不办，域名解析到腾讯云服务器会被<strong>阻断访问</strong>。</p>
+    </div>
+  </div>
+
+  <div class="note note-ok">
+    <span class="tag">好消息</span>
+    <strong>项目侧的部署基座已经是完整的。</strong>仓库里已有两个 Dockerfile、<code>docker-compose.prod.yml</code>、nginx 站点配置、五支运维脚本、cron 声明模板、两级探针、回滚与备份恢复流程。
+    <strong>这一轮要做的不是"开发部署能力"，而是"把它第一次真正跑起来"。</strong>
+  </div>
+
+  <div class="note note-info">
+    <span class="tag">边界</span>
+    本手册<strong>不重复</strong>《部署运维手册》的运维内容（探针语义、禁发窗口、应急预案、日巡检）。它只管两件事：<strong>云厂商侧怎么开通</strong>、<strong>第一次上机怎么验证</strong>。
+  </div>
+
+  <!-- ============================================================ -->
+  <h2 id="s2"><span class="num">02</span>三个坑（只有查了才敢说的）</h2>
+
+  <h3>坑 1 · 备案接入商绑定 —— 最容易卡住，也最容易没人想到</h3>
+  <p>备案信息必须与<strong>实际接入服务商</strong>关联。这是规则原文的意思：主体在某家接入商完成备案，只表示"可以在<strong>该接入商</strong>的服务范围内开展网站内容服务"。</p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th style="width:34%;">你域名的现状</th><th>会发生什么</th><th style="width:22%;">要做什么</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>原备案接入商 <strong>= 腾讯云</strong></td>
+        <td>直接可用；若是新域名需走"新增服务"</td>
+        <td><span class="badge b-ok">新增服务即可</span></td>
+      </tr>
+      <tr>
+        <td>原备案接入商 <strong>≠ 腾讯云</strong></td>
+        <td>必须办<strong>接入备案</strong>。腾讯云初审 → 管局终审，<strong>1–20 工作日</strong>；<strong>审核期间网站需保持可访问供核验</strong></td>
+        <td><span class="badge b-warn">接入备案</span></td>
+      </tr>
+      <tr>
+        <td>原备案<strong>已失效</strong>（取消接入后长期无新接入商）</td>
+        <td>会被管局<strong>注销</strong>，需<strong>重新备案</strong></td>
+        <td><span class="badge b-warn">重新备案</span></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>⚠️ 《账号资源与密钥清单 v1.0》里 R4 只记了「域名（已备案）✅」，<strong>没记接入商是谁、域名是什么</strong>。这是本轮要补的第一个空。</p>
+
+  <h3>坑 2 · 轻量应用服务器要"够格"才能用于备案</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th style="width:22%;">要求项</th><th>具体条件</th></tr></thead>
+    <tbody>
+      <tr><td>地域</td><td>必须<strong>中国境内</strong>节点。中国香港地区及境外节点<strong>不能</strong>用于备案</td></tr>
+      <tr><td>计费模式</td><td><strong>仅包年包月</strong>。按量计费、试用期、竞价实例<strong>均不支持</strong></td></tr>
+      <tr><td>购买时长</td><td><strong>≥ 3 个月</strong>（含续费），且备案期间剩余有效期 <strong>≥ 1 个月</strong></td></tr>
+      <tr><td>公网 IP</td><td>需绑定腾讯云<strong>中国境内公网 IP</strong>，且<strong>带宽不能为 0</strong>；<strong>不支持绑 EIP 备案</strong></td></tr>
+      <tr><td>备案额度</td><td>企业账号：同一轻量实例最多备案 <strong>5 个</strong>网站/APP，另可生成 <strong>2 个</strong>备案授权码</td></tr>
+      <tr><td>账号实名</td><td>生成备案授权码要求账号实名类型为企业。<strong>个人实名账号不能生成授权码</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><strong>⇒ 一句话落地：买的时候选「境内地域 + 包年包月 ≥ 3 个月 + 带公网带宽」。</strong>为了省几百块买按量计费，后面要返工。</p>
+
+  <h3>坑 3 · HTTPS 不在编排文件里，要你在宿主机补一层</h3>
+  <p><code>docker-compose.prod.yml</code> 里 <code>admin</code> 只对外开 <strong>HTTP 8080</strong>（<code>ADMIN_PORT</code>），注释写着"上线时前置 HTTPS"。项目文档给了两条路：宿主机 nginx/Caddy 反代，或云负载均衡。</p>
+
+  <div class="note note-trap">
+    <span class="tag">只能选一条</span>
+    <strong>结合遗留风险 R10，实际只有"宿主机 nginx + 证书"这一条路可走。</strong>
+    走云负载均衡会引入"第二个 API 实例"的形态 —— 而 <code>currentTimeline()</code> 是<strong>进程级单例</strong>，多实例会出现「A 实例已按新截单时刻拒单、B 实例还按旧时刻放行」，<strong>两边都不报错</strong>，只表现为"同一分钟下单，一台过一台不过"。在改成 Redis 发布订阅广播（并写出黑盒断言）之前，多实例属于<strong>未验证形态</strong>。
+  </div>
+
+  <!-- ============================================================ -->
+  <h2 id="s3"><span class="num">03</span>买什么 / 不买什么 / 多少钱</h2>
+
+  <h3>3.1 要买的（四件）</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th class="num" style="width:44px;">#</th><th style="width:20%;">资源</th><th>规格</th><th style="width:26%;">为什么是这个规格</th><th style="width:96px;">状态</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="num">1</td><td><strong>轻量应用服务器</strong></td>
+        <td><strong>4C8G</strong> / 60–120G SSD / 5M+ 带宽 / <strong>境内</strong>（北京优先）/ <strong>包年包月 ≥ 3 个月</strong> / 镜像选 <strong>Ubuntu 22.04 LTS 纯系统</strong></td>
+        <td>一台跑全套容器：mysql + redis + api + admin + 宿主机 nginx。<strong>构建镜像是最吃内存的时刻</strong>，4C8G 有安全余量</td>
+        <td><span class="badge b-warn">待开通</span></td>
+      </tr>
+      <tr>
+        <td class="num">2</td><td>域名</td>
+        <td>已有；需核对<strong>备案号 + 接入商 + 状态</strong></td>
+        <td>小程序 <code>request</code> 合法域名必须 HTTPS + 已备案，<strong>不能用 IP</strong></td>
+        <td><span class="badge b-info">待核对</span></td>
+      </tr>
+      <tr>
+        <td class="num">3</td><td>SSL 证书</td>
+        <td>腾讯云 <strong>免费 DV</strong>（1 年，可自动续）</td>
+        <td>443 入口。OV/EV 一期不需要</td>
+        <td><span class="badge b-warn">待签发</span></td>
+      </tr>
+      <tr>
+        <td class="num">4</td><td>DNS 解析</td>
+        <td>同一账号 DNSPod：<code>api.&lt;域名&gt;</code> → 服务器公网 IP</td>
+        <td>与备案接入商同账号，少一轮验证</td>
+        <td><span class="badge b-warn">待配置</span></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>3.2 明确<strong>不买</strong>的（每条都写明理由，防止后面有人"顺手加购"）</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th style="width:30%;">不买</th><th>理由</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>云数据库 MySQL / 腾讯云 Redis</td>
+        <td>生产编排已<strong>自托管</strong> <code>mysql:8.0</code> + <code>redis:7-alpine</code>，且依赖<strong>不暴露宿主端口</strong>。27 张表 / 单楼 500 单/日的体量下自托管完全够。<strong>一年省几千，且少一层网络延迟与白名单配置</strong></td>
+      </tr>
+      <tr>
+        <td>负载均衡 CLB</td>
+        <td><strong>R10：一期只允许一个 API 实例。</strong>见 §2 坑 3</td>
+      </tr>
+      <tr>
+        <td>K8s / TKE</td>
+        <td>同上；且单楼灰度的体量用不上编排能力</td>
+      </tr>
+      <tr>
+        <td>对象存储 COS</td>
+        <td><strong>可以推迟。</strong><code>STORAGE_DRIVER=local</code> 已支持，nginx 已配好 <code>/static/</code> 反代。等图片量起来再切 COS —— 四驱动开关意味着<strong>代码零改动</strong></td>
+      </tr>
+      <tr>
+        <td>CDN</td>
+        <td>同上。一期用户量与地域范围都不需要</td>
+      </tr>
+      <tr>
+        <td>云监控 / 日志服务</td>
+        <td>已有两级探针 + <code>ops-daily.sh</code>（探针 / 备份新鲜度 / 磁盘余量收成一个退出码）+ cron。先用自己的，别叠两套告警</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>3.3 成本（2026-09 参考价，以官网实时报价为准）</h3>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th style="width:34%;">项</th><th class="num">新用户首单</th><th class="num">日常价</th></tr></thead>
+    <tbody>
+      <tr><td>轻量 4C8G / 5M / 60G SSD</td><td class="num">约 ¥450 / 年</td><td class="num">约 ¥1,500 – 2,500 / 年</td></tr>
+      <tr><td>轻量 2C4G / 5M / 60G SSD</td><td class="num">约 ¥188 / 年</td><td class="num">约 ¥800 – 1,200 / 年</td></tr>
+      <tr><td>域名续费</td><td class="num" colspan="2">约 ¥60 – 80 / 年</td></tr>
+      <tr><td>SSL 证书（免费 DV）</td><td class="num" colspan="2">¥0</td></tr>
+      <tr style="background:var(--gold-bg);"><td><strong>一期合计</strong></td><td class="num"><strong>约 ¥450 – 510 / 年</strong></td><td class="num"><strong>约 ¥1,600 – 2,600 / 年</strong></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>⚠️ 新用户特惠<strong>仅限该账号首单、且限 1 台</strong>，续费恢复原价。用已有老账号下单没有特惠 —— 但<strong>新账号必须先完成企业实名</strong>才能生成备案授权码，这中间有 1–2 天，要算进计划。</p>
+
+  <div class="note note-key">
+    <span class="tag">取舍</span>
+    <strong>不要为省钱选 2C4G。</strong>这台机上要同时跑 MySQL 8.0 + Redis + NestJS + nginx，还要在上面<strong>构建镜像</strong>（构建峰值最吃内存）。2C4G 大概率能跑，但构建时容易 OOM，且没有余量。差价是一次性的、可忽略的 —— <strong>选 4C8G</strong>。
+  </div>
+
+  <!-- ============================================================ -->
+  <h2 id="s4"><span class="num">04</span>阶段 A · 云资源开通（半天，<span style="color:var(--ok-fg);">今天就能全部做完</span>）</h2>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th class="num" style="width:52px;">#</th><th style="width:30%;">动作</th><th>判据 / 命令</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="step-id a">A1</span></td>
+        <td>确认腾讯云账号<strong>实名主体</strong> = 北京巡礼之年科技有限公司（<strong>企业实名</strong>）</td>
+        <td>控制台 → 账号信息 → 实名认证类型显示"企业"。⚠️ 个人实名账号<strong>不能</strong>生成备案授权码，也不能改回个人</td>
+      </tr>
+      <tr>
+        <td><span class="step-id a">A2</span></td>
+        <td>购买轻量应用服务器：境内 / 包年包月 ≥ 3 个月 / 4C8G / 带公网带宽</td>
+        <td>到期时间 ≥ 3 个月之后；计费模式显示"包年包月"</td>
+      </tr>
+      <tr>
+        <td><span class="step-id a">A3</span></td>
+        <td>系统镜像选 <strong>Ubuntu 22.04 LTS 纯系统镜像</strong></td>
+        <td>⚠️ <strong>不要选</strong> WordPress / 宝塔 / Docker 应用镜像 —— 与项目脚本假设不符，且会引入不受控的默认配置</td>
+      </tr>
+      <tr>
+        <td><span class="step-id a">A4</span></td>
+        <td>防火墙只放行：<strong>22（限来源 IP）/ 80 / 443</strong></td>
+        <td>⚠️ <strong>不要</strong>放行 3306 / 6379 / 3000 / 8080。与《账号资源与密钥清单》§5.2 一致</td>
+      </tr>
+      <tr>
+        <td><span class="step-id a">A5</span></td>
+        <td>SSH 密钥登录，禁用密码登录</td>
+        <td><code>ssh -i &lt;key&gt; root@&lt;IP&gt;</code></td>
+      </tr>
+      <tr>
+        <td><span class="step-id a">A6</span></td>
+        <td>安装 Docker 20.10+ 与 Compose V2</td>
+        <td><code>docker compose version</code> 有输出（注意是 <code>docker compose</code> 不是 <code>docker-compose</code>）</td>
+      </tr>
+      <tr style="background:var(--gold-bg);">
+        <td><span class="step-id a">A7</span></td>
+        <td><strong>固定服务器时区为 Asia/Shanghai</strong></td>
+        <td><code>timedatectl</code> → <code>Time zone: Asia/Shanghai (CST, +0800)</code></td>
+      </tr>
+      <tr style="background:var(--gold-bg);">
+        <td><span class="step-id a">A8</span></td>
+        <td><strong>查原域名备案的"接入商"是谁</strong></td>
+        <td>工信部备案系统 / 原服务商控制台 → 拿到：备案号、接入商名称、备案状态</td>
+      </tr>
+      <tr>
+        <td><span class="step-id a">A9</span></td>
+        <td>若接入商 ≠ 腾讯云 → 提交<strong>接入备案</strong></td>
+        <td>拿到受理号。<strong>这一步 1–20 工作日，是唯一可能拖长关键路径的动作</strong></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="note note-trap">
+    <span class="tag">A7 为什么是硬要求</span>
+    业务口径是 <code>Asia/Shanghai</code>；<code>deploy/cron/abox-ops.cron</code> 用<strong>宿主机本地时区</strong>，而且项目<strong>刻意不设 <code>CRON_TZ</code></strong>（设了就成第三个时区来源）。宿主机时区不对 ⇒ 备份与巡检按错误时刻执行，
+    <strong>而这是不报错的</strong>：容器里的 <code>@Cron(timeZone)</code> 能兜住<strong>跑批触发时刻</strong>，但 Docker 之外的 cron 与日志时间戳兜不住。
+  </div>
+
+  <!-- ============================================================ -->
+  <h2 id="s5"><span class="num">05</span>阶段 B · 首次部署（1 天，本质是"兑现 R1 / R2 / R11"）</h2>
+
+  <div class="note note-trap">
+    <span class="tag">先定性</span>
+    <strong>把这一次当成"联调"，不是一次例行发布。</strong>两个 Dockerfile、<code>docker-compose.prod.yml</code>、<code>nginx.conf</code>、五支运维脚本、cron 模板 —— <strong>从未在真机执行过</strong>（R1 / R11）；生产库<strong>从未执行过迁移</strong>（R2）。
+    第一次跑挂掉是<strong>预期内</strong>的；怕的是"看起来跑通了"而 DDL 从未应用。
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th class="num" style="width:52px;">#</th><th style="width:30%;">动作</th><th>命令 / 判据</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="step-id b">B1</span></td>
+        <td>宿主机装 nginx + certbot</td>
+        <td><code>nginx -v</code> · <code>certbot --version</code></td>
+      </tr>
+      <tr>
+        <td><span class="step-id b">B2</span></td>
+        <td>签发证书</td>
+        <td><code>certbot --nginx -d api.&lt;域名&gt;</code></td>
+      </tr>
+      <tr>
+        <td><span class="step-id b">B3</span></td>
+        <td>宿主机 nginx 反代：<code>443 → 127.0.0.1:8080</code>；<code>80</code> 全量跳 <code>443</code></td>
+        <td><code>curl -I https://api.&lt;域名&gt;/</code> → 返回 HTTP 状态码（<strong>而不是超时</strong>）</td>
+      </tr>
+      <tr>
+        <td><span class="step-id b">B4</span></td>
+        <td>拉代码，<code>cp .env.example .env.prod</code>，按《部署运维手册》§4.2 逐项填</td>
+        <td>启动<strong>不应</strong>报「缺少 MYSQL_ROOT_PASSWORD」（compose 用 <code>${VAR:?}</code>，缺值即拒绝启动）</td>
+      </tr>
+      <tr style="background:var(--gold-bg);">
+        <td><span class="step-id b">B5</span></td>
+        <td><strong>只构建镜像</strong></td>
+        <td><code>./scripts/deploy.sh --build-only</code> ← <strong>这一步最先可能失败</strong>（pnpm workspace + alpine 依赖解析）</td>
+      </tr>
+      <tr>
+        <td><span class="step-id b">B6</span></td>
+        <td>正式部署（脚本自动：预检 → 备份 → 起依赖 → 构建 → 迁移 → up → 健康验证）</td>
+        <td><code>./scripts/deploy.sh</code></td>
+      </tr>
+      <tr style="background:var(--gold-bg);">
+        <td><span class="step-id b">B7</span></td>
+        <td><strong>核对两支迁移都 applied</strong></td>
+        <td><code>npx typeorm migration:show -d dist/database/data-source.js</code><br>→ <code>Init1700000000000</code> <strong>和</strong> <code>ParityFix1700000000001</code> <strong>都必须是 <code>[X]</code></strong></td>
+      </tr>
+      <tr>
+        <td><span class="step-id b">B8</span></td>
+        <td>探针（readiness）</td>
+        <td><code>./scripts/healthcheck.sh</code> → <code>[结果] 通过</code>；出参里 <code>queue.consumers</code> = <strong>3/3</strong></td>
+      </tr>
+      <tr>
+        <td><span class="step-id b">B9</span></td>
+        <td>备份可用</td>
+        <td><code>./scripts/backup-db.sh</code> → 产出<strong>非空</strong> <code>.gz</code>（空导出会给出"备份成功"的假象）</td>
+      </tr>
+      <tr style="background:var(--gold-bg);">
+        <td><span class="step-id b">B10</span></td>
+        <td><strong>回滚演练</strong>（M5 验收标准 #4：10 分钟内可回退）</td>
+        <td>发一版 → <code>./scripts/rollback.sh</code> → 再发回来。⚠️ <strong>永远不要在生产机执行 <code>docker image prune -a</code></strong> —— 那会把回滚能力一起删掉</td>
+      </tr>
+      <tr>
+        <td><span class="step-id b">B11</span></td>
+        <td>cron：<strong>先 <code>--dry-run</code></strong> → 手工跑一次 <code>ops-daily.sh</code> 核对输出 → <strong>最后</strong>才装</td>
+        <td><code>./scripts/install-cron.sh --dry-run</code> → <code>./scripts/ops-daily.sh</code> → <code>./scripts/install-cron.sh</code> → <code>--list</code> 有 2 条</td>
+      </tr>
+      <tr>
+        <td><span class="step-id b">B12</span></td>
+        <td>后台可访问</td>
+        <td><code>https://api.&lt;域名&gt;/</code> 打开运营后台登录页</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>B7 为什么单独拎出来讲</h3>
+  <p>这是本项目里最典型的"<strong>显示成功但什么都没发生</strong>"一类缺陷，有两个具体陷阱：</p>
+  <ol>
+    <li>迁移 glob 必须<strong>双匹配</strong> <code>*.{ts,js}</code>。只写 <code>*.ts</code>：dev 用 ts-node 直跑 <code>src/</code> 能命中，生产 <code>dist/*.js</code> 下<strong>零命中</strong>。</li>
+    <li>TypeORM 对"没找到迁移"<strong>不报错</strong>，只打印 <code>No migrations are found</code>，然后 <code>migration:run</code> <strong>正常退出 0</strong>。</li>
+  </ol>
+  <p>⇒ 部署流水线里"迁移"这一步会显示 <strong>成功</strong>，而<strong>所有 DDL 从未应用</strong>。后续症状会伪装成完全无关的样子（"代码把列名写错了"）。</p>
+  <p><strong>所以判据只能是 <code>migration:show</code> 列出两支且都为 <code>[X]</code>，不能只看"那一步绿了"。</strong>跑完再复跑一次 <code>node scripts/gate.mjs schema:parity</code> 确认结构一致。</p>
+
+  <div class="note note-info">
+    <span class="tag">顺序纪律</span>
+    B11 的三步顺序不能颠倒：<strong><code>--dry-run</code> → 手工跑一次核对输出 → 才交给 cron</strong>。原因是 crontab 会<strong>原样接受</strong>一条语法错误的命令行然后每天定时执行它 —— 表现为"cron 什么都没干"，而 <code>crontab -l</code> 看上去完全正常。
+  </div>
+
+  <!-- ============================================================ -->
+  <h2 id="s6"><span class="num">06</span>阶段 C · 域名与小程序（并行 · 长周期，不占 A/B 的关键路径）</h2>
+
+  <p>关键认识：<strong>服务器部署 ≠ 小程序上线。</strong>服务器这条线今天就能全做完，不需要等任何资质；小程序这条线卡在资质与备案上，两条<strong>应该并行</strong>。</p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th class="num" style="width:52px;">#</th><th style="width:30%;">动作</th><th style="width:26%;">依赖</th><th>时效</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="step-id c">C1</span></td>
+        <td>小程序<strong>备案</strong>（工信部，经微信公众平台提交，免费）</td>
+        <td>微信认证已完成（¥300/年）</td>
+        <td>平台初审 1–2 + 管局终审 <strong>1–20 工作日</strong></td>
+      </tr>
+      <tr>
+        <td><span class="step-id c">C2</span></td>
+        <td>服务<strong>类目</strong>审核</td>
+        <td>《食品经营许可证》（热食类制售）<strong>或</strong>《预包装食品销售备案凭证》</td>
+        <td>3–7 工作日</td>
+      </tr>
+      <tr>
+        <td><span class="step-id c">C3</span></td>
+        <td>小程序后台配 <strong>服务器域名</strong>（<code>request</code> / <code>uploadFile</code> / <code>downloadFile</code>）</td>
+        <td>阶段 B 的 HTTPS 域名 + C1</td>
+        <td>即时生效</td>
+      </tr>
+      <tr>
+        <td><span class="step-id c">C4</span></td>
+        <td>上传<strong>体验版</strong>，走真机</td>
+        <td>C3</td>
+        <td>无需审核，上传后可给体验者扫码</td>
+      </tr>
+      <tr>
+        <td><span class="step-id c">C5</span></td>
+        <td>提审 → 灰度放量（单楼 3 天）</td>
+        <td>C1 + C2</td>
+        <td>审核 0.5–1 工作日</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="note note-trap">
+    <span class="tag">C1 两个时间陷阱</span>
+    ① 备案有<strong>每日提交配额</strong>，额度耗尽当日无法提交（次日刷新）—— <strong>别卡在最后一天</strong>。<br>
+    ② 平台初审通过后会给 <strong>12381 短信，24 小时内必须核验</strong>，超时需重新排队。
+  </div>
+
+  <div class="note note-key">
+    <span class="tag">C4 待实测确认</span>
+    <strong>体验版无需提交审核</strong>即可给体验者扫码使用，这一点是确定的；但<strong>体验版能否正常调起微信支付</strong>，公开资料说法不一致（有说受限、有说正常）。<strong>请以真机实测为准</strong>，不要照抄任何一方的结论。<br>
+    好消息：项目内部测试走 <code>PROVIDER_MODE=mock</code>（<code>MOCK_PAY_AUTO_SUCCESS</code> 可自动发支付成功事件），<strong>这条链路的验证不依赖真实支付能力</strong>。
+  </div>
+
+  <!-- ============================================================ -->
+  <h2 id="s7"><span class="num">07</span>谁卡谁：依赖链一图</h2>
+
+  <div class="chain">
+    <svg viewBox="0 0 960 400" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,'Microsoft YaHei',sans-serif">
+      <defs>
+        <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+          <path d="M0,0 L7,3 L0,6 z" fill="#A79A85"/>
+        </marker>
+        <marker id="arg" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+          <path d="M0,0 L7,3 L0,6 z" fill="#936F3A"/>
+        </marker>
+      </defs>
+
+      <!-- 两条泳道标题 -->
+      <text x="24" y="30" font-size="13" font-weight="700" fill="#597939" letter-spacing="0.06em">服务器线 · 今天可做完</text>
+      <text x="24" y="228" font-size="13" font-weight="700" fill="#C24436" letter-spacing="0.06em">发布线 · 卡资质与备案</text>
+
+      <!-- 泳道底 -->
+      <rect x="16" y="44" width="928" height="150" rx="12" fill="#F1F5EA" stroke="#BBCBA6"/>
+      <rect x="16" y="242" width="928" height="142" rx="12" fill="#FBF0EE" stroke="#E3BFB8"/>
+
+      <!-- 服务器线节点 -->
+      <g>
+        <rect x="44" y="82" width="150" height="74" rx="9" fill="#FFFDF8" stroke="#BBCBA6" stroke-width="1.4"/>
+        <text x="119" y="110" font-size="13" font-weight="700" fill="#6E5435" text-anchor="middle">买轻量 4C8G</text>
+        <text x="119" y="130" font-size="11" fill="#796C57" text-anchor="middle">包年包月 ≥3 个月</text>
+        <text x="119" y="146" font-size="11" fill="#796C57" text-anchor="middle">境内 · Ubuntu 22.04</text>
+
+        <rect x="240" y="82" width="150" height="74" rx="9" fill="#FFFDF8" stroke="#BBCBA6" stroke-width="1.4"/>
+        <text x="315" y="110" font-size="13" font-weight="700" fill="#6E5435" text-anchor="middle">装 Docker + 时区</text>
+        <text x="315" y="130" font-size="11" fill="#796C57" text-anchor="middle">Asia/Shanghai</text>
+        <text x="315" y="146" font-size="11" fill="#796C57" text-anchor="middle">防火墙只开 22/80/443</text>
+
+        <rect x="436" y="82" width="150" height="74" rx="9" fill="#FFFDF8" stroke="#BBCBA6" stroke-width="1.4"/>
+        <text x="511" y="110" font-size="13" font-weight="700" fill="#6E5435" text-anchor="middle">nginx + 证书</text>
+        <text x="511" y="130" font-size="11" fill="#796C57" text-anchor="middle">443 → 127.0.0.1:8080</text>
+        <text x="511" y="146" font-size="11" fill="#796C57" text-anchor="middle">certbot 自动续期</text>
+
+        <rect x="632" y="82" width="150" height="74" rx="9" fill="#FBF4E6" stroke="#DCC79C" stroke-width="1.6"/>
+        <text x="707" y="110" font-size="13" font-weight="700" fill="#8D6A38" text-anchor="middle">deploy.sh</text>
+        <text x="707" y="130" font-size="11" fill="#796C57" text-anchor="middle">迁移两支都 [X]</text>
+        <text x="707" y="146" font-size="11" fill="#796C57" text-anchor="middle">readiness 3/3</text>
+
+        <rect x="810" y="82" width="120" height="74" rx="9" fill="#F1F5EA" stroke="#BBCBA6" stroke-width="1.4"/>
+        <text x="870" y="110" font-size="13" font-weight="700" fill="#597939" text-anchor="middle">后台可用</text>
+        <text x="870" y="130" font-size="11" fill="#796C57" text-anchor="middle">回滚演练通过</text>
+        <text x="870" y="146" font-size="11" fill="#796C57" text-anchor="middle">cron 已装</text>
+
+        <line x1="196" y1="119" x2="236" y2="119" stroke="#936F3A" stroke-width="1.6" marker-end="url(#arg)"/>
+        <line x1="392" y1="119" x2="432" y2="119" stroke="#936F3A" stroke-width="1.6" marker-end="url(#arg)"/>
+        <line x1="588" y1="119" x2="628" y2="119" stroke="#936F3A" stroke-width="1.6" marker-end="url(#arg)"/>
+        <line x1="784" y1="119" x2="806" y2="119" stroke="#936F3A" stroke-width="1.6" marker-end="url(#arg)"/>
+      </g>
+
+      <!-- 发布线节点 -->
+      <g>
+        <rect x="44" y="286" width="186" height="74" rx="9" fill="#FFFDF8" stroke="#E3BFB8" stroke-width="1.4"/>
+        <text x="137" y="312" font-size="13" font-weight="700" fill="#6E5435" text-anchor="middle">微信认证 + 资质</text>
+        <text x="137" y="332" font-size="11" fill="#796C57" text-anchor="middle">食品经营许可 / 预包装备案</text>
+        <text x="137" y="348" font-size="11" fill="#C24436" text-anchor="middle">长周期 · 现场核查</text>
+
+        <rect x="278" y="286" width="150" height="74" rx="9" fill="#FFFDF8" stroke="#E3BFB8" stroke-width="1.4"/>
+        <text x="353" y="312" font-size="13" font-weight="700" fill="#6E5435" text-anchor="middle">小程序备案</text>
+        <text x="353" y="332" font-size="11" fill="#796C57" text-anchor="middle">管局终审 1–20 日</text>
+        <text x="353" y="348" font-size="11" fill="#C24436" text-anchor="middle">有每日配额</text>
+
+        <rect x="474" y="286" width="150" height="74" rx="9" fill="#FFFDF8" stroke="#E3BFB8" stroke-width="1.4"/>
+        <text x="549" y="312" font-size="13" font-weight="700" fill="#6E5435" text-anchor="middle">服务类目审核</text>
+        <text x="549" y="332" font-size="11" fill="#796C57" text-anchor="middle">3–7 工作日</text>
+        <text x="549" y="348" font-size="11" fill="#C24436" text-anchor="middle">每月最多改 5 次</text>
+
+        <rect x="670" y="286" width="120" height="74" rx="9" fill="#FBF0EE" stroke="#E3BFB8" stroke-width="1.4"/>
+        <text x="730" y="312" font-size="13" font-weight="700" fill="#C24436" text-anchor="middle">提审</text>
+        <text x="730" y="332" font-size="11" fill="#796C57" text-anchor="middle">审核 0.5–1 日</text>
+        <text x="730" y="348" font-size="11" fill="#796C57" text-anchor="middle">类目不符首位驳回</text>
+
+        <rect x="836" y="286" width="94" height="74" rx="9" fill="#FBF4E6" stroke="#DCC79C" stroke-width="1.4"/>
+        <text x="883" y="312" font-size="13" font-weight="700" fill="#8D6A38" text-anchor="middle">灰度放量</text>
+        <text x="883" y="332" font-size="11" fill="#796C57" text-anchor="middle">单楼 3 天</text>
+
+        <line x1="230" y1="323" x2="274" y2="323" stroke="#A79A85" stroke-width="1.6" marker-end="url(#ar)"/>
+        <line x1="428" y1="323" x2="470" y2="323" stroke="#A79A85" stroke-width="1.6" marker-end="url(#ar)"/>
+        <line x1="624" y1="323" x2="666" y2="323" stroke="#A79A85" stroke-width="1.6" marker-end="url(#ar)"/>
+        <line x1="790" y1="323" x2="832" y2="323" stroke="#A79A85" stroke-width="1.6" marker-end="url(#ar)"/>
+      </g>
+
+      <!-- 两条线的交点 -->
+      <path d="M511,160 L511,196 L883,196 L883,282" stroke="#936F3A" stroke-width="1.6" stroke-dasharray="5 4" fill="none" marker-end="url(#arg)"/>
+      <rect x="536" y="186" width="330" height="22" rx="6" fill="#FBF4E6" stroke="#DCC79C"/>
+      <text x="701" y="202" font-size="11.5" fill="#8D6A38" text-anchor="middle">交点 = 域名 / HTTPS：服务器线产出它，发布线依赖它</text>
+
+      <text x="16" y="26" font-size="12" fill="#6E5435" font-weight="700">谁是长杆：发布线的"小程序备案（1–20 日）"—— 它是唯一不可加急的一段</text>
+      <text x="16" y="404" font-size="11.5" fill="#796C57">虚线 = 跨线依赖。两条线并行推进；服务器线不因发布线阻塞而停工。</text>
+    </svg>
+  </div>
+
+  <!-- ============================================================ -->
+  <h2 id="s8"><span class="num">08</span>现在能做 vs 必须等</h2>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th style="width:44%;">事项</th><th style="width:110px;" class="cc">现在能做吗</th><th>卡在哪 / 备注</th></tr></thead>
+    <tbody>
+      <tr><td>买服务器、装 Docker、设时区、配防火墙</td><td class="cc"><span class="badge b-ok">能</span></td><td>无外部依赖</td></tr>
+      <tr><td>装宿主机 nginx、签证书、配 443 反代</td><td class="cc"><span class="badge b-ok">能</span></td><td>证书需要域名解析先指向服务器</td></tr>
+      <tr><td>跑 <code>deploy.sh</code>、核对两支迁移、探针、备份</td><td class="cc"><span class="badge b-ok">能</span></td><td>无外部依赖，走 <code>PROVIDER_MODE=mock</code> 即可</td></tr>
+      <tr><td>回滚演练（M5 验收 #4）</td><td class="cc"><span class="badge b-ok">能</span></td><td>无外部依赖</td></tr>
+      <tr><td>装 cron（<code>--dry-run</code> 后）</td><td class="cc"><span class="badge b-ok">能</span></td><td>无外部依赖</td></tr>
+      <tr><td>核对域名备案号 / 接入商 / 状态</td><td class="cc"><span class="badge b-ok">能</span></td><td><strong>建议今天第一件做</strong></td></tr>
+      <tr><td>接入备案（若接入商 ≠ 腾讯云）</td><td class="cc"><span class="badge b-ok">能</span></td><td>1–20 工作日，越早越好</td></tr>
+      <tr><td>小程序备案</td><td class="cc"><span class="badge b-warn">需先满足</span></td><td>微信认证（¥300/年，1–5 工作日）</td></tr>
+      <tr><td>服务类目审核</td><td class="cc"><span class="badge b-warn">需先满足</span></td><td>食品经营许可证 或 预包装备案凭证</td></tr>
+      <tr><td>真机体验版</td><td class="cc"><span class="badge b-warn">需先满足</span></td><td>需先配服务器域名（依赖 C1）</td></tr>
+      <tr><td>真实微信支付回调</td><td class="cc"><span class="badge b-mut">等</span></td><td>商户号 + APIv3 密钥 + 证书序列号 + 商户私钥</td></tr>
+      <tr><td>正式版发布</td><td class="cc"><span class="badge b-mut">等</span></td><td>小程序备案 + 类目</td></tr>
+      <tr><td>佣金真实出款</td><td class="cc"><span class="badge b-mut">等</span></td><td>灵活用工平台开户（+ 个税代扣）</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="note note-ok">
+    <span class="tag">一句话</span>
+    <strong>表中 7 项"现在能做"合起来，正是 M5 遗留风险 R1 / R2 / R3 / R11 的全部兑现路径。</strong>把它们做完，"开发方自己从没跑过一次真实部署"这个状态就结束了 —— 到那时 E2 档位的第三方测试才有可测对象。
+  </div>
+
+  <!-- ============================================================ -->
+  <h2 id="s9"><span class="num">09</span>需你确认的三件事</h2>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th class="num" style="width:44px;">#</th><th style="width:34%;">要确认什么</th><th>为什么它决定路径</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="num">1</td>
+        <td><strong>域名的原备案接入商是谁？备案状态是否正常？</strong></td>
+        <td>决定要不要走 <strong>1–20 工作日</strong>的接入备案。这是本轮唯一可能拖长关键路径的动作</td>
+      </tr>
+      <tr>
+        <td class="num">2</td>
+        <td><strong>是否用"新注册"的腾讯云账号买？</strong></td>
+        <td>新用户首单约省 ¥1,000+，但新账号需先完成<strong>企业实名</strong>（1–2 天）才能生成备案授权码</td>
+      </tr>
+      <tr>
+        <td class="num">3</td>
+        <td><strong>部署由谁执行？要不要我把阶段 A + B 展开成"逐条命令 + 失败排查"的粘贴版清单？</strong></td>
+        <td>决定我是出文档，还是派运维专家按这份手册在真机上逐步执行并留痕每条判据的实测输出</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="note note-info">
+    <span class="tag">说明</span>
+    本轮是<strong>判断与方案</strong>，没有召集开发团队 —— 这是个判断题而不是产出物题，召集人反而绕弯。<br>
+    等你确认上面三件事，我会按标准路径推进：<strong>架构师锁定云资源与网络口径 → 运维（卜宕机）真机执行阶段 A/B → QA 复验 B7/B8/B10 三条判据</strong>，并把每条实测输出留痕。
+  </div>
+
+  <footer class="foot">
+    <p><strong>ABox 一盒</strong> · 腾讯云开通与首次部署执行手册 v1.0 · 2026-09-24</p>
+    <p>配套：《部署运维手册 v1.0》（运维层）·《账号资源与密钥清单 v1.0》（资源层）·《外卖小程序最快上线路径与提审自检清单 v1.2》（发布层）</p>
+    <p>价格与备案规则为 2026-09 公开口径整理，<strong>以腾讯云官网实时报价与工信部/微信后台实际要求为准</strong>，不构成时长与费用承诺。</p>
+  </footer>
+
+</div>
+</body>
+</html>

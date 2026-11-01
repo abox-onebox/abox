@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 整改材料 · 复核意见（2026-10-28）</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --ink:#2B2622; --brown:#6E5435; --line:rgba(110,84,53,.22);
+    --card:#FFFDF8; --bad:#9A3B2B; --good:#3F6B4E; --warn:#8A6A1F;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:"Kaiti SC","STKaiti",KaiTi,"Songti SC",serif;line-height:1.75}
+  .wrap{max-width:960px;margin:0 auto;padding:40px 22px 72px}
+  header{border-bottom:2px solid var(--brown);padding-bottom:18px;margin-bottom:28px}
+  h1{font-size:26px;margin:0 0 6px;color:var(--brown);font-weight:600}
+  .sub{font-size:13px;opacity:.72}
+  h2{font-size:19px;margin:34px 0 12px;color:var(--brown);
+     border-left:4px solid var(--brown);padding-left:10px}
+  h3{font-size:15px;margin:20px 0 8px;color:var(--brown)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:6px;
+        padding:16px 18px;margin:14px 0}
+  .card--bad{border-left:4px solid var(--bad)}
+  .card--good{border-left:4px solid var(--good)}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  th{background:rgba(110,84,53,.08);font-weight:600}
+  code{font-family:Consolas,Menlo,monospace;font-size:12px;
+       background:rgba(110,84,53,.08);padding:1px 4px;border-radius:3px}
+  pre{background:rgba(110,84,53,.06);border:1px solid var(--line);border-radius:5px;
+      padding:10px 12px;overflow:auto;font-size:12px;
+      font-family:Consolas,Menlo,monospace;line-height:1.6;white-space:pre-wrap}
+  .ok{color:var(--good);font-weight:600}
+  .no{color:var(--bad);font-weight:600}
+  .wa{color:var(--warn);font-weight:600}
+  ul,ol{margin:8px 0;padding-left:20px}
+  li{margin:4px 0}
+  .kv{font-size:13px;opacity:.8}
+  footer{margin-top:40px;border-top:1px solid var(--line);padding-top:14px;font-size:12px;opacity:.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>整改材料 · 复核意见</h1>
+  <div class="sub">2026-10-28 20:05–20:35（北京时间） ｜ 复核对象：《ABox_上线前复测整改与三项材料_2026-10-28.html》 ｜
+  方式：线上真实接口（8080 / 8081）+ 生产库只读查询 + 本地门禁实跑 + 源码回源</div>
+</header>
+
+<h2>结论先行</h2>
+<div class="card">
+  <p style="margin-top:0"><b>整改是实在的</b>：三项阻断里 B1、B3 已修复并部署，我逐条实测转绿；
+  N4 / N6 / N7 / N8 四项也一一验过属实；门禁 <code>all</code> 已 <b>31/31 全绿</b>，
+  <code>verify</code> 的 <code>coupon-blindbox</code> 也确实转绿 <b>32/32</b>。这部分可以放心。</p>
+
+  <p><b>但材料 2 的核心结论下错了</b>——那份「链路真实断点 / 建议改状态机去掉 cooked」的判断，
+  <span class="no">证据链不成立</span>。我把生产库翻开逐行对过：</p>
+  <ul>
+    <li>材料说卡在「<b>生产计划不存在（50010）</b>」——生产库里 <code>2026-10-29</code> 的生产计划<b>明明白白存在</b>（4 行父计划 + 4 行明细），
+        而且 <code>cookConfirm</code> 内部第 300 行会<b>自动生成</b>，本来就不是硬卡点。</li>
+    <li>材料说「资质 → 时限 → 生产计划」三道墙堵着——实测 <b>资质全部 approved、证照过期日为空、时限尚未到</b>，三道都放行。</li>
+    <li>材料说「建了 supplierId=16 的账号，其工作台 items 为空」——那个账号 <code>supplier_lp</code> 的
+        <code>status=2</code>，<b>登录这一步就被「账号已停用」挡回来了</b>，根本进不去工作台。
+        「items 为空」的真正来源是：能登的供应商只有 <code>sanweiwu</code>（三味屋），而<b>三味屋在 10-28 / 10-29 都没有生产计划</b>。</li>
+  </ul>
+
+  <p style="margin-bottom:0"><b>所以我的建议：不要照材料的方案去改状态机。</b>
+  真正的待办是「<b>让三家供应商有可用账号并每天确认</b>」——这是运营问题，不是代码缺陷。详见第三节。</p>
+</div>
+
+<h2>一、逐条对账（材料说法 vs 我的实测）</h2>
+<table>
+  <tr><th style="width:26%">材料说法</th><th style="width:40%">我的实测</th><th style="width:34%">判定</th></tr>
+
+  <tr>
+    <td><b>B1</b> 8081 闸门下沉，<code>/api/</code> 与 <code>/static/</code> 转绿，H5 无凭据仍 401</td>
+    <td><code>:8081/api/v1/health</code>→<b>200</b>；三张图→<b>200 image/png</b>（1,775,070 / 1,637,692 / 1,075,570 字节，与材料一致）；<code>:8081/</code>→<b>401</b></td>
+    <td class="ok">属实 · 已修复</td>
+  </tr>
+  <tr>
+    <td><b>B3</b> 事故根因已部署，GET 带非法体不再 10001</td>
+    <td>4 种非法体（截断 JSON / JSON 数组 / 纯文本 / 空体）→ <b>HTTP 200 · code=0</b>；8080 同</td>
+    <td class="ok">属实 · 已修复</td>
+  </tr>
+  <tr>
+    <td><b>材料1</b> 绑卡入口可用（<code>profile.vue</code> L15 → <code>PUT /leader/profile</code>）</td>
+    <td>接口在 <code>api/leader.ts:295</code>；UI 实际在 <code>profile.vue:161–207</code>（材料写的 L15 不准）；
+        库里团长#1 李明 <code>payout_type=alipay</code> —— <b>绑卡确实成功落库</b></td>
+    <td class="ok">属实（行号需更正）</td>
+  </tr>
+  <tr>
+    <td><b>D3 配置</b> 已显式写入 2000 / 1</td>
+    <td><code>ab_config</code> id=35 <code>withdraw_daily_limit=2000.00</code>、id=36 <code>withdraw_daily_count=1</code>，updated 19:10:56；<code>min_withdraw=0.00</code></td>
+    <td class="ok">属实</td>
+  </tr>
+  <tr>
+    <td><b>N7</b> 后台账号改强口令（材料称 5 个）</td>
+    <td><b>6 个</b>账号全部 <code>scrypt:</code> 前缀、长度 104、<code>must_change_password=0</code>（含新建的 <code>supplier_lp</code>）</td>
+    <td class="ok">属实</td>
+  </tr>
+  <tr>
+    <td><b>N8</b> 提现文案订正</td>
+    <td><code>leader-finance.controller.ts:74</code> 与 <code>finance.dto.ts:165</code> 均已改为「由 <code>commission.min_withdraw</code> 配置」，无「≥¥10」残留</td>
+    <td class="ok">属实</td>
+  </tr>
+  <tr>
+    <td><b>N6</b> 账号名乱码已修</td>
+    <td><code>ab_admin_user.real_name</code>：超级管理员 / 财务 / 三味屋 / 运营操作员 / 项目管理 / 良品铺子 —— <b>均正常</b></td>
+    <td class="ok">属实</td>
+  </tr>
+  <tr>
+    <td><b>门禁 all</b> 「仍有一处待复核」</td>
+    <td>我跑全量：<b>31/31 全绿</b>，单测 <b>189/189</b>（20 套件），format 已修</td>
+    <td class="ok">已转绿</td>
+  </tr>
+  <tr>
+    <td><b>verify</b> coupon-blindbox 转绿 32/32；m3 仍 23 条</td>
+    <td><b>5/6</b>：<code>e2e:m3</code> 1328/1351 = <b>失败 23 条</b>；<code>coupon-blindbox</code> <b>32/32</b> 全绿；m1 116/116、m2 162/162、referral 23/23</td>
+    <td class="ok">数字精确对上</td>
+  </tr>
+  <tr>
+    <td><b>部署</b> tag <code>manual-20261028T193752</code>、提交 <code>dd37a94</code></td>
+    <td>三个提交一一对应三项修复：<code>310ba99</code> 闸门下沉 / <code>44431ce</code> 请求体接管+文案 / <code>dd37a94</code> e2e 断言</td>
+    <td class="ok">属实</td>
+  </tr>
+
+  <tr style="background:rgba(154,59,43,.05)">
+    <td><b>材料2</b> 卡在「生产计划不存在（50010）」</td>
+    <td><code>ab_supplier_item_daily</code>：<b>2026-10-29 已存在</b> supplier 16（item 31、60）、18（item 41）、20（item 51），各 3 份；
+        <code>ab_supplier_item_center_daily</code> 4 行明细、center=1、status=pending。<br>
+        且 <code>supplier.service.ts:300</code> 调 <code>ensureProducePlan()</code> <b>会自动生成</b></td>
+    <td class="no">不属实</td>
+  </tr>
+  <tr style="background:rgba(154,59,43,.05)">
+    <td><b>材料2</b> 「资质 → 09:30 时限 → 生产计划」堵着，第二环就没东西</td>
+    <td>资质：6 家供应商 <code>audit_status=approved</code>、<code>license_expire_at=NULL</code> → 放行；<br>
+        时限：<code>assertNotOverdue</code> 的 deadline = <code>bjDateTime(date, 9, 30)</code>，对 <code>date=2026-10-29</code> 而言截止在 <b>10-29 09:30</b>，跑批时（10-28 晚）<b>尚未到达</b> → 放行</td>
+    <td class="no">归因错误</td>
+  </tr>
+  <tr style="background:rgba(154,59,43,.05)">
+    <td><b>材料2</b> 建了 supplierId=16 的账号，其工作台 items 为空</td>
+    <td><code>ab_admin_user</code> id=23 <code>supplier_lp</code>（supplier_id=16）<b>status=2</b>；
+        <code>auth.service.ts:409</code> 明写 <code>if (admin.status !== 1) throw USER_DISABLED</code> —— <b>登录即被拒</b>，看不到工作台。<br>
+        唯一能登的供应商账号 <code>sanweiwu</code> 绑的是 <b>三味屋（supplier_id=1）</b>，而 10-28 计划属 15/17/19、10-29 属 16/18/20 —— <b>三味屋两天都没有计划，工作台必然为空</b></td>
+    <td class="no">真因未抓到</td>
+  </tr>
+  <tr>
+    <td><b>材料2</b> <code>ab_commission</code> 零行、订单状态分布</td>
+    <td>佣金 <b>0 行</b> ✓；订单分布实测 <b>cancelled 76 / cut_off 21 / refunded 1</b>（材料写 71 / 20 / 4 / 1，有出入）。<br>
+        ⚠️ 材料「没有任何一笔走到 paid 之后」措辞不准 —— cut_off 21 笔<b>就在 paid 之后</b>；准确说法是「<b>没有任何一笔走到 cooked 之后</b>」</td>
+    <td class="wa">结论对 · 数字与措辞需更正</td>
+  </tr>
+  <tr>
+    <td><b>仍未闭环</b> 生产包 appid 仍为空</td>
+    <td><code>manifest.json</code> 顶层 <code>"appid":""</code> 是 uni-app 通用字段；微信小程序平台读的是 <code>mp-weixin.appid</code>。
+        构建产物 <code>dist/build/mp-weixin/project.config.json</code> 实测 <b>appid = wx389db239bcec75ca</b>，<b>非空</b></td>
+    <td class="no">误判（看错字段）</td>
+  </tr>
+  <tr>
+    <td><b>仍未闭环</b> <code>2026-10-27</code> 脏数据在停售 / 退款记录</td>
+    <td>范围<b>比材料说的大</b>：还在 <code>ab_meal_assignment.meal_date</code>（<b>5 条且 status=active</b>）、<code>ab_config.updated_at</code>（min_withdraw 那条）</td>
+    <td class="wa">需扩大清理范围</td>
+  </tr>
+</table>
+
+<h2>二、材料漏掉的三件事</h2>
+
+<div class="card card--bad">
+  <h3 style="margin-top:0">① 三家供应商必须「全部确认」，缺一不可 —— 这是运营硬约束</h3>
+  <p>回源 <code>advanceOrdersToCooked</code>（<code>supplier.service.ts:507-514</code>）的「到齐」判据：</p>
+  <pre>const effective = rows.filter((r) =&gt; Number(r.planQuantity) &gt; 0);
+if (effective.length &amp;&amp; effective.every((r) =&gt; r.status === DETAIL_CONFIRMED)) {
+  readyCenterIds.push(dcId);
+}</pre>
+  <p><code>every</code> —— 加工场所当日<b>所有</b>应送行全部 confirmed 才算到齐。而 <code>2026-10-29</code> 的 4 行明细分属：</p>
+  <table>
+    <tr><th>供应商</th><th>supplier_id</th><th>item</th><th>份数</th></tr>
+    <tr><td>良品铺子</td><td>16</td><td>31、60</td><td>3 / 3</td></tr>
+    <tr><td>卫龙</td><td>18</td><td>41</td><td>3</td></tr>
+    <tr><td>伊利</td><td>20</td><td>51</td><td>3</td></tr>
+  </table>
+  <p style="margin-bottom:0"><b>⇒ 即便把 <code>supplier_lp</code> 启用，只确认良品铺子那 2 行，卫龙、伊利没确认，订单照样卡在 <code>cut_off</code>。</b>
+  目前账号表里<b>只有三味屋一个可用供应商账号</b>，良品铺子那个还是停用的。
+  <b>明天上线的话，每天早上 09:30 前需要三家分别登录确认，缺一家当天所有订单都不产生佣金。</b>
+  材料建议的「改状态机跳过 cooked」并没有触及这一点。</p>
+</div>
+
+<div class="card card--good">
+  <h3 style="margin-top:0">② 好消息：佣金计算与入账链路本身是通的，不是「结算任务坏了」</h3>
+  <p>门禁 <code>verify</code> 的 <code>e2e:m3</code> 日志里，自动确认跑批实打实跑出了佣金：</p>
+  <pre>[OrderService] 自动确认 date=2026-10-29 确认 1 单（2 份 / 1 个团长）计佣 ¥4.64（pending，次日 02:00 入账）</pre>
+  <p style="margin-bottom:0">即：<b>「订单确认 → 计佣 → pending → 次日 02:00 入账」这条链路代码是好的</b>。
+  生产库 <code>ab_commission</code> 零行，纯粹是因为<b>生产库从来没有订单走到 delivered / completed</b>，不是结算逻辑坏了。
+  这把材料里「佣金压根不会产生」的说法收紧为更准确的定性 —— 方向一致，但排除了一个更坏的假设。</p>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0">③ e2e 反复报的「种子明文口令」—— 已定性，不是生产问题</h3>
+  <p>上一轮留痕里「生产 5 账号全 scrypt」和 e2e 反复报
+  <code>后台账号 admin / sanweiwu / finance 仍是种子明文口令（dev_plain:）</code> 相互矛盾，我这次查清了：</p>
+  <p style="margin-bottom:0"><b>e2e 跑的是独立的 seed 库，报错与生产库无关。</b>
+  生产库 6 个账号我已逐个验过，全部 <code>scrypt:</code>。这条 ERROR 会一直在 e2e 日志里刷，
+  <b>看着吓人，但不用处理</b>（要消掉得改 seed 数据，属另一件事）。</p>
+</div>
+
+<h2>三、我不建议按材料方案改状态机 —— 理由与替代方案</h2>
+<div class="card">
+  <h3 style="margin-top:0">为什么不建议删掉 <code>cooked</code></h3>
+  <ul>
+    <li><b>它不只是一个状态位，还承担履约留痕</b>。<code>cookConfirm</code> 会写 <code>detail.actualQuantity</code>（实际送达数量，
+        「短送留痕是对账依据」，<code>supplier.service.ts:360</code> 注释原文）。供应商交了 3 份却只到 2 份，
+        这个数字是日后对账唯一凭据。<b>预包装商品同样需要它</b> —— 零食也会少发货。</li>
+    <li><b>引用面广，改动会触发门禁对账</b>。<code>cooked</code> 出现在 <code>order-state-machine.ts</code> 声明表、
+        <code>delivery.service.ts</code>（三处联动）、<code>suspend-gate.ts:20</code>（履约定级）、
+        <code>stats.constants.ts:63</code>、<code>order.service.ts:210</code>，<code>state:audit</code> 门禁会机械对账
+        「声明边集 ↔ 实际写入边」，改一处漏一处就红灯。</li>
+    <li><b>材料提到的「去餐饮化没改干净」是真的</b> —— 但病灶是「<b>没人来点这个按钮</b>」，不是「<b>不该有这个按钮</b>」。</li>
+  </ul>
+
+  <h3>替代方案（按优先级）</h3>
+  <ol>
+    <li><b>短期（上线前必做）</b>：启用 <code>supplier_lp</code>（<code>status</code> 2→1），并为<b>卫龙(18)、伊利(20) 各建一个可用账号</b>。
+        三家每天早上 09:30 前各自登录确认。<br>
+        <span class="kv">判据：三家确认后，订单 <code>cut_off → cooked</code>，配送推进时 <code>advanced</code> 应 &gt; 0。</span></li>
+    <li><b>可选（更省心）</b>：在运营后台加一个「<b>代供应商确认</b>」入口，沿用 <code>cookConfirm</code> 同一服务方法，
+        保留 <code>actualQuantity</code> 留痕。这样不依赖三家供应商每天记得登录。</li>
+    <li><b>长期（若确认无人可用）</b>：再把 <code>cooked</code> 改名为「已备货 / 已发货」并改由运营触发 ——
+        <b>保留这一环的留痕能力</b>，而不是整段删掉。</li>
+  </ol>
+</div>
+
+<h2>四、其他需要你知道的</h2>
+<div class="card">
+  <ul>
+    <li><b>工作区还有 2 处未提交改动</b>，不在 <code>dd37a94</code> 里，也不在此次部署内：
+        <code>deploy/cron/abox-ops.cron</code>（新增一条每天 04:10 清理 7 天前 nginx 访问日志）、
+        <code>scripts/backup-db.sh</code>（库名取值改为与 <code>restore-db.sh</code> 共用 <code>lib/db-name.sh</code>）。
+        两处都是运维向、非业务自动任务，但既然躺着，发版前要么提交要么确认不需要。</li>
+    <li><b><code>2026-10-27</code> 脏数据的清理范围要扩大</b>：除停售 / 退款记录外，
+        还有 <code>ab_meal_assignment</code> 的 5 条 <b>active</b> 排期、<code>ab_config</code> 的 1 条 updated_at。
+        排期那条是 active 状态，风险高于停售记录，建议优先清。</li>
+    <li><b>m3 的 23 条存量红灯</b>：材料说是「楼栋归群 / 配置分组 / 提现余额」三处，我核对失败清单，
+        确实集中在这三块（D13/D14 归群、D57 配置分组、§31 与 D45/D46 提现余额恒等式）。
+        这些是<b>存量</b>不是本轮引入（基线 24 → 现 23）。我的判断不变：<b>优先清，但不必卡住发版</b>。</li>
+    <li><b>商品图 1.0–1.7 MB</b>：材料提醒压到 200 KB 内 / WebP，我同意 —— 这三张是首页首屏，
+        写字楼电梯和地库的弱网下会明显发白。</li>
+  </ul>
+</div>
+
+<h2>五、上线建议</h2>
+<div class="card">
+  <p style="margin-top:0"><b>阻断项已清零</b>（B1 / B3 实测转绿并部署），门禁 <code>all</code> 31/31。
+  但要提醒一句：<b>佣金全链路至今没有在生产环境完整跑通过一次</b>（<code>ab_commission</code> 零行），
+  而它现在依赖三家供应商每天配合确认 —— 这是一个<b>还没有被真实验证过的环节</b>。</p>
+  <p><b>⇒ 建议：不要一上来全量。先灰度试跑一天（只开一栋楼），
+  走完「下单 → 出餐确认 → 配送 → 取货 → 计佣 → 入账 → 提现」，确认佣金真的进了团长余额，再全面放开。</b>
+  否则第一天团长看到「有佣金数、提不出来」，是信任事故，比晚一天上线代价大得多。</p>
+  <p style="margin-bottom:0"><span class="kv">灰度前必做的三件小事：① 启用 supplier_lp 并给卫龙、伊利建账号；
+  ② 清理 <code>ab_meal_assignment</code> 的 <code>2026-10-27</code> active 排期；③ 确认那 2 处未提交改动。</span></p>
+</div>
+
+<footer>
+  复核方式：线上接口实测（154.8.164.180:8080 / 8081）· 生产库只读查询（SSH + docker exec mysql，全程只读）·
+  本地门禁实跑（<code>gate all</code> 31/31、<code>gate verify</code> 5/6）· 源码回源（<code>order-state-machine.ts</code>、
+  <code>supplier.service.ts</code>、<code>auth.service.ts</code>、<code>manifest.json</code>）。<br>
+  本轮含 2 处自我纠错：① 一度把供应商名判为乱码，实为我查询未指定 utf8mb4（补查后正常，材料无责）；
+  ② 一度据材料认定 appid 为空，回源后发现是顶层 uni-app 字段误读（产物 appid 非空）。<br>
+  生成时间：2026-10-28 · 北京
+</footer>
+
+</div>
+</body>
+</html>

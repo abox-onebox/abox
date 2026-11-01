@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ABox 一盒 · 现金流与账期预测</title>
+<style>
+/* ── token 真源（生成注入，禁手改）── */
+:root{
+  --bg: #F6F0E5;
+  --surface: #FFFDF8;
+  --surface2: #F7F1E4;
+  --surface3: #FBF6EC;
+  --text: #6E5435;
+  --text2: #796C57;
+  --text-disabled: #A79A85;
+  --gold: #C9A876;
+  --gold-deep: #936F3A;
+  --gold-deepest: #8A6620;
+  --border: #E4D8C3;
+  --border-strong: #D6CBB8;
+  --ok: #5B7C3A;
+  --warn: #C44536;
+  --info: #4A6FA5;
+  --ok-bg: #F1F5EA;
+  --ok-bd: #BBCBA6;
+  --warn-bg: #FBF0EE;
+  --warn-bd: #E3BFB8;
+  --info-bg: #EDF1F8;
+  --info-bd: #B4C4DA;
+  --mut-bg: #F7F2E8;
+  --mut-bd: #E4D8C3;
+  --gold-bg: #FBF4E6;
+  --gold-bd: #DCC79C;
+  --ok-fg: #597939;
+  --warn-fg: #C24436;
+  --info-fg: #4A6FA5;
+  --gold-fg: #8D6A38;
+  --from: #FFF6E0;
+  --to: #FFEED5;
+  --brand-meituan: #FFD400;
+  --brand-meituan-text: #000000;
+  --brand-taobao: #FF6A00;
+  --brand-taobao-text: #000000;
+  --brand-jd: #E1251B;
+  --brand-jd-text: #FFFFFF;
+  --font-display: 'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif;
+  --font-body: -apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif;
+  --font-num: 'SF Mono','Roboto Mono',Consolas,monospace;
+  --r-sm: 4px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --sp-1: 6px;
+  --sp-2: 10px;
+  --sp-3: 14px;
+  --sp-4: 20px;
+  --sp-5: 28px;
+}
+/* ── 共享外壳 ── */
+/* ─────────────────────────────────────────────────────────────
+   P0 工具集 · 共享页面外壳
+   ⚠️ 本文件**零颜色字面量**：一切颜色只能来自 `:root` token（由生成器注入）。
+      构建期断言这一条（搜不到 # / rgb( / hsl( ），否则品牌必然各写各的。
+   ⚠️ 字体分层：楷体只用于**标题 / 品牌字 / 金额大字**，正文与表格用无衬线栈。
+   ───────────────────────────────────────────────────────────── */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--gold-deep); }
+
+/* ── 顶栏 ── */
+.top {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 20;
+}
+.top .logo {
+  font-family: var(--font-display);
+  font-size: 19px; letter-spacing: .04em; color: var(--text);
+}
+.top .sub { font-size: 12px; color: var(--text2); }
+.top .spacer { flex: 1; }
+.top .ver { font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); }
+
+/* ── 页头 ── */
+.hero { padding: var(--sp-4) var(--sp-4) 0; }
+.hero h1 {
+  font-family: var(--font-display); font-size: 25px; font-weight: 400;
+  margin: 0 0 4px; letter-spacing: .02em;
+}
+.hero p { margin: 0; color: var(--text2); font-size: 13px; max-width: 78ch; }
+
+/* ── 布局 ── */
+.wrap {
+  display: flex; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4) var(--sp-5);
+  align-items: flex-start;
+}
+/* ⚠️ 侧栏必须**自己能滚**（`max-height` + `overflow-y: auto`），这不是装饰：
+   `position: sticky` 的元素一旦高于视口可用高度，底部会被**钉住不动** ——
+   滚动页面也带不上来（必须滚到**整页最底**才够得到，因为那时 sticky 才脱离钉住）。
+   实测（1440×900 笔记本，最常见的办公尺寸）：6 个带侧栏的工具里有 5 个的
+   「筛选 / 操作（导出 · 导入 · 重置）」整组够不到；G1/G2/F3 在 1080 下也够不到。
+   附带好处：对 sticky 元素 `scrollIntoView` 是无效的（滚动页面它不动），
+   给侧栏自己的滚动区之后，控件才可能被自动带进视野（自动化探针同理）。
+   62px = `.top` 的实际高度（与 `top` 一致，改一处要一起改）。 */
+.side {
+  width: 310px; flex: 0 0 310px; position: sticky; top: 62px;
+  max-height: calc(100vh - 62px - var(--sp-3));
+  overflow-y: auto; overscroll-behavior: contain;
+}
+.main { flex: 1; min-width: 0; }
+
+/* ── 卡片 ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-3);
+}
+.card > h2 {
+  font-family: var(--font-display); font-size: 16px; font-weight: 400;
+  margin: 0 0 var(--sp-2); letter-spacing: .02em;
+  display: flex; align-items: center; gap: 8px;
+}
+.card > h2 .n { font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); }
+.hint { font-size: 12px; color: var(--text2); margin: 0 0 var(--sp-2); }
+
+/* ── 表格 ── */
+.tw { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left; font-weight: 500; color: var(--text2);
+  font-size: 11.5px; letter-spacing: .04em;
+  padding: 7px 9px; border-bottom: 1px solid var(--border-strong);
+  white-space: nowrap; background: var(--surface2);
+}
+td { padding: 8px 9px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: var(--surface3); }
+td.num, th.num { text-align: right; font-family: var(--font-num); }
+td.mono { font-family: var(--font-num); font-size: 12px; }
+.big {
+  font-family: var(--font-display); font-size: 22px; line-height: 1.2;
+}
+
+/* ── 徽标 ── */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 8px; border-radius: 999px;
+  font-size: 11.5px; white-space: nowrap;
+  border: 1px solid var(--mut-bd); background: var(--mut-bg); color: var(--text2);
+}
+.pill.ok { border-color: var(--ok-bd); background: var(--ok-bg); color: var(--ok-fg); }
+.pill.warn { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.pill.info { border-color: var(--info-bd); background: var(--info-bg); color: var(--info-fg); }
+.pill.gold { border-color: var(--gold-bd); background: var(--gold-bg); color: var(--gold-fg); }
+.pill.dim { color: var(--text-disabled); }
+
+/* ── 表单 ── */
+label.f { display: block; margin-bottom: var(--sp-2); }
+label.f > span {
+  display: block; font-size: 11.5px; color: var(--text2);
+  letter-spacing: .04em; margin-bottom: 3px;
+}
+input, select, textarea {
+  width: 100%; padding: 6px 9px;
+  background: var(--surface3); color: var(--text);
+  border: 1px solid var(--border-strong); border-radius: var(--r-md);
+  font-family: var(--font-body); font-size: 13px;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--gold); background: var(--surface);
+}
+input[type=number] { font-family: var(--font-num); }
+.row2 { display: flex; gap: var(--sp-2); }
+.row2 > * { flex: 1; min-width: 0; }
+
+/* ── 按钮 ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 13px; border-radius: var(--r-md);
+  border: 1px solid var(--border-strong); background: var(--surface);
+  color: var(--text); font-size: 13px; cursor: pointer;
+}
+.btn:hover { background: var(--surface2); border-color: var(--gold); }
+.btn.primary {
+  background: var(--text); border-color: var(--text); color: var(--surface);
+  font-weight: 500;
+}
+.btn.primary:hover { background: var(--gold-deep); border-color: var(--gold-deep); }
+.btn.sm { padding: 3px 9px; font-size: 12px; }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--text2); }
+.btn.ghost:hover { background: var(--surface2); }
+.btnbar { display: flex; flex-wrap: wrap; gap: var(--sp-1); margin-bottom: var(--sp-2); }
+
+/* ── 指标格 ── */
+/* ⚠️ 阈值要按**实际可用宽度**定：侧栏 310px − 卡片左右 padding 40px = 270px，
+       minmax 定 132px 时 2×132+10(gap)=274 > 270 ⇒ 永远只排 1 列（看着像没生效）。 */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(116px, 1fr)); gap: var(--sp-1); }
+.kpi {
+  background: var(--surface3); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 9px 11px;
+}
+.kpi .k { font-size: 11.5px; color: var(--text2); letter-spacing: .04em; }
+.kpi .v { font-family: var(--font-display); font-size: 21px; line-height: 1.3; }
+.kpi .u { font-size: 12px; color: var(--text2); font-family: var(--font-body); }
+.kpi.warn { border-color: var(--warn-bd); background: var(--warn-bg); }
+.kpi.ok { border-color: var(--ok-bd); background: var(--ok-bg); }
+
+/* ── 提示条 ──
+   ⚠️ 必须是**块级正常流**，绝不能写 `display: flex`：
+      提示条文案里普遍有行内 <b> / <br> / <span class="mono">。容器一旦是 flex，
+      这些行内片段就各自变成**独立的 flex 子项**，被挤成一条条窄列、每个子项还自己
+      内部换行 —— 长文案整段会散开（G2 概览那两条实测就是 9 个子项排一行，字距被拉满、
+      末行也被撑开）。**副作用迟发**：文案短、能挤进一行时看着完全正常（G1/M1 就是这样
+      过关的），所以这个坑很晚才露头。
+      原来是 flex + `gap: 8px`；块级子元素之间的留白改由下面两条规则承担。 */
+.note {
+  display: block;
+  padding: 8px 11px; border-radius: var(--r-md);
+  border: 1px solid var(--mut-bd); background: var(--mut-bg);
+  font-size: 12.5px; color: var(--text2); margin-bottom: var(--sp-3);
+}
+.note.warn { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.note.ok { border-color: var(--ok-bd); background: var(--ok-bg); color: var(--ok-fg); }
+.note.info { border-color: var(--info-bd); background: var(--info-bg); color: var(--info-fg); }
+.note b { color: inherit; }
+/* 块级子元素之间留白（替代原来的 flex gap: 8px）—— 行内元素不受影响 */
+.note > div + div { margin-top: 6px; }
+/* 药丸横排（原来靠 flex 的 gap 撑开，块级流下要自己给左边距） */
+.note > .pill + .pill { margin-left: 4px; }
+
+/* ── 分段控件（tab）── */
+.seg { display: flex; gap: 2px; padding: 3px; background: var(--surface2); border-radius: var(--r-md); border: 1px solid var(--border); }
+.seg button {
+  border: 0; background: transparent; color: var(--text2);
+  padding: 5px 13px; border-radius: var(--r-sm); cursor: pointer; font: inherit; font-size: 13px;
+}
+.seg button.on { background: var(--surface); color: var(--text); font-weight: 500; }
+
+/* ── 条形图 ── */
+.bar { height: 8px; border-radius: 999px; background: var(--surface2); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--gold); }
+.bar.warn > i { background: var(--warn); }
+.bar.ok > i { background: var(--ok); }
+
+/* ── 自检条 ── */
+.gate {
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--surface3); padding: 8px 11px; font-size: 12.5px;
+}
+.gate .g { display: flex; gap: 7px; align-items: baseline; padding: 1px 0; }
+.gate .g i { font-style: normal; font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); flex: 0 0 auto; }
+.gate .g .t { color: var(--text2); }
+.gate .g.bad .t { color: var(--warn-fg); }
+
+/* ── 页脚 ── */
+.foot {
+  padding: var(--sp-4); color: var(--text-disabled); font-size: 11.5px;
+  border-top: 1px solid var(--border); margin-top: var(--sp-5);
+}
+
+/* ── 窄屏：单列堆叠（断点与项目后台一致，避免出现第二份断点表述）── */
+@media (max-width: 768px) {
+  .wrap { flex-direction: column; padding: var(--sp-2); }
+  /* ⚠️ 落到单列后必须**解除**侧栏的自身滚动区：否则手机上会出现一个 1/4 屏高的小滚动盒，
+        里面的卡片被裁掉一半 —— 那是「为修一个坑造一个新坑」。 */
+  .side { width: 100%; flex: auto; position: static; max-height: none; overflow-y: visible; }
+  .hero { padding: var(--sp-3) var(--sp-2) 0; }
+  table { font-size: 12px; }
+}
+
+/* ── 本系统 ── */
+/* ─────────────────────────────────────────────────────────────
+   M2 现金流与账期预测 · 专属样式
+
+   ⚠️ 零颜色字面量：一切颜色只能来自 `:root` token（由生成器注入）。
+      构建期会断言这一条（注释与 :root 块已由判据剔除）。
+   ⚠️ 不写 `@media`：断点唯一真源是共享外壳的 768px（项目纪律）。
+   ───────────────────────────────────────────────────────────── */
+
+/* ── 结论区：可支撑天数大字 ── */
+.runway {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: var(--sp-2) 0;
+}
+.runway .v { font-family: var(--font-display); font-size: 42px; line-height: 1.1; }
+.runway .u { font-size: 14px; color: var(--text2); }
+.runway .tag { font-size: 12px; }
+
+/* ── 现金流条形（以 0 为轴，正向右、负向左）──
+   ⚠️ 与共享 `.bar > i` 同款纪律：内层必须 `display:block`，否则 height 不生效。 */
+.cfbar {
+  position: relative; height: 22px; margin: 3px 0 9px;
+  background: var(--surface2); border-radius: var(--r-sm);
+  overflow: hidden;
+}
+.cfbar .axis {
+  position: absolute; top: 0; bottom: 0; width: 1px;
+  background: var(--border-strong);
+}
+.cfbar .fill { position: absolute; top: 3px; bottom: 3px; border-radius: 2px; }
+.cfbar .fill.in { background: var(--ok); }
+.cfbar .fill.out { background: var(--warn); }
+.cfbar .lb {
+  position: absolute; top: 2px; font-family: var(--font-num);
+  font-size: 11px; color: var(--text2); white-space: nowrap;
+}
+
+/* ── 现金流曲线 ── */
+.curve { width: 100%; height: 190px; display: block; }
+.curve .grid { stroke: var(--border); stroke-width: 1; }
+.curve .zero { stroke: var(--border-strong); stroke-width: 1; stroke-dasharray: 3 3; }
+.curve .ln { fill: none; stroke: var(--gold-deep); stroke-width: 2; }
+.curve .ar { fill: var(--gold-bg); opacity: .55; }
+.curve .dot { fill: var(--gold-deep); }
+.curve .tx { fill: var(--text2); font-size: 10px; font-family: var(--font-num); }
+
+/* ── 砍楼模拟 ── */
+.cutlist { max-height: 320px; overflow-y: auto; }
+.cutlist label.cut {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 6px; border-radius: var(--r-sm); cursor: pointer;
+}
+.cutlist label.cut:hover { background: var(--surface3); }
+.cutlist label.cut input[type=checkbox] { width: auto; flex: 0 0 auto; }
+.cutlist label.cut .nm { flex: 1; min-width: 0; font-size: 12.5px; }
+.cutlist label.cut .qt { font-family: var(--font-num); font-size: 12px; color: var(--text2); }
+.cutlist label.cut.off .nm { color: var(--text-disabled); text-decoration: line-through; }
+
+/* ── 单份经济拆解条 ── */
+.stack { display: flex; height: 30px; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border); }
+.stack > i {
+  display: block; height: 100%;
+  font-style: normal; font-size: 10.5px; font-family: var(--font-num);
+  color: var(--surface); text-align: center; line-height: 30px;
+  overflow: hidden; white-space: nowrap;
+}
+.stack > i.s-purchase { background: var(--warn); }
+.stack > i.s-comm { background: var(--gold); }
+.stack > i.s-fulfill { background: var(--info); }
+.stack > i.s-gain { background: var(--ok); }
+.stack > i.s-lost { background: var(--text-disabled); }
+
+/* ── 表内小字与对齐 ── */
+td .sub2 { display: block; font-size: 11px; color: var(--text2); font-family: var(--font-body); }
+tr.tot td { font-weight: 500; background: var(--surface2); }
+tr.neg td.num { color: var(--warn-fg); }
+tr.pos td.num { color: var(--ok-fg); }
+
+/* ── 待办条 ── */
+.todo { margin: 0 0 var(--sp-2); padding-left: 18px; font-size: 12.5px; color: var(--text2); }
+.todo li { margin-bottom: 4px; }
+
+</style></head><body>
+<header class="top"><div class="logo">ABox 一盒</div><div class="sub">现金流与账期预测 · 内部经营仪表盘</div><div class="spacer"></div><div class="ver">版本 <span id="ver"></span> · 基准日 <span id="date"></span></div></header>
+<div class="hero"><h1>现金流与账期预测</h1><p>回答两句话：按现在的速度，钱还能撑多少天？如果下月砍掉某栋楼会怎样？数据只存在本机浏览器，不上传。</p></div>
+<div class="wrap"><aside class="side" id="side"></aside><main class="main" id="main"></main></div>
+<footer class="foot" id="foot">ABox 一盒 · M2 现金流与账期预测 v1.0 · 售价 / 供价 / 佣金费率 / 履约成本 / 楼栋 由生成器从代码真源注入（禁手改）· 现金余额 / 日均份数 / 固定成本属经营实况（非代码真源），首次使用须按实际填写 · 三项履约成本默认 0 的真义是「尚未登记」，据此得出的结论只是上限值 · 本工具只做推演与预警，不构成经营建议</footer>
+<script>
+window.TOOL_VERSION = "v1.0";
+window.SPEC = {"_generated_by":"_tmp/p1/m2/extract.py","_doctrine":"同一口径只许有一处表述：售价 / 供价 / 佣金费率 / 履约成本 / 楼栋 / 时间线 全部复用共享库（`_tmp/p0/_shared/extract_lib.py`），本文件不复制任何口径。","brand":{"name":"ABox 一盒","tool":"M2 现金流与账期预测"},"tokens":{"value":{"bg":"#F6F0E5","surface":"#FFFDF8","surface2":"#F7F1E4","surface3":"#FBF6EC","text":"#6E5435","text2":"#796C57","text-disabled":"#A79A85","gold":"#C9A876","gold-deep":"#936F3A","gold-deepest":"#8A6620","border":"#E4D8C3","border-strong":"#D6CBB8","ok":"#5B7C3A","warn":"#C44536","info":"#4A6FA5","ok-bg":"#F1F5EA","ok-bd":"#BBCBA6","warn-bg":"#FBF0EE","warn-bd":"#E3BFB8","info-bg":"#EDF1F8","info-bd":"#B4C4DA","mut-bg":"#F7F2E8","mut-bd":"#E4D8C3","gold-bg":"#FBF4E6","gold-bd":"#DCC79C","ok-fg":"#597939","warn-fg":"#C24436","info-fg":"#4A6FA5","gold-fg":"#8D6A38","from":"#FFF6E0","to":"#FFEED5","brand-meituan":"#FFD400","brand-meituan-text":"#000000","brand-taobao":"#FF6A00","brand-taobao-text":"#000000","brand-jd":"#E1251B","brand-jd-text":"#FFFFFF","font-display":"'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif","font-body":"-apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif","font-num":"'SF Mono','Roboto Mono',Consolas,monospace","r-sm":"4px","r-md":"10px","r-lg":"16px","sp-1":"6px","sp-2":"10px","sp-3":"14px","sp-4":"20px","sp-5":"28px"},"_src":"_ABox一盒设计token真源v2.1/design-tokens.css"},"env":{"unitPrice":25.8,"supplierTotal":14.0,"distributionCenter":5.0,"cutoffHour":24,"commission":{"trainee":0.08,"formal":0.09,"gold":0.1,"chief":0.12},"_src":"abox-onebox/.env.example"},"timeline":{"value":{"publish":"14:00","cutoff":"24:00","arrival":"11:30","autoConfirm":"14:00","deliveryGenerate":"00:30"},"_src":"abox-onebox/apps/api-server/src/common/utils/order-timeline.ts","_note":"截单 24:00 是合法值（= 次日 0 点），不是笔误"},"settlement":{"defaults":{"supplierTotal":14.0,"siteFee":0.0,"packingLaborFee":0.0,"deliveryFee":0.0},"configKeys":{"siteFee":"settlement.site_fee","packingLaborFee":"settlement.packing_labor_fee","deliveryFee":"settlement.delivery_fee"},"labels":{"siteFee":"场所摊销","packingLaborFee":"打包人工","deliveryFee":"配送费"},"registeredRule":"> 0（0 / 空 / 非数字一律视为「尚未登记」）","_src":"abox-onebox/packages/shared-utils/src/biz.ts","_note":"毛利 = 售价 −（供价 + 场所摊销 + 打包人工 + 配送费）− 佣金；三项履约成本未登记时毛利仅为**上限值**"},"buildings":{"list":[{"id":1,"groupId":1,"name":"国贸三期 A 座","address":"建国门外大街 1 号 A 座","city":"北京","district":"朝阳区","population":520,"status":1},{"id":2,"groupId":1,"name":"国贸三期 B 座","address":"建国门外大街 1 号 B 座","city":"北京","district":"朝阳区","population":480,"status":1},{"id":3,"groupId":1,"name":"国贸三期 C 座","address":"建国门外大街 1 号 C 座","city":"北京","district":"朝阳区","population":310,"status":2},{"id":4,"groupId":1,"name":"国贸三期 D 座","address":"建国门外大街 1 号 D 座","city":"北京","district":"朝阳区","population":250,"status":1},{"id":5,"groupId":2,"name":"建外 SOHO 北区","address":"东三环中路 39 号","city":"北京","district":"朝阳区","population":480,"status":1},{"id":6,"groupId":3,"name":"银泰中心 1 栋","address":"建国门外大街 2 号 1 栋","city":"北京","district":"朝阳区","population":360,"status":1},{"id":7,"groupId":3,"name":"银泰中心 2 栋","address":"建国门外大街 2 号 2 栋","city":"北京","district":"朝阳区","population":320,"status":1},{"id":8,"groupId":4,"name":"华贸 1 号楼","address":"建国路 79 号 1 号楼","city":"北京","district":"朝阳区","population":380,"status":1},{"id":9,"groupId":4,"name":"华贸 2 号楼","address":"建国路 79 号 2 号楼","city":"北京","district":"朝阳区","population":280,"status":1},{"id":10,"groupId":4,"name":"华贸 3 号楼","address":"建国路 79 号 3 号楼","city":"北京","district":"朝阳区","population":260,"status":3},{"id":11,"groupId":5,"name":"远洋光华 AB 座","address":"光华路 9 号 AB 座","city":"北京","district":"朝阳区","population":320,"status":1},{"id":12,"groupId":5,"name":"远洋光华 C 座","address":"光华路 9 号 C 座","city":"北京","district":"朝阳区","population":200,"status":1}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts","_note":"status 三态：1 营业中 / 2 待开通 / 3 已暂停；population 是运营估算覆盖人数，非实时统计"},"buildingGroups":{"list":[{"id":1,"name":"国贸三期组","city":"北京","district":"朝阳区","status":1},{"id":2,"name":"建外 SOHO 组","city":"北京","district":"朝阳区","status":1},{"id":3,"name":"银泰中心组","city":"北京","district":"朝阳区","status":1},{"id":4,"name":"华贸组","city":"北京","district":"朝阳区","status":1},{"id":5,"name":"远洋光华组","city":"北京","district":"朝阳区","status":1}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts"},"suppliers":{"list":[{"id":1,"name":"三味屋","contactName":"王经理","contactPhone":"13900000001","category":"本帮菜","licenseExpireAt":"2027-12-31","businessLicense":"91110105DEMO000001","foodLicense":"JY1110105DEMO000001"},{"id":2,"name":"四季鲜蔬","contactName":"李经理","contactPhone":"13900000002","category":"时蔬","licenseExpireAt":"2027-12-31","businessLicense":"91110105DEMO000002","foodLicense":"JY1110105DEMO000002"},{"id":3,"name":"京味小馆","contactName":"赵经理","contactPhone":"13900000003","category":"京味","licenseExpireAt":"2027-12-31","businessLicense":"91110105DEMO000003","foodLicense":"JY1110105DEMO000003"},{"id":4,"name":"老李家","contactName":"孙经理","contactPhone":"13900000004","category":"汤品","licenseExpireAt":"2027-12-31","businessLicense":"91110105DEMO000004","foodLicense":"JY1110105DEMO000004"}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts","_demo":true,"_note":"证照号与到期日为**演示占位值**（真源注释明示），台账首次使用须替换为真实值后再用于监管应对"},"sites":{"list":[{"id":1,"name":"集散中心 1（国贸/建外）","address":"朝阳区建国路 88 号","contactName":"王师傅","contactPhone":"13800000001","riceFee":0.0,"packFee":0.0,"serviceGroups":[1,2],"status":1},{"id":2,"name":"集散中心 2（银泰/建外）","address":"朝阳区光华路 21 号","contactName":"刘师傅","contactPhone":"13800000002","riceFee":0.0,"packFee":0.0,"serviceGroups":[3,2],"status":1},{"id":3,"name":"集散中心 3（国贸/远洋）","address":"朝阳区东三环中路 65 号","contactName":"赵师傅","contactPhone":"13800000003","riceFee":0.0,"packFee":0.0,"serviceGroups":[1,5],"status":1},{"id":4,"name":"集散中心 4（华贸组）","address":"朝阳区四惠东","contactName":"钱师傅","contactPhone":"13800000004","riceFee":0.0,"packFee":0.0,"serviceGroups":[4],"status":1}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts","_note":"⭐ 集散中心 = ABox **自有持证场所**（非供应商、不是应付对象）；riceFee / packFee 默认 0.00 的含义是「**未登记**」而不是「免费」"},"settleRhythm":{"list":[{"day":"T-1","item":"用户预付","dir":"in","basis":"下单即付（预售制）","src":"订单与支付流程（env.cutoffHour=24 ⇒ T-1 24:00 截单）"},{"day":"T","item":"出餐 / 配送","dir":"none","basis":"当日无现金收付（餐已备、履约成本已发生）","src":"timeline（次日 11:30 送达）"},{"day":"T+1 02:00","item":"供应商采购款","dir":"out","basis":"人工对公转账 · 日结 T+1","src":"finance.entity.ts（ab_supplier_share · channel 恒 manual · 日结 T+1）"},{"day":"月结","item":"团长佣金","dir":"out","basis":"仅佣金自动结算 · 个税走灵活用工","src":"finance.entity.ts（ab_commission · payout_channel FLEX_*）"},{"day":"随时","item":"团长提现","dir":"out","basis":"余额提现流出","src":"ab_withdraw"}],"_src":"abox-onebox/apps/api-server/src/database/entities/finance.entity.ts","_note":"预收在前、采购款 T+1、佣金月结 ⇒ 变动现金流天然为正；这是预售制的结构性优势，也是 M2 要盯住它何时反转的原因"},"cashInput":{"cashBalance":80000.0,"dailyServings":120.0,"levelMix":{"trainee":0.3,"formal":0.45,"gold":0.2,"chief":0.05},"refundRate":0.02,"labels":{"cashBalance":"当前可动用现金（元）","dailyServings":"日均份数（份/天）","levelMix":"团长等级结构（占比，合计须 = 100%）","refundRate":"退款率（占份数）"},"_src":"**运营实况输入 · 非代码真源** —— 仓库里没有这些数，须由祝总按实际填","_demo":true,"_note":"默认值是「能跑通模型」的演示量级，**不是预测**。真值只有祝总知道；页面首次打开就必须改。"},"fixedCost":{"laborMonthly":18000.0,"serverMonthly":1200.0,"otherMonthly":3000.0,"labels":{"laborMonthly":"人力（元/月）","serverMonthly":"服务器与云资源（元/月）","otherMonthly":"其他固定开支（元/月）"},"_src":"**经营实况输入 · 非代码真源** —— 与份数无关、每月照付的部分","_demo":true,"_note":"预售制让**变动**现金流天然为正，但固定成本是每月照付的；「还能撑几天」真正问的是：贡献毛利何时覆盖固定成本。这三项不填准，答案就没有意义。"},"unregistered":{"keys":["siteFee","packingLaborFee","deliveryFee"],"labels":{"siteFee":"场所摊销","packingLaborFee":"打包人工","deliveryFee":"配送费"},"_src":"abox-onebox/packages/shared-utils/src/biz.ts","rule":"> 0（0 / 空 / 非数字一律视为「尚未登记」）","_note":"这三项默认 0 的真义是「尚未登记」。据 0 算出的单份毛利与可支撑天数只是**上限值**（共享库原话），页面必须红字明示，不得让用户误读为「成本为零」。"},"_srcs":{"env":"abox-onebox/.env.example","biz":"abox-onebox/packages/shared-utils/src/biz.ts","tokens":"_ABox一盒设计token真源v2.1/design-tokens.css","finance":"abox-onebox/apps/api-server/src/database/entities/finance.entity.ts","withdraw":"abox-onebox/apps/api-server/src/database/entities/withdraw.entity.ts","cashInput":"**运营实况输入 · 非代码真源** —— 仓库里没有这些数，须由祝总按实际填","fixedCost":"**经营实况输入 · 非代码真源** —— 与份数无关、每月照付的部分"}};
+/* ─────────────────────────────────────────────────────────────
+   P0 工具集 · 共享工具函数（纯函数为主，不碰业务）
+   ⚠️ 必须以「普通脚本」形式可被 eval（构建期启动冒烟要用），
+      故不使用 ESM 语法，只挂 `window.U`。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var U = {};
+
+  /* ── DOM ── */
+  U.$ = function (sel, root) { return (root || document).querySelector(sel); };
+  U.$$ = function (sel, root) {
+    return Array.prototype.slice.call((root || document).querySelectorAll(sel));
+  };
+  /** 绑定事件：一律挂到 document，用 closest 分发（兄弟节点挂错容器是本项目踩过的坑） */
+  U.on = function (evt, sel, fn) {
+    document.addEventListener(evt, function (e) {
+      var t = e.target && e.target.closest ? e.target.closest(sel) : null;
+      if (t) fn(e, t);
+    });
+  };
+
+  /* ── 文本 ── */
+  U.esc = function (s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  };
+  /** 数值格式化；null/undefined/NaN 一律回显 '—'（不要显示 NaN） */
+  U.num = function (v, d) {
+    if (v == null || v === '' || !isFinite(Number(v))) return '—';
+    return Number(v).toFixed(d == null ? 2 : d);
+  };
+  /** 金额：¥ + 两位小数 */
+  U.y = function (v, d) {
+    if (v == null || v === '' || !isFinite(Number(v))) return '—';
+    return '¥' + Number(v).toFixed(d == null ? 2 : d);
+  };
+  /** 分 → 元（项目内金额一律「存分、显示元」，避免浮点） */
+  U.fen2y = function (fen, d) {
+    if (fen == null || !isFinite(Number(fen))) return '—';
+    return '¥' + (Number(fen) / 100).toFixed(d == null ? 2 : d);
+  };
+  U.y2fen = function (y) { return Math.round(Number(y || 0) * 100); };
+  /** 归一两位小数（复刻 biz.ts 的 round2 语义：先乘后再四舍五入） */
+  U.round2 = function (n) { return Math.round((Number(n) + Number.EPSILON) * 100) / 100; };
+
+  /* ── 日期（一律 YYYY-MM-DD 字符串 · 本地时区 · 不碰 UTC）── */
+  U.pad2 = function (n) { return (n < 10 ? '0' : '') + n; };
+  U.today = function (d) {
+    d = d || new Date();
+    return d.getFullYear() + '-' + U.pad2(d.getMonth() + 1) + '-' + U.pad2(d.getDate());
+  };
+  /** 字符串 → Date（本地零点）；非法返回 null —— 绝不返回 Invalid Date 让它往下跑 */
+  U.dt = function (s) {
+    if (!s) return null;
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s).trim());
+    if (!m) return null;
+    var d = new Date(+m[1], +m[2] - 1, +m[3]);
+    return isNaN(d.getTime()) ? null : d;
+  };
+  U.addDays = function (s, n) {
+    var d = U.dt(s); if (!d) return null;
+    d.setDate(d.getDate() + n);
+    return U.today(d);
+  };
+  /** b − a 的天数（两个 YYYY-MM-DD）；任一非法返回 null */
+  U.diffDays = function (a, b) {
+    var x = U.dt(a), y2 = U.dt(b);
+    if (!x || !y2) return null;
+    return Math.round((y2.getTime() - x.getTime()) / 86400000);
+  };
+  /** 校验：是不是合法的 YYYY-MM-DD（且日期真实存在，如 2026-02-30 判非法） */
+  U.isDate = function (s) {
+    var d = U.dt(s);
+    return !!d && U.today(d) === String(s).trim();
+  };
+
+  /* ── 本地存储（file:// 下 localStorage 可能直接抛异常，必须容错）── */
+  U.store = {
+    get: function (k, dflt) {
+      try {
+        var v = g.localStorage.getItem(k);
+        return v == null ? dflt : JSON.parse(v);
+      } catch (e) { return dflt; }
+    },
+    set: function (k, v) {
+      try { g.localStorage.setItem(k, JSON.stringify(v)); return true; }
+      catch (e) { return false; }
+    },
+    del: function (k) {
+      try { g.localStorage.removeItem(k); return true; } catch (e) { return false; }
+    },
+    /** 存储是否可用（不可用时页面要提示「本次改动不会保存」） */
+    ok: function () {
+      try {
+        g.localStorage.setItem('__t', '1'); g.localStorage.removeItem('__t');
+        return true;
+      } catch (e) { return false; }
+    },
+  };
+
+  /* ── 导出 / 导入 ── */
+  U.download = function (name, text, mime) {
+    var blob = new Blob([text], { type: (mime || 'text/plain') + ';charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 0);
+  };
+  U.pickFile = function (accept, fn) {
+    var i = document.createElement('input');
+    i.type = 'file'; i.accept = accept || '.json';
+    i.onchange = function () {
+      var f = i.files && i.files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function () { fn(String(r.result), f); };
+      r.readAsText(f, 'utf-8');
+    };
+    i.click();
+  };
+  /** CSV：单元格内的引号/逗号/换行都要转义，否则 Excel 打开就串列 */
+  U.toCSV = function (rows) {
+    return rows.map(function (r) {
+      return r.map(function (c) {
+        var s = c == null ? '' : String(c);
+        return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      }).join(',');
+    }).join('\r\n');
+  };
+
+  /* ── 数组 ── */
+  U.groupBy = function (arr, keyFn) {
+    var out = {};
+    (arr || []).forEach(function (x) {
+      var k = keyFn(x);
+      (out[k] = out[k] || []).push(x);
+    });
+    return out;
+  };
+  U.sum = function (arr, fn) {
+    return (arr || []).reduce(function (s, x) { return s + (Number(fn ? fn(x) : x) || 0); }, 0);
+  };
+  U.sortBy = function (arr, fn, dir) {
+    var d = dir === 'desc' ? -1 : 1;
+    return (arr || []).slice().sort(function (a, b) {
+      var x = fn(a), y2 = fn(b);
+      if (x == null && y2 == null) return 0;
+      if (x == null) return 1;        /* 空值恒排末尾，不参与方向翻转 */
+      if (y2 == null) return -1;
+      return x < y2 ? -d : x > y2 ? d : 0;
+    });
+  };
+
+  g.U = U;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ============================================================================
+ * ABox 一盒 · M2 现金流与账期预测 · 纯逻辑层（**禁手写口径**）
+ *
+ * 所有业务数字一律来自 window.SPEC（由 extract.py 从代码真源注入），本文件
+ * **不复制任何口径**；唯一允许写死的是结构常量（每月按 30 天摊、百分比换算）。
+ *
+ * ⭐ 本模型最关键的一处语义（自营口径 2026-09-16，勿推翻）：
+ *     **用户退款不冲减供应商采购款** —— 半成品在出餐日已交付，款照付。
+ *     ⇒ 一笔退款是**双重损失**：钱退给用户 + 采购款已经付掉。
+ *     ⇒ 这正是「预售制的正现金流会在退款激增时迅速反转」的机理，
+ *       模型必须如实反映（若把采购款也按净份数算，就会把这处风险抹平）。
+ *     ⇒ 佣金**要**冲销（C9：退款按「实际成本项 + 佣金」反向冲销），故佣金按净份数计。
+ *
+ * ⭐ 第二处语义：履约成本默认 0 的真义是「**尚未登记**」（共享库 registeredRule）。
+ *    据 0 算出的贡献毛利与可支撑天数只是**上限值** ⇒ 由 `unreg` 显式带出，页面红字。
+ * ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var S = root.SPEC;
+  var DAYS_PER_MONTH = 30;   /* 结构常量：月固定成本按 30 天摊（口径选择，非业务真源） */
+
+  function n2(v) { var x = Number(v); return isFinite(x) ? x : 0; }
+  function r2(v) { return Math.round((n2(v) + Number.EPSILON) * 100) / 100; }
+
+  /* ── 加权佣金费率：按团长等级结构 ────────────────────────────────────── */
+  function weightedRate(mix) {
+    var cm = S.env.commission, s = 0, w = 0;
+    Object.keys(cm).forEach(function (lv) {
+      var m = n2(mix && mix[lv]);
+      s += m * n2(cm[lv]);
+      w += m;
+    });
+    /* 权重未归一（页面允许先填不齐）时按已填部分归一，避免悄悄低估费率 */
+    return w > 0 ? s / w : n2(cm.formal);
+  }
+
+  /* ── 单份经济（不依赖份数，只依赖单价与成本结构）─────────────────────
+   * 返回每一项的「每份」金额，以及未登记成本清单。
+   * ------------------------------------------------------------------- */
+  function unitEcon(inp) {
+    var price = n2(S.env.unitPrice);
+    var purchase = n2(inp.supplierTotal);
+    var rate = weightedRate(inp.levelMix);
+    var comm = price * rate;
+    var fulfill = n2(inp.siteFee) + n2(inp.packingLaborFee) + n2(inp.deliveryFee);
+
+    var unreg = [];
+    if (n2(inp.siteFee) <= 0) unreg.push('siteFee');
+    if (n2(inp.packingLaborFee) <= 0) unreg.push('packingLaborFee');
+    if (n2(inp.deliveryFee) <= 0) unreg.push('deliveryFee');
+
+    return {
+      price: r2(price),
+      purchase: r2(purchase),
+      rate: rate,
+      rateText: Math.round(rate * 1000) / 10 + '%',
+      commission: r2(comm),
+      fulfillment: r2(fulfill),
+      /* 单份贡献毛利（毛利 = 售价 − 供价 − 佣金 − 履约成本）*/
+      contribution: r2(price - purchase - comm - fulfill),
+      unreg: unreg,
+      /* ⭐ 净贡献系数：每卖出一份（含退款损失）带来的净现金，用于求盈亏平衡点 */
+      netPerSold: r2(price * (1 - n2(inp.refundRate))
+                     - purchase
+                     - comm * (1 - n2(inp.refundRate))
+                     - fulfill)
+    };
+  }
+
+  /* ── 日均现金流 ─────────────────────────────────────────────────────── */
+  function daily(inp) {
+    var total = n2(inp.dailyServings);          /* 备餐 / 下单份数 */
+    var rr = Math.min(Math.max(n2(inp.refundRate), 0), 1);
+    var net = total * (1 - rr);                 /* 实际计收份数 */
+    var e = unitEcon(inp);
+
+    var grossIn = total * e.price;                       /* 预收（下单即付）*/
+    var refundOut = total * rr * e.price;                /* 退款流出 */
+    var purchaseOut = total * e.purchase;                /* ⭐ 采购款按**全部**份数（不冲减）*/
+    var commOut = net * e.commission;                    /* 佣金按净份数（退款冲销）*/
+    var fulfillOut = total * e.fulfillment;              /* 履约成本按备餐量 */
+    var fixedDaily = (n2(inp.laborMonthly) + n2(inp.serverMonthly)
+                      + n2(inp.otherMonthly)) / DAYS_PER_MONTH;
+
+    var out = refundOut + purchaseOut + commOut + fulfillOut + fixedDaily;
+    return {
+      total: r2(total), net: r2(net), refundRate: rr, econ: e,
+      grossIn: r2(grossIn), refundOut: r2(refundOut), purchaseOut: r2(purchaseOut),
+      commOut: r2(commOut), fulfillOut: r2(fulfillOut), fixedDaily: r2(fixedDaily),
+      out: r2(out),
+      netDaily: r2(grossIn - out),
+      /* 退款的真实代价（**每份**，与被退多少份无关 —— 是个常数）:
+           退给用户的本金 + 该份已付的采购款（退不回来）+ 该份已沉没的履约成本
+         ⚠️ 2026-09-26 修复：原先只算 `price + purchase`，**漏了履约成本**。
+            而现金流里 fulfillOut 是按**备餐全量**流出的，被退那份的场所摊销/打包人工/配送费
+            已经花掉且退不回来 ⇒ 属于退款的真实代价。
+            实测：登记履约 4.50/份后页面仍显示 ¥39.80，真值应为 ¥44.30（每天少算 ¥10.80）。
+            更糟的是它自己的判据⑩用的是同一个漏项公式，永远绿。 */
+      refundPerPiece: r2(e.price + e.purchase + e.fulfillment),
+      refundTrueCost: r2(total * rr * (e.price + e.purchase + e.fulfillment)),
+      refundServings: r2(total * rr)
+    };
+  }
+
+  /* ── 可支撑天数 ───────────────────────────────────────────────────────
+   * netDaily >= 0 ⇒ 现金不被消耗，返回 Infinity（页面显示「不消耗现金」，
+   * 不要显示「∞ 天」——那会被读成「永远安全」，而固定成本一涨就反转）。
+   * ------------------------------------------------------------------- */
+  function runway(cash, netDaily) {
+    if (netDaily >= 0) return Infinity;
+    var d = n2(cash) / -netDaily;
+    return isFinite(d) ? Math.floor(d) : Infinity;
+  }
+
+  /* ── 盈亏平衡份数（每天要卖多少份才不烧钱）───────────────────────────── */
+  function breakEven(inp) {
+    var e = unitEcon(inp);
+    var fixedDaily = (n2(inp.laborMonthly) + n2(inp.serverMonthly)
+                      + n2(inp.otherMonthly)) / DAYS_PER_MONTH;
+    if (e.netPerSold <= 0) return Infinity;   /* 卖一份亏一份 ⇒ 永远达不到 */
+    return Math.ceil(fixedDaily / e.netPerSold);
+  }
+
+  /* ── 滚动现金流：按天推演 N 天 ──────────────────────────────────────── */
+  function roll(inp, days) {
+    var d = daily(inp);
+    var bal = n2(inp.cashBalance), out = [];
+    for (var i = 1; i <= n2(days); i++) {
+      bal = r2(bal + d.netDaily);
+      out.push({ day: i, in: d.grossIn, out: d.out, net: d.netDaily, balance: bal });
+    }
+    return out;
+  }
+
+  /* ── 楼栋份额：按人口权重分配（**演示分配**，须替换为真实份数）───────── */
+  function buildingShares(inp) {
+    var list = (S.buildings && S.buildings.list) || [];
+    var pop = {}, total = 0;
+    list.forEach(function (b) { pop[b.id] = n2(b.population); total += n2(b.population); });
+    if (total <= 0) total = 1;
+    return list.map(function (b) {
+      return {
+        id: b.id, name: b.name, groupId: b.groupId,
+        population: n2(b.population),
+        weight: n2(b.population) / total,
+        servings: r2(n2(inp.dailyServings) * n2(b.population) / total)
+      };
+    });
+  }
+
+  /* ── 砍楼模拟：砍掉若干楼后重算 ────────────────────────────────────────
+   * 口径：份数按人口权重扣减；采购款/履约/佣金随之线性下降；固定成本**不降**
+   *      （这正是砍楼的两难：省了变动成本，但固定成本摊不动）。
+   * ------------------------------------------------------------------- */
+  function cutSim(inp, cutIds) {
+    var cut = {};
+    (cutIds || []).forEach(function (id) { cut[id] = 1; });
+    var shares = buildingShares(inp);
+    var kept = shares.filter(function (x) { return !cut[x.id]; });
+    var keptServings = r2(kept.reduce(function (s, x) { return s + x.servings; }, 0));
+
+    var sub = Object.assign({}, inp, { dailyServings: keptServings });
+    var d = daily(sub);
+    return {
+      cutIds: (cutIds || []).slice(),
+      cutNames: shares.filter(function (x) { return cut[x.id]; }).map(function (x) { return x.name; }),
+      keptServings: keptServings,
+      cutServings: r2(n2(inp.dailyServings) - keptServings),
+      before: daily(inp),
+      after: d,
+      runwayBefore: runway(n2(inp.cashBalance), daily(inp).netDaily),
+      runwayAfter: runway(n2(inp.cashBalance), d.netDaily),
+      /* ⭐ 固定成本不随砍楼下降 ⇒ 砍楼后每份摊的固定成本反而上升 */
+      fixedPerServingBefore: kept0(inp),
+      fixedPerServingAfter: kept0(sub)
+    };
+  }
+  function kept0(inp) {
+    var d = daily(inp);
+    return d.net > 0 ? r2(d.fixedDaily / d.net) : null;
+  }
+
+  /* ── 默认输入（从 SPEC 取，页面上可改）───────────────────────────────── */
+  function defaults() {
+    var sd = S.settlement.defaults;
+    return {
+      cashBalance: n2(S.cashInput.cashBalance),
+      dailyServings: n2(S.cashInput.dailyServings),
+      levelMix: Object.assign({}, S.cashInput.levelMix),
+      refundRate: n2(S.cashInput.refundRate),
+      supplierTotal: n2(sd.supplierTotal),
+      siteFee: n2(sd.siteFee),
+      packingLaborFee: n2(sd.packingLaborFee),
+      deliveryFee: n2(sd.deliveryFee),
+      laborMonthly: n2(S.fixedCost.laborMonthly),
+      serverMonthly: n2(S.fixedCost.serverMonthly),
+      otherMonthly: n2(S.fixedCost.otherMonthly),
+      horizonDays: 30
+    };
+  }
+
+  function set(inp, k, v) { var o = Object.assign({}, inp); o[k] = n2(v); return o; }
+
+  root.M2 = {
+    _src: '_tmp/p1/m2/src/model.js',
+    DAYS_PER_MONTH: DAYS_PER_MONTH,
+    defaults: defaults,
+    set: set,
+    weightedRate: weightedRate,
+    unitEcon: unitEcon,
+    daily: daily,
+    runway: runway,
+    breakEven: breakEven,
+    roll: roll,
+    buildingShares: buildingShares,
+    cutSim: cutSim
+  };
+})(window);
+
+/* ─────────────────────────────────────────────────────────────
+   M2 现金流与账期预测 · 判据层（纯函数 · 一份实现）—— 共 18 条
+
+   ⚠️ 这一层要同时被**两个地方**调用：页面里给人看、构建期拦住提交。
+      所以它不许碰 DOM，也不许在别处再写一份。
+
+   ⚠️ 严格区分两类（混在一起会让「待办」被读成「缺陷」，或反之）：
+      · rows[].ok === false  ⇒ **结构缺陷**（恒等式断了 / 口径算错）
+      · todos                ⇒ **待办**（成本未登记、演示值待替换 —— 正常状态，不是 bug）
+
+   ⚠️ 判据一律走 `M2.*` 的真值，**不重算一遍**（否则「页面算 A、判据算 B」的分叉会悄悄发生）。
+   ⚠️ 页面改参数后判据必须跟着变 ⇒ 输入一律取 `inp`（页面状态），
+      只有**不可改的真源**（售价 / 佣金档位）才读 `spec`。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  function run(spec, inp) {
+    var M = g.M2;
+    var rows = [], todos = [];
+    var add = function (name, ok, detail) { rows.push({ name: name, ok: !!ok, detail: detail || '' }); };
+    var near = function (a, b, eps) { return Math.abs(a - b) <= (eps == null ? 0.011 : eps); };
+
+    inp = inp || M.defaults();
+    var e = M.unitEcon(inp);
+    var d = M.daily(inp);
+    var S = spec;
+
+    /* ── ①–③ 真源未漂（**不可改**的那几个数）───────────────────────── */
+    add('① 单份售价锁定 25.80（真源 env.unitPrice）',
+      near(Number(S.env.unitPrice), 25.8, 1e-9),
+      '实得 ' + S.env.unitPrice);
+    add('② 供价合计真源 = 14.00（页面可覆盖，真源本身未漂）',
+      near(Number(S.settlement.defaults.supplierTotal), 14.0, 1e-9),
+      '真源 ' + S.settlement.defaults.supplierTotal + ' · 当前取用 ' + e.purchase);
+    add('③ 佣金四档费率完整（见习8% 正式9% 金牌10% 首席12%）',
+      Object.keys(S.env.commission).length === 4
+      && near(S.env.commission.trainee, 0.08, 1e-9) && near(S.env.commission.formal, 0.09, 1e-9)
+      && near(S.env.commission.gold, 0.10, 1e-9) && near(S.env.commission.chief, 0.12, 1e-9),
+      JSON.stringify(S.env.commission));
+
+    /* ── ④ ⭐ 未登记履约成本必须被点名（0 = 尚未登记，不是成本为零）──
+       ⚠️ 不可写成「unreg 里的项都 <= 0」—— unreg 本就按 <=0 收集，那是**恒真**判据
+          （F3 的 ⑰ 就栽在这）。真能变红的是：清单与「输入中实际 <=0 的项」是否一致。 */
+    var COST_KEYS = ['siteFee', 'packingLaborFee', 'deliveryFee'];
+    var actualUnreg = COST_KEYS.filter(function (k) { return Number(inp[k]) <= 0; });
+    var unregNames = e.unreg.map(function (k) {
+      return (S.settlement.labels && S.settlement.labels[k]) || k;
+    });
+    var same = e.unreg.slice().sort().join(',') === actualUnreg.slice().sort().join(',');
+    add('④ 未登记清单与输入一致（0 = 尚未登记，非成本为零）', same,
+      same ? (e.unreg.length ? '未登记 ' + e.unreg.length + ' 项：' + unregNames.join(' / ')
+                               + ' ⇒ 贡献毛利 ' + e.contribution + ' 元只是上限值'
+                             : '三项均已登记')
+           : '模型报 ' + JSON.stringify(e.unreg) + ' vs 输入实际 ' + JSON.stringify(actualUnreg));
+
+    /* ── ⑤–⑦ 单份经济恒等式 ──────────────────────────────────────────── */
+    add('⑤ 单份恒等式：贡献毛利 = 售价 − 供价 − 佣金 − 履约成本',
+      near(e.contribution, e.price - e.purchase - e.commission - e.fulfillment),
+      e.price + ' − ' + e.purchase + ' − ' + e.commission + ' − ' + e.fulfillment
+      + ' = ' + e.contribution);
+    add('⑥ 单份佣金 = 售价 × 加权费率（' + e.rateText + '）',
+      near(e.commission, e.price * e.rate),
+      e.price + ' × ' + e.rate + ' = ' + e.commission);
+    add('⑦ 净贡献系数含退款损失：' + e.netPerSold + ' 元/份',
+      near(e.netPerSold,
+        e.price * (1 - d.refundRate) - e.purchase - e.commission * (1 - d.refundRate) - e.fulfillment),
+      '售价(1−退款率) − 供价 − 佣金(1−退款率) − 履约成本 = ' + e.netPerSold);
+
+    /* ── ⑧ ⭐ 自营口径核心：退款**不**冲减采购款 ────────────────────── */
+    add('⑧ 采购款按全部份数计（退款不冲减 → 双重损失如实反映）',
+      near(d.purchaseOut, d.total * e.purchase),
+      '备餐 ' + d.total + ' 份 × ' + e.purchase + ' = ' + d.purchaseOut
+      + '（若按净份数 ' + d.net + ' 算则为 ' + (d.net * e.purchase).toFixed(2) + '，会抹平风险）');
+
+    /* ── ⑨–⑩ 退款与佣金 ──────────────────────────────────────────────── */
+    add('⑨ 佣金按净份数计（退款冲销佣金）',
+      near(d.commOut, d.net * e.commission),
+      d.net + ' × ' + e.commission + ' = ' + d.commOut);
+    /* ⚠️ 2026-09-26 修复：⑩ 原先写 `(e.price + e.purchase)` —— 与那个漏算履约成本的
+       refundTrueCost 用同一个公式，**等于把错误口径写进判据**，无论漏算多少都恒绿。
+       流水里 fulfillOut 是按备餐全量流出的，被退那份的钱退不回来 ⇒ 也要算进真实代价。 */
+    add('⑩ 退款真实代价 = 退款本金 + 沉没采购款 + 沉没履约成本（每份）',
+      near(d.refundTrueCost, d.total * d.refundRate * (e.price + e.purchase + e.fulfillment))
+        && near(d.refundPerPiece, e.price + e.purchase + e.fulfillment),
+      '每份 ' + d.refundPerPiece + ' = 售价 ' + e.price + ' + 采购 ' + e.purchase
+        + ' + 履约 ' + e.fulfillment + '；日均 ' + d.refundTrueCost + '（' + d.refundServings + ' 份）');
+
+    /* ⭐ 2026-09-26 新增：每份退款代价必须与份数、退款率**无关**（它本来就是个常数）。
+       起因（实测 bug）：页面原写 `refundTrueCost / Math.max(total*refundRate, 1)`，
+       分母被兜底成 1 ⇒ 30 份/2% 显示 ¥23.88、退款率 0 显示 ¥0.00（真值恒 ¥39.80）。 */
+    var small = M.set(inp, 'dailyServings', 30);
+    var zero = M.set(inp, 'refundRate', 0);
+    add('㉓ 每份退款代价与份数/退款率无关（不得用兜底分母相除）',
+      near(M.daily(small).refundPerPiece, M.daily(inp).refundPerPiece)
+        && near(M.daily(zero).refundPerPiece, M.daily(inp).refundPerPiece)
+        && M.daily(zero).refundTrueCost === 0,
+      '120 份 ⇒ ' + M.daily(inp).refundPerPiece + ' · 30 份 ⇒ ' + M.daily(small).refundPerPiece
+        + ' · 退款率 0 ⇒ 每份 ' + M.daily(zero).refundPerPiece + '（日合计 0）');
+
+    /* ── ⑪ 总账恒等式 ────────────────────────────────────────────────── */
+    add('⑪ 日均总账恒等式：净现金流 = 流入 − 流出',
+      near(d.netDaily, d.grossIn - d.out),
+      d.grossIn + ' − ' + d.out + ' = ' + d.netDaily);
+
+    /* ── ⑫–⑬ 可支撑天数语义 ──────────────────────────────────────────── */
+    var rw = M.runway(inp.cashBalance, d.netDaily);
+    /* ⚠️ ⑫⑬ 一律走**纯函数算术样本**，不依赖当前参数落在哪一侧 ——
+         否则参数一变（净流入/净流出切换）就有一条退化成恒真（F3 ⑰ 同形教训）。 */
+    add('⑫ 可支撑天数语义：净现金流 ≥ 0 判为「不消耗现金」（不显示 ∞ 天）',
+      M.runway(1000, 0) === Infinity && M.runway(1000, 50) === Infinity,
+      'runway(1000, 0) = ' + M.runway(1000, 0) + ' · runway(1000, 50) = ' + M.runway(1000, 50));
+    add('⑬ 可支撑天数算术：现金 ÷ 日均净流出 向下取整（1000 ÷ 40 = 25）',
+      M.runway(1000, -40) === 25 && M.runway(1000, -33) === 30,
+      'runway(1000, -40) = ' + M.runway(1000, -40) + ' · runway(1000, -33) = ' + M.runway(1000, -33));
+    add('⑬b 当前参数下的可支撑天数确由上式得出',
+      d.netDaily >= 0 ? rw === Infinity
+        : rw === Math.floor(Number(inp.cashBalance) / -d.netDaily),
+      '净现金流 ' + d.netDaily + ' ⇒ ' + (rw === Infinity ? '不消耗现金' : rw + ' 天'));
+
+    /* ── ⑭ 盈亏平衡 ──────────────────────────────────────────────────── */
+    var be = M.breakEven(inp);
+    if (be !== Infinity) {
+      /* ⭐ 准确语义 = **最小整数份数**使净现金流 ≥ 0（向上取整必然留余量，
+         故判「≈0」是错判据 —— 应判「be 份 ≥ 0 且 be−1 份 < 0」）*/
+      var atBE = M.daily(Object.assign({}, inp, { dailyServings: be }));
+      var atBE1 = M.daily(Object.assign({}, inp, { dailyServings: be - 1 }));
+      add('⑭ 盈亏平衡份数是最小可支撑份数：' + be + ' 份 ≥ 0 而 ' + (be - 1) + ' 份 < 0',
+        atBE.netDaily >= 0 && atBE1.netDaily < 0,
+        be + ' 份 → ' + atBE.netDaily + ' 元/天 · ' + (be - 1) + ' 份 → ' + atBE1.netDaily + ' 元/天');
+    } else {
+      add('⑭ 盈亏平衡份数自洽：卖一份亏一份 ⇒ 判为不可达',
+        e.netPerSold <= 0,
+        '净贡献系数 ' + e.netPerSold + ' ≤ 0 ⇒ 永远达不到平衡');
+    }
+
+    /* ── ⑮ 滚动推演恒等式 ────────────────────────────────────────────── */
+    var horizon = Number(inp.horizonDays) || 30;
+    var rr = M.roll(inp, horizon);
+    var last = rr.length ? rr[rr.length - 1] : null;
+    add('⑮ 滚动推演恒等式：第 ' + horizon + ' 天余额 = 初值 + 日均净现金流 × 天数',
+      !!last && near(last.balance, Number(inp.cashBalance) + d.netDaily * horizon, 0.5),
+      last ? inp.cashBalance + ' + ' + d.netDaily + ' × ' + horizon + ' ≈ ' + last.balance : '无推演结果');
+
+    /* ── ⑯–⑱ 楼栋份额与砍楼模拟 ─────────────────────────────────────── */
+    var shares = M.buildingShares(inp);
+    var wsum = shares.reduce(function (s, x) { return s + x.weight; }, 0);
+    add('⑯ 楼栋份额权重合计 = 1（' + shares.length + ' 栋）',
+      near(wsum, 1, 1e-6), '合计 ' + wsum.toFixed(6));
+
+    var cutId = shares.length ? shares[shares.length - 1].id : null;
+    var cs = cutId ? M.cutSim(inp, [cutId]) : null;
+    add('⑰ 砍楼份数守恒：保留 + 砍掉 = 总量',
+      !!cs && near(cs.keptServings + cs.cutServings, d.total, 0.05),
+      cs ? cs.keptServings + ' + ' + cs.cutServings + ' = ' + d.total : '无楼栋');
+
+    add('⑱ 砍楼后固定成本不降 ⇒ 每份摊的固定成本不下降',
+      !!cs && (cs.fixedPerServingAfter == null
+        || cs.fixedPerServingBefore == null
+        || cs.fixedPerServingAfter >= cs.fixedPerServingBefore - 1e-9),
+      cs ? '砍前 ' + cs.fixedPerServingBefore + ' 元/份 → 砍后 ' + cs.fixedPerServingAfter + ' 元/份'
+         : '无楼栋');
+
+    /* ── 待办（不是缺陷）─────────────────────────────────────────────── */
+    if (e.unreg.length) {
+      todos.push('【须登记】' + unregNames.join(' / ') + ' 仍是 0 —— 按 0 算出的贡献毛利 '
+        + e.contribution + ' 元与可支撑天数都只是上限值，须按实际发生额登记后再读结论');
+    }
+    if (S.cashInput && S.cashInput._demo) {
+      todos.push('【须替换】现金余额 ' + S.cashInput.cashBalance + ' / 日均 '
+        + S.cashInput.dailyServings + ' 份 是演示值 —— 首次使用须改为经营实况');
+    }
+    if (S.fixedCost && S.fixedCost._demo) {
+      todos.push('【须替换】固定成本（人力 ' + S.fixedCost.laborMonthly + ' · 服务器 '
+        + S.fixedCost.serverMonthly + ' · 其他 ' + S.fixedCost.otherMonthly + '）是演示值 —— '
+        + '「还能撑几天」真正问的是贡献毛利何时覆盖它，不填准则答案无意义');
+    }
+    if (d.netDaily < 0) {
+      todos.push('【预警】当前参数下日均净现金流为负（' + d.netDaily + ' 元/天），'
+        + '现金可支撑 ' + rw + ' 天');
+    }
+
+    var bad = rows.filter(function (r) { return !r.ok; }).length;
+    return {
+      rows: rows, bad: bad, ok: bad === 0, todos: todos,
+      econ: e, daily: d, runway: rw, breakEven: be, roll: rr, shares: shares
+    };
+  }
+
+  g.SelfCheck = { run: run };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ─────────────────────────────────────────────────────────────
+   M2 现金流与账期预测 · 页面层
+
+   回答两句话：
+     ① 按现在的速度，钱还能撑 XX 天？
+     ② 如果下月砍掉某栋楼，会怎样？
+
+   ⚠️ 页面上**不许**出现 Markdown 粗体记号（`**X**`）—— 那是渲染面，会真的显示两个星号。
+   ⚠️ 数字一律走 `U.num` / `U.y`，null 与 NaN 回显「—」，绝不显示 NaN。
+   ───────────────────────────────────────────────────────────── */
+(function () {
+  'use strict';
+
+  var S = window.SPEC, M = window.M2, U = window.U;
+  var st = M.defaults();
+  var cutIds = [];
+
+  function money(v) { return U.y(v); }
+  function num(v, d) { return U.num(v, d); }
+
+  /* ── 输入项定义（键 / 标签 / 步长 / 分组）───────────────────────────── */
+  var FIELDS = [
+    { g: '经营实况（非代码真源 · 须按实际填）', k: 'cashBalance', t: '当前可动用现金', u: '元', step: 1000 },
+    { k: 'dailyServings', t: '日均份数', u: '份/天', step: 5 },
+    { k: 'refundRate', t: '退款率', u: '占份数（0.02 = 2%）', step: 0.005 },
+    { g: '单份成本（默认取自代码真源 · 可覆盖）', k: 'supplierTotal', t: '供应商供价合计', u: '元/份', step: 0.5 },
+    { k: 'siteFee', t: '场所摊销', u: '元/份', step: 0.5 },
+    { k: 'packingLaborFee', t: '打包人工', u: '元/份', step: 0.5 },
+    { k: 'deliveryFee', t: '配送费', u: '元/份', step: 0.5 },
+    { g: '固定成本（与份数无关 · 每月照付）', k: 'laborMonthly', t: '人力', u: '元/月', step: 500 },
+    { k: 'serverMonthly', t: '服务器与云资源', u: '元/月', step: 100 },
+    { k: 'otherMonthly', t: '其他固定开支', u: '元/月', step: 500 },
+    { g: '推演', k: 'horizonDays', t: '滚动推演天数', u: '天', step: 5 }
+  ];
+
+  var LEVELS = [
+    { k: 'trainee', t: '见习' }, { k: 'formal', t: '正式' },
+    { k: 'gold', t: '金牌' }, { k: 'chief', t: '首席' }
+  ];
+
+  /* ── 侧栏 ─────────────────────────────────────────────────────────── */
+  function renderSide() {
+    var h = '';
+    h += '<div class="card"><h2>参数输入</h2>';
+    h += '<p class="hint">改任一参数，判据与结论立刻重算。数值只存在本机浏览器。</p>';
+    FIELDS.forEach(function (f) {
+      if (f.g) { h += '<div style="margin:10px 0 6px;font-size:11.5px;color:var(--text2);letter-spacing:.04em">' + f.g + '</div>'; }
+      h += '<label class="f"><span>' + f.t + '（' + f.u + '）</span>'
+        + '<input type="number" step="' + f.step + '" data-k="' + f.k + '" value="' + st[f.k] + '"></label>';
+    });
+    h += '<div style="margin:10px 0 6px;font-size:11.5px;color:var(--text2);letter-spacing:.04em">'
+      + '团长等级结构（占比 · 决定加权佣金费率）</div>';
+    LEVELS.forEach(function (lv) {
+      h += '<label class="f"><span>' + lv.t + '团长 ' + Math.round(S.env.commission[lv.k] * 100)
+        + '% · 占比</span><input type="number" step="0.05" min="0" max="1" data-lv="' + lv.k
+        + '" value="' + st.levelMix[lv.k] + '"></label>';
+    });
+    h += '</div>';
+
+    h += '<div class="card"><h2>操作</h2><div class="btnbar">'
+      + '<button class="btn sm" data-act="reset">恢复默认</button>'
+      + '<button class="btn sm" data-act="csv">导出 CSV</button>'
+      + '</div><p class="hint">默认值是「能跑通模型」的演示量级，不是预测。</p></div>';
+
+    U.$('#side').innerHTML = h;
+  }
+
+  /* ── 结论 KPI ─────────────────────────────────────────────────────── */
+  function renderVerdict(res) {
+    var d = res.daily, e = res.econ, rw = res.runway, be = res.breakEven;
+    var h = '';
+
+    /* ⭐ 未登记成本警告：0 的真义是「尚未登记」，据此得出的结论是**乐观偏差** */
+    if (e.unreg.length) {
+      var names = e.unreg.map(function (k) { return S.settlement.labels[k] || k; }).join(' / ');
+      h += '<div class="note warn"><div><b>先看清这一条再读下面的数：</b>' + names
+        + ' 仍是 0，而 0 的真义是「尚未登记」，不是「成本为零」。</div>'
+        + '<div>据此算出的单份贡献毛利 ' + money(e.contribution)
+        + ' 与可支撑天数都只是<b>上限值</b>。把三项按实际发生额补齐再看结论。</div></div>';
+    }
+
+    h += '<div class="card"><h2>结论<span class="n">按当前参数</span></h2>';
+    h += '<div class="runway">';
+    if (rw === Infinity) {
+      h += '<span class="v">' + (d.netDaily >= 0 ? '不消耗现金' : '—') + '</span>';
+      h += '<span class="tag pill ok">日均净流入 ' + money(d.netDaily) + '</span>';
+    } else {
+      h += '<span class="v">' + rw + '</span><span class="u">天</span>';
+      h += '<span class="tag pill warn">日均净流出 ' + money(-d.netDaily) + '</span>';
+    }
+    h += '</div>';
+    h += '<div class="kpis">';
+    h += kpi(num(d.netDaily) + ' 元', '日均净现金流');
+    h += kpi(num(e.contribution) + ' 元', '单份贡献毛利', e.unreg.length ? 'warn' : 'ok');
+    h += kpi(be === Infinity ? '不可达' : be + ' 份', '盈亏平衡（份/天）');
+    h += kpi(num(d.total, 0) + ' 份', '当前日均', d.netDaily < 0 ? 'warn' : 'ok');
+    h += '</div>';
+    h += '<div class="note info" style="margin-top:10px;margin-bottom:0">'
+      + '<div>盈亏平衡 = 每天至少卖 ' + (be === Infinity ? '—' : be) + ' 份才不烧钱。'
+      + '预售制让变动现金流天然为正（用户先付、采购款 T+1），但固定成本是每月照付的 —— '
+      + '真正决定「还能撑几天」的是贡献毛利能否覆盖它。</div></div>';
+    h += '</div>';
+    return h;
+  }
+
+  function kpi(v, k, cls) {
+    return '<div class="kpi ' + (cls || '') + '"><div class="k">' + k + '</div><div class="v">' + v + '</div></div>';
+  }
+
+  /* ── 单份经济 ─────────────────────────────────────────────────────── */
+  function renderUnit(res) {
+    var e = res.econ, price = e.price;
+    var segs = [
+      { c: 's-purchase', v: e.purchase, t: '供价' },
+      { c: 's-comm', v: e.commission, t: '佣金' },
+      { c: 's-fulfill', v: e.fulfillment, t: '履约' },
+      { c: 's-gain', v: e.contribution, t: '贡献毛利' }
+    ];
+    var h = '<div class="card"><h2>单份经济<span class="n">售价 ' + money(price) + ' 的去处</span></h2>';
+    h += '<div class="stack">';
+    segs.forEach(function (s) {
+      var pct = price > 0 ? (s.v / price * 100) : 0;
+      h += '<i class="' + s.c + '" style="width:' + pct.toFixed(2) + '%" title="' + s.t + ' '
+        + money(s.v) + '">' + (pct > 9 ? s.t : '') + '</i>';
+    });
+    h += '</div>';
+    h += '<div class="tw" style="margin-top:10px"><table><thead><tr>'
+      + '<th>项</th><th class="num">每份</th><th class="num">占售价</th><th>口径出处</th></tr></thead><tbody>';
+    h += row('售价（用户预付）', price, price, 'env.unitPrice · 锁定真源');
+    h += row('供应商供价合计', -e.purchase, price, 'settlement 默认 14.00 · 与供应商逐菜协商');
+    h += row('团长佣金（加权 ' + e.rateText + '）', -e.commission, price, 'env.commission 四档 · 按等级结构加权');
+    h += row('履约成本（场所+打包+配送）', -e.fulfillment, price,
+      e.unreg.length ? '⚠ 未登记，按 0 计' : 'settlement 已登记');
+    h += '<tr class="tot"><td>单份贡献毛利</td><td class="num">' + money(e.contribution)
+      + '</td><td class="num">' + (price > 0 ? (e.contribution / price * 100).toFixed(1) : '—')
+      + '%</td><td>毛利 = 售价 − 供价 − 佣金 − 履约成本（结果值）</td></tr>';
+    h += '</tbody></table></div>';
+    h += '</div>';
+    return h;
+  }
+  function row(name, v, base, src) {
+    var cls = v < 0 ? 'neg' : 'pos';
+    return '<tr class="' + cls + '"><td>' + name + '<span class="sub2">' + src + '</span></td>'
+      + '<td class="num">' + money(Math.abs(v)) + '</td>'
+      + '<td class="num">' + (base > 0 ? (Math.abs(v) / base * 100).toFixed(1) : '—') + '%</td>'
+      + '<td></td></tr>';
+  }
+
+  /* ── 日均现金流 ───────────────────────────────────────────────────── */
+  function renderDaily(res) {
+    var d = res.daily;
+    var h = '<div class="card"><h2>日均现金流<span class="n">' + num(d.total, 0) + ' 份/天</span></h2>';
+    /* 以 0 为轴的正负条 */
+    var scale = Math.max(d.grossIn, d.out) || 1;
+    h += '<div class="cfbar"><div class="axis" style="left:' + (d.grossIn / scale * 100).toFixed(2)
+      + '%"></div>'
+      + '<div class="fill in" style="left:0;width:' + (d.grossIn / scale * 100).toFixed(2) + '%"></div>'
+      + '<div class="lb" style="left:4px">流入 ' + money(d.grossIn) + '</div>'
+      + '<div class="lb" style="right:4px">流出 ' + money(d.out) + '</div></div>';
+
+    h += '<div class="tw"><table><thead><tr><th>项</th><th class="num">元/天</th><th>口径</th></tr></thead><tbody>';
+    h += '<tr class="pos"><td>用户预付</td><td class="num">' + money(d.grossIn) + '</td>'
+      + '<td><span class="sub2">下单即付（预售制）· T-1 24:00 截单</span></td></tr>';
+    h += '<tr class="neg"><td>退款流出</td><td class="num">' + money(d.refundOut) + '</td>'
+      + '<td><span class="sub2">退款率 ' + (d.refundRate * 100).toFixed(1) + '%</span></td></tr>';
+    h += '<tr class="neg"><td>供应商采购款</td><td class="num">' + money(d.purchaseOut) + '</td>'
+      + '<td><span class="sub2">按全部 ' + num(d.total, 0) + ' 份计 —— 退款不冲减（自营口径）</span></td></tr>';
+    h += '<tr class="neg"><td>团长佣金</td><td class="num">' + money(d.commOut) + '</td>'
+      + '<td><span class="sub2">按净 ' + num(d.net, 1) + ' 份计 —— 退款冲销佣金</span></td></tr>';
+    h += '<tr class="neg"><td>履约成本</td><td class="num">' + money(d.fulfillOut) + '</td>'
+      + '<td><span class="sub2">场所摊销 + 打包人工 + 配送费</span></td></tr>';
+    h += '<tr class="neg"><td>固定成本（按 30 天摊）</td><td class="num">' + money(d.fixedDaily) + '</td>'
+      + '<td><span class="sub2">人力 + 服务器 + 其他 · 与份数无关</span></td></tr>';
+    h += '<tr class="tot"><td>日均净现金流</td><td class="num">' + money(d.netDaily) + '</td><td></td></tr>';
+    h += '</tbody></table></div>';
+
+    /* ⭐ 退款的真实代价
+       ⚠️ 2026-09-26 修复：原写法 `d.refundTrueCost / Math.max(d.total * d.refundRate, 1)`
+          —— 分母被 Math.max(…,1) 兜底成 1，于是「日均 × 退款率 < 1 份」时商被系统性缩小：
+          实测 30 份/2%（0.6 份）显示 ¥23.88，退款率 0 时显示 ¥0.00，而真值恒为 ¥39.80/份。
+          默认值 120×2%=2.4 恰好不触发，所以一直绿着没被发现。
+          ⇒ 每份代价本来就是与份数无关的常数，直接取 `refundPerPiece`，不再现场相除。 */
+    h += '<div class="note warn" style="margin-top:10px;margin-bottom:0">'
+      + '<div><b>' + (d.refundRate > 0
+        ? '一笔退款的真实代价是 ' + money(d.refundPerPiece) + ' 元/份，不是 ' + money(S.env.unitPrice)
+        : '当前退款率为 0；一旦发生退款，每份真实代价是 ' + money(d.refundPerPiece)
+          + ' 元，不是 ' + money(S.env.unitPrice)) + '。</b></div>'
+      + '<div>自营口径下，退款<b>不</b>冲减供应商采购款（半成品出餐日已交付，款照付）。'
+      + '所以退一份 = 退给用户 ' + money(S.env.unitPrice)
+      + ' + 沉没采购款 ' + money(st.supplierTotal)
+      + ' + 沉没履约成本 ' + money(d.econ.fulfillment) + '。'
+      + (d.refundRate > 0
+        ? '当前退款率下每天 ' + money(d.refundTrueCost) + '（' + d.refundServings + ' 份）。'
+        : '登记履约成本后这个数会变大 —— 现在按 ' + money(d.econ.fulfillment) + ' 计。')
+      + '</div></div>';
+    h += '</div>';
+    return h;
+  }
+
+  /* ── 滚动现金流曲线 ───────────────────────────────────────────────── */
+  function renderRoll(res) {
+    var rr = res.roll, W = 660, H = 190, pad = 34;
+    if (!rr.length) return '';
+    var vals = rr.map(function (x) { return x.balance; });
+    vals.push(Number(st.cashBalance));
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+    if (hi === lo) { hi = lo + 1; }
+    var span = hi - lo;
+    var X = function (i) { return pad + (rr.length > 1 ? i / (rr.length - 1) : 0) * (W - pad - 10); };
+    var Y = function (v) { return H - pad - ((v - lo) / span) * (H - pad - 14); };
+
+    var h = '<div class="card"><h2>滚动现金流<span class="n">未来 ' + rr.length + ' 天</span></h2>';
+    h += '<svg class="curve" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">';
+    h += '<line class="grid" x1="' + pad + '" y1="' + (H - pad) + '" x2="' + (W - 10) + '" y2="' + (H - pad) + '"/>';
+    if (lo < 0 && hi > 0) {
+      h += '<line class="zero" x1="' + pad + '" y1="' + Y(0) + '" x2="' + (W - 10) + '" y2="' + Y(0) + '"/>';
+    }
+    var pts = rr.map(function (x, i) { return X(i) + ',' + Y(x.balance); });
+    var area = pad + ',' + Y(Number(st.cashBalance)) + ' ' + pts.join(' ') + ' ' + X(rr.length - 1) + ',' + (H - pad);
+    h += '<polygon class="ar" points="' + area + '"/>';
+    h += '<polyline class="ln" points="' + pts.join(' ') + '"/>';
+    h += '<circle class="dot" cx="' + X(0) + '" cy="' + Y(rr[0].balance) + '" r="3"/>';
+    h += '<circle class="dot" cx="' + X(rr.length - 1) + '" cy="' + Y(rr[rr.length - 1].balance) + '" r="3"/>';
+    h += '<text class="tx" x="' + pad + '" y="' + (H - pad + 15) + '">今天</text>';
+    h += '<text class="tx" x="' + (W - 10) + '" y="' + (H - pad + 15) + '" text-anchor="end">第 '
+      + rr.length + ' 天 · ' + money(rr[rr.length - 1].balance) + '</text>';
+    h += '<text class="tx" x="2" y="' + Y(Number(st.cashBalance)) + '">' + money(st.cashBalance) + '</text>';
+    h += '</svg>';
+    var last = rr[rr.length - 1];
+    h += '<p class="hint" style="margin-top:6px;margin-bottom:0">按日均净现金流 '
+      + money(res.daily.netDaily) + ' 线性推演：第 ' + rr.length + ' 天现金 '
+      + money(last.balance) + (last.balance < 0 ? '（已穿底 —— 期间须补资或提量）' : '') + '。</p>';
+    h += '</div>';
+    return h;
+  }
+
+  /* ── 砍楼模拟 ─────────────────────────────────────────────────────── */
+  function renderCut() {
+    var shares = M.buildingShares(st);
+    var cs = M.cutSim(st, cutIds);
+    var h = '<div class="card"><h2>砍楼模拟<span class="n">勾选要砍掉的楼</span></h2>';
+    h += '<p class="hint">份数按楼内人数权重分配（演示分配，须替换为真实份数）。'
+      + '砍楼省的是变动成本，固定成本<b>不降</b> —— 这就是砍楼的两难。</p>';
+    h += '<div class="cutlist">';
+    shares.forEach(function (b) {
+      var off = cutIds.indexOf(b.id) >= 0;
+      h += '<label class="cut' + (off ? ' off' : '') + '">'
+        + '<input type="checkbox" data-cut="' + b.id + '"' + (off ? ' checked' : '') + '>'
+        + '<span class="nm">' + U.esc(b.name) + '</span>'
+        + '<span class="qt">' + num(b.servings, 1) + ' 份 · 楼内 ' + b.population + ' 人</span></label>';
+    });
+    h += '</div>';
+
+    h += '<div class="kpis" style="margin-top:10px">';
+    h += kpi(num(cs.before.netDaily) + ' 元', '砍前日均净现金流', cs.before.netDaily < 0 ? 'warn' : 'ok');
+    h += kpi(num(cs.after.netDaily) + ' 元', '砍后日均净现金流', cs.after.netDaily < 0 ? 'warn' : 'ok');
+    h += kpi(cs.runwayBefore === Infinity ? '不消耗' : cs.runwayBefore + ' 天', '砍前可支撑');
+    h += kpi(cs.runwayAfter === Infinity ? '不消耗' : cs.runwayAfter + ' 天', '砍后可支撑');
+    h += '</div>';
+
+    if (cutIds.length) {
+      h += '<div class="note warn" style="margin-top:10px;margin-bottom:0">'
+        + '<div>砍掉 ' + cs.cutNames.join('、') + ' ⇒ 日均减 ' + num(cs.cutServings, 1) + ' 份，'
+        + '净现金流变化 ' + money(cs.after.netDaily - cs.before.netDaily) + ' 元/天。</div>'
+        + '<div>每份摊的固定成本从 ' + money(cs.fixedPerServingBefore) + ' 升到 '
+        + money(cs.fixedPerServingAfter) + ' —— 量下来了，摊子没小。</div></div>';
+    }
+    h += '</div>';
+    return h;
+  }
+
+  /* ── 账期节奏 ─────────────────────────────────────────────────────── */
+  function renderRhythm() {
+    var h = '<div class="card"><h2>账期节奏<span class="n">钱什么时候进、什么时候出</span></h2>';
+    h += '<div class="tw"><table><thead><tr><th>时点</th><th>项</th><th>方向</th><th>口径</th></tr></thead><tbody>';
+    S.settleRhythm.list.forEach(function (r) {
+      var pill = r.dir === 'in' ? '<span class="pill ok">流入</span>'
+        : r.dir === 'out' ? '<span class="pill warn">流出</span>' : '<span class="pill dim">无收付</span>';
+      h += '<tr><td class="mono">' + r.day + '</td><td>' + r.item + '</td><td>' + pill
+        + '</td><td><span class="sub2">' + r.basis + '</span></td></tr>';
+    });
+    h += '</tbody></table></div>';
+    h += '<div class="note info" style="margin-top:10px;margin-bottom:0">'
+      + '<div>预收在前、采购款 T+1、佣金月结 ⇒ 变动现金流天然为正，这是预售制的结构性优势。</div>'
+      + '<div>但它只在单量增长时成立：一旦增长停滞或退款激增，优势会迅速反转 —— 本工具就是盯这个反转的仪表盘。</div></div>';
+    h += '</div>';
+    return h;
+  }
+
+  /* ── 自检 ─────────────────────────────────────────────────────────── */
+  function renderGate(res) {
+    var h = '<div class="card"><h2>自检<span class="n">' + res.rows.length + ' 条判据</span></h2>';
+    h += '<div class="gate">';
+    res.rows.forEach(function (r, i) {
+      h += '<div class="g' + (r.ok ? '' : ' bad') + '"><i>' + (i + 1) + '</i>'
+        + '<span class="t">' + (r.ok ? '' : '不符 ') + U.esc(r.name) + '</span>'
+        + (r.detail ? ' <span class="sub2">' + U.esc(r.detail) + '</span>' : '') + '</div>';
+    });
+    h += '</div>';
+    if (res.todos.length) {
+      h += '<ul class="todo" style="margin-top:10px">';
+      res.todos.forEach(function (t) { h += '<li>' + U.esc(t) + '</li>'; });
+      h += '</ul>';
+    }
+    h += '</div>';
+    return h;
+  }
+
+  /* ── 渲染 ─────────────────────────────────────────────────────────── */
+  function render() {
+    var res = window.SelfCheck.run(S, st);
+    U.$('#main').innerHTML = renderVerdict(res) + renderUnit(res) + renderDaily(res)
+      + renderRoll(res) + renderCut() + renderRhythm() + renderGate(res);
+    return res;
+  }
+
+  function exportCsv() {
+    var res = window.SelfCheck.run(S, st);
+    var rows = [['项', '元/天', '口径']];
+    var d = res.daily;
+    rows.push(['用户预付', d.grossIn, '下单即付']);
+    rows.push(['退款流出', d.refundOut, '退款率 ' + d.refundRate]);
+    rows.push(['供应商采购款', d.purchaseOut, '按全部份数，退款不冲减']);
+    rows.push(['团长佣金', d.commOut, '按净份数']);
+    rows.push(['履约成本', d.fulfillOut, '场所+打包+配送']);
+    rows.push(['固定成本', d.fixedDaily, '按 30 天摊']);
+    rows.push(['日均净现金流', d.netDaily, '']);
+    rows.push([]);
+    rows.push(['第N天', '流入', '流出', '净', '余额']);
+    res.roll.forEach(function (x) { rows.push([x.day, x.in, x.out, x.net, x.balance]); });
+    U.download('ABox现金流推演_' + U.today() + '.csv', U.toCSV(rows), 'text/csv');
+  }
+
+  /* ── 事件 ─────────────────────────────────────────────────────────── */
+  function bind() {
+    U.on('input', 'input[data-k]', function (e, t) {
+      st = M.set(st, t.getAttribute('data-k'), t.value);
+      render();
+    });
+    U.on('input', 'input[data-lv]', function (e, t) {
+      var mix = Object.assign({}, st.levelMix);
+      mix[t.getAttribute('data-lv')] = Number(t.value);
+      st.levelMix = mix;
+      render();
+    });
+    U.on('change', 'input[data-cut]', function (e, t) {
+      var id = Number(t.getAttribute('data-cut'));
+      var i = cutIds.indexOf(id);
+      if (t.checked && i < 0) cutIds.push(id);
+      if (!t.checked && i >= 0) cutIds.splice(i, 1);
+      render();
+    });
+    U.on('click', '[data-act]', function (e, t) {
+      var a = t.getAttribute('data-act');
+      if (a === 'reset') { st = M.defaults(); cutIds = []; renderSide(); render(); }
+      if (a === 'csv') exportCsv();
+    });
+  }
+
+  function boot() {
+    U.$('#ver').textContent = window.TOOL_VERSION;
+    U.$('#date').textContent = U.today();
+    renderSide();
+    render();
+    bind();
+    /* ⚠️ 必须挂在 `<html>` 上，不是 `<body>`：探针断言的是
+       `page.getAttribute('html', 'data-tool-ready')`，挂错地方探针恒红（本轮实测踩到）。 */
+    document.documentElement.setAttribute('data-tool-ready', '1');
+  }
+
+  /* ── 导出给探针（构建期自检与真 Chrome 共用同一份实现）────────────── */
+  window.M2App = {
+    boot: boot,
+    state: function () { return st; },
+    setState: function (k, v) { st = M.set(st, k, v); render(); return st; },
+    cuts: function () { return cutIds.slice(); },
+    setCuts: function (ids) { cutIds = (ids || []).slice(); render(); return cutIds; },
+    render: render,
+    check: function () { return window.SelfCheck.run(S, st); }
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+
+</script></body></html>

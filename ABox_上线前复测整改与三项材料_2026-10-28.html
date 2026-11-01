@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 上线前复测 · 整改与三项材料（2026-10-28）</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --ink:#2B2622; --brown:#6E5435; --line:rgba(110,84,53,.22);
+    --card:#FFFDF8; --bad:#9A3B2B; --good:#3F6B4E; --warn:#8A6A1F;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:"Kaiti SC","STKaiti",KaiTi,"Songti SC",serif;line-height:1.75}
+  .wrap{max-width:920px;margin:0 auto;padding:40px 22px 72px}
+  header{border-bottom:2px solid var(--brown);padding-bottom:18px;margin-bottom:28px}
+  h1{font-size:26px;margin:0 0 6px;color:var(--brown);font-weight:600}
+  .sub{font-size:13px;opacity:.72}
+  h2{font-size:19px;margin:34px 0 12px;color:var(--brown);
+     border-left:4px solid var(--brown);padding-left:10px}
+  h3{font-size:15px;margin:20px 0 8px;color:var(--brown)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:6px;
+        padding:16px 18px;margin:14px 0}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  th{background:rgba(110,84,53,.08);font-weight:600}
+  code{font-family:Consolas,Menlo,monospace;font-size:12px;
+       background:rgba(110,84,53,.08);padding:1px 4px;border-radius:3px}
+  pre{background:rgba(110,84,53,.06);border:1px solid var(--line);border-radius:5px;
+      padding:10px 12px;overflow:auto;font-size:12px;
+      font-family:Consolas,Menlo,monospace;line-height:1.6}
+  .ok{color:var(--good);font-weight:600}
+  .no{color:var(--bad);font-weight:600}
+  .wa{color:var(--warn);font-weight:600}
+  ul{margin:8px 0;padding-left:20px}
+  li{margin:4px 0}
+  .kv{font-size:13px;opacity:.8}
+  footer{margin-top:40px;border-top:1px solid var(--line);padding-top:14px;font-size:12px;opacity:.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>ABox 上线前复测 · 整改与三项材料</h1>
+  <div class="sub">2026-10-28 18:56–21:10（北京时间） ｜ 被测：线上 154.8.164.180（8080 后台 / 8081 小程序+H5） ｜ 依据测试报告《ABox_上线前复测报告_新账号补齐_2026-10-28.html》</div>
+</header>
+
+<h2>结论先行</h2>
+<div class="card">
+  <p style="margin-top:0">报告点名的 <b>阻断 B1 / 连带 N1 / 阻断 B3</b> 已<b>修复并部署上线</b>，实测转绿；
+  N4（配置未登记）、N6（账号名乱码）、N7（三个后台账号强口令）、N8（提现文案）四项也一并收口。</p>
+  <p>但测试要的第 4 项<b>「完整履约跑批」没能跑通</b> —— 不是方法不对，而是<b>链路的前端有一个真实断点</b>：
+  订单<b>停在「已截单」推不到「已出餐」</b>，于是配送联动推动不了它，团长拿不到「待取餐」的单，
+  佣金<b>压根不会产生</b>。这同时给 N2（团长余额全为 0）下了<u>真正的结论</u>：
+  <span class="no">不是结算任务坏了，是更早的一步没人做</span>。</p>
+  <p style="margin-bottom:0">下面按你要的三项材料逐项交付，每项都附<b>可复核的机器证据</b>。</p>
+</div>
+
+<h2>材料 1 · 团长绑卡入口可用性</h2>
+<div class="card">
+  <p style="margin-top:0"><b>结论：<span class="ok">入口可用</span></b>。绑卡一次成功，账号回显按预期脱敏。</p>
+  <h3>入口在哪</h3>
+  <ul>
+    <li>端上：<code>pages/leader/profile.vue</code>「收款人 / 收款账号 / 保存收款方式」 ⇢ <code>PUT /leader/profile</code>（L15）</li>
+    <li>兜底路径：首次提现时入参带 <code>receiveType</code> / <code>receiveAccount</code>，服务端顺带落绑（<code>withdraw.service.ts:199</code>）</li>
+  </ul>
+  <h3>线上实测（三个字段齐全才算「已绑」）</h3>
+  <table>
+    <tr><th style="width:24%">步骤</th><th style="width:38%">调用</th><th>结果</th></tr>
+    <tr><td>绑卡前</td><td><code>GET /leader/profile</code></td><td><code>payoutBound=false</code>，type/account/name 全空</td></tr>
+    <tr><td>绑定</td><td><code>PUT /leader/profile</code></td><td><code>code=0</code>（alipay / 13600000001 / 李明）</td></tr>
+    <tr><td>绑卡后回读</td><td><code>GET /leader/profile</code></td><td class="ok"><code>payoutBound=true</code>、<code>payoutAccount="1360****0001"</code>（已脱敏）</td></tr>
+  </table>
+  <p class="kv" style="margin-bottom:0">注：本报告写作时团长为「李明」（<code>dev:1001</code> mock 身份，chief 12%）。提现还有第二道校验 <code>40007</code>，现在绑完后该校验会让过去。</p>
+</div>
+
+<h2>材料 2 · 一次完整履约跑批的结果</h2>
+<div class="card">
+  <p style="margin-top:0"><b>结论：<span class="no">未跑通</span> —— 卡在「已截单 → 已出餐」，且这不是我构造失败，是线上真实断点。</b></p>
+
+  <h3>跑批实际走到哪（每步都是线上真实接口 / 手补跑，均与跑批同一执行口）</h3>
+  <table>
+    <tr><th style="width:6%">#</th><th style="width:26%">环节</th><th style="width:36%">调用</th><th>结果</th></tr>
+    <tr><td>1</td><td>用户下单</td><td><code>POST /orders</code>（10-29 · 2 份）</td><td class="ok">AB2026102802850288，¥51.60</td></tr>
+    <tr><td>2</td><td>支付</td><td><code>POST /orders/:no/pay</code></td><td class="ok">prepay → 2.5s 后 paid</td></tr>
+    <tr><td>3</td><td>归属确认</td><td>库 <code>ab_order.team_leader_id</code></td><td class="ok">=1（李明），佣金对象存在</td></tr>
+    <tr><td>4</td><td>截单</td><td><code>POST /admin/schedule/cutoff/run</code></td><td class="ok">自动取消未付 4 笔 + 锁定本单 1 笔</td></tr>
+    <tr><td>5</td><td>生成配送单</td><td><code>POST /admin/schedule/delivery-generate/run</code></td><td class="ok">配送单 id=3（国贸三期组 · 3 份）</td></tr>
+    <tr><td>6</td><td>团长绑卡</td><td><code>PUT /leader/profile</code></td><td class="ok">payoutBound=true（见材料 1）</td></tr>
+    <tr><td>7</td><td><b>出餐确认</b></td><td><code>POST /supplier/meal/cook-confirm</code></td><td class="no"><b>走不下去</b>（见下方根因）</td></tr>
+    <tr><td>8</td><td>配送推进</td><td><code>PATCH /admin/deliveries/3/status</code><br>called → en_route → arrived</td><td class="no">接口全绿，但<b>订单一单都没联动</b></td></tr>
+    <tr><td>9</td><td>团长确认取货</td><td><code>POST /leader/pickup/confirm</code></td><td>可达（前提：订单须为 delivered）</td></tr>
+    <tr><td>10</td><td>佣金入账</td><td><code>POST /admin/schedule/commission-settle/run</code></td><td>可达（前提：须有 pending 佣金行）</td></tr>
+  </table>
+
+  <h3>断点证据（第 8 步的返回原文）</h3>
+  <pre>PATCH /admin/deliveries/3/status   { "to": "en_route" }
+
+orderTransition = {
+  "from": "cooked", "to": "delivering",
+  "advanced": 0,
+  "remaining": [
+    { "status": "cut_off", "statusText": "已截单", "orderCount": 1, "quantity": 2 }
+  ],
+  "note": "该楼群当日已没有停在「已出餐」的订单（可能已推进过）"
+}</pre>
+  <p class="kv">配送单自己一路推到 <code>arrived</code> 都成功，但<b>联动订单数是 0</b>：我们的单停在 <code>cut_off</code>，
+  而 <code>en_route</code> 的联动条件是 <code>cooked → delivering</code>，条件不命中。<code>arrived</code> 同理（要求 <code>delivering → delivered</code>）。</p>
+
+  <h3>为什么就在这一步卡死：去餐饮化留下的空转</h3>
+  <ul>
+    <li><b>状态机仍在按餐饮写</b>：<code>paid → cut_off → <b>cooked</b> → delivering → delivered → completed</code>，<code>cooked</code> 是必经一环。</li>
+    <li><b>2026-10-21 转预包装快消</b>后，这批零食<b>不存在「现做出餐」这个动作</b>，自然也不存在「点出餐确认的人」。</li>
+    <li>承担这批零食的是<b>良品铺子 / 卫龙 / 伊利</b>（supplierId 16/18/20），而后台<b>只有「三味屋」一个供应商账号</b>（也是餐饮时期的遗留）；我临时建了 supplierId=16 的账号试过，其供应商工作台 <code>items</code> 为空 —— <b>它拿不到这批货的生产计划，自然确认不了</b>。</li>
+    <li>校验顺序也堵着：出餐确认前置「资质 → 09:30 时限 → <b>生产计划存在</b>（50010）→ 配送范围」，第二环就没东西。</li>
+  </ul>
+
+  <h3>这一步卡住的后果 = N2 的真正答案</h3>
+  <p>我查了生产库，两个数字对同一件事说话：</p>
+  <table>
+    <tr><th style="width:30%">查的是</th><th>结果</th></tr>
+    <tr><td><code>ab_commission</code></td><td class="no"><b>零行</b> —— 佣金一笔都没产生过</td></tr>
+    <tr><td><code>ab_order</code> 状态分布</td><td>cancelled 71 / cut_off 20 / pending_pay 4 / refunded 1 —— <b>没有任何一笔走到 paid 之后</b></td></tr>
+    <tr><td><code>ab_team_leader</code></td><td>5 个团长 <code>balance=0.00</code>、<code>pending=0.00</code>，而 <code>total_commission</code> 各自有数（李明 575.86）</td></tr>
+  </table>
+  <p style="margin-bottom:0">即：<code>total_commission</code> 是<b>历史遗留字段</b>，与当前链路脱钩；新链路一笔佣金都没生成过。
+  <b>所以「团长看到有佣金却提不出来」不会只是体验问题 —— 上线后第一天真实会发生。</b></p>
+</div>
+
+<h2>材料 3 · 商品图 / 真机截图</h2>
+<div class="card">
+  <h3>先说清楚：真机截图我替不了</h3>
+  <p>截图需要真的拿着手机打开小程序 —— 这一步我做不了。我能给的是<b>比截图更硬的机器证据</b>，
+  外加一个<b>你手机上点开就能肉眼验完</b>的自检页（见交付物）。</p>
+
+  <h3>N1 修复后：所有资源走 8081 实测</h3>
+  <table>
+    <tr><th style="width:44%">URL</th><th style="width:16%">修前</th><th style="width:16%">修后</th><th>字节</th></tr>
+    <tr><td><code>:8081/api/v1/health</code></td><td class="no">401</td><td class="ok">200</td><td>153</td></tr>
+    <tr><td><code>:8081/static/snack-03-liangpinpuzi.png</code></td><td class="no">401</td><td class="ok">200 image/png</td><td>1,775,070</td></tr>
+    <tr><td><code>:8081/static/snack-05-weilong.png</code></td><td class="no">401</td><td class="ok">200 image/png</td><td>1,637,692</td></tr>
+    <tr><td><code>:8081/static/snack-07-yili.png</code></td><td class="no">401</td><td class="ok">200 image/png</td><td>1,075,570</td></tr>
+    <tr><td><code>:8081/</code>（H5 页面本体）</td><td>401</td><td class="ok">仍 401</td><td>—</td></tr>
+  </table>
+  <p class="kv">最后一行是<b>故意的</b>：闸门保护的就是 H5 页面本身（无凭据仍进不去），安全性没被这次修复削掉。</p>
+
+  <h3>顺带一个提醒（不在测试报告里）</h3>
+  <p style="margin-bottom:0">这三张图是 <b>1.0–1.7 MB 的 PNG</b>，加载本身没问题；但在写字楼电梯 / 地库的弱网下，
+  小程序首页首屏加载会很慢 —— 建议压到 <b>200 KB 以内、WebP</b> 再做一轮。这不影响能不能显示，影响的是第一眼的观感。</p>
+</div>
+
+<h2>本轮落地清单（动作 → 判据 → 实测）</h2>
+<table>
+  <tr><th style="width:30%">动作</th><th style="width:38%">验收判据</th><th>实测</th></tr>
+  <tr>
+    <td>1. 修 8081 闸门（方案 A）<br><span class="kv">nginx.conf 闸门从 server 级下沉到 location /</span></td>
+    <td>8081 上 <code>/api/v1/home/daily</code> 与 <code>/static/*.png</code> 均非 401；H5 页面无凭据仍 401</td>
+    <td class="ok">通过</td>
+  </tr>
+  <tr>
+    <td>2. 提交并部署事故根因修复（B3）</td>
+    <td>线上 <code>GET /api/v1/health</code> 带非法体不再 10001</td>
+    <td class="ok">通过（200）</td>
+  </tr>
+  <tr>
+    <td>3. 三个后台账号改强口令 + scrypt</td>
+    <td>无 dev_plain 账号；登录 mustChangePassword=0</td>
+    <td class="ok">通过（5 账号全 scrypt，含 finance / sanweiwu）</td>
+  </tr>
+  <tr>
+    <td>4. 跑通佣金全链路</td>
+    <td>下单→…→余额入账→提现成功</td>
+    <td class="no">未通过（卡在出餐确认，见材料 2）</td>
+  </tr>
+  <tr>
+    <td>5. format</td>
+    <td><code>gate all</code> → 31/31</td>
+    <td class="wa">两个新文件已格式化；仍有一处待跑全量复核</td>
+  </tr>
+  <tr>
+    <td>6. 修两条过时 e2e 断言</td>
+    <td><code>gate verify</code> → 6/6</td>
+    <td class="wa">coupon-blindbox 已转绿 32/32；m3 仍有 23 条存量失败</td>
+  </tr>
+  <tr>
+    <td>7. 后台显式写入 D3 两项配置</td>
+    <td>value 非空白、updatedAt 有值</td>
+    <td class="ok">通过（2000.00 / 1）</td>
+  </tr>
+  <tr>
+    <td>8. 确认团长绑卡入口可用</td>
+    <td>绑卡后不再 40007</td>
+    <td class="ok">通过（绑卡成功 + 脱敏回显）</td>
+  </tr>
+  <tr>
+    <td>9. 清理测试脏数据</td>
+    <td>后台无非法日期、无乱码账号名</td>
+    <td class="wa">乱码已修；<code>2026-10-27</code> 脏数据未动（涉及删行，需你点头）</td>
+  </tr>
+  <tr>
+    <td>10. 订正提现文案</td>
+    <td>Swagger 摘要与 D3 一致</td>
+    <td class="ok">通过</td>
+  </tr>
+</table>
+
+<h2>仍未闭环（按紧急度）</h2>
+<div class="card">
+  <ol style="margin-top:0">
+    <li><b>出餐确认这一步谁来认领</b>（阻断从中游往下游传导）。要么在后台给真正发货的零食供应商开账号并接上生产计划，要么干脆<b>改状态机</b>：预包装路线不需要「已出餐」，可以<b>截单后直接可发货</b>（<code>cut_off → delivering</code>）。我倾向后者 —— 它是「去餐饮化」没改干净的地方，留着 <code>cooked</code> 就是留一个没人点的按钮。</li>
+    <li><b>m3 的 23 条 e2e 存量红灯</b>。已确认不是本轮引入（基线 24 条，修好后 1327→1328），集中在「楼栋归群 / 配置分组 / 提现余额」三处。带着红灯发版，下次出问题分不清新旧，建议发版前清干净。</li>
+    <li><b><code>2026-10-27</code> 脏数据</b>（pm_admin 昨天的停售 / 退款记录）。删之前想先问你：这几行是纯测试残留吗？</li>
+    <li><b>生产包仍是旧的</b>：提审前要重打 production 并用开发者工具上传（当前 <code>appid</code> 仍为空）。</li>
+    <li><b>凭据</b>：admin / finance / sanweiwu / pm_admin 四个口令本轮都重置了，明文只在对话里交付 —— 别让它只留在聊天记录里。</li>
+  </ol>
+</div>
+
+<footer>
+  证据来源：线上真实接口（154.8.164.180:8080 / 8081）+ 生产库只读查询 + 本地门禁实跑。
+  部署 tag <code>manual-20261028T193752</code>，远端提交 <code>dd37a94</code>，部署前已备份数据库
+  <code>/opt/abox-onebox/backups/pre-deploy-20261028T193738.sql.gz</code>。
+  生成时间：2026-10-28 · 北京
+</footer>
+
+</div>
+</body>
+</html>

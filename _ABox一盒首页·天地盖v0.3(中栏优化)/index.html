@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 首页天地盖 v0.3（中栏优化）</title>
+<style>
+@font-face {
+  font-family: 'ABoxKai';
+  src: url('ab-kaiti.woff2') format('woff2');
+  font-weight: normal; font-style: normal; font-display: swap;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* 色值全部取自 apps/miniprogram/src/styles/tokens.scss（v2.1），不新造 */
+:root{
+  --bg:#f6f0e5; --surface:#fffdf8; --surface2:#f7f1e4; --surface3:#fbf6ec;
+  --text:#6e5435; --weak:#796c57; --disabled:#a79a85;
+  --gold:#c9a876; --gold-deep:#936f3a; --gold-deepest:#8a6620;
+  --border:#e4d8c3; --border-strong:#d6cbb8;
+  --warning:#c44536; --gold-fg:#8a6620; --ok-fg:#577738;
+  --kai:'ABoxKai', KaiTi, STKaiti, 楷体, 'Noto Serif SC', serif;
+  --base:-apple-system, BlinkMacSystemFont, 'PingFang SC', 'HarmonyOS Sans SC', 'Noto Sans CJK SC', 'Microsoft YaHei', Arial, sans-serif;
+  --num:'SF Mono','Roboto Mono',Consolas,monospace;
+}
+body{
+  font-family: var(--kai); background:#e8dfcf; color:#3a322a;
+  padding:30px 16px 70px; line-height:1.8; -webkit-font-smoothing:antialiased;
+}
+.wrap{ max-width:1180px; margin:0 auto; }
+h1{ font-size:21px; font-weight:normal; letter-spacing:.5px; color:var(--text); }
+.lead{ margin-top:8px; font-size:13px; color:#5f5445; max-width:920px; font-family:var(--base); line-height:1.95; }
+.lead b{ color:var(--text); font-weight:600; }
+
+.badge{
+  display:inline-block; margin-top:12px; font-size:12px; color:var(--warning);
+  background:#fbf0ee; border:1px solid #e3bfb8; border-radius:4px;
+  padding:5px 11px; font-family:var(--base); line-height:1.9;
+}
+.badge b{ color:var(--warning); font-weight:600; }
+
+/* 两栏对照 */
+.two{ display:flex; gap:26px; flex-wrap:wrap; margin-top:24px; align-items:flex-start; }
+.col{ flex:1; min-width:340px; }
+.col h2{ font-size:14.5px; font-weight:normal; color:var(--text); letter-spacing:.5px; }
+.col .who{ font-size:11.5px; color:var(--weak); margin:3px 0 12px; font-family:var(--base); line-height:1.7; }
+
+.phone{
+  width:375px; max-width:100%; background:var(--bg); border-radius:18px;
+  box-shadow:0 2px 18px rgba(58,50,42,.14); padding:0 0 14px; overflow:hidden;
+}
+
+/* ---------- 倒计时（两稿共用 · 不动） ---------- */
+.cd{
+  background:var(--text); color:var(--bg); text-align:center;
+  padding:14px 20px; border-radius:0 0 18px 18px;
+}
+.cd__l{ font-size:12px; opacity:.92; font-family:var(--base); }
+.cd__n{ margin-top:6px; font-size:18px; font-weight:700; color:var(--gold); letter-spacing:2px; font-family:var(--num); }
+.cd__s{ margin-top:6px; font-size:12px; opacity:.85; font-family:var(--base); }
+
+/* ---------- 通用卡片 ---------- */
+.card{
+  margin:14px 20px 0; padding:20px; background:var(--surface);
+  border:1px solid var(--border); border-radius:16px;
+  box-shadow:0 1px 4px rgba(110,84,53,.06);
+}
+
+/* ---------- 团长横幅 / 跟随团长（两稿共用） ---------- */
+.lb{
+  display:flex; align-items:center; gap:14px; margin:14px 20px 0; padding:14px 20px;
+  background:linear-gradient(135deg,var(--gold),var(--text)); border-radius:10px; color:#fff;
+}
+.lb__m{ flex:1; }
+.lb__t{ font-size:14px; font-weight:700; }
+.lb__s{ margin-top:6px; font-size:12px; opacity:.92; font-family:var(--base); }
+.lb__c{ font-size:12px; padding:6px 10px; background:rgba(255,255,255,.2); border-radius:4px; font-family:var(--base); }
+.lr{ display:flex; align-items:center; justify-content:space-between; }
+.lr__l{ display:flex; flex-direction:column; }
+.lr__a{ font-size:12px; color:var(--weak); font-family:var(--base); }
+.lr__n{ margin-top:6px; font-size:14px; font-weight:700; color:var(--text); }
+.lr__b{ margin-top:6px; font-size:12px; color:var(--weak); font-family:var(--base); }
+.lr__s{ margin-top:6px; font-size:12px; line-height:1.6; color:var(--text); font-family:var(--base); }
+.lr__x{ font-size:12px; color:var(--weak); font-family:var(--base); }
+
+/* ================= 左：v0.2 中栏（优化前） ================= */
+.box{ margin:14px 20px 0; border-radius:18px; overflow:hidden; box-shadow:0 2px 10px rgba(110,84,53,.10); }
+.box__lid{
+  background:linear-gradient(135deg,var(--gold),var(--gold-deep));
+  color:#fff; text-align:center; padding:15px 18px 16px;
+}
+.box__lid-d{ font-size:12.5px; opacity:.95; letter-spacing:1px; }
+.box__lid-p{
+  margin-top:9px; padding:6px 14px; background:rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.4); border-radius:14px;
+}
+.box__lid-p span{ display:block; font-size:11.5px; line-height:1.55; font-family:var(--base); }
+.box__body{ background:var(--surface); border:1px solid var(--border); border-top:none; padding:12px; border-radius:0 0 18px 18px; }
+.grid{ display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.cell{ background:var(--surface); border:1px solid rgba(110,84,53,.22); border-radius:11px; padding:7px; }
+.ph{
+  height:129px; border-radius:7px; display:flex; align-items:center; justify-content:center;
+  font-size:11.5px; color:rgba(255,253,248,.92); letter-spacing:1px; font-family:var(--base);
+}
+.im1{ background:#6b7a4e; } .im2{ background:#8a6b4f; }
+.im3{ background:#7a4e42; } .im4{ background:#5e6e52; }
+.cell__n{ margin-top:7px; font-size:14px; font-weight:700; color:var(--text); padding:0 2px; }
+.cell__s{ font-size:11.5px; color:var(--weak); padding:0 2px; font-family:var(--base); }
+.cell__s em{ font-style:normal; color:var(--gold-fg); }
+.rice{
+  margin-top:9px; background:var(--surface); border:1px solid rgba(110,84,53,.22);
+  border-radius:11px; padding:10px 13px; display:flex; align-items:center;
+}
+.rice__ic{
+  width:34px; height:24px; flex:none; border-radius:12px; background:#fff;
+  border:1px solid rgba(110,84,53,.3); position:relative; overflow:hidden;
+}
+.rice__ic i{ position:absolute; width:4px; height:2.5px; background:#e9d98a; border-radius:2px; transform:rotate(24deg); }
+.rice__t{ margin-left:10px; font-size:13px; color:var(--text); }
+.rice__s{ font-size:11px; color:var(--weak); font-family:var(--base); }
+.rice__p{ margin-left:auto; font-size:16px; color:var(--gold-fg); font-family:var(--num); }
+.pr{ display:flex; align-items:center; justify-content:space-between; }
+.pr__l{ display:flex; flex-direction:column; }
+.pr__a{ font-size:12px; color:var(--weak); font-family:var(--base); }
+.pr__p{ display:flex; align-items:baseline; margin-top:6px; }
+.pr__big{ font-size:30px; font-weight:700; color:var(--text); line-height:1.2; font-family:var(--num); }
+.hint{ display:block; margin:6px 20px 0; text-align:right; font-size:12px; color:var(--weak); font-family:var(--base); }
+
+/* ================= 右：v0.3 中栏（优化后） ================= */
+.box2{ margin:14px 20px 0; border-radius:18px; overflow:hidden; box-shadow:0 3px 14px rgba(110,84,53,.14); }
+
+/* 天盖：上圆角 + 下缘内阴影（盖子压住盒身的那道边） */
+.box2__lid{
+  background:linear-gradient(135deg,var(--gold),var(--gold-deep));
+  color:#fff; text-align:center; padding:15px 18px 17px;
+  box-shadow:inset 0 -7px 11px -7px rgba(58,42,16,.55);
+}
+.box2__lid-d{ font-size:12.5px; opacity:.95; letter-spacing:1px; }
+.box2__lid-p{
+  margin-top:9px; padding:6px 14px; background:rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.4); border-radius:14px;
+}
+.box2__lid-p span{ display:block; font-size:11.5px; line-height:1.55; font-family:var(--base); }
+
+/* 盖缝：两端淡、中间深 */
+.box2__seam{
+  height:3px;
+  background:linear-gradient(90deg,
+    rgba(138,102,32,.18) 0%, var(--gold-deepest) 16%,
+    var(--gold-deepest) 84%, rgba(138,102,32,.18) 100%);
+}
+
+/* 地盒：盒身沉一档（surface2），白格浮起 = 塑料隔挡 */
+.box2__body{
+  background:var(--surface2); padding:11px;
+  border:1px solid var(--border); border-top:none;
+  border-radius:0 0 18px 18px;
+}
+.grid2{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.cell2{
+  background:var(--surface); border:1px solid rgba(110,84,53,.14);
+  border-radius:10px; padding:6px; box-shadow:0 1px 3px rgba(110,84,53,.10);
+}
+.ph2{
+  height:129px; border-radius:6px; display:flex; align-items:center; justify-content:center;
+  font-size:11.5px; color:rgba(255,253,248,.92); letter-spacing:1px; font-family:var(--base);
+}
+.cell2__n{ margin-top:6px; font-size:14px; font-weight:700; color:var(--text); padding:0 2px; }
+.cell2__s{ font-size:11.5px; color:var(--weak); padding:1px 2px 0; font-family:var(--base); }
+.cell2__s em{ font-style:normal; color:var(--gold-fg); }
+
+/* 米饭 = 盒底露出：贴盒壁、无白卡、顶部实线隔挡 */
+.rice2{
+  margin:9px -11px 0; padding:9px 11px;
+  display:flex; align-items:center; gap:9px;
+  border-top:1px solid var(--border-strong);
+}
+.rice2__ic{
+  width:30px; height:22px; flex:none; border-radius:11px; background:#fff;
+  border:1px solid rgba(110,84,53,.3); position:relative; overflow:hidden;
+}
+.rice2__ic i{ position:absolute; width:4px; height:2.5px; background:#e9d98a; border-radius:2px; transform:rotate(24deg); }
+.rice2__t{ font-size:13px; color:var(--text); white-space:nowrap; }
+.rice2__s{ font-size:11px; color:var(--weak); font-family:var(--base); white-space:nowrap; }
+.qty2{ margin-left:auto; display:inline-flex; align-items:center; background:var(--bg); border:1px solid var(--border-strong); border-radius:999px; overflow:hidden; flex:none; }
+.qty2 span{ width:26px; height:26px; display:flex; align-items:center; justify-content:center; background:var(--surface); color:var(--text); font-size:17px; }
+.qty2 b{ width:32px; text-align:center; font-size:13px; color:var(--text); }
+
+/* 应付卡：压缩内边距，上限提示并入同一行 */
+.pay{
+  margin:12px 20px 0; padding:12px 16px; background:var(--surface);
+  border:1px solid var(--border); border-radius:14px;
+  display:flex; align-items:baseline; justify-content:space-between;
+}
+.pay__k{ font-size:12px; color:var(--weak); font-family:var(--base); }
+.pay__v{ margin-left:8px; font-size:28px; font-weight:700; color:var(--text); line-height:1.2; font-family:var(--num); }
+.pay__h{ font-size:11.5px; color:var(--weak); font-family:var(--base); }
+
+/* ---------- 主按钮 / 底栏 ---------- */
+.cta{
+  display:block; margin:14px 20px 0; padding:14px 0; text-align:center;
+  background:linear-gradient(135deg,var(--text) 0%,var(--gold-deep) 100%);
+  color:var(--bg); font-size:15px; font-weight:700; letter-spacing:2px; border-radius:999px;
+}
+.cta--ghost{ background:var(--surface); color:var(--text); border:1px solid var(--text); }
+.bb{ margin-top:16px; display:flex; border-top:1px solid var(--border); background:var(--surface); }
+.bb i{ flex:1; text-align:center; padding:9px 0; font-style:normal; font-size:11px; color:var(--weak); font-family:var(--base); }
+.bb i.on{ color:var(--gold-fg); font-weight:700; }
+
+/* 高亮标记：优化点在稿上直接标出来 */
+.mark{
+  position:relative;
+}
+.mark::after{
+  content:attr(data-m);
+  position:absolute; right:-6px; top:-9px; z-index:5;
+  font-size:10px; font-family:var(--base); color:#fff; background:var(--warning);
+  padding:1px 6px; border-radius:8px; white-space:nowrap; letter-spacing:0;
+}
+
+.note{ margin-top:13px; font-size:12.5px; color:var(--weak); line-height:2; font-family:var(--base); }
+.note b{ color:var(--text); font-weight:600; }
+
+/* 优化清单 */
+.lst{ margin-top:30px; background:var(--surface); border:1px solid var(--border); border-radius:13px; padding:16px 20px 18px; }
+.lst h2{ font-size:15px; font-weight:normal; color:var(--text); letter-spacing:.5px; }
+table{ width:100%; border-collapse:collapse; margin-top:10px; font-family:var(--base); }
+th,td{ font-size:12.5px; text-align:left; padding:8px 9px; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.8; }
+th{ color:var(--text); font-weight:600; background:var(--surface2); white-space:nowrap; }
+td.k{ color:var(--text); font-weight:600; white-space:nowrap; }
+.fix{ color:var(--warning); font-weight:600; }
+.up{ color:var(--gold-fg); font-weight:600; }
+.keep{ color:var(--ok-fg); font-weight:600; }
+code{ font-family:var(--num); font-size:11.5px; background:var(--surface2); padding:1px 5px; border-radius:4px; color:var(--gold-fg); }
+td code{ font-size:11.5px; }
+
+/* 尺寸账 */
+.calc{ margin-top:26px; background:var(--surface); border:1px solid var(--border); border-radius:13px; padding:16px 20px 18px; }
+.calc h2{ font-size:15px; font-weight:normal; color:var(--text); letter-spacing:.5px; }
+.calc pre{
+  margin-top:10px; font-family:var(--num); font-size:12px; line-height:2; color:#3a322a;
+  background:var(--surface3); border:1px solid var(--border); border-radius:8px; padding:12px 14px;
+  white-space:pre-wrap;
+}
+.cv{ margin-top:9px; font-size:11.5px; color:var(--warning); font-family:var(--base); line-height:1.9; }
+
+/* 纪律 */
+.rule{ margin-top:26px; background:var(--surface); border:1px dashed rgba(110,84,53,.45); border-radius:13px; padding:15px 20px 16px; }
+.rule h2{ font-size:15px; font-weight:normal; color:var(--gold-deepest); letter-spacing:.5px; }
+.rule li{ font-size:12.5px; color:#3a322a; padding:5px 0; line-height:1.95; font-family:var(--base); }
+.rule ol{ margin-left:19px; margin-top:6px; }
+
+/* 待拍板 */
+.ask{ margin-top:26px; background:var(--surface); border:1px solid var(--border-strong); border-radius:13px; padding:15px 20px 16px; }
+.ask h2{ font-size:15px; font-weight:normal; color:var(--warning); letter-spacing:.5px; }
+.ask li{ font-size:12.5px; color:#3a322a; padding:5px 0; line-height:1.95; font-family:var(--base); }
+.ask ol{ margin-left:19px; margin-top:6px; }
+.ask b{ color:var(--warning); font-weight:600; }
+
+/* 实物对照 */
+.ref{ margin-top:30px; background:var(--surface); border:1px solid var(--border); border-radius:13px; padding:16px 20px 18px; }
+.ref h2{ font-size:15px; font-weight:normal; color:var(--text); letter-spacing:.5px; }
+.ref__f{ display:flex; gap:18px; flex-wrap:wrap; margin-top:10px; align-items:flex-start; }
+.ref img{ width:230px; border-radius:10px; border:1px solid rgba(110,84,53,.25); }
+.ref__why{ flex:1; min-width:290px; margin-left:19px; }
+.ref__why li{ font-size:12.5px; color:#3a322a; padding:4px 0; line-height:1.9; font-family:var(--base); }
+.ref__why b{ color:var(--text); font-weight:600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>首页 · 天地盖 v0.3 · 中栏优化</h1>
+  <div class="lead">
+    你说偏好中间那一版（不带原地展开证照），我在它基础上改了六处。
+    右边是优化后，左边是优化前，<b>改动处打了红标</b>。
+    其中第一条是<b>我上一版的疏漏</b>，不是新优化。
+  </div>
+
+  <div class="badge">
+    <b>先认一个错：</b>上一版我把「来自：X ›」的箭头去掉了——那本来是为了配合右栏（B 稿）的展开弹层，
+    但中栏不带弹层，等于<b>把你现有首页已经有的跳转能力砍掉了</b>。这次补回来，点击行为维持现状（跳溯源页），不动后端。
+  </div>
+
+  <div class="two">
+
+    <!-- ============ 左：优化前（v0.2 中栏） ============ -->
+    <div class="col">
+      <h2>左 · 优化前（v0.2 中栏）</h2>
+      <div class="who">格子白底、盒身白底 ⇒ 看不出隔挡；米饭是第五个白卡</div>
+      <div class="phone">
+
+        <div class="cd">
+          <div class="cd__l">距离截单还剩</div>
+          <div class="cd__n">08:42:15</div>
+          <div class="cd__s">24:00 后将无法下单</div>
+        </div>
+
+        <div class="box">
+          <div class="box__lid">
+            <div class="box__lid-d">10月12日 周一 · 明天 11:30 到楼</div>
+            <div class="box__lid-p">
+              <span>四方好味汇一盒</span>
+              <span>每家只出一道拿手菜</span>
+            </div>
+          </div>
+          <div class="box__body">
+            <div class="grid">
+              <div class="cell">
+                <div class="ph im1">实拍图位</div>
+                <div class="cell__n">蒜蓉菠菜</div>
+                <div class="cell__s">来自：<em>四季鲜蔬</em></div>
+              </div>
+              <div class="cell">
+                <div class="ph im2">实拍图位</div>
+                <div class="cell__n">小炒黄牛肉</div>
+                <div class="cell__s">来自：<em>三味屋</em></div>
+              </div>
+              <div class="cell">
+                <div class="ph im3">实拍图位</div>
+                <div class="cell__n">红烧排骨</div>
+                <div class="cell__s">来自：<em>老饭盒</em></div>
+              </div>
+              <div class="cell">
+                <div class="ph im4">实拍图位</div>
+                <div class="cell__n">韭菜炒蛋</div>
+                <div class="cell__s">来自：<em>三味屋</em></div>
+              </div>
+            </div>
+            <div class="rice">
+              <div class="rice__ic">
+                <i style="left:7px; top:6px;"></i><i style="left:16px; top:10px;"></i>
+                <i style="left:24px; top:5px;"></i><i style="left:11px; top:14px;"></i>
+              </div>
+              <div class="rice__t">米饭<span class="rice__s">　·　可备注少饭 / 免饭</span></div>
+              <div class="rice__p">¥25.80<span style="font-size:11px;">/份</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="pr">
+            <div class="pr__l">
+              <div class="pr__a">合计</div>
+              <div class="pr__p"><span class="pr__big">¥25.80</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="hint">单笔最多 10 份</div>
+
+        <div class="cta">立即预订 ¥25.80</div>
+        <div class="bb"><i class="on">首页</i><i>订单</i><i>我的</i></div>
+      </div>
+
+      <div class="note">
+        <b>问题在于"看不出是一盒"。</b>格子是白卡、盒身也是白的，两者之间没有层次，
+        于是四格菜看起来像四张独立卡片，米饭则像第五张卡片——<b>"格挡"和"底座"这两个最像实物的特征全丢了</b>。
+      </div>
+    </div>
+
+    <!-- ============ 右：优化后（v0.3） ============ -->
+    <div class="col">
+      <h2>右 · 优化后（v0.3 中栏）</h2>
+      <div class="who">盒身沉一档、白格浮起、米饭变盒底；份数并入饭位</div>
+      <div class="phone">
+
+        <div class="cd">
+          <div class="cd__l">距离截单还剩</div>
+          <div class="cd__n">08:42:15</div>
+          <div class="cd__s">24:00 后将无法下单</div>
+        </div>
+
+        <!-- ① 盖沿 + ② 盖缝 -->
+        <div class="box2">
+          <div class="box2__lid mark" data-m="① 盖沿">
+            <div class="box2__lid-d">10月12日 周一 · 明天 11:30 到楼</div>
+            <div class="box2__lid-p">
+              <span>四方好味汇一盒</span>
+              <span>每家只出一道拿手菜</span>
+            </div>
+          </div>
+          <div class="box2__seam"></div>
+
+          <!-- ③ 盒身沉一档 = 隔挡 -->
+          <div class="box2__body mark" data-m="③ 隔挡">
+            <div class="grid2">
+              <!-- ⑥ 来自：X 补回箭头 -->
+              <div class="cell2 mark" data-m="⑥ 来自">
+                <div class="ph2 im1">实拍图位</div>
+                <div class="cell2__n">蒜蓉菠菜</div>
+                <div class="cell2__s">来自：<em>四季鲜蔬</em> ›</div>
+              </div>
+              <div class="cell2">
+                <div class="ph2 im2">实拍图位</div>
+                <div class="cell2__n">小炒黄牛肉</div>
+                <div class="cell2__s">来自：<em>三味屋</em> ›</div>
+              </div>
+              <div class="cell2">
+                <div class="ph2 im3">实拍图位</div>
+                <div class="cell2__n">红烧排骨</div>
+                <div class="cell2__s">来自：<em>老饭盒</em> ›</div>
+              </div>
+              <div class="cell2">
+                <div class="ph2 im4">实拍图位</div>
+                <div class="cell2__n">韭菜炒蛋</div>
+                <div class="cell2__s">来自：<em>三味屋</em> ›</div>
+              </div>
+            </div>
+
+            <!-- ④ 米饭 = 盒底露出（贴盒壁） + ⑤ 份数并入 -->
+            <div class="rice2 mark" data-m="④⑤ 盒底+份数">
+              <div class="rice2__ic">
+                <i style="left:6px; top:5px;"></i><i style="left:14px; top:9px;"></i>
+                <i style="left:21px; top:4px;"></i><i style="left:10px; top:13px;"></i>
+              </div>
+              <div class="rice2__t">米饭<span class="rice2__s"> · 少饭/免饭可备注</span></div>
+              <div class="qty2"><span>−</span><b>1</b><span>+</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ⑤ 应付卡：上限提示并入同一行 -->
+        <div class="pay">
+          <div><span class="pay__k">应付</span><span class="pay__v">¥25.80</span></div>
+          <span class="pay__h">单笔最多 10 份</span>
+        </div>
+
+        <div class="cta">立即预订 ¥25.80</div>
+        <div class="bb"><i class="on">首页</i><i>订单</i><i>我的</i></div>
+      </div>
+
+      <div class="note">
+        <b>关键的一处是③：</b>盒身底色沉一档（<code>--surface2</code>），白格浮在上面——
+        格子之间那道缝就是实物的<b>塑料隔挡</b>，不用画一条线，靠底色差就出来了。
+        同理④：米饭不再是一张白卡，而是<b>盒底露出来的那一条</b>，左右贴着盒壁。
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ 优化清单 ============ -->
+  <div class="lst">
+    <h2>一、六处改动，逐条说清为什么</h2>
+    <table>
+      <thead><tr><th style="width:34px;">#</th><th style="width:96px;">性质</th><th style="width:150px;">改了什么</th><th>为什么</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="k">⑥</td>
+          <td class="fix">补疏漏</td>
+          <td class="k">「来自：X」补回 <code>›</code></td>
+          <td>上一版为配合 B 稿弹层把它去掉了，但中栏不带弹层 ⇒ <b>等于砍掉了现有能力</b>。
+            补回后点击行为维持现状（<code>openSupplier(d)</code> 跳溯源页），<b>不改后端</b>。</td>
+        </tr>
+        <tr>
+          <td class="k">①</td>
+          <td class="up">视觉</td>
+          <td class="k">天盖下缘加盖沿</td>
+          <td>天地盖的识别特征是「盖子压住盒身」那道边。做法：<b>上圆角下直角</b> +
+            下缘一条内阴影（<code>inset 0 -7px 11px -7px</code>）。零新增元素，纯 CSS。</td>
+        </tr>
+        <tr>
+          <td class="k">②</td>
+          <td class="up">视觉</td>
+          <td class="k">天盖与地盒之间加盖缝</td>
+          <td>3px 横条，两端淡中间深（<code>--gold-deepest</code> 渐变）。
+            没有它，盖和盒就是上下两块色，<b>看不出是两个部件</b>。</td>
+        </tr>
+        <tr>
+          <td class="k">③</td>
+          <td class="up">视觉</td>
+          <td class="k">盒身沉一档，白格浮起</td>
+          <td><b>本轮最关键的一处。</b>盒身 <code>--surface2</code>、格子 <code>--surface</code> 白底 + 轻投影
+            ⇒ 格子间的缝隙<b>自动成为隔挡</b>，比分格线更像塑料模具，且零新增元素。</td>
+        </tr>
+        <tr>
+          <td class="k">④</td>
+          <td class="up">视觉</td>
+          <td class="k">米饭改为「盒底露出」</td>
+          <td>取消白卡与外描边，只留<b>顶部一道实线隔挡</b>；左右用负 margin 贴到盒壁
+            ⇒ 视觉上它就是盒底，而不是第五个格子。<b>这才对得上"饭在底座"这个说法。</b></td>
+        </tr>
+        <tr>
+          <td class="k">⑤</td>
+          <td class="up">结构</td>
+          <td class="k">份数并入饭位；下方改「应付」</td>
+          <td>饭位承载「<b>吃什么 + 几份</b>」，下方只答「<b>付多少</b>」——分工比原来清楚
+            （原来饭位挂单价、下面又说合计，两个 25.80 并排容易绕）。
+            同时把「单笔最多 10 份」并入同一行，<b>少一个块</b>。</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============ 尺寸账 ============ -->
+  <div class="calc">
+    <h2>二、优化后，主按钮能进首屏吗</h2>
+    <pre>口径：375px 视口（750rpx ⇒ 1rpx=0.5px），间距/字号取 tokens.scss v2.1 实际值。均为推算，非真机实测。
+
+【优化后 · 普通用户视角】（大多数用户不是团长 ⇒ 无团长横幅、无跟随团长卡）
+  倒计时         ≈  96px
+  天盖 + 盖缝    ≈ 103px
+  地盒           =  11 + (186×2 + 8) + 48 + 11 = 450px
+    其中单格     =   6 + 129(图位) + 6 + 22(菜名) + 17(来源) + 6 = 186px
+  应付卡         ≈  72px（原「合计卡 + 独立提示行」= 134px ⇒ 省 62px）
+  主按钮         ≈  64px
+  ─────────────────────────────────
+  到按钮底部     ≈ 785px
+
+  iPhone SE   (667px 视口) → 需下滑约 1 指
+  iPhone X/11 (812px 视口) → ✅ 主按钮首屏可见
+
+【团长视角】再 + 团长横幅 70px + 跟随团长卡 110px ≈ 975px → 需下滑
+
+⇒ 结论：普通用户（占绝大多数）在主流机型上<b>不用滚就能看到"立即预订"</b>。
+   这是优化前做不到的。优化前同口径 = 96 + 98(天盖) + 484(盒) + 134(合计卡)
+   + 18(独立的「单笔最多」行) + 64(按钮) = <b>894px</b> ⇒ 本轮省 <b>109px</b>。</pre>
+    <div class="cv">
+      ⚠️ 口径声明：以上为<b>按 token 推算</b>，落码后必须真机核对一次。
+      另：<b>团长视角要不要把那两块挪走</b>（比如折进「我的」或做成可收起的条），
+      是个独立议题，我没动——它涉及团长的工作动线，得你定。
+    </div>
+  </div>
+
+  <!-- ============ 纪律 ============ -->
+  <div class="rule">
+    <h2>三、落码时仍然要守的（沿用 v0.2，一条没减）</h2>
+    <ol>
+      <li><b>时刻一律从响应取，端上不写死。</b><code>cutoffAt</code> / <code>deliverAt</code>；取不到就整行不显示，不回落写死值（回落值就是新的硬编码）。</li>
+      <li><b>格子顺序 = 服务端顺序，端上不重排。</b><code>dishesOfSetMeal</code> 已按 <code>slot ASC</code> 下发；端上一排序就造出第二份编排口径。</li>
+      <li><b>⛔ 不许写 <code>&lt;ab-icon&gt;</code> 组件。</b>唯一写法 <code>&lt;text class="abi abi-16"&gt;{{ I.chart }}&lt;/text&gt;</code>，script 段不许出现 <code>I.xxx</code>。</li>
+      <li><b>⛔ 「来自：X ›」不许变成第三方平台的东西。</b>名称 / 标识 / 链接 / 可跳转物 / 可复制口令，五项全禁（撞 5.10 / 5.20 / 5.15.4，处理是下架）。它现在指向自家溯源页，是安全的。</li>
+      <li><b>菜数 ≠ 4 时要有降级。</b><code>dishesOfSetMeal</code> 目前<b>没有过滤主食槽 <code>slot=5</code></b>，只是种子恰好没编主食。规则：4 条走 2×2；3 条走 2+1 左对齐；≥5 或 &lt;3 退回纵向列表。</li>
+      <li><b>图位优先读 <code>d.imageUrl</code>，读不到再回落到 iconfont 占位图标。</b>注意这里是<b>允许回落</b>的——因为它回退的是"没有图"，不是"假装有图"，与时刻那条纪律不冲突。</li>
+    </ol>
+  </div>
+
+  <!-- ============ 实物对照 ============ -->
+  <div class="ref">
+    <h2>四、优化后与实物的对应关系</h2>
+    <div class="ref__f">
+      <img src="_产品实拍参考.png" alt="产品实拍：天地盖一饭四菜，上两排四格菜、底部通栏米饭">
+      <ul class="ref__why">
+        <li><b>盖沿 + 盖缝 = 天盖压住地盒。</b>实物开盖时最先看到的就是那道边。</li>
+        <li><b>盒身沉一档 = 塑料隔挡。</b>实物里四格之间是凸起的隔挡；屏幕上靠"盒底深、格面白"这个明度差表达，不画格线。</li>
+        <li><b>米饭贴盒壁 = 底座。</b>实物里饭格最长、贴着盒壁；屏幕上用负 margin 顶到盒身边缘，视觉上就是盒底。</li>
+        <li><b>盒色不搬。</b>实物的青绿是耗材色，屏幕仍走品牌米色 + 暖棕。</li>
+        <li><b>图位仍是硬前置。</b>四张 1:1 俯拍图——没有图，③ 那处隔挡效果出不来（白格子空着，看不出"格子"）。</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ 待拍板 ============ -->
+  <div class="ask">
+    <h2>五、还剩三件要你拍板</h2>
+    <ol>
+      <li><b>图位比例 1:1 还是 4:3？</b>1:1 最像实物（本稿按 1:1 画）；4:3 能再省约 40px。
+        我仍倾向 <b>1:1</b>——① ③ ④ 三处优化全部依赖"格子看着像格子"，图一压扁就散了。</li>
+      <li><b>团长那两块（横幅 + 跟随卡）要不要挪走？</b>它们让团长视角多出 180px，
+        <b>把大多数用户能受益的首屏改善，让少数团长承担了下滑</b>。
+        可选：折进「我的」/ 做成默认收起的条。涉及团长工作动线，我没动。</li>
+      <li><b>要不要在图位上加档位角标（主荤 / 半荤 / 素菜）？</b>
+        数据真实存在（<code>d.slot</code> + <code>SET_MEAL_SLOT_LABEL</code>），但会占图位。
+        <b>我的建议是不加</b>——四格已经够满，且角标会挡住实拍图这个主角。</li>
+    </ol>
+  </div>
+
+</div>
+</body>
+</html>

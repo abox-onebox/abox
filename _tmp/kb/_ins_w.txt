@@ -1,0 +1,3 @@
+| W6 | POST | `/pay/mock/paid` | 调试：手动触发支付成功（**仅 `PROVIDER_MODE=mock` 生效**；金额省略则取订单实付）· `MockPaidDto` —— ⚠️ 生产 `PROVIDER_MODE=mock` 时该端点**可被匿名调到**（`payment.controller.ts` 未标注守卫），是**验收用的后门**：真实支付链路（W1）一旦接商户号，应同步给它加 @Public 之外的收敛（或按环境注册控制器），否则「谁都能把订单点成已付」 |
+| W7 | GET | `/wecom/kb/callback` | 企微知识库回调 **URL 校验握手**（后台填回调 URL 时企微发起）。⚠️ 必须用 `@Res()` **直接写出**解密后的 `echostr` 明文、绕过统一响应信封 —— 包成 `{code,data}` 会让企微签名比对失败、后台「保存」过不了 |
+| W8 | POST | `/wecom/kb/callback` | 企微知识库消息回调。**立即回 200 空体**（企微 5s 超时，处理异步进行），结果走**主动发消息**。原始报文取 `req.rawBody`（XML 不进 JSON body-parser）；鉴权靠 `WXBizMsgCrypt` 签名验真 |

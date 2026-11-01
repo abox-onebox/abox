@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · AI 内容工厂 v1.0.0</title>
+<style>
+/* ── 品牌 token（唯一声明点 · 由 build.py 从 spec.json 注入）── */
+:root{
+  --bg: #F6F0E5;
+  --surface: #FFFDF8;
+  --surface2: #F7F1E4;
+  --surface3: #FBF6EC;
+  --text: #6E5435;
+  --text2: #796C57;
+  --text-disabled: #A79A85;
+  --gold: #C9A876;
+  --gold-deep: #936F3A;
+  --gold-deepest: #8A6620;
+  --border: #E4D8C3;
+  --border-strong: #D6CBB8;
+  --ok: #5B7C3A;
+  --warn: #C44536;
+  --info: #4A6FA5;
+  --ok-bg: #F1F5EA;
+  --ok-bd: #BBCBA6;
+  --warn-bg: #FBF0EE;
+  --warn-bd: #E3BFB8;
+  --info-bg: #EDF1F8;
+  --info-bd: #B4C4DA;
+  --mut-bg: #F7F2E8;
+  --mut-bd: #E4D8C3;
+  --gold-bg: #FBF4E6;
+  --gold-bd: #DCC79C;
+  --ok-fg: #597939;
+  --warn-fg: #C24436;
+  --info-fg: #4A6FA5;
+  --gold-fg: #8D6A38;
+  --from: #FFF6E0;
+  --to: #FFEED5;
+  --brand-meituan: #FFD400;
+  --brand-meituan-text: #000000;
+  --brand-taobao: #FF6A00;
+  --brand-taobao-text: #000000;
+  --brand-jd: #E1251B;
+  --brand-jd-text: #FFFFFF;
+  --font-display: 'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif;
+  --font-body: -apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif;
+  --font-num: 'SF Mono','Roboto Mono',Consolas,monospace;
+  --r-sm: 4px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --sp-1: 6px;
+  --sp-2: 10px;
+  --sp-3: 14px;
+  --sp-4: 20px;
+  --sp-5: 28px;
+}
+/* ============================================================================
+ * E3 AI 内容工厂 · 页面外壳样式
+ * 纪律：本文件**不出现任何颜色字面量**（hex / rgb / hsl），一律 var(--*)/color-mix。
+ *       selftest.py 会机械扫这一条；品牌色只在 build.py 生成的 :root{} 里声明一次。
+ * ========================================================================== */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+}
+h1, h2, h3, .kai { font-family: var(--font-display); font-weight: 700; }
+
+/* ── 外壳 ─────────────────────────────────────────────────────────────── */
+.fc-app { min-height: 100vh; display: flex; flex-direction: column; }
+
+.fc-top {
+  display: flex; align-items: center; gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-5);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 20;
+}
+.fc-top .brand { display: flex; align-items: baseline; gap: var(--sp-2); }
+.fc-top .brand b { font-family: var(--font-display); font-size: 21px; letter-spacing: .04em; }
+.fc-top .brand i { font-style: normal; color: var(--text2); font-size: 13px; }
+.fc-top .grow { flex: 1; }
+.badge {
+  font-size: 12px; padding: 3px 10px; border-radius: 999px;
+  border: 1px solid var(--border-strong); color: var(--text2); background: var(--mut-bg);
+}
+.badge.ok { color: var(--ok-fg); background: var(--ok-bg); border-color: var(--ok-bd); }
+.badge.bad { color: var(--warn-fg); background: var(--warn-bg); border-color: var(--warn-bd); }
+
+.btn {
+  font-family: var(--font-body); font-size: 14px; cursor: pointer;
+  padding: 8px 16px; border-radius: var(--r-md);
+  border: 1px solid var(--gold-deep); background: var(--gold-deep); color: var(--surface);
+  transition: opacity .15s;
+}
+.btn:hover { opacity: .88; }
+.btn.ghost { background: var(--surface); color: var(--text); border-color: var(--border-strong); }
+.btn.sm { padding: 6px 12px; font-size: 13px; }
+.btn.xs { padding: 3px 9px; font-size: 12px; border-radius: var(--r-sm); }
+.btn.primary { background: var(--gold-deepest); border-color: var(--gold-deepest); }
+
+.fc-body { flex: 1; display: grid; grid-template-columns: 372px 1fr; align-items: start; }
+
+/* ── 侧栏 ─────────────────────────────────────────────────────────────── */
+.fc-side {
+  border-right: 1px solid var(--border); padding: var(--sp-4);
+  display: flex; flex-direction: column; gap: var(--sp-3);
+  /* ⚠️ 底部必须留 `--sp-3` 的呼吸位，与 `_shared/shell.css` 的 `.side` **口径一致**：
+     写成 `calc(100vh - 57px)` 会让侧栏底边**贴死视口折线**（实测 900→900 ⇒ 末行控件贴边，
+     横向滚动条一出现就被盖住）。本外壳是手写的，不共享 shell.css ⇒ 这类分叉只能靠
+     `_probe_side.mjs` 的「钉住后侧栏底边在视口内」拦住。 */
+  position: sticky; top: 57px; max-height: calc(100vh - 57px - var(--sp-3)); overflow: auto;
+}
+.sec { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+.sec h3 {
+  margin: 0; padding: var(--sp-2) var(--sp-3); font-size: 14px; letter-spacing: .05em;
+  background: var(--surface2); border-bottom: 1px solid var(--border); color: var(--text);
+}
+.sec-b { padding: var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-2); }
+.sec.collapsible .sec-b { max-height: 460px; overflow: auto; }
+
+.fld { display: flex; flex-direction: column; gap: 4px; }
+.fld > span { font-size: 12px; color: var(--text2); }
+.fld input, .fld select, .pt-row input {
+  font-family: var(--font-body); font-size: 14px; color: var(--text);
+  background: var(--surface3); border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm); padding: 7px 9px; width: 100%;
+}
+.fld input:focus, .fld select:focus { outline: 2px solid var(--gold-bd); outline-offset: 1px; }
+.hint { margin: 0; font-size: 12px; color: var(--text2); }
+.hint code { font-family: var(--font-num); font-size: 12px; background: var(--mut-bg); padding: 1px 5px; border-radius: var(--r-sm); }
+
+.day-row { border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-2); margin-bottom: var(--sp-2); background: var(--surface3); }
+.day-hd { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.day-hd b { font-family: var(--font-display); }
+.day-hd span { font-size: 12px; color: var(--text2); }
+.dish-f { display: grid; grid-template-columns: 38px 1fr; align-items: center; gap: 6px; margin-bottom: 4px; }
+.dish-f i { font-style: normal; font-size: 12px; color: var(--text2); }
+
+.seg { display: flex; gap: 6px; }
+.seg-b {
+  flex: 1; font-family: var(--font-body); font-size: 13px; cursor: pointer; padding: 7px 4px;
+  border: 1px solid var(--border-strong); background: var(--surface3); color: var(--text2);
+  border-radius: var(--r-sm);
+}
+.seg-b.on { background: var(--gold-bg); border-color: var(--gold-bd); color: var(--gold-deepest); font-weight: 700; }
+
+.sim, .sim-big {
+  background: var(--gold-bg); border: 1px solid var(--gold-bd);
+  border-radius: var(--r-md); padding: var(--sp-2) var(--sp-3);
+}
+.sim .t, .sim-big .t { font-size: 12px; color: var(--gold-fg); }
+.sim .v, .sim-big .v { font-family: var(--font-display); font-size: 24px; color: var(--gold-deepest); font-weight: 700; }
+.sim-big .v { font-size: 34px; }
+.sim .v small, .sim-big .v small { font-size: 13px; font-family: var(--font-body); color: var(--gold-fg); }
+.sim .n, .sim-big .n { font-size: 12px; color: var(--gold-fg); }
+.side-foot { display: flex; gap: var(--sp-2); }
+
+/* ── 产出区 ───────────────────────────────────────────────────────────── */
+.fc-main { padding: var(--sp-4); min-width: 0; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: var(--sp-3); flex-wrap: wrap; }
+.tab {
+  font-family: var(--font-display); font-size: 15px; cursor: pointer;
+  padding: 8px 16px; border: none; background: none; color: var(--text2);
+  border-bottom: 2px solid transparent;
+}
+.tab.on { color: var(--gold-deepest); border-bottom-color: var(--gold-deepest); }
+
+.bar { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-3); }
+.bar .cnt { font-size: 13px; color: var(--text2); }
+.bad, .good { font-family: var(--font-body); }
+.bad { color: var(--warn-fg); }
+.good { color: var(--ok-fg); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--sp-3); }
+.cols { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--sp-3); }
+
+.card {
+  margin: 0; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-md); overflow: hidden;
+}
+.card svg { display: block; width: 100%; height: auto; background: var(--bg); }
+.card figcaption {
+  display: flex; align-items: center; gap: 6px; padding: 8px 10px;
+  font-size: 13px; color: var(--text2); border-top: 1px solid var(--border);
+}
+.card figcaption b { font-family: var(--font-display); color: var(--text); }
+.card .acts { margin-left: auto; display: flex; gap: 5px; }
+
+.cc { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; display: flex; flex-direction: column; }
+.cc header { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--surface2); border-bottom: 1px solid var(--border); }
+.cc header b { font-family: var(--font-display); font-size: 14px; }
+.cc header span { font-size: 12px; color: var(--text2); }
+.cc header .copy { margin-left: auto; }
+.cc pre, pre.plain {
+  margin: 0; padding: var(--sp-3); white-space: pre-wrap; word-break: break-word;
+  font-family: var(--font-body); font-size: 13.5px; color: var(--text); flex: 1;
+}
+pre.plain { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); }
+
+.two { display: grid; grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr); gap: var(--sp-4); align-items: start; }
+.two .col-l, .two .col-r { display: flex; flex-direction: column; gap: var(--sp-2); min-width: 0; }
+.pt-row { display: flex; gap: 6px; margin-bottom: 6px; }
+
+.chk { display: flex; flex-direction: column; gap: 6px; }
+.chk-row {
+  display: grid; grid-template-columns: 14px 300px 1fr; align-items: center; gap: var(--sp-2);
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface);
+}
+.chk-row .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ok); }
+.chk-row.no { border-color: var(--warn-bd); background: var(--warn-bg); }
+.chk-row.no .dot { background: var(--warn); }
+.chk-row b { font-weight: 600; }
+.chk-row .d { font-size: 12.5px; color: var(--text2); word-break: break-word; }
+
+#toast {
+  position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px);
+  background: var(--text); color: var(--bg); padding: 10px 20px; border-radius: 999px;
+  font-size: 13px; opacity: 0; pointer-events: none; transition: all .22s; z-index: 50;
+}
+#toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 1080px) {
+  .fc-body { grid-template-columns: 1fr; }
+  .fc-side { position: static; max-height: none; border-right: none; border-bottom: 1px solid var(--border); }
+  .two { grid-template-columns: 1fr; }
+  .chk-row { grid-template-columns: 14px 1fr; }
+  .chk-row .d { grid-column: 2; }
+}
+</style>
+</head>
+<body>
+<div class="fc-app">
+  <header class="fc-top">
+    <div class="brand"><b>ABox 一盒</b><i>· AI 内容工厂 v1.0.0</i></div>
+    <span class="badge" id="badge">自检中…</span>
+    <div class="grow"></div>
+    <button class="btn primary" id="btnGen">一键生成一周全套</button>
+  </header>
+  <div class="fc-body">
+    <aside class="fc-side" id="side"></aside>
+    <main class="fc-main">
+      <div class="tabs" id="tabs"></div>
+      <div id="panel"></div>
+    </main>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+/* 本文件由 _tmp/factory/build.py 生成，请勿手改；改源件后重跑生成器。 */
+window.FACTORY_VERSION = "1.0.0";
+window.TOKENS = {
+  "bg": "#F6F0E5",
+  "surface": "#FFFDF8",
+  "surface2": "#F7F1E4",
+  "surface3": "#FBF6EC",
+  "text": "#6E5435",
+  "text2": "#796C57",
+  "text-disabled": "#A79A85",
+  "gold": "#C9A876",
+  "gold-deep": "#936F3A",
+  "gold-deepest": "#8A6620",
+  "border": "#E4D8C3",
+  "border-strong": "#D6CBB8",
+  "ok": "#5B7C3A",
+  "warn": "#C44536",
+  "info": "#4A6FA5",
+  "ok-bg": "#F1F5EA",
+  "ok-bd": "#BBCBA6",
+  "warn-bg": "#FBF0EE",
+  "warn-bd": "#E3BFB8",
+  "info-bg": "#EDF1F8",
+  "info-bd": "#B4C4DA",
+  "mut-bg": "#F7F2E8",
+  "mut-bd": "#E4D8C3",
+  "gold-bg": "#FBF4E6",
+  "gold-bd": "#DCC79C",
+  "ok-fg": "#597939",
+  "warn-fg": "#C24436",
+  "info-fg": "#4A6FA5",
+  "gold-fg": "#8D6A38",
+  "from": "#FFF6E0",
+  "to": "#FFEED5",
+  "brand-meituan": "#FFD400",
+  "brand-meituan-text": "#000000",
+  "brand-taobao": "#FF6A00",
+  "brand-taobao-text": "#000000",
+  "brand-jd": "#E1251B",
+  "brand-jd-text": "#FFFFFF",
+  "font-display": "'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif",
+  "font-body": "-apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif",
+  "font-num": "'SF Mono','Roboto Mono',Consolas,monospace",
+  "r-sm": "4px",
+  "r-md": "10px",
+  "r-lg": "16px",
+  "sp-1": "6px",
+  "sp-2": "10px",
+  "sp-3": "14px",
+  "sp-4": "20px",
+  "sp-5": "28px",
+  "fontDisplay": "'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif",
+  "textDisabled": "#A79A85",
+  "goldDeep": "#936F3A"
+};
+window.SPEC = {
+  "env": {
+    "unitPrice": 25.8,
+    "supplierTotal": 14.0,
+    "distributionCenter": 5.0,
+    "cutoffHour": 24,
+    "commission": {
+      "trainee": 0.08,
+      "formal": 0.09,
+      "gold": 0.1,
+      "chief": 0.12
+    },
+    "_src": "abox-onebox/.env.example"
+  },
+  "timeline": {
+    "publish": "14:00",
+    "cutoff": "24:00",
+    "arrival": "11:30",
+    "autoConfirm": "14:00",
+    "deliveryGenerate": "00:30"
+  },
+  "slots": {
+    "label": {
+      "1": "主荤",
+      "2": "半荤",
+      "3": "素菜",
+      "4": "汤",
+      "5": "主食"
+    },
+    "required": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "stapleSlot": 5
+  },
+  "slotLabel": {
+    "1": "主荤",
+    "2": "半荤",
+    "3": "素菜",
+    "4": "汤",
+    "5": "主食"
+  },
+  "stapleSlot": 5,
+  "categories": {
+    "main": "主荤",
+    "half": "半荤",
+    "veg": "素菜",
+    "soup": "汤品",
+    "staple": "主食"
+  },
+  "dishes": {
+    "list": [
+      {
+        "id": 1,
+        "supplierId": 1,
+        "name": "红烧肉",
+        "category": "main",
+        "cost": 7.5
+      },
+      {
+        "id": 2,
+        "supplierId": 1,
+        "name": "东坡肉",
+        "category": "main",
+        "cost": 8.5
+      },
+      {
+        "id": 3,
+        "supplierId": 1,
+        "name": "啤酒鸭",
+        "category": "main",
+        "cost": 8.0
+      },
+      {
+        "id": 4,
+        "supplierId": 2,
+        "name": "清炒时蔬",
+        "category": "veg",
+        "cost": 3.0
+      },
+      {
+        "id": 5,
+        "supplierId": 2,
+        "name": "凉拌黄瓜",
+        "category": "veg",
+        "cost": 2.2
+      },
+      {
+        "id": 6,
+        "supplierId": 3,
+        "name": "卤蛋",
+        "category": "half",
+        "cost": 1.5
+      },
+      {
+        "id": 7,
+        "supplierId": 4,
+        "name": "酸辣汤",
+        "category": "soup",
+        "cost": 2.0
+      },
+      {
+        "id": 8,
+        "supplierId": 4,
+        "name": "番茄蛋汤",
+        "category": "soup",
+        "cost": 2.0
+      },
+      {
+        "id": 9,
+        "supplierId": 1,
+        "name": "宫保鸡丁",
+        "category": "main",
+        "cost": 6.5
+      },
+      {
+        "id": 10,
+        "supplierId": 1,
+        "name": "清真牛肉",
+        "category": "main",
+        "cost": 8.5
+      },
+      {
+        "id": 11,
+        "supplierId": 1,
+        "name": "番茄鱼",
+        "category": "main",
+        "cost": 8.0
+      },
+      {
+        "id": 12,
+        "supplierId": 1,
+        "name": "咖喱鸡",
+        "category": "main",
+        "cost": 6.0
+      }
+    ]
+  },
+  "brand": {
+    "name": "ABox 一盒",
+    "company": "北京巡礼之年科技有限公司"
+  },
+  "_doctrine": "口径只声明一次：本文件全部值取自 abox-onebox 代码真源，禁手改；改真源后重跑本脚本。"
+};
+/* ============================================================================
+ * E3 AI 内容工厂 · 状态模型（纯逻辑 · 不碰 DOM）
+ *
+ * 为什么单独一个文件：同一套「默认状态 / 素材折算」要被三处用到 ——
+ *   ① 浏览器页面（app.js）② 构建期自检（selfcheck.mjs）③ 自检判据（selfcheck.js）。
+ * 若各写一份，改一处另外两处不会跟着改且不会红 —— 这正是本项目反复踩的坑。
+ * ⇒ 所以模型只此一份：谁需要就 eval/引入这一份。
+ * ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var S = root.SPEC;
+  var LS_KEY = 'abox-factory-v1';
+  /* 活动卖点上限：侧栏写死「最多 4 条」、海报版面也只能容纳 4 条。
+     ⚠️ 这个常量必须**只有一份**：app.js 用它卡入口、model 用它做兜底截断、
+     selfcheck 用它写判据 —— 各写一个数字的话，改一处另外两处不会红。 */
+  var MAX_ACTIVITY_POINTS = 4;
+
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function iso(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function addDays(base, n) { var d = new Date(base.getTime()); d.setDate(d.getDate() + n); return d; }
+
+  var byCat = function (c) {
+    return S.dishes.list.filter(function (d) { return d.category === c; }).map(function (d) { return d.name; });
+  };
+  var MAINS = byCat('main'), HALFS = byCat('half'), VEGS = byCat('veg'), SOUPS = byCat('soup');
+
+  function cyl(arr, i) { return arr.length ? arr[i % arr.length] : ''; }
+
+  /* 默认排期：从明天起 7 天；菜品按真源菜品库轮转（不编造菜名） */
+  function defaultDays(from) {
+    var start = from || addDays(new Date(), 1);
+    var out = [];
+    for (var i = 0; i < 7; i++) {
+      out.push({
+        date: iso(addDays(start, i)),
+        dishes: { 1: cyl(MAINS, i), 2: cyl(HALFS, i), 3: cyl(VEGS, i), 4: cyl(SOUPS, i) }
+      });
+    }
+    return out;
+  }
+
+  function defaultState() {
+    return {
+      brand: {
+        building: '国贸三期 A 座',
+        pickup: '一层大堂取餐点',
+        contact: '微信 abox-demo',
+        brandLine: S.brand.company
+      },
+      staple: '米饭',
+      price: S.env.unitPrice,
+      days: defaultDays(),
+      posterStyle: 'menu-classic',
+      copyStyle: 'plain',
+      level: 'formal',
+      orders: 200,
+      activity: {
+        title: '周三加个菜',
+        subtitle: '限本周三出餐',
+        points: ['主荤双拼，不加价', '限量 60 份，接龙先到先得', '仅限本楼取餐点']
+      }
+    };
+  }
+
+  /* 归一：旧结构 / 缺字段一律兜底，避免白屏 */
+  function normalize(o) {
+    var d = defaultState();
+    if (!o || typeof o !== 'object') return d;
+    o.brand = Object.assign(d.brand, o.brand || {});
+    o.days = (o.days && o.days.length === 7 && o.days[0] && o.days[0].date) ? o.days : d.days;
+    o.activity = Object.assign(d.activity, o.activity || {});
+    /* ⚠️ 2026-09-26：卖点上限 4 条在 normalize 里兜底。
+       侧栏写死「最多 4 条」、海报也只画 4 条，若存量 localStorage 里已经存了 5 条
+       （旧版无上限时产生的），文案会比海报多出条目 —— 这里统一截到上限，
+       保证「复制的文案」与「导出的海报」永远同一份数据。 */
+    o.activity.points = (o.activity.points || []).slice(0, MAX_ACTIVITY_POINTS);
+    return Object.assign(d, o);
+  }
+
+  function hasStore() {
+    try { return typeof localStorage !== 'undefined' && !!localStorage; } catch (e) { return false; }
+  }
+  function load() {
+    if (!hasStore()) return defaultState();
+    try {
+      var raw = localStorage.getItem(LS_KEY);
+      return raw ? normalize(JSON.parse(raw)) : defaultState();
+    } catch (e) { return defaultState(); }
+  }
+  function save(st) {
+    if (!hasStore()) return;
+    try { localStorage.setItem(LS_KEY, JSON.stringify(st)); } catch (e) {}
+  }
+  function clear() { if (hasStore()) { try { localStorage.removeItem(LS_KEY); } catch (e) {} } }
+
+  /* ── 素材折算：状态 → 模板入参 ───────────────────────────────────────── */
+  function scene(st, Copy) {
+    return {
+      building: st.brand.building,
+      pickup: st.brand.pickup,
+      contact: st.brand.contact,
+      brandLine: st.brand.brandLine,
+      staple: st.staple,
+      price: Number(st.price),
+      activity: st.activity,
+      recruit: Copy.recruit({
+        building: st.brand.building,
+        contact: st.brand.contact,
+        level: st.level,
+        orders: Number(st.orders)
+      })
+    };
+  }
+
+  function posters(st, Poster, Copy) {
+    var sc = scene(st, Copy);
+    return st.days.map(function (day) {
+      return { date: day.date, day: day, svg: Poster.render(st.posterStyle, day, sc) };
+    });
+  }
+
+  root.Model = {
+    LS_KEY: LS_KEY,
+    MAX_ACTIVITY_POINTS: MAX_ACTIVITY_POINTS,
+    MAINS: MAINS, HALFS: HALFS, VEGS: VEGS, SOUPS: SOUPS,
+    defaultDays: defaultDays,
+    defaultState: defaultState,
+    normalize: normalize,
+    load: load, save: save, clear: clear,
+    scene: scene,
+    posters: posters,
+    iso: iso, addDays: addDays, pad2: pad2
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ============================================================================
+ * E3 AI 内容工厂 · 海报模板引擎（纯 SVG · 零依赖）
+ *
+ * 设计约束（三条，都来自本项目已锁定的口径）：
+ *   ① 品牌一致：所有颜色/字体/圆角一律读 TOKENS（由 build.py 从 spec.json 注入），
+ *      本文件**不出现任何裸色值** —— selftest.py 会机械扫这一条。
+ *   ② 字体用系统楷体栈（TOKENS.fontDisplay 原样），不内嵌 webfont：
+ *      这样「页面显示的」与「导出 PNG 里渲染的」是同一个字体栈，
+ *      不会出现「屏幕上是楷体、导出的图变成宋体」这类静默不一致。
+ *   ③ 文案里的时刻/价格/档位一律由 SPEC 派生（不手写数字），
+ *      改真源后重跑 extract.py + build.py 即自动同步。
+ * ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var T = root.TOKENS;   /* 由 build.py 注入 */
+  var S = root.SPEC;     /* 由 build.py 注入 */
+
+  /* ── 基础工具 ─────────────────────────────────────────────────────────── */
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  /* CJK 按字宽 ≈ 字号 估宽；中英混排按「汉字 1、西文 0.55」折算后换行 */
+  function widthOf(s) {
+    var w = 0;
+    for (var i = 0; i < s.length; i++) {
+      w += /[\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]/.test(s[i]) ? 1 : 0.55;
+    }
+    return w;
+  }
+
+  function wrap(s, maxUnits) {
+    var out = [], line = '', w = 0;
+    for (var i = 0; i < s.length; i++) {
+      var cw = /[\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]/.test(s[i]) ? 1 : 0.55;
+      if (w + cw > maxUnits && line) { out.push(line); line = ''; w = 0; }
+      line += s[i]; w += cw;
+    }
+    if (line) out.push(line);
+    return out;
+  }
+
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+  /* '2026-12-01' → { md:'12月01日', wd:'周一' } */
+  var WD = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  function dateInfo(iso) {
+    var p = String(iso).split('-');
+    var d = new Date(+p[0], +p[1] - 1, +p[2]);
+    return { md: (+p[1]) + '月' + pad2(+p[2]) + '日', wd: WD[d.getDay()], iso: iso,
+             full: p[0] + '年' + (+p[1]) + '月' + (+p[2]) + '日' };
+  }
+
+  /* 出餐日 T → { open:'MM月DD日 14:00', cut:'MM月DD日 24:00', arr:'MM月DD日 11:30' } */
+  function timelineText(iso) {
+    var p = String(iso).split('-');
+    var t = new Date(+p[0], +p[1] - 1, +p[2]);
+    var prev = new Date(t.getTime() - 86400000);
+    var pm = (prev.getMonth() + 1) + '月' + pad2(prev.getDate()) + '日';
+    return {
+      open: pm + ' ' + S.timeline.publish,
+      cut: pm + ' ' + S.timeline.cutoff,
+      arr: (+p[1]) + '月' + pad2(+p[2]) + '日 ' + S.timeline.arrival
+    };
+  }
+
+  function money(n) { return Number(n).toFixed(2); }
+
+  /* ── 共享零件 ─────────────────────────────────────────────────────────── */
+
+  function defs() {
+    return '<defs>'
+      + '<linearGradient id="fcWash" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0%" stop-color="' + T.from + '"/>'
+      + '<stop offset="100%" stop-color="' + T.to + '"/></linearGradient>'
+      + '<linearGradient id="fcGold" x1="0" y1="0" x2="1" y2="1">'
+      + '<stop offset="0%" stop-color="' + T.gold + '"/>'
+      + '<stop offset="100%" stop-color="' + T['gold-deep'] + '"/></linearGradient>'
+      + '</defs>';
+  }
+
+  /* 顶部品牌条 + 品牌字 + 点位 */
+  function head(cfg, y0) {
+    y0 = y0 || 0;
+    var o = [];
+    o.push('<rect x="0" y="' + y0 + '" width="1080" height="10" fill="url(#fcGold)"/>');
+    o.push(txt(540, y0 + 118, 'ABox 一盒', { size: 46, fill: T.text, weight: 700, ls: 4 }));
+    var sub = [cfg.building, cfg.pickup].filter(Boolean).join(' · ');
+    if (sub) o.push(txt(540, y0 + 162, sub, { size: 26, fill: T.text2 }));
+    o.push('<line x1="150" y1="' + (y0 + 200) + '" x2="930" y2="' + (y0 + 200) + '" stroke="' + T.border + '" stroke-width="2"/>');
+    return o.join('');
+  }
+
+  function txt(x, y, s, o) {
+    o = o || {};
+    var a = [
+      'x="' + x + '"', 'y="' + y + '"',
+      'font-family="' + T.fontDisplay + '"',
+      'font-size="' + (o.size || 30) + '"',
+      'fill="' + (o.fill || T.text) + '"'
+    ];
+    if (o.weight) a.push('font-weight="' + o.weight + '"');
+    if (o.anchor) a.push('text-anchor="' + o.anchor + '"');
+    if (o.ls) a.push('letter-spacing="' + o.ls + '"');
+    if (o.opacity != null) a.push('opacity="' + o.opacity + '"');
+    return '<text ' + a.join(' ') + '>' + esc(s) + '</text>';
+  }
+
+  /* 二维码位：真实二维码图未接入时给一个「规格化占位」，不假装是二维码 */
+  function qrBlock(x, y, size, note) {
+    var o = [];
+    o.push('<rect x="' + x + '" y="' + y + '" width="' + size + '" height="' + size
+      + '" rx="12" fill="' + T.surface + '" stroke="' + T.border + '" stroke-width="2"/>');
+    o.push('<rect x="' + (x + 14) + '" y="' + (y + 14) + '" width="' + (size - 28) + '" height="' + (size - 28)
+      + '" rx="6" fill="none" stroke="' + T['border-strong'] + '" stroke-width="2" stroke-dasharray="8 6"/>');
+    o.push(txt(x + size / 2, y + size / 2 + 6, '二维码', { size: 24, fill: T.text2, anchor: 'middle' }));
+    if (note) o.push(txt(x + size / 2, y + size + 34, note, { size: 22, fill: T.text2, anchor: 'middle' }));
+    return o.join('');
+  }
+
+  /* 口径条：截单 / 送达 —— 一律从 SPEC.timeline 派生 */
+  function strip(cfg, iso, y) {
+    var t = timelineText(iso);
+    var o = [];
+    o.push('<rect x="90" y="' + y + '" width="900" height="96" rx="16" fill="' + T['gold-bg']
+      + '" stroke="' + T['gold-bd'] + '" stroke-width="2"/>');
+    o.push(txt(540, y + 40, t.open + ' 开团', { size: 27, fill: T['gold-fg'], anchor: 'middle' }));
+    o.push(txt(540, y + 78, t.cut + ' 截单  ·  ' + t.arr + ' 送达', { size: 29, fill: T['gold-fg'], anchor: 'middle', weight: 700 }));
+    return o.join('');
+  }
+
+  /* ── 版式 A · 经典竖版 ────────────────────────────────────────────────── */
+
+  function menuClassic(day, cfg) {
+    var o = [head(cfg)];
+    var di = dateInfo(day.date);
+    o.push(txt(540, 320, di.md, { size: 92, fill: T.text, weight: 700, anchor: 'middle', ls: 2 }));
+    o.push(txt(540, 372, di.wd + ' · 出餐日', { size: 28, fill: T.text2, anchor: 'middle' }));
+    o.push('<line x1="420" y1="404" x2="660" y2="404" stroke="' + T.gold + '" stroke-width="3"/>');
+
+    var y = 470;
+    var slots = S.slots.required || [1, 2, 3, 4];
+    slots.forEach(function (sl) {
+      o.push('<rect x="150" y="' + (y - 42) + '" width="96" height="46" rx="8" fill="' + T['mut-bg']
+        + '" stroke="' + T.border + '" stroke-width="1.5"/>');
+      o.push(txt(198, y - 10, S.slotLabel[sl], { size: 25, fill: T.text2, anchor: 'middle' }));
+      o.push(txt(280, y - 8, day.dishes[sl] || '—', { size: 44, fill: T.text, weight: 700 }));
+      y += 92;
+    });
+    o.push('<rect x="150" y="' + (y - 42) + '" width="96" height="46" rx="8" fill="' + T['mut-bg']
+      + '" stroke="' + T.border + '" stroke-width="1.5"/>');
+    o.push(txt(198, y - 10, S.slotLabel[S.stapleSlot], { size: 25, fill: T.text2, anchor: 'middle' }));
+    o.push(txt(280, y - 8, cfg.staple || '米饭', { size: 44, fill: T.text2 }));
+
+    o.push('<rect x="150" y="' + (y + 34) + '" width="780" height="2" fill="' + T.border + '"/>');
+    o.push(txt(150, y + 118, '¥', { size: 46, fill: T['gold-fg'] }));
+    o.push(txt(196, y + 124, money(cfg.price), { size: 82, fill: T['gold-fg'], weight: 700 }));
+    o.push(txt(560, y + 122, '/ 份 · 一饭四菜', { size: 30, fill: T.text2 }));
+
+    o.push(strip(cfg, day.date, 1188));
+    o.push(qrBlock(790, 1320, 150, null));
+    o.push(txt(150, 1380, cfg.contact ? ('订餐 ' + cfg.contact) : '', { size: 26, fill: T.text2 }));
+    o.push(txt(150, 1418, cfg.brandLine || '', { size: 22, fill: T.textDisabled }));
+    return wrapSvg(o.join(''));
+  }
+
+  /* ── 版式 B · 极简留白 ────────────────────────────────────────────────── */
+
+  function menuMinimal(day, cfg) {
+    var di = dateInfo(day.date);
+    var o = [];
+    o.push('<rect x="0" y="0" width="1080" height="1440" fill="' + T.bg + '"/>');
+    o.push('<rect x="60" y="60" width="960" height="1320" fill="none" stroke="' + T.border + '" stroke-width="2"/>');
+    o.push(txt(540, 200, di.md, { size: 88, fill: T.text, weight: 700, anchor: 'middle' }));
+    o.push(txt(540, 252, di.wd, { size: 26, fill: T.text2, anchor: 'middle', ls: 6 }));
+    o.push('<line x1="460" y1="300" x2="620" y2="300" stroke="' + T.gold + '" stroke-width="2"/>');
+
+    var y = 400, slots = S.slots.required || [1, 2, 3, 4];
+    slots.forEach(function (sl) {
+      o.push(txt(540, y, day.dishes[sl] || '—', { size: 52, fill: T.text, anchor: 'middle', weight: 700 }));
+      o.push(txt(540, y + 42, S.slotLabel[sl], { size: 22, fill: T.text2, anchor: 'middle', ls: 4 }));
+      y += 130;
+    });
+    o.push(txt(540, y + 10, (cfg.staple || '米饭') + ' · ' + S.slotLabel[S.stapleSlot], { size: 30, fill: T.text2, anchor: 'middle' }));
+    o.push('<line x1="460" y1="' + (y + 70) + '" x2="620" y2="' + (y + 70) + '" stroke="' + T.gold + '" stroke-width="2"/>');
+    o.push(txt(540, y + 170, '¥' + money(cfg.price), { size: 72, fill: T['gold-fg'], weight: 700, anchor: 'middle' }));
+    o.push(txt(540, y + 216, '一饭四菜 · 现做', { size: 26, fill: T.text2, anchor: 'middle' }));
+
+    var t = timelineText(day.date);
+    o.push(txt(540, 1250, t.cut + ' 截单', { size: 28, fill: T.text2, anchor: 'middle' }));
+    o.push(txt(540, 1292, t.arr + ' 送达', { size: 28, fill: T.text2, anchor: 'middle' }));
+    o.push(txt(540, 1350, cfg.building || '', { size: 24, fill: T.textDisabled, anchor: 'middle' }));
+    return wrapSvg(o.join(''));
+  }
+
+  /* ── 版式 C · 卡片式（四菜成卡） ─────────────────────────────────────── */
+
+  function menuCard(day, cfg) {
+    var di = dateInfo(day.date);
+    var o = [head(cfg)];
+    o.push(txt(150, 300, di.md, { size: 74, fill: T.text, weight: 700 }));
+    o.push(txt(150, 348, di.wd, { size: 26, fill: T.text2, ls: 4 }));
+
+    var slots = S.slots.required || [1, 2, 3, 4];
+    var x0 = 150, y0 = 400, w = 380, h = 250, gap = 20;
+    slots.forEach(function (sl, i) {
+      var cx = x0 + (i % 2) * (w + gap), cy = y0 + Math.floor(i / 2) * (h + gap);
+      o.push('<rect x="' + cx + '" y="' + cy + '" width="' + w + '" height="' + h + '" rx="16" fill="'
+        + T.surface + '" stroke="' + T.border + '" stroke-width="2"/>');
+      o.push(txt(cx + 28, cy + 52, S.slotLabel[sl], { size: 24, fill: T['gold-fg'], ls: 2 }));
+      var lines = wrap(day.dishes[sl] || '—', 7);
+      lines.slice(0, 2).forEach(function (ln, k) {
+        o.push(txt(cx + 28, cy + 122 + k * 54, ln, { size: 42, fill: T.text, weight: 700 }));
+      });
+    });
+
+    var by = y0 + 2 * (h + gap) + 30;
+    o.push('<rect x="150" y="' + by + '" width="780" height="2" fill="' + T.border + '"/>');
+    o.push(txt(150, by + 66, (cfg.staple || '米饭') + ' · 主食', { size: 30, fill: T.text2 }));
+    o.push(txt(930, by + 74, '¥' + money(cfg.price), { size: 62, fill: T['gold-fg'], weight: 700, anchor: 'end' }));
+
+    o.push(strip(cfg, day.date, 1188));
+    o.push(qrBlock(790, 1320, 150, null));
+    o.push(txt(150, 1380, cfg.contact ? ('订餐 ' + cfg.contact) : '', { size: 26, fill: T.text2 }));
+    return wrapSvg(o.join(''));
+  }
+
+  /* ── 活动海报 ─────────────────────────────────────────────────────────── */
+
+  function activity(day, cfg) {
+    var a = cfg.activity || {};
+    var di = dateInfo(day.date);
+    var o = [head(cfg)];
+    o.push('<rect x="90" y="250" width="900" height="150" rx="20" fill="url(#fcWash)" stroke="' + T['gold-bd'] + '" stroke-width="2"/>');
+    o.push(txt(540, 318, a.title || '本周限定', { size: 68, fill: T['gold-deepest'], weight: 700, anchor: 'middle' }));
+    o.push(txt(540, 366, a.subtitle || '限量供应 · 售完即止', { size: 28, fill: T['gold-fg'], anchor: 'middle' }));
+
+    var y = 480;
+    (a.points || []).slice(0, 4).forEach(function (p, i) {
+      o.push('<circle cx="176" cy="' + (y - 12) + '" r="16" fill="' + T.gold + '"/>');
+      o.push(txt(176, y - 3, String(i + 1), { size: 22, fill: T.surface, anchor: 'middle', weight: 700 }));
+      wrap(p, 18).forEach(function (ln, k) {
+        o.push(txt(224, y + k * 52, ln, { size: 40, fill: T.text }));
+      });
+      y += 100;
+    });
+
+    o.push('<rect x="90" y="' + (y + 10) + '" width="900" height="2" fill="' + T.border + '"/>');
+    o.push(txt(150, y + 118, di.md + ' ' + di.wd, { size: 52, fill: T.text, weight: 700 }));
+    o.push(txt(930, y + 122, '¥' + money(cfg.price), { size: 66, fill: T['gold-fg'], weight: 700, anchor: 'end' }));
+    o.push(strip(cfg, day.date, 1188));
+    o.push(qrBlock(790, 1320, 150, null));
+    return wrapSvg(o.join(''));
+  }
+
+  /* ── 招募海报 ─────────────────────────────────────────────────────────── */
+
+  function recruit(day, cfg) {
+    var r = cfg.recruit || {}, sim = r.sim || { low: 0, high: 0 };
+    var o = [head(cfg)];
+    o.push(txt(540, 330, r.title || '招募社区团长', { size: 80, fill: T.text, weight: 700, anchor: 'middle' }));
+    o.push(txt(540, 384, r.subtitle || '一部手机，把邻居的午饭管起来', { size: 30, fill: T.text2, anchor: 'middle' }));
+    o.push('<line x1="420" y1="416" x2="660" y2="416" stroke="' + T.gold + '" stroke-width="3"/>');
+
+    var y = 500;
+    (r.points || []).forEach(function (p) {
+      /* ⚠️ 必须换行：SVG <text> 不会自动折行，长句会直接冲出卡片右边界。
+         实测踩过：招募海报第三条「佣金按本人带出的订单量结算，见习团长 8% ｜ …」被裁掉。 */
+      /* ⚠️ 不许用 slice 截断：截断会**静默丢掉字符**（实测把「首席团长 12%」切成了「12」），
+         比溢出更坏。改为「全量渲染 + 由判据 ⑩ 保证文案本身压得进 2 行」。 */
+      var lines = wrap(p, 22);
+      var h = 76 + (lines.length - 1) * 44;
+      o.push('<rect x="130" y="' + (y - 40) + '" width="820" height="' + h + '" rx="12" fill="' + T.surface
+        + '" stroke="' + T.border + '" stroke-width="1.5"/>');
+      lines.forEach(function (ln, k) {
+        o.push(txt(170, y + 8 + (k - (lines.length - 1) / 2) * 44, ln, { size: 34, fill: T.text }));
+      });
+      y += h + 20;
+    });
+
+    o.push('<rect x="130" y="' + (y + 20) + '" width="820" height="210" rx="16" fill="' + T['gold-bg']
+      + '" stroke="' + T['gold-bd'] + '" stroke-width="2"/>');
+    o.push(txt(540, y + 84, '预计月收入区间', { size: 30, fill: T['gold-fg'], anchor: 'middle' }));
+    o.push(txt(540, y + 172, '¥' + money(sim.low) + ' — ¥' + money(sim.high), { size: 72, fill: T['gold-deepest'], weight: 700, anchor: 'middle' }));
+    /* ⚠️ 2026-09-26 修复：这里原先写「单/月」，而 sim.orders 是**份**数。
+       口径依据 income.js 头部（业务已裁决）：「一单可能是多份（用户一次点 3 份），
+       所以口径必须落在**份**上，否则同一份生意在两处会算出差一倍的数」。
+       招募海报是发给候选团长的第一份材料，把「份」写成「单」会让对方按单估收入，差一倍。 */
+    o.push(txt(540, y + 212, '* 按 ' + sim.orders + ' 份/月 · 佣金 ' + sim.rateText + ' 估算，实际以结算为准',
+      { size: 21, fill: T['gold-fg'], anchor: 'middle' }));
+
+    o.push('<rect x="90" y="1230" width="900" height="130" rx="16" fill="' + T.surface + '" stroke="' + T.border + '" stroke-width="2"/>');
+    o.push(txt(150, 1290, r.cta || '扫码添加，聊两句', { size: 34, fill: T.text }));
+    o.push(txt(150, 1334, cfg.contact ? ('联系方式 ' + cfg.contact) : '', { size: 26, fill: T.text2 }));
+    o.push(qrBlock(790, 1240, 110, null));
+    return wrapSvg(o.join(''));
+  }
+
+  function wrapSvg(inner) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1440" viewBox="0 0 1080 1440">'
+      + defs() + '<rect x="0" y="0" width="1080" height="1440" fill="' + T.bg + '"/>'
+      + inner + '</svg>';
+  }
+
+  var RENDERERS = {
+    'menu-classic': menuClassic,
+    'menu-minimal': menuMinimal,
+    'menu-card': menuCard,
+    'activity': activity,
+    'recruit': recruit
+  };
+
+  function render(kind, day, cfg) {
+    var fn = RENDERERS[kind];
+    if (!fn) throw new Error('未知版式：' + kind);
+    return fn(day, cfg);
+  }
+
+  root.Poster = {
+    render: render,
+    kinds: Object.keys(RENDERERS),
+    esc: esc,
+    wrap: wrap,
+    dateInfo: dateInfo,
+    timelineText: timelineText
+  };
+})(window);
+
+/* ============================================================================
+ * ABox 一盒 · 团长收入模拟器 + 合规禁语表（**唯一一份实现** · 两端共用）
+ *
+ * ⚠️ 本文件是 E3「AI 内容工厂」与 G2「团长招募 CRM」**共用**的收入测算实现。
+ *    两处口径若各写一份，就会各自漂移，而且**没有任何门禁会红**。
+ *    ⇒ 改口径只能改这里，然后重跑两端构建器（build.py 会把本文件原样内联）。
+ *
+ * 口径（业务已裁决，勿推翻）：
+ *   · 佣金只按**本人带出的订单量**结算；费率取等级真源（8 / 9 / 10 / 12%）。
+ *   · 收入单位一律是**份**（不是「单」）：佣金 = 单价 × 份数 × 费率。
+ *     一单可能是多份（用户一次点 3 份），所以口径必须落在**份**上，
+ *     否则同一份生意在两处会算出差一倍的数。
+ *   · 输出一律是**区间**（按预估份量的 ±20%），且必附「以实际结算为准」。
+ *   · 招募/收入类文案**不得承诺收益、不得按发展下线计酬** ⇒ 禁语表在 COMPLIANCE。
+ *
+ * 依赖：root.SPEC.env.unitPrice（单份售价真源）、root.SPEC.env.commission（等级→费率）
+ * ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var S = root.SPEC;
+
+  /* ── 合规禁语表（被 E3 selftest、G2 自检与两端页面共用）──────────────
+   *
+   * ⚠️ 2026-09-26 修复：原表 17 条**全是传销 / 收益承诺类**，一条《广告法》禁止用语都没有。
+   *    而这个工具的标题、副标题、卖点、楼宇名、点位名全是用户自由输入，直通文案与海报，
+   *    中间没有任何过滤 ⇒ 实际输出「全网第一的盒饭，根治没胃口，100%有效」也照样给绿勾。
+   *    按定位补两类：**广告法绝对化用语**与**医疗/功效宣称**。
+   *
+   *    口径依据（《广告法》第九条第三项：不得使用「国家级」「最高级」「最佳」等用语）：
+   *      · adLaw —— 极限化/绝对化用语，以及未经证实的功效与医疗表述
+   *      · pyramid —— 传销与收益承诺类（原表的 17 条，逐一保留）
+   */
+  var COMPLIANCE = {
+    banner: '收益为估算区间，不构成承诺；佣金按本人带出的订单量结算，不按发展人员数量计酬。',
+    adLaw: [
+      '最高级', '最好', '最佳', '最强', '最优', '最便宜', '最低价', '最先进',
+      '顶级', '极致', '第一品牌', '全网第一', '销量第一', '排名第一', '独一无二', '绝无仅有',
+      '国家级', '世界级', '国际级', '世界一流', '中国第一',
+      '根治', '痊愈', '包治', '药到病除', '特效', '无副作用',
+      '100%', '百分百', '百分之百', '永久有效', '万能', '首选', '王牌', '史无前例'
+    ],
+    pyramid: [
+      '躺赚', '躺赚收益', '月入过万', '轻松过万', '零成本暴富', '稳赚', '包赚',
+      '拉人头', '发展下线', '层级返佣', '三级分销', '团队计酬', '无限代',
+      '保证收益', '承诺收益', '保底收入', '日结高薪'
+    ],
+    get forbidden() { return this.adLaw.concat(this.pyramid); }
+  };
+
+  var LEVEL_NAME = { trainee: '见习团长', formal: '正式团长', gold: '金牌团长', chief: '首席团长' };
+  var LEVEL_ORDER = ['trainee', 'formal', 'gold', 'chief'];
+
+  function money(n) { return Number(n).toFixed(2); }
+
+  function rateOf(level) {
+    var r = S.env.commission[level];
+    if (r == null) throw new Error('未知等级：' + level);
+    return r;
+  }
+
+  /* ── 收入模拟器（确定性 · 可独立复算）──────────────────────────────────
+   * 输入：servings = 预估月**份**量（不是单量！一单可含多份），level = 团长等级。
+   * 输出：low / high 区间（元）与复算表达式。
+   * ⚠️ `orders*` 是历史字段名（E3 页面上先用了它），与 `servings*` **同值** ——
+   *    保留只为不改已交付的 E3；新代码一律用 servings*。
+   * ------------------------------------------------------------------- */
+  function simulate(servings, level) {
+    var rate = rateOf(level);
+    var q = Math.max(0, Math.round(servings));
+    var per = S.env.unitPrice * rate;            /* 单份佣金（元） */
+    var low = Math.round(q * 0.8) * per;
+    var high = Math.round(q * 1.2) * per;
+    return {
+      level: level,
+      levelName: LEVEL_NAME[level],
+      rate: rate,
+      rateText: Math.round(rate * 100) + '%',
+      servings: q,
+      servingsLow: Math.round(q * 0.8),
+      servingsHigh: Math.round(q * 1.2),
+      orders: q,
+      ordersLow: Math.round(q * 0.8),
+      ordersHigh: Math.round(q * 1.2),
+      perOrder: per,
+      unitPrice: S.env.unitPrice,
+      low: low,
+      high: high,
+      /** 独立复算表达式（页面与探针都用它验算，避免「显示值」与「真值」两套） */
+      expr: '份量区间 × 单份佣金；单份佣金 = ' + money(S.env.unitPrice) + ' × ' + Math.round(rate * 100) + '% = ' + money(per),
+      note: '按 ' + q + ' 份/月 ±20% 估算 · 佣金 ' + Math.round(rate * 100) + '% · ' + COMPLIANCE.banner
+    };
+  }
+
+  /* ⚠️ 本文件是 window.INCOME 的**唯一定义点** —— 两端构建器与 selftest 的
+     「共享实现未分叉」断言都盯这一处（缺它就会有人悄悄抄出第二份实现）。 */
+  root.INCOME = {
+    _src: '_tmp/p0/_shared/income.js',
+    _note: '两端共用的唯一实现；改口径只改这里，然后重跑两端构建器',
+    COMPLIANCE: COMPLIANCE,
+    LEVEL_NAME: LEVEL_NAME,
+    LEVEL_ORDER: LEVEL_ORDER,
+    rateOf: rateOf,
+    money: money,
+    simulate: simulate
+  };
+})(window);
+
+/* ============================================================================
+ * E3 AI 内容工厂 · 文案引擎（零依赖）
+ *
+ * 三条硬约束：
+ *   ① 数字一律派生：价格 / 佣金率 / 时刻全部读 SPEC，本文件不写死任何金额与钟点。
+ *   ② 合规红线：招募与收入类文案**不得承诺收益、不得按发展下线计酬**。
+ *      COMPLIANCE 表列出「禁止出现的表述」，selftest.py 与页面自检都会扫它。
+ *   ③ 品牌一致：默认「克制」风格（不用象形 emoji），与本项目端上 UI 的
+ *      反 emoji 纪律保持一致；要热闹可显式切风格，不默认越界。
+ * ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var S = root.SPEC;
+
+  /* ── 合规红线 + 收入模拟器：**实现只有一份**，在 _shared/income.js ──────────
+   * ⚠️ 这里原先自带一份实现，而 G2 团长招募 CRM 也要算同一个数。
+   *    两份各自漂移时**没有任何门禁会红** ⇒ 统一由 build.py 先内联
+   *    `_tmp/p0/_shared/income.js`，本文件只做转发（函数名保留，供构建期自检）。
+   * ------------------------------------------------------------------- */
+  var INCOME = root.INCOME;
+  if (!INCOME) {
+    throw new Error('缺 _shared/income.js —— 收入模拟器只有一份实现，必须由构建器先内联');
+  }
+  var COMPLIANCE = INCOME.COMPLIANCE;
+  var LEVEL_NAME = INCOME.LEVEL_NAME;
+  var LEVEL_ORDER = INCOME.LEVEL_ORDER;
+  var rateOf = INCOME.rateOf;
+  var money = INCOME.money;
+
+  function simulate(orders, level) { return INCOME.simulate(orders, level); }
+
+  var WD = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function dateInfo(iso) {
+    var p = String(iso).split('-');
+    var d = new Date(+p[0], +p[1] - 1, +p[2]);
+    return { md: (+p[1]) + '月' + pad2(+p[2]) + '日', wd: WD[d.getDay()] };
+  }
+
+  /* 收入模拟器的实现已移到 _shared/income.js（见文件头），此处只用不重定义 */
+
+  /* ── 文案风格 ─────────────────────────────────────────────────────────── */
+  var STYLE = {
+    plain: { bullet: '｜', tail: '（详情看群公告）', prefix: '' },
+    warm:  { bullet: ' · ', tail: '（有问题随时群里问我）', prefix: '' },
+    promo: { bullet: '｜', tail: '（今日名额有限，先接龙先排）', prefix: '【今日推荐】' }
+  };
+
+  function dishLine(day, cfg, bullet) {
+    var s = S.slots.required || [1, 2, 3, 4];
+    return s.map(function (k) { return (day.dishes[k] || '—'); }).join(bullet);
+  }
+
+  function slotLine(day, cfg, bullet) {
+    var s = S.slots.required || [1, 2, 3, 4];
+    return s.map(function (k) { return S.slotLabel[k] + ' ' + (day.dishes[k] || '—'); }).join(bullet);
+  }
+
+  function where(cfg) {
+    return [cfg.building, cfg.pickup].filter(Boolean).join(' · ') || '取餐点见群公告';
+  }
+
+  /* 三条：早（预热）/ 中（催单）/ 晚（预告）—— 时刻来自 SPEC.timeline */
+  function friend(day, cfg, style) {
+    var st = STYLE[style || 'plain'];
+    var di = dateInfo(day.date);
+    var b = st.bullet, W = where(cfg);
+
+    var morning = st.prefix + '【' + di.md + ' ' + di.wd + ' · 明天吃这些】\n'
+      + slotLine(day, cfg, b) + b + (cfg.staple || '米饭') + '\n'
+      + '一饭四菜 ¥' + money(cfg.price) + '，' + W + '。\n'
+      + di.md + ' ' + S.timeline.arrival + ' 送到，现在就能接龙。' + st.tail;
+
+    var noon = '截单提醒 ｜ ' + di.md + ' 这餐\n'
+      + '前一天 ' + S.timeline.cutoff + ' 截单，过了就得等下一餐。\n'
+      + '主荤 ' + (day.dishes[1] || '—') + '，一份 ¥' + money(cfg.price) + '。\n'
+      + '接龙格式：姓名 + 份数。' + st.tail;
+
+    var evening = '【下一餐预告 · ' + di.md + ' ' + di.wd + '】\n'
+      + dishLine(day, cfg, b) + '\n'
+      + '一饭四菜 ¥' + money(cfg.price) + '，' + W + '。\n'
+      + '想吃就接龙，' + S.timeline.cutoff + ' 截单。' + st.tail;
+
+    return { morning: morning, noon: noon, evening: evening };
+  }
+
+  /* 楼群接龙（团长直接复制到群里发起） */
+  function relay(day, cfg) {
+    var di = dateInfo(day.date);
+    return '【接龙 · ' + di.md + ' ' + di.wd + '】ABox 一盒\n'
+      + slotLine(day, cfg, '｜') + '｜' + (cfg.staple || '米饭') + '\n'
+      + '一饭四菜 ¥' + money(cfg.price) + ' · ' + where(cfg) + '\n'
+      + '前一天 ' + S.timeline.cutoff + ' 截单，当天 ' + S.timeline.arrival + ' 送达\n'
+      + '—— 请接龙：姓名 + 份数 ——';
+  }
+
+  /* 活动文案 */
+  function activityText(day, cfg) {
+    var a = cfg.activity || {}, di = dateInfo(day.date);
+    var lines = ['【' + (a.title || '本周限定') + '】' + di.md + ' ' + di.wd];
+    if (a.subtitle) lines.push(a.subtitle);
+    (a.points || []).forEach(function (p, i) { lines.push((i + 1) + '. ' + p); });
+    lines.push('一饭四菜 ¥' + money(cfg.price) + ' · ' + where(cfg));
+    lines.push('前一天 ' + S.timeline.cutoff + ' 截单，当天 ' + S.timeline.arrival + ' 送达');
+    return lines.join('\n');
+  }
+
+  /* 团长招募包：话术 + 收入模拟 + 招募要点 */
+  function recruit(cfg) {
+    var sim = simulate(cfg.orders == null ? 200 : cfg.orders, cfg.level || 'formal');
+    var rows = LEVEL_ORDER.map(function (lv) {
+      var r = Math.round(rateOf(lv) * 100);
+      return LEVEL_NAME[lv] + ' ' + r + '%';
+    }).join(' ｜ ');
+
+    var pitch = [
+      '【招社区团长 · ' + (cfg.building || '写字楼') + '】',
+      '你身边有多少人每天为「中午吃什么」发愁？',
+      'ABox 一盒做的是写字楼现做盒饭：一饭四菜 ¥' + money(S.env.unitPrice) + '，'
+        + '前一天 ' + S.timeline.cutoff + ' 截单，当天 ' + S.timeline.arrival + ' 送到楼里。',
+      '',
+      '团长要做的只有三件事：',
+      '1. 在自己的群里发起接龙；',
+      '2. 收单、把名单交给集散中心；',
+      '3. 到点组织取餐。',
+      '',
+      '不用囤货、不用垫资、不用自己做饭。',
+      '佣金按**你本人带出的订单量**结算：' + rows + '。',
+      '以 ' + sim.servings + ' 份/月、' + sim.rateText + ' 费率估算，月佣金区间约 '
+        + '¥' + money(sim.low) + ' — ¥' + money(sim.high) + '。',
+      '',
+      COMPLIANCE.banner
+    ];
+
+    return {
+      pitch: pitch,
+      sim: sim,
+      levels: rows,
+      points: [
+        '写字楼场景，人流稳定，不用自己找客',
+        '现做现送，不碰库存也不碰资金',
+        /* ⚠️ 海报上这一条必须能压进 2 行（判据 ⑩ 会核）：四档全列出来会变 3 行、
+           一旦有人在渲染端加 slice 截断，就会静默丢掉「%」，语义被悄悄改掉。 */
+        '佣金按本人带出的订单量结算，' + Math.round(rateOf('trainee') * 100) + '% 起、最高 '
+          + Math.round(rateOf('chief') * 100) + '%'
+      ],
+      cta: '想试试的，扫码加我聊两句'
+    };
+  }
+
+  /* ── 合规自检（页面内可跑，selftest.py 也复用它）──────────────────────── */
+  function complianceScan(texts) {
+    var hits = [];
+    (texts || []).forEach(function (t) {
+      var s = typeof t === 'string' ? t : [t.pitch, t.body, t.morning, t.noon, t.evening].filter(Boolean).join('\n');
+      COMPLIANCE.forbidden.forEach(function (w) {
+        if (s.indexOf(w) >= 0) hits.push({ word: w, at: String(t).slice(0, 40) });
+      });
+    });
+    return hits;
+  }
+
+  root.Copy = {
+    COMPLIANCE: COMPLIANCE,
+    LEVEL_NAME: LEVEL_NAME,
+    LEVEL_ORDER: LEVEL_ORDER,
+    rateOf: rateOf,
+    simulate: simulate,
+    friend: friend,
+    relay: relay,
+    activityText: activityText,
+    recruit: recruit,
+    complianceScan: complianceScan,
+    money: money
+  };
+})(window);
+
+/* ============================================================================
+ * E3 AI 内容工厂 · 自检判据（纯函数 · 不碰 DOM）
+ *
+ * 一份实现、两个运行器：
+ *   · 浏览器：app.js 的「自检」tab（人当场看得见）
+ *   · 构建期：_tmp/factory/selfcheck.mjs（node 里同一套判据复跑，红就拦在提交前）
+ *
+ * ⚠️ 判据纪律（本项目已踩实的血泪）：
+ *   · 恒红与恒绿同罪 —— 都等于没有检查；所以每条判据都要在正常输入下真能变绿，
+ *     也要能被一个构造样本变红（selfcheck.mjs 里带负控）。
+ *   · 判据必须按其作用域写 —— 跨作用域即恒红。
+ * ========================================================================== */
+(function (root) {
+  'use strict';
+
+  function uniq(a) { return a.filter(function (v, i) { return a.indexOf(v) === i; }); }
+
+  function run(ctx) {
+    var T = ctx.T, S = ctx.S, P = ctx.P, C = ctx.C, M = ctx.M, ST = ctx.ST;
+    var out = [];
+    function add(name, ok, detail) { out.push({ name: name, ok: !!ok, detail: String(detail) }); }
+
+    var sc = M.scene(ST, C);
+    var ps = M.posters(ST, P, C);
+    var svgAll = ps.map(function (p) { return p.svg; }).join('');
+
+    /* ① 品牌色：图内出现的十六进制色，必须全部命中 token 表 */
+    var allowed = Object.keys(T).map(function (k) { return String(T[k]); })
+      .filter(function (v) { return /^#[0-9A-Fa-f]{3,8}$/.test(v); })
+      .map(function (v) { return v.toUpperCase(); });
+    var hexes = (svgAll.match(/#[0-9A-Fa-f]{6}\b/g) || []).map(function (h) { return h.toUpperCase(); });
+    var stray = uniq(hexes.filter(function (h) { return allowed.indexOf(h) < 0; }));
+    add('品牌色：图内色值全部来自 token', stray.length === 0,
+      stray.length ? ('越界色值 ' + stray.join(' ')) : (hexes.length + ' 处色值全部命中 token 表'));
+
+    /* ② 字体栈：图象必须原样使用 token 的 display 字体（页面与导出同源） */
+    var fontOk = ps.length > 0 && ps.every(function (p) { return p.svg.indexOf('font-family="' + T.fontDisplay + '"') >= 0; });
+    add('字体：图象使用 token 的楷体栈', fontOk, T.fontDisplay);
+
+    /* ③ 一饭四菜：每张菜单海报都要出现四个档位标签 */
+    var labels = (S.slots.required || []).map(function (k) { return S.slotLabel[k]; });
+    var slotOk = ps.every(function (p) { return labels.every(function (l) { return p.svg.indexOf(l) >= 0; }); });
+    add('一饭四菜：四档位齐（' + labels.join('/') + '）', slotOk, '每张菜单海报逐档渲染');
+
+    /* ④ 口径：价格与送达时刻必须由 SPEC 派生，而非页面手写 */
+    var specOk = svgAll.indexOf(S.timeline.arrival) >= 0 && svgAll.indexOf(S.timeline.cutoff) >= 0;
+    add('口径：截单 ' + S.timeline.cutoff + ' / 送达 ' + S.timeline.arrival + ' 由 SPEC 派生', specOk,
+      '单价真源 ¥' + C.money(S.env.unitPrice) + '（本页 ' + C.money(ST.price) + '，可改）');
+
+    /* ⑤ 合规：全部文案与话术扫禁语
+     *
+     * ⚠️ 2026-09-26 修复：原来的 texts 只有 friend×7 + relay×7 + activityText + recruit.pitch，
+     *    **漏了 recruit.points / recruit.cta / recruit.levels**，而且一张海报的 SVG 文本都没扫。
+     *    默认模板里写死的「最高 12%」正是从 recruit.points 出去的 ⇒ 既不在词表里也不在扫描集里，
+     *    任何判据都看不见它。故：① recruit 的全部字符串字段入集；② 海报 SVG 剥标签后再入集。 */
+    var texts = [];
+    ST.days.forEach(function (d) {
+      var f = C.friend(d, sc, ST.copyStyle);
+      texts.push(f.morning, f.noon, f.evening, C.relay(d, sc));
+    });
+    texts.push(C.activityText(ST.days[0], sc));
+    texts = texts.concat(sc.recruit.pitch || []);
+    texts = texts.concat(sc.recruit.points || []);
+    /* ⚠️ levels 是**字符串**（四档费率拼成一行），不是数组 —— 照抄结构，别当成对象数组 */
+    if (sc.recruit.cta) texts.push(sc.recruit.cta);
+    if (typeof sc.recruit.levels === 'string') texts.push(sc.recruit.levels);
+    /* 活动输入项（用户自由填写，直连文案与海报 —— 之前完全没有过滤） */
+    var act = ST.activity || {};
+    texts = texts.concat(act.title || '', act.subtitle || '', act.points || []);
+    texts = texts.concat(sc.building || '', sc.pickup || '', sc.contact || '',
+      sc.brandLine || '', sc.staple || '');
+    /* 海报 SVG：剥掉标签与属性，只留文本节点内容 */
+    var svgTexts = ps.map(function (p) {
+      return String(p.svg).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+    });
+    texts = texts.concat(svgTexts);
+    var hits = C.complianceScan(texts);
+    add('合规：招募/收入类文案无禁语', hits.length === 0,
+      hits.length ? uniq(hits.map(function (h) { return h.word; })).join(' ')
+                  : ('扫 ' + texts.length + ' 段 · 禁语表 ' + C.COMPLIANCE.forbidden.length + ' 条'));
+
+    /* ⑥ 收入模拟器：显示值必须等于独立复算（不许「显示的」与「算出的」两套） */
+    var sim = sc.recruit.sim;
+    var re1 = sim.ordersLow * sim.unitPrice * sim.rate;
+    var re2 = sim.ordersHigh * sim.unitPrice * sim.rate;
+    add('收入模拟器：区间 == 独立复算',
+      Math.abs(re1 - sim.low) < 0.01 && Math.abs(re2 - sim.high) < 0.01,
+      sim.ordersLow + '×' + C.money(sim.unitPrice) + '×' + sim.rateText + ' = ¥' + C.money(sim.low)
+      + ' · ' + sim.ordersHigh + '×… = ¥' + C.money(sim.high));
+
+    /* ⑦ 五种版式全部可渲染（把「渲染抛错」变成判据，而不是靠人点到） */
+    var kinds = P.kinds, kerr = [];
+    kinds.forEach(function (k) {
+      try { var s = P.render(k, ST.days[0], sc); if (!s || s.length < 200) kerr.push(k + '(空)'); }
+      catch (e) { kerr.push(k + '(' + e.message + ')'); }
+    });
+    add('版式：' + kinds.length + ' 种全部可渲染', kerr.length === 0,
+      kerr.length ? kerr.join(' ') : kinds.join(' / '));
+
+    /* ⑧ 排期：7 天连续且不重复 */
+    var dates = ST.days.map(function (d) { return d.date; });
+    var consec = true;
+    for (var i = 1; i < dates.length; i++) {
+      var a = new Date(dates[i - 1] + 'T00:00:00'), b = new Date(dates[i] + 'T00:00:00');
+      if ((b - a) !== 86400000) consec = false;
+    }
+    add('排期：7 天连续不重复', consec && uniq(dates).length === dates.length && dates.length === 7,
+      dates[0] + ' → ' + dates[6]);
+
+    /* ⑨ 文案齐：7×3 朋友圈 + 7 接龙，条条非空且含价格 */
+    var miss = [];
+    ST.days.forEach(function (d, i) {
+      var f = C.friend(d, sc, ST.copyStyle);
+      ['morning', 'noon', 'evening'].forEach(function (k) {
+        if (!f[k] || f[k].length < 10) miss.push('D' + (i + 1) + '.' + k);
+      });
+      var r = C.relay(d, sc);
+      if (!r || r.indexOf(C.money(ST.price)) < 0) miss.push('D' + (i + 1) + '.relay');
+    });
+    add('文案：7×3 朋友圈 + 7 接龙 均非空且含价格', miss.length === 0,
+      miss.length ? miss.join(' ') : ('共 ' + (ST.days.length * 4) + ' 条'));
+
+    /* ⑩ 版面不溢出：海报是 SVG，<text> 不会自动折行也不会报错 ——
+     *   长文案要么冲出边界、要么被截断，而两者都不会让任何东西变红。
+     *   所以把「文案压得进卡片的行数」变成判据：招募 22 字/行 ≤2 行、活动 18 字/行 ≤2 行。 */
+    var over = [];
+    (sc.recruit.points || []).forEach(function (p, i) {
+      var n = P.wrap(p, 22).length;
+      if (n > 2) over.push('招募卖点' + (i + 1) + '=' + n + '行');
+    });
+    ((ST.activity && ST.activity.points) || []).forEach(function (p, i) {
+      var n = P.wrap(p, 18).length;
+      if (n > 2) over.push('活动卖点' + (i + 1) + '=' + n + '行');
+    });
+    add('版面：海报文案不溢出（招募≤2行/活动≤2行）', over.length === 0,
+      over.length ? over.join(' ') : '招募 ' + (sc.recruit.points || []).length + ' 条 · 活动 '
+        + ((ST.activity && ST.activity.points) || []).length + ' 条 均压得进');
+
+    return out;
+  }
+
+  root.SelfCheck = { run: run };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ============================================================================
+ * E3 AI 内容工厂 · 应用外壳（只碰 DOM）
+ *
+ * 分工：model.js 管状态与素材折算 · poster.js 出图 · copy.js 出文案 ·
+ *       selfcheck.js 出判据 · 本文件只管「渲染 / 交互 / 导出」。
+ * 核心动线（也是 P0 验收判据）：**一次生成一周的菜单海报与文案**，一个按钮。
+ * ========================================================================== */
+(function () {
+  'use strict';
+
+  var T = window.TOKENS, S = window.SPEC;
+  var P = window.Poster, C = window.Copy, M = window.Model, SC = window.SelfCheck;
+  var VERSION = window.FACTORY_VERSION;
+
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+
+  var ST = M.load();
+
+  /* 薄封装：把状态绑进去，让下面的渲染代码短一些。
+     ⚠️ 刻意不叫 scene/posters —— 那两个名字是 model.js 的**纯实现**，
+        同名跨层会掩盖「同概念两份表述」，而自检会按名字抓这一点。 */
+  function curScene() { return M.scene(ST, C); }
+  function curPosters() { return M.posters(ST, P, C); }
+  function selfCheck() { return SC.run({ T: T, S: S, P: P, C: C, M: M, ST: ST }); }
+
+  var DPR = 1080, DPH = 1440;
+
+  /* ── 导出 ─────────────────────────────────────────────────────────────── */
+
+  function downloadBlob(blob, name) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 400);
+  }
+
+  function svgToPngBlob(svg, scale) {
+    scale = scale || 1;
+    return new Promise(function (res, rej) {
+      var img = new Image();
+      img.onload = function () {
+        try {
+          var c = document.createElement('canvas');
+          c.width = DPR * scale; c.height = DPH * scale;
+          var ctx = c.getContext('2d');
+          ctx.fillStyle = T.bg; ctx.fillRect(0, 0, c.width, c.height);
+          ctx.drawImage(img, 0, 0, c.width, c.height);
+          c.toBlob(function (b) { b ? res(b) : rej(new Error('toBlob 返回空')); }, 'image/png');
+        } catch (e) { rej(e); }
+      };
+      img.onerror = function () { rej(new Error('SVG 载入失败（字体或转义）')); };
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    });
+  }
+
+  function saveSvg(svg, name) {
+    downloadBlob(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), name + '.svg');
+  }
+  function savePng(svg, name, scale) {
+    return svgToPngBlob(svg, scale).then(function (b) { downloadBlob(b, name + '.png'); });
+  }
+  function saveAllPng() {
+    var ps = curPosters(), i = 0;
+    (function step() {
+      if (i >= ps.length) { toast('已导出 ' + ps.length + ' 张 PNG'); return; }
+      var p = ps[i++];
+      savePng(p.svg, 'ABox菜单-' + p.date)
+        .then(function () { setTimeout(step, 320); })
+        .catch(function (e) { toast('第 ' + i + ' 张失败：' + e.message); });
+    })();
+  }
+
+  function copyText(txt, btn) {
+    var done = function () {
+      if (!btn) return;
+      var o = btn.textContent; btn.textContent = '已复制';
+      setTimeout(function () { btn.textContent = o; }, 1200);
+    };
+    var fallback = function () {
+      var ta = document.createElement('textarea');
+      ta.value = txt; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) { toast('复制失败，请手动选择'); }
+      ta.remove();
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(done, fallback);
+    } else { fallback(); }
+  }
+
+  /* ── 侧栏 ─────────────────────────────────────────────────────────────── */
+
+  function sec(title, body, cls) {
+    return '<section class="sec ' + (cls || '') + '"><h3>' + title + '</h3><div class="sec-b">' + body + '</div></section>';
+  }
+  function fld(label, type, key, val, extra) {
+    return '<label class="fld"><span>' + label + '</span>'
+      + '<input type="' + type + '" data-k="' + key + '" value="' + P.esc(val) + '" ' + (extra || '') + '></label>';
+  }
+  function dishSelect(slot, val) {
+    var dir = slot === 1 ? M.MAINS : slot === 2 ? M.HALFS : slot === 3 ? M.VEGS : M.SOUPS;
+    var opts = dir.map(function (n) { return '<option' + (n === val ? ' selected' : '') + '>' + P.esc(n) + '</option>'; }).join('');
+    if (dir.indexOf(val) < 0 && val) opts = '<option selected>' + P.esc(val) + '</option>' + opts;  /* 库外手填不卡住 */
+    return '<select data-dish="' + slot + '">' + opts + '</select>';
+  }
+
+  function renderSidebar() {
+    var sl = S.slots.required || [1, 2, 3, 4];
+    var rows = ST.days.map(function (d) {
+      var di = P.dateInfo(d.date);
+      return '<div class="day-row">'
+        + '<div class="day-hd"><b>' + P.esc(di.md) + '</b><span>' + P.esc(di.wd) + '</span></div>'
+        + sl.map(function (k) {
+            return '<label class="dish-f"><i>' + P.esc(S.slotLabel[k]) + '</i>' + dishSelect(k, d.dishes[k]) + '</label>';
+          }).join('')
+        + '</div>';
+    }).join('');
+
+    var levelOpts = C.LEVEL_ORDER.map(function (lv) {
+      return '<option value="' + lv + '"' + (lv === ST.level ? ' selected' : '') + '>'
+        + P.esc(C.LEVEL_NAME[lv]) + '（' + Math.round(C.rateOf(lv) * 100) + '%）</option>';
+    }).join('');
+
+    return ''
+      + sec('品牌与点位', ''
+        + fld('楼宇 / 点位', 'text', 'building', ST.brand.building)
+        + fld('取餐点', 'text', 'pickup', ST.brand.pickup)
+        + fld('联系方式', 'text', 'contact', ST.brand.contact)
+        + fld('署名行（页脚）', 'text', 'brandLine', ST.brand.brandLine)
+        + fld('主食', 'text', 'staple', ST.staple))
+      + sec('排期与价格', ''
+        + fld('首日出餐日', 'date', 'startDate', ST.days[0].date)
+        + fld('单价（¥）', 'number', 'price', ST.price, 'step="0.01"')
+        + '<p class="hint">改首日会重排 7 天，已填菜名保留。</p>')
+      + sec('一周菜单（7 × 4 档）', rows, 'collapsible')
+      + sec('海报版式', '<div class="seg">'
+        + [['menu-classic', '经典竖版'], ['menu-minimal', '极简留白'], ['menu-card', '卡片式']]
+            .map(function (v) {
+              return '<button class="seg-b' + (ST.posterStyle === v[0] ? ' on' : '') + '" data-style="' + v[0] + '">' + v[1] + '</button>';
+            }).join('') + '</div>')
+      + sec('文案风格', '<div class="seg">'
+        + [['plain', '克制'], ['warm', '亲切'], ['promo', '促销']]
+            .map(function (v) {
+              return '<button class="seg-b' + (ST.copyStyle === v[0] ? ' on' : '') + '" data-cstyle="' + v[0] + '">' + v[1] + '</button>';
+            }).join('') + '</div>')
+      + sec('团长与收入模拟', ''
+        + '<label class="fld"><span>团长等级</span><select data-k="level">' + levelOpts + '</select></label>'
+        + fld('预估月份量', 'number', 'orders', ST.orders, 'min="0" step="10"')
+        + '<div class="sim" id="simBox"></div>'
+        + '<p class="hint">佣金只按<strong>本人带出的订单量</strong>结算，不按发展人员数量计酬。</p>')
+      + '<div class="side-foot">'
+        + '<button class="btn ghost sm" id="btnReset">恢复默认</button>'
+        + '<button class="btn ghost sm" id="btnClear">清空本地保存</button>'
+        + '</div>';
+  }
+
+  /* ── 产出区 ───────────────────────────────────────────────────────────── */
+
+  var TABS = [
+    ['posters', '一周海报'],
+    ['friend', '朋友圈文案'],
+    ['relay', '楼群接龙'],
+    ['activity', '活动物料'],
+    ['recruit', '团长招募包'],
+    ['check', '自检']
+  ];
+  var curTab = 'posters';
+
+  function renderPanel() {
+    if (curTab === 'posters') return panelPosters();
+    if (curTab === 'friend') return panelFriend();
+    if (curTab === 'relay') return panelRelay();
+    if (curTab === 'activity') return panelActivity();
+    if (curTab === 'recruit') return panelRecruit();
+    return panelCheck();
+  }
+
+  function panelPosters() {
+    var ps = curPosters();
+    return '<div class="bar"><span class="cnt">' + ps.length + ' 张 · 1080×1440</span>'
+      + '<button class="btn" id="btnAllPng">一键下载全部 PNG</button></div>'
+      + '<div class="grid">' + ps.map(function (p) {
+        var di = P.dateInfo(p.date);
+        return '<figure class="card">' + p.svg
+          + '<figcaption><b>' + P.esc(di.md) + '</b> ' + P.esc(di.wd)
+          + '<span class="acts"><button class="btn ghost xs" data-svg="' + p.date + '">SVG</button>'
+          + '<button class="btn xs" data-png="' + p.date + '">PNG</button></span></figcaption></figure>';
+      }).join('') + '</div>';
+  }
+
+  function copyCard(title, sub, body) {
+    return '<article class="cc"><header><b>' + P.esc(title) + '</b><span>' + P.esc(sub) + '</span>'
+      + '<button class="btn ghost xs copy" data-copy>复制</button></header>'
+      + '<pre>' + P.esc(body) + '</pre></article>';
+  }
+
+  function panelFriend() {
+    var sc = curScene(), out = [];
+    ST.days.forEach(function (d) {
+      var f = C.friend(d, sc, ST.copyStyle), di = P.dateInfo(d.date);
+      out.push(copyCard(di.md + ' · 早', di.wd, f.morning));
+      out.push(copyCard(di.md + ' · 中', '截单提醒', f.noon));
+      out.push(copyCard(di.md + ' · 晚', '次日预告', f.evening));
+    });
+    return '<div class="bar"><span class="cnt">' + out.length + ' 条 · 早/中/晚 × 7 天</span></div>'
+      + '<div class="cols">' + out.join('') + '</div>';
+  }
+
+  function panelRelay() {
+    var sc = curScene();
+    return '<div class="bar"><span class="cnt">7 条 · 可直接粘贴到微信群</span></div>'
+      + '<div class="cols">' + ST.days.map(function (d) {
+        var di = P.dateInfo(d.date);
+        return copyCard(di.md + ' ' + di.wd, '接龙发起', C.relay(d, sc));
+      }).join('') + '</div>';
+  }
+
+  function panelActivity() {
+    var sc = curScene(), a = ST.activity;
+    var pts = (a.points || []).map(function (t, i) {
+      return '<div class="pt-row"><input data-pt="' + i + '" value="' + P.esc(t) + '"></div>';
+    }).join('');
+    return '<div class="two"><div class="col-l">'
+      + '<label class="fld"><span>活动主标题</span><input data-act="title" value="' + P.esc(a.title || '') + '"></label>'
+      + '<label class="fld"><span>副标题</span><input data-act="subtitle" value="' + P.esc(a.subtitle || '') + '"></label>'
+      + '<div class="fld"><span>卖点（最多 4 条）</span>' + pts
+      + '<button class="btn ghost sm" id="btnAddPt">+ 加一条</button></div>'
+      + '<div class="bar"><button class="btn ghost" id="actCopy">复制文案</button></div>'
+      + '<pre class="plain" id="actText">' + P.esc(C.activityText(ST.days[0], sc)) + '</pre></div>'
+      + '<div class="col-r" id="actCard"><figure class="card">' + P.render('activity', ST.days[0], sc)
+      + '<figcaption>活动海报<span class="acts">'
+      + '<button class="btn ghost xs" data-svg-a="1">SVG</button>'
+      + '<button class="btn xs" data-png-a="1">PNG</button></span></figcaption></figure></div>'
+      + '</div>';
+  }
+
+  function panelRecruit() {
+    var sc = curScene(), r = sc.recruit;
+    return '<div class="two"><div class="col-l">'
+      + '<div class="sim-big"><div class="t">预计月收入区间（' + P.esc(r.sim.levelName) + ' · ' + r.sim.rateText + '）</div>'
+      + '<div class="v">¥' + C.money(r.sim.low) + ' — ¥' + C.money(r.sim.high) + '</div>'
+      + '<div class="n">' + P.esc(r.sim.expr) + '</div></div>'
+      + '<div class="bar"><button class="btn ghost" id="recCopy">复制招募话术</button></div>'
+      + '<pre class="plain" id="recText">' + P.esc(r.pitch.join('\n')) + '</pre>'
+      + '<p class="hint">' + P.esc(C.COMPLIANCE.banner) + '</p></div>'
+      + '<div class="col-r"><figure class="card">' + P.render('recruit', ST.days[0], sc)
+      + '<figcaption>招募海报<span class="acts">'
+      + '<button class="btn ghost xs" data-svg-r="1">SVG</button>'
+      + '<button class="btn xs" data-png-r="1">PNG</button></span></figcaption></figure></div>'
+      + '</div>';
+  }
+
+  function panelCheck() {
+    var cs = selfCheck();
+    var bad = cs.filter(function (c) { return !c.ok; });
+    return '<div class="bar"><span class="cnt">' + cs.length + ' 项 · '
+      + (bad.length ? ('<b class="bad">' + bad.length + ' 项待看</b>') : '<b class="good">全部通过</b>') + '</span></div>'
+      + '<div class="chk">' + cs.map(function (c) {
+        return '<div class="chk-row ' + (c.ok ? 'ok' : 'no') + '"><span class="dot"></span>'
+          + '<b>' + P.esc(c.name) + '</b><span class="d">' + P.esc(c.detail) + '</span></div>';
+      }).join('') + '</div>'
+      + '<p class="hint">这些都是<strong>确定性检查</strong>（不联网、不用模型），用来保证「批量出的图不会悄悄跑出品牌」。'
+      + '同一套判据在构建期由 <code>selfcheck.mjs</code> 复跑一遍 —— 一份实现、两个运行器。</p>';
+  }
+
+  /* ── 渲染 ─────────────────────────────────────────────────────────────── */
+
+  function renderSim() {
+    var r = C.recruit({ building: ST.brand.building, contact: ST.brand.contact, level: ST.level, orders: Number(ST.orders) });
+    var box = $('#simBox');
+    if (!box) return;
+    box.innerHTML = '<div class="t">' + P.esc(r.sim.levelName) + ' · ' + r.sim.rateText + '</div>'
+      + '<div class="v">¥' + C.money(r.sim.low) + ' — ¥' + C.money(r.sim.high) + '<small>/月</small></div>'
+      + '<div class="n">' + r.sim.servingsLow + '–' + r.sim.servingsHigh + ' 份 × ¥' + C.money(r.sim.unitPrice)
+      + ' × ' + r.sim.rateText + '</div>';
+  }
+
+  function renderBadge() {
+    var bad = selfCheck().filter(function (c) { return !c.ok; }).length;
+    var b = $('#badge');
+    b.className = 'badge ' + (bad ? 'bad' : 'ok');
+    b.textContent = bad ? (bad + ' 项待看') : '品牌自检通过';
+  }
+
+  function render() {
+    $('#side').innerHTML = renderSidebar();
+    $('#tabs').innerHTML = TABS.map(function (t) {
+      return '<button class="tab' + (curTab === t[0] ? ' on' : '') + '" data-tab="' + t[0] + '">' + t[1] + '</button>';
+    }).join('');
+    $('#panel').innerHTML = renderPanel();
+    renderSim();
+    renderBadge();
+  }
+
+  function rerenderOut() { $('#panel').innerHTML = renderPanel(); renderSim(); renderBadge(); }
+
+  function renderSidebarOnly() {
+    var keep = document.activeElement && document.activeElement.getAttribute('data-k');
+    $('#side').innerHTML = renderSidebar();
+    if (keep) { var el = $('#side [data-k="' + keep + '"]'); if (el) el.focus(); }
+  }
+
+  var toastT = null;
+  function toast(msg) {
+    var el = $('#toast');
+    el.textContent = msg; el.classList.add('on');
+    clearTimeout(toastT); toastT = setTimeout(function () { el.classList.remove('on'); }, 2200);
+  }
+
+  /* ── 事件 ─────────────────────────────────────────────────────────────── */
+
+  function onSide(e) {
+    var t = e.target, k = t.getAttribute('data-k');
+
+    if (k === 'startDate') {
+      var nd = new Date(t.value + 'T00:00:00');
+      if (isNaN(nd.getTime())) return;
+      ST.days = ST.days.map(function (d, i) { return { date: M.iso(M.addDays(nd, i)), dishes: d.dishes }; });
+      M.save(ST); renderSidebarOnly(); rerenderOut(); return;
+    }
+    if (k) {
+      var v = t.value;
+      if (k === 'price' || k === 'orders') v = Number(v);
+      if (['building', 'pickup', 'contact', 'brandLine'].indexOf(k) >= 0) ST.brand[k] = v;
+      else ST[k] = v;
+      M.save(ST); renderSim(); rerenderOut(); return;
+    }
+    if (t.hasAttribute('data-dish')) {
+      var row = t.closest('.day-row');
+      var idx = $$('.day-row').indexOf(row);
+      var slot = Number(t.getAttribute('data-dish'));
+      if (idx >= 0) { ST.days[idx].dishes[slot] = t.value; M.save(ST); rerenderOut(); }
+    }
+  }
+
+  function onClick(e) {
+    var t = e.target, b;
+    if ((b = t.closest('[data-style]'))) { ST.posterStyle = b.getAttribute('data-style'); M.save(ST); render(); return; }
+    if ((b = t.closest('[data-cstyle]'))) { ST.copyStyle = b.getAttribute('data-cstyle'); M.save(ST); render(); return; }
+    if ((b = t.closest('[data-tab]'))) { curTab = b.getAttribute('data-tab'); render(); return; }
+    if (t.id === 'btnReset') { if (confirm('恢复默认参数？（会丢弃当前编辑）')) { ST = M.defaultState(); M.save(ST); render(); toast('已恢复默认'); } return; }
+    if (t.id === 'btnClear') { M.clear(); toast('已清空本地保存（刷新后回到默认）'); return; }
+    if (t.id === 'btnAllPng') { saveAllPng(); return; }
+    if (t.id === 'btnGen') {
+      var ps = curPosters();
+      toast('已生成 ' + ps.length + ' 张海报 + ' + (ST.days.length * 4) + ' 条文案（切 tab 查看／下载）');
+      render(); return;
+    }
+    if (t.id === 'actCopy') { copyText($('#actText').textContent, t); return; }
+    if (t.id === 'recCopy') { copyText($('#recText').textContent, t); return; }
+    /* ⚠️ 2026-09-26 修复：原写法无上限。侧栏标着「卖点（最多 4 条）」、海报只画前 4 条
+       （poster.js 的 slice(0, 4)），而文案是逐条全列 ⇒ 加到第 5 条时，复制出去的文案里
+       有 5 条、导出的海报上只有 4 条，同一次「一键导出」自相矛盾，且自检全绿。
+       ⇒ 在**入口**卡住，让上限成为硬约束而不是靠两处各自截断对齐。 */
+    if (t.id === 'btnAddPt') {
+      if ((ST.activity.points || []).length >= M.MAX_ACTIVITY_POINTS) {
+        toast('卖点最多 ' + M.MAX_ACTIVITY_POINTS + ' 条：再多海报就放不下了'); return;
+      }
+      ST.activity.points = (ST.activity.points || []).concat(['新卖点']); M.save(ST); rerenderOut(); return;
+    }
+    if (t.hasAttribute('data-copy')) { copyText(t.closest('.cc').querySelector('pre').textContent, t); return; }
+
+    var sc = curScene();
+    if ((b = t.closest('[data-svg]'))) { var p1 = pick(b.getAttribute('data-svg')); if (p1) saveSvg(p1.svg, 'ABox菜单-' + p1.date); return; }
+    if ((b = t.closest('[data-png]'))) {
+      var p2 = pick(b.getAttribute('data-png'));
+      if (p2) savePng(p2.svg, 'ABox菜单-' + p2.date).catch(function (er) { toast(er.message); });
+      return;
+    }
+    if (t.hasAttribute('data-svg-a')) { saveSvg(P.render('activity', ST.days[0], sc), 'ABox活动-' + ST.days[0].date); return; }
+    if (t.hasAttribute('data-png-a')) { savePng(P.render('activity', ST.days[0], sc), 'ABox活动-' + ST.days[0].date).catch(function (er) { toast(er.message); }); return; }
+    if (t.hasAttribute('data-svg-r')) { saveSvg(P.render('recruit', ST.days[0], sc), 'ABox招募'); return; }
+    if (t.hasAttribute('data-png-r')) { savePng(P.render('recruit', ST.days[0], sc), 'ABox招募').catch(function (er) { toast(er.message); }); return; }
+  }
+
+  function pick(date) {
+    return curPosters().filter(function (p) { return p.date === date; })[0];
+  }
+
+  function onOutInput(e) {
+    var t = e.target;
+    if (t.hasAttribute('data-act')) { ST.activity[t.getAttribute('data-act')] = t.value; M.save(ST); refreshActivity(); return; }
+    if (t.hasAttribute('data-pt')) {
+      ST.activity.points[Number(t.getAttribute('data-pt'))] = t.value; M.save(ST); refreshActivity(); return;
+    }
+  }
+  function refreshActivity() {
+    var sc = curScene();
+    var pre = $('#actText'); if (pre) pre.textContent = C.activityText(ST.days[0], sc);
+    var holder = $('#actCard'); if (!holder) return;
+    holder.innerHTML = '<figure class="card">' + P.render('activity', ST.days[0], sc)
+      + '<figcaption>活动海报<span class="acts"><button class="btn ghost xs" data-svg-a="1">SVG</button>'
+      + '<button class="btn xs" data-png-a="1">PNG</button></span></figcaption></figure>';
+  }
+
+  /* ── 启动 ─────────────────────────────────────────────────────────────── */
+
+  function boot() {
+    var v = $('#ver'); if (v) v.textContent = VERSION;
+
+    /* ⚠️ 监听必须挂在 document 上：tab 按钮在 #tabs 里，而 #tabs 是 #panel 的**兄弟**，
+     *    只挂 #panel 的话「切 tab」这类点击根本接不到（默认 tab 照常渲染 ⇒ 肉眼像正常）。
+     *    实测踩过：探针点「朋友圈文案」无反应，才暴露。 */
+    document.addEventListener('click', onClick);
+    document.addEventListener('input', function (e) { onSide(e); onOutInput(e); });
+    document.addEventListener('change', onSide);
+
+    render();
+
+    /* 探针入口：复用页面同一套函数，不另写判据 */
+    window.FACTORY = {
+      version: VERSION,
+      state: function () { return ST; },
+      setState: function (s) { ST = M.normalize(s); M.save(ST); render(); },
+      posters: curPosters,
+      scene: curScene,
+      selfCheck: selfCheck,
+      simulate: C.simulate,
+      complianceScan: C.complianceScan,
+      render: P.render,
+      copy: C,
+      model: M,
+      poster: P,
+      exportPng: function (i) { return svgToPngBlob(curPosters()[i].svg, 0.25); }
+    };
+    document.documentElement.setAttribute('data-factory-ready', '1');
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+</body>
+</html>

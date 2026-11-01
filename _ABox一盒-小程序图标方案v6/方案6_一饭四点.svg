@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" preserveAspectRatio="xMidYMid meet"><defs><filter id="lp" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="0" dy="9" stdDeviation="1.5" flood-color="#4A3826" flood-opacity="0.20"/></filter></defs><rect width="1024" height="1024" fill="#F6F0E5"/>
+<rect x="42" y="42" width="940" height="940" rx="210" fill="none" stroke="#6E5435" stroke-width="6" opacity="0.10"/><g filter="url(#lp)"><circle cx="512" cy="540" r="96" fill="#6E5435"/>
+<circle cx="356" cy="392" r="42" fill="#F6F0E5" stroke="#6E5435" stroke-width="20"/>
+<circle cx="668" cy="392" r="42" fill="#F6F0E5" stroke="#6E5435" stroke-width="20"/>
+<circle cx="356" cy="688" r="42" fill="#F6F0E5" stroke="#6E5435" stroke-width="20"/>
+<circle cx="668" cy="688" r="42" fill="#F6F0E5" stroke="#6E5435" stroke-width="20"/></g></svg>

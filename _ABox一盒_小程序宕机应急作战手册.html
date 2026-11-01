@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox一盒 · 小程序宕机应急作战手册（基于真实拓扑）</title>
+<style>
+  :root{
+    --bg:#F6F0E5;
+    --ink:#3A2E1F;
+    --brown:#6E5435;
+    --brown-soft:#8A6E45;
+    --card:#EDE3D2;
+    --card-2:#E4D7BE;
+    --line:#D8C9AE;
+    --warn:#9C4A2E;
+    --ok:#4F6B3A;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"KaiTi","STKaiti","楷体","Kaiti SC","Kaiti TC",serif;
+    line-height:1.85; font-size:18px;
+  }
+  .wrap{max-width:940px; margin:0 auto; padding:40px 28px 80px;}
+  header{border-bottom:3px solid var(--brown); padding-bottom:18px; margin-bottom:8px;}
+  h1{font-size:32px; color:var(--brown); margin:0 0 6px; letter-spacing:1px;}
+  .sub{font-size:16px; color:var(--brown-soft);}
+  .rev{background:#F3E2D6; border:1px solid #D9B49A; border-radius:10px; padding:12px 18px; margin:18px 0; color:#7A3A22; font-size:15px;}
+  .law{background:#EAF0E2; border:2px solid var(--ok); border-radius:12px; padding:16px 22px; margin:18px 0; color:#3F552E; font-size:16px;}
+  .law b{color:var(--ok);}
+  h2{font-size:24px; color:var(--brown); margin:40px 0 14px; border-left:6px solid var(--brown); padding-left:12px;}
+  h3{font-size:20px; color:var(--brown); margin:22px 0 8px;}
+  p{margin:10px 0;}
+  .lead{font-size:19px;}
+  .note{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin:18px 0; color:var(--brown-soft); font-size:16px;}
+  .warn{background:#F3E2D6; border:1px solid #D9B49A; border-left:6px solid var(--warn); border-radius:10px; padding:14px 18px; margin:18px 0; color:#7A3A22; font-size:16px;}
+  table{width:100%; border-collapse:collapse; margin:16px 0; background:#fff;}
+  th,td{border:1px solid var(--line); padding:11px 13px; vertical-align:top; font-size:16px;}
+  th{background:var(--card-2); color:var(--brown); text-align:left; font-weight:normal;}
+  td .tag{display:inline-block; background:var(--brown); color:#fff; border-radius:5px; padding:1px 8px; font-size:14px;}
+  .tier{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px 22px; margin:18px 0;}
+  .tier h3{margin-top:0;}
+  .kit{background:#fff; border:2px dashed var(--brown); border-radius:12px; padding:18px 22px; margin:18px 0;}
+  .kit h3{margin-top:0; color:var(--brown);}
+  .sop{display:flex; flex-wrap:wrap; gap:14px; margin:18px 0;}
+  .sop .step{flex:1 1 150px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 16px;}
+  .sop .step .num{display:inline-block; width:30px; height:30px; line-height:30px; text-align:center; background:var(--brown); color:#fff; border-radius:50%; margin-bottom:8px; font-size:16px;}
+  .sop .step b{color:var(--brown);}
+  .code{background:#FBF7EE; border:1px dashed var(--line); border-radius:10px; padding:14px 18px; margin:14px 0; font-size:16px; color:var(--ink); white-space:pre-wrap;}
+  .grid2{display:flex; flex-wrap:wrap; gap:16px;}
+  .grid2>div{flex:1 1 260px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px;}
+  svg{display:block; margin:10px auto; max-width:100%;}
+  footer{margin-top:50px; border-top:1px solid var(--line); padding-top:16px; font-size:14px; color:var(--brown-soft);}
+  @media print{ body{font-size:13px;} .wrap{padding:10px;} h2{margin:18px 0 8px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>ABox一盒 · 小程序宕机应急作战手册</h1>
+    <div class="sub">当自研小程序临时不可用时，靠「团长转发 + 商家收款码」继续运营</div>
+  </header>
+
+  <div class="rev">
+    <b>修订说明：</b>本版基于真实拓扑与项目本意重做——微信群里全是团长、没有普通用户；团长私下未必有用户群；以往是团长私聊发小程序链接给用户。<b>团长才是唯一的用户触达节点。</b>团员都是团长同事，团长认识每个人、知道送到哪。
+  </div>
+
+  <div class="law">
+    <b>三条铁律（贯穿全篇，任何文案/表单都不得违背）：</b><br>
+    ① <b>只供一个套餐</b>——用户侧绝无"口味/选餐/备注"类<b>输入字段</b>（加了拖慢效率、违背本意）；但<b>当日一饭四菜必须作为只读信息展示</b>，让用户看到今天吃什么、避免盲订。<br>
+    ② <b>交付 = 团长取餐并送上楼</b>——团员零走动，这是高分佣买的服务。文案里<b>严禁出现"自提点 / 用户自提 / 自行领取"</b>字样，统一表述为"团长送到你工位"。<br>
+    ③ <b>用户侧表单极简</b>——只填 <b>份数</b> 一项。<b>不采集配送位置</b>（团长认识同事、自行送达）；<b>不要求选"推荐团长"</b>（表单本就团长专属，里面的单天然归该团长）；<b>身份靠表单工具自动记提交人（昵称）+ 团长认识同事认领，全程不收集真实姓名</b>。
+  </div>
+
+  <p class="lead">核心判断：小程序只是"团长 → 用户"之间的连接器。你真正拥有的资产是——<b>团长（人）、团长群（你的管理节点）、供应商（产能）、用户（需求）</b>。小程序一停，团长直接把"轻工具链接 + 商家收款码"私聊/小群转发给用户，生意照转。<b>难点不在工具，在于团长要逐个触达用户，所以一切设计都要让团长"转发越省事、用户操作越简单"越好。</b></p>
+
+  <h2>一、先看清：真实的连接关系</h2>
+
+  <svg viewBox="0 0 700 320" width="700" height="320">
+    <defs>
+      <marker id="ar" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6E5435"/></marker>
+    </defs>
+    <rect x="290" y="20" width="120" height="56" rx="10" fill="#EDE3D2" stroke="#6E5435" stroke-width="2"/>
+    <text x="350" y="54" text-anchor="middle" font-size="17" fill="#6E5435" font-family="KaiTi,STKaiti,楷体,serif">商家（你）</text>
+    <rect x="40" y="180" width="180" height="104" rx="12" fill="#fff" stroke="#6E5435" stroke-width="2"/>
+    <text x="130" y="212" text-anchor="middle" font-size="16" fill="#3A2E1F" font-family="KaiTi,STKaiti,楷体,serif">团长群（全是团长）</text>
+    <text x="130" y="236" text-anchor="middle" font-size="12" fill="#8A6E45" font-family="KaiTi,STKaiti,楷体,serif">你的管理/结算节点</text>
+    <text x="130" y="258" text-anchor="middle" font-size="12" fill="#8A6E45" font-family="KaiTi,STKaiti,楷体,serif">无普通用户</text>
+    <rect x="480" y="170" width="180" height="124" rx="12" fill="#fff" stroke="#D8C9AE"/>
+    <text x="570" y="200" text-anchor="middle" font-size="16" fill="#3A2E1F" font-family="KaiTi,STKaiti,楷体,serif">用户（散点）</text>
+    <text x="570" y="224" text-anchor="middle" font-size="12" fill="#8A6E45" font-family="KaiTi,STKaiti,楷体,serif">团长同事，团长都认识</text>
+    <text x="570" y="246" text-anchor="middle" font-size="12" fill="#8A6E45" font-family="KaiTi,STKaiti,楷体,serif">靠团长私聊/各自小群触达</text>
+    <text x="570" y="268" text-anchor="middle" font-size="12" fill="#8A6E45" font-family="KaiTi,STKaiti,楷体,serif">没有统一用户群</text>
+    <line x1="310" y1="76" x2="180" y2="180" stroke="#6E5435" stroke-width="1.6" marker-end="url(#ar)"/>
+    <text x="220" y="120" text-anchor="middle" font-size="12" fill="#8A6E45" font-family="KaiTi,STKaiti,楷体,serif">管理/结算</text>
+    <line x1="220" y1="200" x2="480" y2="210" stroke="#B79B6E" stroke-width="1.6" stroke-dasharray="6 4"/>
+    <text x="350" y="196" text-anchor="middle" font-size="13" fill="#9C4A2E" font-family="KaiTi,STKaiti,楷体,serif">原：团长发小程序链接 → 用户点链接下单付款</text>
+    <path d="M220,250 C340,300 420,300 480,260" fill="none" stroke="#4F6B3A" stroke-width="2" marker-end="url(#ar)"/>
+    <text x="350" y="300" text-anchor="middle" font-size="13" fill="#4F6B3A" font-family="KaiTi,STKaiti,楷体,serif">应急：团长转发「轻工具链接 + 商家收款码」→ 用户填+付</text>
+  </svg>
+
+  <p><b>一句话：</b>小程序断了，团长不再发"小程序链接"，改成发"<b>轻工具下单链接 + 商家收款码图片</b>"。用户还是同一批人、还是团长那头触达，只是入口换了。下单只填一样——<b>份数</b>，没有口味选择（但表单会展示<b>今日一饭四菜</b>让你看），也不用填姓名（你是谁团长都认识，表单还会自动记提交人）；送到哪一层团长都清楚。付完款，<b>团长会取餐并送到你工位</b>，你坐着等就行。</p>
+
+  <h2>二、先判断：到底是哪种「不能用」</h2>
+  <table>
+    <tr><th style="width:22%">情形</th><th style="width:42%">表现</th><th style="width:36%">还能用啥</th></tr>
+    <tr><td><span class="tag">情形1</span><br>自家服务器/代码故障</td><td>微信一切正常，只是 AB 自家小程序打不开</td><td>微信内<b>所有第三方工具</b>可用（腾讯文档、问卷星、收款码）→ 最轻松</td></tr>
+    <tr><td><span class="tag">情形2</span><br>微信支付商户号冻结 / 备案出问题</td><td>小程序能开但付不了，或商户号被限</td><td>微信沟通可用；<b>改用个人/支付宝收款码</b></td></tr>
+    <tr><td><span class="tag">情形3</span><br>自家小程序被封</td><td>AB 小程序账号禁入，但微信聊天、群、第三方工具仍可用</td><td>第三方表单 + 收款码；<b>团长微信群完好</b></td></tr>
+    <tr><td><span class="tag">情形4</span><br>微信整体不可用（极极端）</td><td>账号被封或微信服务整体异常</td><td>只能电话 / 短信 / 线下兜底</td></tr>
+  </table>
+  <p class="note">好消息：最担心的小程序挂了，几乎都落在<b>情形1/3</b>——这两种恰好微信生态内最容易用轻工具顶上，而且<b>团长微信群永远不受小程序账号影响</b>。</p>
+
+  <h2>三、方案核心：给团长一套「可转发下单包」</h2>
+  <p>因为触达用户只能靠团长转发，所以要把所有东西打包成团长<b>一键就能发出去</b>的三件套。你（商家）准备好一次，团长每天/每次直接转发。</p>
+  <div class="kit">
+    <h3>团长转发包（三件套）</h3>
+    <p><b>① 下单入口链接（团长专属）</b>：一份长期有效的表单/收集表链接（腾讯文档收集表、问卷星、金山表单均可），<b>每个团长用自己的那份</b>。用户只填一项——<b>份数</b>（日期默认次日、单一套餐无需选餐；表单顶部只读展示当日一饭四菜）。<b>不采集配送位置</b>（团长认识同事、自行送达），<b>不要求选"推荐团长"</b>（表单本就团长专属，里面的单天然归他）；身份由表单工具自动记提交人 + 团长认识，<b>不收集真实姓名</b>。</p>
+    <p><b>② 商家收款码</b>：一张商家官方收款码图片，用户直接付商家（不进团长口袋）。</p>
+    <p><b>③ 给用户的话术</b>：极简两步（点链接填两项 → 扫码付），含截止时间，并明确"团长会送到你工位，你不用下楼"。</p>
+  </div>
+  <p class="note">把这三件套存成团长的<b>微信快捷回复 / 收藏</b>，团长转发时只需粘贴，不用现编，既快又统一。</p>
+
+  <h2>四、三套落地打法（按用户配合度分）</h2>
+
+  <div class="tier">
+    <h3>打法A · 用户自助：团长专属表单 + 商家码（首选）</h3>
+    <p><b>链路：</b>团长把"下单包"私聊/小群转发（用的是<b>自己的专属表单</b>）→ 用户点链接填<b>份数</b>→ 扫商家码付款（备注写昵称，非强制）→ 商家按<b>"这是哪个团长的表单"</b>自动归集结算 → <b>团长按熟悉的工位把餐逐层送上楼</b>。</p>
+    <p><b>优点：</b>最接近原体验；用户只填两项；数据自动成表；团长不碰钱；恢复后可批量导回。</p>
+    <p><b>难点：</b>用户要"填+付"两步，部分惰性用户会掉单 → 靠话术极简 + 团长截止前逐一提醒老客户。</p>
+  </div>
+
+  <div class="tier">
+    <h3>打法B · 团长代填：用户只说"要几份"（用户不会填时）</h3>
+    <p><b>链路：</b>用户私聊团长"我要2份" → <b>团长在自己的表单里代填一笔</b>（记份数）→ 引导用户扫商家码付款（备注昵称，非强制）（团长只记份数，<b>不碰钱</b>）。</p>
+    <p><b>优点：</b>对用户零门槛，转化不掉；团长掌握自己名下全部订单。</p>
+    <p><b>难点：</b>团长工作量上升 → 把表单做成"团长专属快捷填"，或在团长小群里让用户接龙、团长统一代填。</p>
+  </div>
+
+  <div class="tier">
+    <h3>打法C · 电话 / 线下（极端兜底）</h3>
+    <p><b>链路：</b>微信都不可用 → 团长电话统计（谁要几份）→ <b>团长取餐并逐层配送上门</b>（应急现金代收仅作极端情形）→ 供应商按团长电话报数做餐。</p>
+    <p><b>优点：</b>不依赖任何互联网。<b>缺点：</b>效率极低，仅情形4用；交付方式不变——仍是团长送上楼。</p>
+  </div>
+
+  <h3>三套打法一句话对照</h3>
+  <table>
+    <tr><th>维度</th><th>打法A 用户自助</th><th>打法B 团长代填</th><th>打法C 电话/线下</th></tr>
+    <tr><td>用户填几项</td><td>1项（份数）</td><td>0项（只说份数）</td><td>0项（口述）</td></tr>
+    <tr><td>团长工作量</td><td>低（只转发）</td><td>中（代填）</td><td>极高</td></tr>
+    <tr><td>团长碰钱</td><td>否</td><td>否（只记份数）</td><td>应急现金</td></tr>
+    <tr><td>交付方式</td><td>团长送上楼</td><td>团长送上楼</td><td>团长送上楼</td></tr>
+    <tr><td>推荐度</td><td>★ 首选</td><td>配A补漏</td><td>仅极端</td></tr>
+  </table>
+
+  <h2>五、佣金怎么认定（关键）</h2>
+  <p>表单<b>本就是团长专属的</b>——哪个团长发出去的表单，里面的单天然就是他推荐的，<b>不需要用户再选一遍"推荐团长"</b>。归因靠"表单归属"自动完成，两种落地：</p>
+  <ul>
+    <li><b>① 每个团长独立渠道链接</b>（推荐）：问卷星/金山表单支持渠道参数（UTM）或多份副本，团长各拿专属链接，后台按链接自动归集到该团长，零人工。</li>
+    <li><b>② 团长各自汇总报商家</b>：团长把自己表单的份数报你，你按"谁报的"结算。最省事，仅团长数少、信任度高时短期用。</li>
+  </ul>
+
+  <h2>六、触达效率的缓解（本拓扑最大痛点）</h2>
+  <p>没有统一用户群，团长要逐个私聊，慢且易漏。缓解四招：</p>
+  <div class="grid2">
+    <div><h3 style="margin-top:0">1. 话术极简</h3><p>用户只需"点链接填两项 + 扫码付"两步，降低掉单。</p></div>
+    <div><h3 style="margin-top:0">2. 存快捷回复</h3><p>下单包存团长收藏/快捷回复，转发即粘贴。</p></div>
+    <div><h3 style="margin-top:0">3. 截止前提醒</h3><p>团长对老客户逐一私聊提醒，别只发一次。</p></div>
+    <div><h3 style="margin-top:0">4. 鼓励拉小群</h3><p>长期看，让团长把常点用户拉自己的小群，下次触达快十倍。</p></div>
+  </div>
+
+  <h2>七、资金红线（务必看）</h2>
+  <div class="warn">
+    <b>⚠ 红线：尽量不让团长用个人码「代收后转账」。</b>长期代收形成资金池，带来税务、合规与信任风险。优先<b>商家官方收款码</b>，用户直接付商家；团长只做"转发 + 记录份数"，不经手钱。打法B里团长代填也只记份数、不收钱。
+  </div>
+  <ul>
+    <li>短期不得不团长代收时，必须当天建「团长-商家对账表」，笔数金额逐条留痕。</li>
+    <li>退款一律先记台账，恢复后用<b>账户余额 / 补偿券</b>处理，不私下退现金。</li>
+    <li>每笔收款备注写昵称（非强制），方便团长核对；身份主要靠表单工具自动记录的提交人，<b>不收集真实姓名</b>。</li>
+  </ul>
+
+  <h2>八、数据留存与恢复</h2>
+  <div class="grid2">
+    <div><h3 style="margin-top:0">留存</h3><p>商家每天从各团长表单导出备份。应急期订单<b>不能只存在团长手机里</b>。</p></div>
+    <div><h3 style="margin-top:0">恢复</h3><p>小程序恢复后，按"表单归属的团长"批量补录系统，佣金结算不中断。提前和开发约好补录模板。</p></div>
+  </div>
+
+  <h2>九、话术模板（可直接复制）</h2>
+  <h3>给团长的话术（你→团长群）</h3>
+  <div class="code">各位团长：ABox 小程序因【维护/通道调整】临时不可用，今明两天改「转发下单包」模式（见群文件/收藏）：
+① 把「你的专属下单链接 + 商家收款码 + 下方用户话术」私聊或小群发给你客户；
+② 用户填表（就份数一项）+ 扫码付（备注昵称，非强制）；
+③ 不会填的客户，你代填一笔（份数），引导他扫商家码付（别收现金）；
+④ 今晚24:00截单，截单后你去取餐，按你熟悉的工位逐层送到客户那；
+⑤ 截单后把你名下份数报我。
+佣金按"表单归属"照常算，不影响。辛苦各位！</div>
+
+  <h3>给用户的话术（团长→用户，极简两步）</h3>
+  <div class="code">邻居好～ 一盒小程序临时维护，今天订餐改走这一步，明天照常由我送到你工位：
+1️⃣ 点链接填：份数（就这一项，其他不用填）
+2️⃣ 扫商家收款码付款（备注写昵称，非强制）
+明天 11:30 前我会把餐送到你工位，你不用下楼，坐着等就行 🙏
+截止今晚24:00，有问题直接私我</div>
+
+  <h2>十、小程序恢复后的切换清单</h2>
+  <table>
+    <tr><th style="width:8%">#</th><th>动作</th></tr>
+    <tr><td>1</td><td>团长群发「已恢复」，引导用户回小程序下单</td></tr>
+    <tr><td>2</td><td>按"表单归属的团长"把应急期订单批量补录系统</td></tr>
+    <tr><td>3</td><td>核对应急期收款与系统金额，结清团长代收尾款</td></tr>
+    <tr><td>4</td><td>给应急期用户发补偿券，把流失压到最低</td></tr>
+    <tr><td>5</td><td>复盘：哪套打法最顺手，固化进团长手册；推动团长建常点用户小群</td></tr>
+  </table>
+
+  <footer>
+    ABox一盒 · 业务连续性备忘（基于"团长群无普通用户、团员皆同事"真实拓扑）｜ 铁律：单一套餐（展示当日菜品·不可选）、团长送上楼、用户表单仅份数（不收集真实姓名） ｜ 米色 #F6F0E5 · 暖棕 #6E5435 · 楷体
+  </footer>
+
+</div>
+</body>
+</html>

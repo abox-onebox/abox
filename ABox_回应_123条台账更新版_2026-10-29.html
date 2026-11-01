@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 回应《123 条进展台账（更新版）》</title>
+<style>
+  :root{
+    --paper:#F6F0E5; --ink:#6E5435; --ink-soft:#8a7050; --line:#e0d5c2; --card:#fffdf8;
+    --warn-bg:#fdf3e3; --warn-line:#d9b382; --ok-bg:#eef5ea; --ok-line:#8fa97e;
+    --gap-bg:#fbe9e9; --gap-line:#b23b3b; --new-bg:#eaf1f7; --new-line:#5b7f9e;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;padding:32px 20px 64px;background:var(--paper);color:var(--ink);
+    font-family:"KaiTi","STKaiti","simkai","楷体",serif;font-size:16px;line-height:1.85;}
+  .wrap{max-width:1000px;margin:0 auto;}
+  header{border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:26px;}
+  h1{font-size:27px;margin:0 0 6px;letter-spacing:1px;}
+  .sub{color:var(--ink-soft);font-size:15px;}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:12px;font-size:14px;color:var(--ink-soft);}
+  .meta b{color:var(--ink);font-weight:normal;}
+  h2{font-size:21px;margin:36px 0 12px;padding-left:12px;border-left:5px solid var(--ink);}
+  h3{font-size:17px;margin:22px 0 8px;}
+  p{margin:8px 0;} ul,ol{margin:8px 0;padding-left:24px;} li{margin:5px 0;}
+  code{background:#efe7d8;padding:1px 6px;border-radius:3px;font-family:Consolas,"Courier New",monospace;font-size:14px;}
+  .warn{background:var(--warn-bg);border:1px solid var(--warn-line);border-left:5px solid var(--warn-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .gap{background:var(--gap-bg);border:1px solid var(--gap-line);border-left:5px solid var(--gap-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .ok{background:var(--ok-bg);border:1px solid var(--ok-line);border-left:5px solid var(--ok-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .box-new{background:var(--new-bg);border:1px solid var(--new-line);border-left:5px solid var(--new-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .t{font-weight:bold;margin-bottom:6px;}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14.5px;background:var(--card);}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
+  th{background:#efe7d8;font-weight:normal;}
+  td.c{text-align:center;white-space:nowrap;}
+  .b{display:inline-block;font-size:12px;padding:1px 7px;border-radius:10px;color:#fff;white-space:nowrap;}
+  .b-ok{background:#5f8a52;} .b-gap{background:#b23b3b;} .b-part{background:#b07d2b;}
+  .b-na{background:#7a7a7a;} .b-new{background:#5b7f9e;}
+  footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:14px;}
+  .src{font-size:13px;color:var(--ink-soft);}
+  .big{font-size:19px;font-weight:bold;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>回应《123 条探针进展台账（更新版）》</h1>
+  <div class="sub">回应时间 2026年10月29日 13:20 · 每条结论均有回源码或实测数据，无一条凭印象</div>
+  <div class="meta">
+    <span><b>台账六条建议</b> 证实属实 <b>4</b> · 需再深挖 <b>1</b> · <b class="big">叫停 1</b></span>
+    <span><b>本轮新增取证</b> 全仓日期字节级审计 + 生产库只读查询</span>
+  </div>
+</header>
+
+<div class="gap">
+  <div class="t">一句话结论</div>
+  <p style="margin-top:0">台账第五条之外都站得住；<b>建议 2「清污染 + 改台账文件名」必须叫停</b> —— 它的根因判断不成立，
+  照做会触发上百处机械替换，而其中<b>全部</b>非法日期都是代码里刻意保留的校验反例。</p>
+  <p style="margin-bottom:0">其余四条（合规两处、送达凭证、十七个无楼用户、六条 P0 缺口）我逐条机检，<b>数字精确属实</b>。</p>
+</div>
+
+<h2>一、叫停：建议 2「清 2026-10-27 污染 + 改掉台账文件名」</h2>
+
+<div class="gap">
+  <div class="t">为什么叫停 —— 三条硬证据，都是机械取得的</div>
+  <table>
+    <tr><th style="width:26%">台账的说法</th><th style="width:12%" class="c">实测</th><th>证据</th></tr>
+    <tr>
+      <td>波及 51 文件 153 处</td>
+      <td class="c"><span class="b b-gap">不成立</span></td>
+      <td>全仓扫 <b>1607</b> 个文件、<b>3336</b> 个日期 token、617 个文件含日期。
+          其中<b>真正非法的只有 66 处</b>，与「153」差着一倍多</td>
+    </tr>
+    <tr>
+      <td>根因是我把非法日期写进了文件名（台账文件名本身）</td>
+      <td class="c"><span class="b b-gap">不成立</span></td>
+      <td><b>文件名含日期：0 处非法。</b>台账自己的文件名写的是 2026年10月29日，是合法日期。
+          全仓文件名逐个取字节验过，没有一处非法</td>
+    </tr>
+    <tr>
+      <td>剩的是机械替换，可交技术批量做</td>
+      <td class="c"><span class="b b-gap">危险</span></td>
+      <td>那 66 处非法日期 <b>100% 是刻意内容</b>，替换＝破坏测试语义（明细见下）</td>
+    </tr>
+  </table>
+</div>
+
+<h3>66 处非法日期的真实身份：全是 <code>isRealDate</code> 的校验反例</h3>
+<table>
+  <tr><th style="width:22%">形态</th><th style="width:10%" class="c">处数</th><th>出处与用途（已逐处回源）</th></tr>
+  <tr><td><code>2026-02-30</code></td><td class="c">37</td><td rowspan="4">
+      <code>scripts/e2e-m3.mjs:10521</code>：<code>date=2026-13-01</code> 断言 <b>10001</b><br>
+      <code>scripts/e2e-m3.mjs:10925</code>：<code>date=2026-02-30</code> 断言 <b>10001</b>，
+      注释写明「放行会让 <code>Date.UTC</code> <b>静默滚动</b>到 03-02：运营以为在补跑 2 月 30 日并看到『完成』，实际批量改了 3 月 2 日的订单」<br>
+      <code>src/common/utils/time.ts:97,106</code>：<code>isRealDate()</code> 的注释反例，
+      并说明「DTO 正则挡得住 13 月、<b>挡不住 02-30</b>」<br>
+      <code>reconciliation.service.ts</code> / <code>message-f5.dto.ts</code> / <code>schedule-admin.service.ts</code>：同类注释反例<br>
+      合同与协议管理 HTML：<code>badDates = [...]</code> 是校验函数的<b>测试输入数组</b></td></tr>
+  <tr><td><code>2026-13-01</code></td><td class="c">13</td></tr>
+  <tr><td><code>2026-02-31</code> / <code>00-10</code> / <code>04-31</code> / <code>12-32</code></td><td class="c">10</td></tr>
+  <tr><td><code>0000-00-00</code> / <code>9999-99-99</code></td><td class="c">6</td>
+      <td>知识助手 v3 / v4 里 <code>BETWEEN</code> 的<b>开区间哨兵</b>，是刻意的边界写法</td></tr>
+</table>
+
+<div class="warn">
+  <div class="t">照做会怎样</div>
+  <p style="margin-top:0">① <code>e2e-m3</code> 至少 <b>6 处</b>断言失去语义 —— 它们正是靠「喂一个日历上不存在的日期、期望被拒」来守
+  <code>isRealDate</code> fail-closed 这条底线的。反例被改成合法日期后，用例<b>静默变绿</b>（喂合法日期当然放行），
+  真正的回归却不再被拦 —— 这是「把检查器改成了恒绿」。</p>
+  <p>② <code>time.ts</code> 的注释与实现脱节，后人按注释改代码会改错。</p>
+  <p style="margin-bottom:0">③ 台账所谓「153 处」里剩下的绝大多数，是<b>合法日期 2026年10月27日</b>（全仓 220 处）——
+  把它们改掉，等于把 220 处正确日期改成错的。</p>
+</div>
+
+<div class="box-new">
+  <div class="t">顺带说明：为什么「看着非法」和「真的非法」对不上</div>
+  <p style="margin-top:0">本项目有个已知现象：<b>界面回显会把明文日期替换成不可能存在的哨兵值</b>，
+  例如把 10 月 27 日显示成「7 月 32 日」。所以肉眼看到的日期一律不可信 —— 这不是第一次栽
+  （此前已有三次同类误判，本轮是第四次）。</p>
+  <p style="margin-bottom:0"><b>固化判据（四步，缺一不可）</b>：
+  ① 取字节 → ② 判日历合法性 → ③ 看上下文用途（反例 / 哨兵 / 真实业务日期）→ ④ 才决定动不动手。
+  <b>「日期不合法」不等于「日期是脏的」</b>，跳过第 ③ 步就是造事故。</p>
+</div>
+
+<h2>二、机检通过：台账这些条目的数字精确属实</h2>
+<table>
+  <tr><th style="width:24%">条目</th><th style="width:34%">我的判据（可复跑）</th><th style="width:10%" class="c">结果</th><th>备注</th></tr>
+  <tr><td>Q3 送达凭证</td><td><code>grep deliverProof|proofUrl|deliverImage|signImage</code>（api + 小程序 src）</td>
+      <td class="c"><span class="b b-gap">零命中</span></td><td>属实，团长点送达无任何凭证</td></tr>
+  <tr><td>P3 支付单边账</td><td><code>grep queryOrder|orderQuery|closeOrder</code></td>
+      <td class="c"><span class="b b-gap">零命中</span></td><td>属实，回调丢失无补齐手段</td></tr>
+  <tr><td>E5 批量退款</td><td><code>grep batch-refund|batchRefund|bulk-refund</code></td>
+      <td class="c"><span class="b b-gap">零命中</span></td><td>属实，口径已定、代码未做</td></tr>
+  <tr><td>销售页食品标签</td><td>全仓 <code>.vue</code> 检索 配料 / 保质期 / 生产日期 / SC号 / 配料表 / 生产者</td>
+      <td class="c"><span class="b b-gap">零命中</span></td><td>属实，124 号令缺口</td></tr>
+  <tr><td>端上资质公示被删</td><td><code>pages/index/index.vue:97</code> 注释回源</td>
+      <td class="c"><span class="b b-gap">属实</span></td>
+      <td>注释明写「不再写『查看资质』」，出品方改「来自：X」；首页确无资质公示入口</td></tr>
+  <tr><td>十七个无楼用户</td><td><code>SELECT ... WHERE building_id IS NULL</code></td>
+      <td class="c"><span class="b b-ok">17 / 73</span></td>
+      <td>精确属实。有楼 56、无楼 17；这 17 个下单会被 60001 直接拒</td></tr>
+  <tr><td>楼宇状态</td><td><code>ab_building</code> 按 status 分组</td>
+      <td class="c"><span class="b b-ok">10 / 1 / 1</span></td><td>属实：正常 10、另两种状态各 1，共 12 栋</td></tr>
+  <tr><td>T1 / T2 任务可观测</td><td><code>grep task_execution|TaskRun|task_run</code></td>
+      <td class="c"><span class="b b-part">需再挖</span></td>
+      <td>只命中 <code>tasks/schedule.service.ts</code> 一个文件，要看是「有表有落库」还是「仅有字段名」
+          才能定性为缺口 —— 暂不认定为已坐实</td></tr>
+</table>
+
+<h2>三、我对执行顺序的建议（与台账略有不同）</h2>
+<ol>
+  <li><b>建议 2 从清单里删除</b> —— 不是「延后」，是根因不成立。这条若保留在清单里，迟早有人照着做一遍。</li>
+  <li><b>合规两处（台账建议 3）优先</b>：主页资质公示 + 销售页食品标签。理由是它们<b>不依赖任何外部资质</b>，
+      纯前端补齐就能做，而 124 号令已施行，属提审与巡检的硬风险。台账把它排第三，我建议提到第一。</li>
+  <li><b>P0 六条真缺口</b>按台账排序执行即可：P3 支付单边账（唯一可能造成资金差错）→ H9 冲正时限
+      → Q3 送达凭证 → T1/T2 → E5 → S5。其中 T1/T2 建议先做一次「有没有落库」的定性，别直接当缺口开工。</li>
+  <li><b>换键小修（建议 4）</b>可与合规两处同批做，改动小、风险低。</li>
+  <li><b>十七个无楼用户（建议 5）</b>：先确认是无效应试账号还是真实用户漏绑 —— 这十七个现在<b>下不了单</b>，
+      若其中有真实用户，是实打实的营收损失。</li>
+  <li><b>九十八条未动</b>：同意台账意见，六十七条「未定」先补判定标准，否则填了也不可信。</li>
+</ol>
+
+<h2>四、需要祝总拍板</h2>
+<div class="warn">
+  <ol style="margin:0">
+    <li>建议 2 是否按上述证据<b>作废</b>（我倾向作废，且不进清单）。</li>
+    <li>下一步先动哪一块：<b>合规两处</b>（提审硬缺口、不依赖资质）／ <b>P0 六条</b>／ <b>换键 + 十七用户</b>小修。</li>
+  </ol>
+</div>
+
+<footer>
+  ABox 一盒 · 回应《123 条探针进展台账（更新版）》· 2026年10月29日<br>
+  取证方式：工作区与仓库<b>字节级</b>日期审计（1607 文件）、生产库<b>只读</b>查询、源码 <code>grep</code> 回源。<br>
+  本轮对生产库<b>零写操作</b>；服务器临时脚本已清理。<br>
+  注意：本文所有日期均写作中文「X月X日」形式 —— 因本项目界面回显会把日期替换成不可能存在的哨兵值，
+  用 <code>YYYY-MM-DD</code> 书写会被误读。
+</footer>
+
+</div>
+</body>
+</html>

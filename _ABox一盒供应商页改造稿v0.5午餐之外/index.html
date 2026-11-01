@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 出品方页改造稿 v0.5（午餐之外）</title>
+<style>
+@font-face {
+  font-family: 'ABoxKai';
+  src: url('ab-kaiti.woff2') format('woff2');
+  font-weight: normal; font-style: normal; font-display: swap;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'ABoxKai', 'STKaiti', 'KaiTi', 'SimSun', serif;
+  background: #E8DFCF; color: #3A322A; padding: 32px 16px 56px;
+  line-height: 1.8; -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1060px; margin: 0 auto; }
+
+.doc-head { margin-bottom: 22px; }
+.doc-head h1 { font-size: 20px; font-weight: normal; letter-spacing: 0.5px; }
+.doc-head p { margin-top: 8px; font-size: 13px; color: #796C57; }
+.doc-head em { font-style: normal; color: #6E5435; }
+
+.toolbar { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 20px; }
+.btn {
+  font-family: inherit; font-size: 13px; color: #6E5435;
+  background: #FFFDF8; border: 1px solid rgba(110,84,53,0.28);
+  border-radius: 8px; padding: 7px 15px; cursor: pointer;
+}
+.btn:hover { background: #F6F0E5; }
+.btn.is-on { background: #6E5435; color: #FFFDF8; border-color: #6E5435; }
+
+.stage { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+
+.phone {
+  width: 375px; flex: none; min-height: 830px;
+  background: #F6F0E5; border-radius: 22px; overflow: hidden;
+  box-shadow: 0 2px 24px rgba(58,50,42,0.14); padding: 26px 20px 30px;
+}
+
+.hd { display: flex; align-items: center; margin-bottom: 18px; }
+.hd__name { font-size: 21px; letter-spacing: 1px; }
+.hd__cat {
+  margin-left: 8px; font-size: 11px; color: #FFFFFF; background: #6E5435;
+  padding: 2px 7px; border-radius: 4px; letter-spacing: 0.5px;
+}
+.hd__badge {
+  margin-left: auto; font-size: 11px; padding: 3px 9px; border-radius: 4px; letter-spacing: 0.5px;
+}
+.hd__badge--on { color: #5B7C3A; background: #F1F5EA; border: 1px solid #BBCBA6; }
+.hd__badge--off { color: #8A5A2B; background: #FAEEDA; border: 1px solid rgba(186,117,23,0.35); }
+
+.card {
+  background: #FFFDF8; border: 1px solid rgba(110,84,53,0.16);
+  border-radius: 14px; padding: 16px 18px; margin-bottom: 12px;
+}
+.card__label { font-size: 12px; color: #9A8C79; letter-spacing: 0.5px; }
+.card__main { margin-top: 7px; font-size: 16px; line-height: 1.7; }
+.card__sub { margin-top: 5px; font-size: 12px; color: #796C57; }
+
+/* ---- 加购区（核心） ---- */
+.add {
+  background: #FFFDF8; border: 1px solid rgba(91,124,58,0.42);
+  border-radius: 14px; padding: 18px; margin-bottom: 12px;
+}
+.add__label { font-size: 12px; color: #5B7C3A; letter-spacing: 1px; }
+.add__row {
+  display: flex; align-items: center; margin-top: 11px;
+  padding: 9px 0; border-bottom: 1px dashed rgba(110,84,53,0.22);
+}
+.add__row:last-of-type { border-bottom: none; }
+.add__n { font-size: 15px; }
+.add__p { margin-left: auto; font-size: 14px; color: #6E5435; font-family: 'SFMono-Regular', Consolas, monospace; }
+.add__btn {
+  margin-left: 12px; width: 27px; height: 27px; flex: none; border-radius: 50%;
+  border: 1px solid rgba(110,84,53,0.4); color: #6E5435;
+  font-size: 15px; line-height: 25px; text-align: center; cursor: pointer;
+}
+.add__btn--on { background: #6E5435; color: #FFFDF8; border-color: #6E5435; }
+.add__note { margin-top: 12px; font-size: 12px; color: #796C57; }
+
+.sum {
+  margin-top: 13px; padding-top: 12px; border-top: 1px solid rgba(110,84,53,0.24);
+  display: flex; align-items: baseline;
+}
+.sum__l { font-size: 12px; color: #9A8C79; }
+.sum__v { margin-left: auto; font-size: 19px; color: #6E5435; font-family: 'SFMono-Regular', Consolas, monospace; }
+.sum__up { font-size: 12px; color: #5B7C3A; margin-left: 7px; }
+
+.go {
+  margin-top: 14px; padding: 13px 0; text-align: center;
+  background: #6E5435; color: #FFFDF8; border-radius: 10px;
+  font-size: 15px; letter-spacing: 2px; cursor: pointer;
+}
+
+.exit {
+  margin-top: 14px; padding: 16px 18px; border-radius: 14px;
+  background: #6E5435; cursor: pointer;
+}
+.exit__label { font-size: 12px; color: rgba(255,253,248,0.66); letter-spacing: 0.5px; }
+.exit__main { margin-top: 6px; font-size: 16px; color: #FFFDF8; letter-spacing: 1px; }
+.exit__go { margin-top: 7px; font-size: 12px; color: rgba(255,253,248,0.8); letter-spacing: 1px; }
+
+.ft { margin-top: 24px; text-align: center; }
+.ft__lic { font-size: 12px; color: #796C57; line-height: 2; }
+.ft__note { margin-top: 8px; font-size: 11px; color: #9A8C79; line-height: 1.9; }
+
+.off-note {
+  background: #FFFDF8; border: 1px dashed rgba(138,90,43,0.45);
+  border-radius: 14px; padding: 18px; margin-bottom: 14px;
+}
+.off-note__t { font-size: 16px; color: #8A5A2B; letter-spacing: 0.5px; }
+.off-note__p { margin-top: 10px; font-size: 13px; color: #5F5445; }
+
+.src {
+  display: none; margin-top: 10px; padding-top: 9px;
+  border-top: 1px dashed rgba(110,84,53,0.28);
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 11px; line-height: 1.75; color: #8A7A64; word-break: break-all;
+}
+body[data-src="on"] .src { display: block; }
+
+.view { display: none; }
+body[data-mode="add"] .view-add { display: block; }
+body[data-mode="plain"] .view-plain { display: block; }
+body[data-mode="off"] .view-off { display: block; }
+
+.notes { flex: 1; min-width: 290px; max-width: 500px; }
+.notes h2 { font-size: 15px; font-weight: normal; margin-bottom: 12px; letter-spacing: 0.5px; }
+.notes ul { list-style: none; }
+.notes li {
+  font-size: 13px; color: #5F5445; line-height: 1.9;
+  padding: 9px 0; border-top: 1px solid rgba(110,84,53,0.14);
+}
+.notes li:first-child { border-top: none; }
+.notes li b { font-weight: normal; color: #6E5435; }
+.notes .warn { color: #8A5A2B; }
+.notes .key {
+  background: #FFFDF8; border-left: 3px solid #6E5435;
+  padding: 11px 13px; border-radius: 0 8px 8px 0; color: #3A322A;
+}
+.notes .math {
+  background: #FFFDF8; border: 1px solid rgba(91,124,58,0.34); border-radius: 10px;
+  padding: 12px 14px; font-size: 12px; line-height: 2;
+}
+.notes .math i { font-style: normal; color: #5B7C3A; }
+.notes .math b { color: #6E5435; font-weight: normal; }
+</style>
+</head>
+<body data-mode="add" data-src="off">
+
+<div class="wrap">
+
+  <div class="doc-head">
+    <h1>ABox 一盒 · 出品方页改造稿 v0.5（午餐之外）</h1>
+    <p>「顺风车」的正确形态：不是让商家来你平台上开店，而是<em>让同一个厨房、同一趟配送，多卖一次东西</em>。</p>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn is-on" data-mode="add">有延伸品</button>
+    <button class="btn" data-mode="plain">只做正餐</button>
+    <button class="btn" data-mode="off">暂未供应</button>
+    <button class="btn" id="btnSrc">数据来源</button>
+  </div>
+
+  <div class="stage">
+
+    <div class="phone">
+
+      <!-- ============ 有延伸品 ============ -->
+      <div class="view view-add">
+        <div class="hd">
+          <span class="hd__name">三味屋</span>
+          <span class="hd__cat">川菜</span>
+          <span class="hd__badge hd__badge--on">午餐在供</span>
+        </div>
+
+        <div class="card">
+          <div class="card__label">明天这一格里是</div>
+          <div class="card__main">香煎鸡腿</div>
+          <div class="card__sub">这栋楼吃过 1,240 次</div>
+          <div class="src">ab_order 份数聚合（本楼 building_group）。这一段是<b>信任锚点</b>：先确认"这家的正餐我认"，下面的延伸品才有人信</div>
+        </div>
+
+        <div class="add">
+          <div class="add__label">同一个厨房，下午还做这些</div>
+
+          <div class="add__row">
+            <span class="add__n">川味冰粉</span>
+            <span class="add__p">¥8</span>
+            <span class="add__btn" data-p="8" data-n="川味冰粉">+</span>
+          </div>
+          <div class="add__row">
+            <span class="add__n">钵钵鸡</span>
+            <span class="add__p">¥12</span>
+            <span class="add__btn" data-p="12" data-n="钵钵鸡">+</span>
+          </div>
+          <div class="add__row">
+            <span class="add__n">卤豆干</span>
+            <span class="add__p">¥6</span>
+            <span class="add__btn" data-p="6" data-n="卤豆干">+</span>
+          </div>
+
+          <div class="add__note">跟明天那盒同一趟送到，不用多等</div>
+
+          <div class="sum">
+            <span class="sum__l">明天的这一单</span>
+            <span class="sum__v" id="sumV">¥25.80</span>
+            <span class="sum__up" id="sumUp"></span>
+          </div>
+
+          <div class="go">加进明天的盒</div>
+
+          <div class="src">⭐ 关键设计：不是单独下单，是<b>挂进明天那笔订单</b> ⇒ 不新增配送批次、不新增履约复杂度、不新增团长环节。T-1 预售按需做，<b>零库存零损耗</b></div>
+        </div>
+
+        <div class="card">
+          <div class="card__label">为什么是它来做这些</div>
+          <div class="card__main">产地就是这家厨房</div>
+          <div class="card__sub">证照与午餐同一个口径核验；中午的料下午接着用</div>
+          <div class="src">⭐ 供应商下午有闲置产能 + 现成原料 + 已过 ABox 质检 ⇒ 这是<b>四方齐备、边际成本极低</b>的组合</div>
+        </div>
+
+        <div class="exit">
+          <div class="exit__label">明天你吃的是它做的</div>
+          <div class="exit__main">香煎鸡腿</div>
+          <div class="exit__go">去看看 ›</div>
+        </div>
+
+        <div class="ft">
+          <div class="ft__lic">
+            食品经营许可证　JY11105…　有效期至 2027-04-18<br>
+            营业执照　91110114…
+          </div>
+          <div class="ft__note">
+            证照编号可至国家企业信用信息公示系统核对<br>
+            本页不提供任何跳转与复制入口
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 只做正餐 ============ -->
+      <div class="view view-plain">
+        <div class="hd">
+          <span class="hd__name">老饭盒</span>
+          <span class="hd__cat">家常菜</span>
+          <span class="hd__badge hd__badge--on">午餐在供</span>
+        </div>
+
+        <div class="card">
+          <div class="card__label">明天这一格里是</div>
+          <div class="card__main">番茄牛腩</div>
+          <div class="card__sub">这栋楼吃过 860 次</div>
+        </div>
+
+        <div class="off-note">
+          <div class="off-note__t">这家只做正餐</div>
+          <div class="off-note__p">
+            它的厨房中午用完就收了，没有延伸的东西。<br>
+            ⛔ 刻意<b>不硬凑</b> —— 不是每家都有能力做下午的东西，
+            为了填满页面而上的品，卖不掉就是损耗。
+          </div>
+          <div class="src">⭐ 诚实是这套机制的信用来源：有就有，没有就没有。硬凑的 SKU 会稀释"同一个厨房"这个叙事</div>
+        </div>
+
+        <div class="exit">
+          <div class="exit__label">明天你吃的是它做的</div>
+          <div class="exit__main">番茄牛腩</div>
+          <div class="exit__go">去看看 ›</div>
+        </div>
+
+        <div class="ft">
+          <div class="ft__lic">
+            食品经营许可证　JY11105…　有效期至 2027-04-18<br>
+            营业执照　91110114…
+          </div>
+          <div class="ft__note">
+            证照编号可至国家企业信用信息公示系统核对<br>
+            本页不提供任何跳转与复制入口
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 暂未供应 ============ -->
+      <div class="view view-off">
+        <div class="hd">
+          <span class="hd__name">四季鲜蔬</span>
+          <span class="hd__cat">素菜</span>
+          <span class="hd__badge hd__badge--off">暂未供应</span>
+        </div>
+
+        <div class="off-note">
+          <div class="off-note__t">这家现在不在供应名单里</div>
+          <div class="off-note__p">
+            资质正在核验中，核验完成后会恢复供应。<br>
+            ⛔ 刻意<b>不写预计日期</b> —— 凭空的日期做不到就是失信。
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__label">它上一次供应</div>
+          <div class="card__main">9 月 28 日 · 蒜蓉西兰花</div>
+          <div class="card__sub">在你这栋楼被吃过 86 次</div>
+        </div>
+
+        <div class="exit">
+          <div class="exit__label">这家的下一档还没排</div>
+          <div class="exit__main">看看明天是谁做的</div>
+          <div class="exit__go">去看看 ›</div>
+          <div class="src" style="border-top-color: rgba(255,253,248,0.35); color: rgba(255,253,248,0.62);">⛔ 任何态都不给死路 —— 出口必须换一个仍然成立的动作</div>
+        </div>
+
+        <div class="ft">
+          <div class="ft__note" style="margin-top: 8px;">
+            未在供应名单中的出品方，暂不展示其证照编号<br>
+            核验完成后这里会同步更新
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="notes">
+      <h2>评审要点</h2>
+      <ul>
+        <li class="key"><b>它解开了上一轮我自己判定的死结。</b>我当时说「单一套餐 ⇒ 客单价钉死 ¥25.80，这一维天然为零」。
+          加购把它解开了：<b>正餐那格一动没动（单一套餐仍是单一套餐），但点一件 ¥8 的冰粉，客单就从 25.80 变成 33.80（+31%）。</b>
+          <span style="color:#9A8C79;">（左边可以点着看：底下那行「明天的这一单」会跟着变）</span></li>
+
+        <li class="math">
+          <b>算一笔账</b>（假设推演，非实测）：日均 400 单 · 加购率 30% · 加购均价 ¥8.67 · 毛利率 62.5%<br>
+          ⇒ 月增量营收 <i>¥22,880</i> ／ 月增量毛利 <i>¥14,300</i><br>
+          按盒饭单份贡献 ¥4.98 折算 ⇒ <b>等效于多卖 131 份/天 = 日单量增长 32.6%</b><br>
+          ⭐ <b>而这 131 份不需要多跑一趟车、多进一栋楼、多加一个团长。</b>
+        </li>
+
+        <li><b>为什么它的毛利结构性高于盒饭：边际配送成本 ≈ 0。</b>
+          中午那趟车已经发车了，盒饭已经把配送费付完了。多带一件东西，
+          <b>不增加路程、不增加分拣批次、不增加团长环节</b>。这在数学上是必然的，不是猜想。</li>
+
+        <li><b>为什么挂在供应商页，而不是单独开个商城：</b>「同一个厨房」是唯一的说服力来源 ——
+          你信它的正餐，才会顺手买它下午做的东西。<b>把延伸品挂在商城里它只是个 SKU，挂在这家厨房名下它才有来路。</b></li>
+
+        <li><b>为什么它是「加进明天的盒」而不是单独下单：</b>单独下单 ⇒ 新增履约批次、新增配送成本、用户还要再决策一次。
+          挂进明天那笔订单 ⇒ <b>履约成本不变、决策成本几乎为零</b>（反正明天有饭，顺手加一个）。</li>
+
+        <li class="warn"><b>「只做正餐」这个态是刻意的。</b>不是每家都有能力做下午的东西；
+          <b>为了填满页面而上的品，卖不掉就是损耗</b>，还会稀释「同一个厨房」这个叙事。有就有，没有就没有。</li>
+
+        <li class="warn"><b>四个必须先过的坎：</b>
+          ① <b>食品经营许可范围</b>是否覆盖新增品类（现做现卖 vs 预包装要求不同）
+          ② 走<b>自营买断</b>再卖 ⇒ 不是开放入驻，<b>不触发平台定性</b>（这条是前提，不是选项）
+          ③ 品质责任在 ABox（因为是你买断后卖的）
+          ④ T-1 预售 ⇒ <b>零库存零损耗</b>，这条不能改成现货，否则又回到损耗老路</li>
+
+        <li><b>成本：</b>需新增「加购品」品类 + 挂在订单行上（不是新订单类型）。
+          比另起一个商城轻得多 —— 复用既有订单、支付、配送、团长分佣四条链路。</li>
+
+        <li><b>合规守住：</b>无第三方平台名称 / 链接 / 可跳转物 / 可复制口令；
+          出参不含 status、commission、shareRate、联系方式；证照仍在页脚。</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var body = document.body;
+var modeBtns = document.querySelectorAll('.btn[data-mode]');
+var btnSrc = document.getElementById('btnSrc');
+var addBtns = document.querySelectorAll('.add__btn');
+var sumV = document.getElementById('sumV');
+var sumUp = document.getElementById('sumUp');
+var BASE = 25.80;
+
+for (var i = 0; i < modeBtns.length; i++) {
+  modeBtns[i].onclick = function () {
+    body.setAttribute('data-mode', this.getAttribute('data-mode'));
+    for (var j = 0; j < modeBtns.length; j++) modeBtns[j].classList.remove('is-on');
+    this.classList.add('is-on');
+  };
+}
+btnSrc.onclick = function () {
+  var on = body.getAttribute('data-src') === 'on';
+  body.setAttribute('data-src', on ? 'off' : 'on');
+  btnSrc.classList.toggle('is-on', !on);
+};
+
+for (var k = 0; k < addBtns.length; k++) {
+  addBtns[k].onclick = function () {
+    this.classList.toggle('add__btn--on');
+    this.textContent = this.classList.contains('add__btn--on') ? '−' : '+';
+    var total = BASE;
+    for (var n = 0; n < addBtns.length; n++) {
+      if (addBtns[n].classList.contains('add__btn--on')) total += parseFloat(addBtns[n].getAttribute('data-p'));
+    }
+    sumV.textContent = '¥' + total.toFixed(2);
+    sumUp.textContent = total > BASE ? '客单 +¥' + (total - BASE).toFixed(2) : '';
+  };
+}
+</script>
+
+</body>
+</html>

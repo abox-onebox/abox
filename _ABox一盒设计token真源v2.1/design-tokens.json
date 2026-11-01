@@ -1,0 +1,320 @@
+{
+  "meta": {
+    "project": "ABox 一盒",
+    "version": "2.1",
+    "generated": "2026-09-19",
+    "principle": "单一真源；文档、CSS、SCSS 均由本文件派生，禁止手抄色值",
+    "iconLibrary": "Tabler Icons (MIT) · 24x24 · stroke 1.5/1.6/1.7 · 两端共用一套",
+    "fontLayer": {
+      "display": "ABoxKai 楷体子集（标题/品牌字/金额大字）",
+      "body": "系统无衬线栈（正文/表单/表格）",
+      "num": "等宽栈（数字/金额，tabular-nums）"
+    }
+  },
+  "font": {
+    "_note": "字体栈**唯一真源**（规格 §四 原文）。gen-tokens.py 只引用本段，不得再硬编码 —— 曾因硬编码副本与规格不一致（缺 'HarmonyOS Sans SC'）而两处表述打架。",
+    "displayUser": "'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',ABoxIcons,serif",
+    "displayAdmin": "KaiTi,STKaiti,楷体,'Noto Serif SC',ABoxIcons,serif",
+    "body": "-apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei','Helvetica Neue',Arial,ABoxIcons,sans-serif",
+    "num": "'SF Mono','Roboto Mono',Consolas,'Liberation Mono',ABoxIcons,monospace",
+    "_adminNote": "后台 display 去掉 ABoxKai：后台不内嵌楷体子集（597KB 对首屏是负担），走系统楷体栈、缺失回退 serif。",
+    "_iconNote": "四套栈末尾均并入 `ABoxIcons`（插在通用族**之前**，否则会被 sans-serif/serif/monospace 之后的条目失配规则吞掉）。理由：小程序 `<text>` 不能内嵌组件，端上「图标 + 中文」混排必须靠**逐字形回退**把 PUA 码位落到图标字体（`{{ I.name }}` 路径）；中文仍由前面的楷体/无衬线承接，两者不争字。这是 S3 能不改任何标签结构就清退 emoji 的前提。"
+  },
+  "color": {
+    "brand": {
+      "bg": "#F6F0E5",
+      "surface": "#FFFDF8",
+      "surface2": "#F7F1E4",
+      "surface3": "#FBF6EC",
+      "text": "#6E5435",
+      "text2": "#796C57",
+      "textDisabled": "#A79A85",
+      "gold": "#C9A876",
+      "goldDeep": "#936F3A",
+      "goldDeepest": "#8A6620",
+      "border": "#E4D8C3",
+      "borderStrong": "#D6CBB8"
+    },
+    "status": {
+      "ok": "#5B7C3A",
+      "warn": "#C44536",
+      "info": "#4A6FA5",
+      "okBg": "#F1F5EA",
+      "okBd": "#BBCBA6",
+      "warnBg": "#FBF0EE",
+      "warnBd": "#E3BFB8",
+      "infoBg": "#EDF1F8",
+      "infoBd": "#B4C4DA",
+      "mutBg": "#F7F2E8",
+      "mutBd": "#E4D8C3",
+      "goldBg": "#FBF4E6",
+      "goldBd": "#DCC79C",
+    "okFg": "#577738",
+    "warnFg": "#BE4334",
+    "infoFg": "#4A6FA5",
+    "goldFg": "#8A6620",
+    "_fgNote": "⭐ 文字加强档已升级为「**全浅底达标**」：既能压各自的色调底（chip），也能直接压米色底 / 卡片面（裸色文字）。判据取**最不利底 = 米色 #F6F0E5**：okFg 4.51 / warnFg 4.58 / infoFg 4.51 / goldFg 4.63，全部 ≥4.5。旧值（#597939 / #C24436 / #8D6A38）只按各自色调底调到 4.50，压在米色底上仅 4.39/4.44/4.35 ⇒ 裸色文字仍不达标，故必须升级。状态原色仍只用于图标与描边。"
+    },
+    "traceCard": {
+      "from": "#FFF6E0",
+      "to": "#FFEED5"
+    },
+    "thirdParty": {
+      "meituan": "#FFD400",
+      "meituanText": "#000000",
+      "taobao": "#FF6A00",
+      "taobaoText": "#000000",
+      "jd": "#E1251B",
+      "jdText": "#FFFFFF",
+      "_note": "第三方平台品牌识别色，不属于本产品主题色系，不得换成金棕；底色不可改，文字色按平台各选（实测淘宝橙配白字仅 2.87）"
+    }
+  },
+  "level": {
+    "trainee": {
+      "cn": "见习",
+      "form": "outline",
+      "border": "#D6CBB8",
+      "fg": "#796C57",
+      "bg": "#FFFDF8"
+    },
+    "formal": {
+      "cn": "正式",
+      "form": "outline",
+      "border": "#936F3A",
+      "fg": "#936F3A",
+      "bg": "#FFFDF8"
+    },
+    "gold": {
+      "cn": "金牌",
+      "form": "solid",
+      "border": "#936F3A",
+      "fg": "#FFFDF8",
+      "bg": "#936F3A"
+    },
+    "chief": {
+      "cn": "首席",
+      "form": "solid",
+      "border": "#8A6620",
+      "fg": "#FFFDF8",
+      "bg": "#8A6620"
+    }
+  },
+  "type": {
+    "user": [
+      {
+        "key": "display",
+        "px": 22,
+        "rpx": 44,
+        "face": "楷体",
+        "use": "倒计时 / 金额大字"
+      },
+      {
+        "key": "h1",
+        "px": 17,
+        "rpx": 34,
+        "face": "楷体",
+        "use": "页面主标题"
+      },
+      {
+        "key": "h2",
+        "px": 15,
+        "rpx": 30,
+        "face": "楷体",
+        "use": "卡片标题（品牌层）"
+      },
+      {
+        "key": "body",
+        "px": 14,
+        "rpx": 28,
+        "face": "无衬线",
+        "use": "正文 / 菜名 / 表格"
+      },
+      {
+        "key": "caption",
+        "px": 12,
+        "rpx": 24,
+        "face": "无衬线",
+        "use": "辅助说明"
+      },
+      {
+        "key": "micro",
+        "px": 11,
+        "rpx": 22,
+        "face": "无衬线",
+        "use": "角标 / 单位 / 极弱说明"
+      }
+    ],
+    "admin": [
+      {
+        "key": "h1",
+        "px": 20,
+        "rpx": 20,
+        "face": "楷体",
+        "use": "页标题"
+      },
+      {
+        "key": "h2",
+        "px": 16,
+        "rpx": 16,
+        "face": "楷体",
+        "use": "区块标题"
+      },
+      {
+        "key": "body",
+        "px": 14,
+        "rpx": 14,
+        "face": "无衬线",
+        "use": "正文 / 表格"
+      },
+      {
+        "key": "caption",
+        "px": 12,
+        "rpx": 12,
+        "face": "无衬线",
+        "use": "辅助 / 表头"
+      },
+      {
+        "key": "micro",
+        "px": 11,
+        "rpx": 11,
+        "face": "无衬线",
+        "use": "角标"
+      }
+    ]
+  },
+  "space": {
+    "userRpx": [
+      6,
+      10,
+      14,
+      20,
+      28
+    ],
+    "adminPx": [
+      6,
+      10,
+      14,
+      20,
+      28
+    ]
+  },
+  "radius": {
+    "userRpx": [
+      8,
+      20,
+      32,
+      999
+    ],
+    "adminPx": [
+      4,
+      10,
+      16,
+      999
+    ],
+    "_change": "端上由 v1.0 的 4/10/16rpx 调整为 8/20/32rpx（可见的圆润度变化，单一可回退项）"
+  },
+  "icon": {
+    "sizes": [
+      16,
+      20,
+      24
+    ],
+    "count": 82,
+    "names": [
+      "alert",
+      "back",
+      "bell",
+      "box",
+      "building",
+      "calendar",
+      "camera",
+      "cash",
+      "chart",
+      "check",
+      "checklist",
+      "chev",
+      "clock",
+      "close",
+      "coins",
+      "cook",
+      "copy",
+      "crown",
+      "cup",
+      "dashboard",
+      "discount",
+      "download",
+      "edit",
+      "egg",
+      "eye",
+      "filter",
+      "fish",
+      "flame",
+      "fragile",
+      "gear",
+      "gift",
+      "history",
+      "home",
+      "image",
+      "info",
+      "invoice",
+      "key",
+      "layout",
+      "link",
+      "list",
+      "lock",
+      "logout",
+      "meat",
+      "medal",
+      "menu",
+      "message",
+      "ok-circle",
+      "package",
+      "pause",
+      "phone",
+      "pin",
+      "play",
+      "plus",
+      "print",
+      "qr",
+      "receipt",
+      "refresh",
+      "refund",
+      "rice",
+      "salad",
+      "scan",
+      "search",
+      "send",
+      "share",
+      "shield",
+      "sort",
+      "soup",
+      "split",
+      "star",
+      "store",
+      "tag",
+      "temp",
+      "template",
+      "trash",
+      "truck",
+      "upload",
+      "users",
+      "veg",
+      "wallet",
+      "warn-tri",
+      "withdraw",
+      "x-circle"
+    ]
+  },
+  "density": {
+    "cozy": {
+      "row_pad": 10,
+      "cell_pad": 16,
+      "ctl_h": 32
+    },
+    "compact": {
+      "row_pad": 5,
+      "cell_pad": 12,
+      "ctl_h": 28
+    }
+  }
+}

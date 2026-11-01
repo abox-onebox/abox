@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ABox 上线前测试报告 · 汇总版 v2 · 2026-10-27</title>
+  <style>
+    :root {
+      --paper: #F6F0E5;
+      --ink: #6E5435;
+      --ink-soft: #8C7350;
+      --line: #DECBA8;
+      --white: #FCFAF5;
+      --pass: #2F7A4E;
+      --fail: #B03A2E;
+      --warn: #B7791F;
+      --info: #4A6B8A;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 20px;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "KaiTi", "STKaiti", simkai, serif;
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      background: var(--white);
+      border: 1px solid var(--line);
+      padding: 44px 48px;
+    }
+
+    h1 {
+      font-size: 30px;
+      margin: 0 0 6px;
+      letter-spacing: 2px;
+      font-weight: normal;
+    }
+
+    .sub {
+      color: var(--ink-soft);
+      font-size: 14px;
+      margin-bottom: 26px;
+    }
+
+    h2 {
+      font-size: 21px;
+      margin: 40px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--line);
+      font-weight: normal;
+      letter-spacing: 1px;
+    }
+
+    h3 {
+      font-size: 17px;
+      margin: 26px 0 10px;
+      font-weight: normal;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 18px;
+      font-size: 14.5px;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 9px 11px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #EFE6D3;
+      font-weight: normal;
+    }
+
+    td code,
+    p code,
+    li code {
+      background: #EFE6D3;
+      padding: 1px 5px;
+      font-family: Consolas, monospace;
+      font-size: 13.5px;
+    }
+
+    .pass {
+      color: var(--pass);
+      font-weight: bold;
+    }
+
+    .fail {
+      color: var(--fail);
+      font-weight: bold;
+    }
+
+    .warn {
+      color: var(--warn);
+      font-weight: bold;
+    }
+
+    .info {
+      color: var(--info);
+      font-weight: bold;
+    }
+
+    .box {
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--ink);
+      background: #FBF7EE;
+      padding: 14px 18px;
+      margin: 18px 0;
+    }
+
+    .box-fail {
+      border-left-color: var(--fail);
+      background: #FBF2F0;
+    }
+
+    .box-warn {
+      border-left-color: var(--warn);
+      background: #FDF7EA;
+    }
+
+    .box-ok {
+      border-left-color: var(--pass);
+      background: #F1F8F3;
+    }
+
+    pre {
+      background: #F1E9D7;
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+      overflow-x: auto;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .foot {
+      margin-top: 40px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      color: var(--ink-soft);
+      font-size: 13px;
+    }
+
+    ul {
+      padding-left: 22px;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>ABox · 上线前测试报告（汇总版 v2）</h1>
+    <div class="sub">
+      2026-10-27 16:45 · 目标服务器 154.8.164.180（8081 用户端 ／ 8080 后台）<br />
+      本版含下午取得后台管理员权限后的第二轮验证，取代上午同名报告。全部结论可用文中单号与响应原样复现。
+    </div>
+
+    <h2>零、结论（先看这个）</h2>
+    <div class="box box-fail">
+      <p style="margin:0 0 10px"><b>不建议明天直接上线。原因只有一条，但它卡在最基础的动作上：</b></p>
+      <p style="margin:0"><b>订单详情与支付结果查询两个接口当前持续不可用</b>（所有用户、所有订单，连续观察 100 秒以上无自愈），而订单列表却完全正常。用户下单后点进订单详情会直接报错。</p>
+    </div>
+    <div class="box box-ok">
+      <p style="margin:0 0 8px"><b>除此之外，本次变更的核心功能全部实测通过，质量是好的：</b></p>
+      <p style="margin:0">楼宇停用拦单、一键停售拦单、盲盒服务端遮蔽、终态去占位行 —— 四项均在服务器上真实跑通，且<b>测试期间改动的数据已全部恢复，无脏数据残留</b>。</p>
+    </div>
+
+    <h2>一、测试范围与边界</h2>
+    <table>
+      <tr>
+        <th style="width:26%">范围</th>
+        <th style="width:14%">状态</th>
+        <th>说明</th>
+      </tr>
+      <tr>
+        <td>代码层（门禁／类型／单测／依赖）</td>
+        <td class="pass">已完成</td>
+        <td>本机实跑，取得退出码与计数</td>
+      </tr>
+      <tr>
+        <td>用户端 HTTP 链路</td>
+        <td class="pass">已完成</td>
+        <td>直连服务器真实请求留证</td>
+      </tr>
+      <tr>
+        <td>后台管理（停售／停用／退款）</td>
+        <td class="pass">已完成</td>
+        <td>下午取得 super_admin 权限后补齐</td>
+      </tr>
+      <tr>
+        <td>小程序／H5 界面手点</td>
+        <td class="warn">未覆盖</td>
+        <td>我只能到接口层，GUI 操作做不了</td>
+      </tr>
+      <tr>
+        <td>退款「待审批」状态的审批动作</td>
+        <td class="info">未触发</td>
+        <td>本环境走自动退款路径，未产生停留待审的单；审批接口本身已存在</td>
+      </tr>
+    </table>
+
+    <h2>二、静态基线</h2>
+    <table>
+      <tr>
+        <th style="width:28%">项目</th>
+        <th style="width:14%">结果</th>
+        <th>明细</th>
+      </tr>
+      <tr>
+        <td>全量门禁 <code>gate.mjs all</code></td>
+        <td class="pass">31/31</td>
+        <td>日志统计行 35/35，无 FAIL</td>
+      </tr>
+      <tr>
+        <td>TypeScript 类型检查</td>
+        <td class="pass">0 错误</td>
+        <td>需在 <code>apps/api-server</code> 下执行（根目录无 tsconfig.json）</td>
+      </tr>
+      <tr>
+        <td>全量单元测试</td>
+        <td class="pass">137/137</td>
+        <td>16 个套件全绿，23 秒，EXIT=0</td>
+      </tr>
+      <tr>
+        <td>依赖注入登记检查</td>
+        <td class="pass">202 处无遗漏</td>
+        <td>线上此前崩溃的正是这一型，单测与 tsc 都拦不住</td>
+      </tr>
+      <tr>
+        <td>安全扫描</td>
+        <td class="warn">0 FAIL ／ 2 WARN</td>
+        <td>WARN 在 <code>mock-wx-mini.provider.ts</code> 的 debug 日志（打印 openid 与示例手机号），属 mock 专属路径</td>
+      </tr>
+    </table>
+
+    <h2>三、安全与并发实证</h2>
+    <table>
+      <tr>
+        <th style="width:6%">编号</th>
+        <th style="width:26%">用例</th>
+        <th style="width:10%">结果</th>
+        <th>证据</th>
+      </tr>
+      <tr>
+        <td>S1</td>
+        <td>JWT 弱密钥伪造</td>
+        <td class="pass">未攻破</td>
+        <td>用内置默认密钥 <code>change_me_before_go_live</code>／<code>secret</code>／<code>abox123456</code> 各签 token，全部返回 <code>10002</code>；正对照（真 token）返回 <code>code=0</code>，证明探针有效</td>
+      </tr>
+      <tr>
+        <td>S2</td>
+        <td>伪造／无 token 访问受保护接口</td>
+        <td class="pass">已拦</td>
+        <td><code>10002 未登录或登录已过期</code>，鉴权 fail-closed 有效</td>
+      </tr>
+      <tr>
+        <td>S3</td>
+        <td>越权读取他人订单</td>
+        <td class="pass">已拦</td>
+        <td>他人订单返回 <code>30010 订单不存在</code>，不泄漏</td>
+      </tr>
+      <tr>
+        <td>S4</td>
+        <td>C9 同一幂等键并发下单 ×6</td>
+        <td class="pass">只落 1 笔</td>
+        <td>1 次成功 + 5 次 <code>10006</code>，耗时 46ms。<b>这条此前从未核实且可能造成资损，现已闭掉</b></td>
+      </tr>
+      <tr>
+        <td>S5</td>
+        <td>幂等重放／同键改参</td>
+        <td class="pass">符合预期</td>
+        <td>重放回填首次单号；同键改参数判 <code>10006</code>，未按新参再次下单</td>
+      </tr>
+    </table>
+
+    <h2>四、阻断上线的缺陷</h2>
+    <div class="box box-fail">
+      <h3 style="margin-top:8px">订单详情／支付结果接口持续不可用</h3>
+      <p>服务端返回：</p>
+      <pre>{"code":10001,"message":"Unexpected token '\"', \"\"eyJhbGciO\"... is not valid JSON"}</pre>
+      <p><b>影响面（已确认）：</b></p>
+      <ul>
+        <li><code>GET /orders/:orderNo</code>（订单详情）与 <code>GET /orders/:orderNo/pay-result</code>（支付结果）— <b>全部失败</b></li>
+        <li><code>GET /orders</code>（订单列表）— <b>完全正常</b></li>
+        <li>不限于某个账号：<b>全新注册用户、从未做过任何异常操作的订单，同样失败</b></li>
+        <li>不限于某笔订单：连续新建多笔订单全部失败（10/10）</li>
+        <li>连续观察 6 次共 100 秒（16:37:05 → 16:38:45）<b>始终未恢复</b></li>
+        <li>健康检查正常（db 1ms、队列 ok），<b>监控发现不了</b></li>
+      </ul>
+      <p><b>今天观察到的时间线：</b>15:41 前后首次出现，期间几度自愈（自愈后功能完全正常），16:31 起转为持续失败至今。<b>「能自愈」正是它危险的地方</b>——容易被当成偶发抖动忽略，而它复发时直接影响用户查看订单。</p>
+      <p><b>给技术的复现路径</b>（任何账号都能复现，不需要特殊环境）：</p>
+      <pre>1) POST /api/v1/auth/login    body: {"code":"dev:任意新编号"}
+2) PUT  /api/v1/me/building    body: {"buildingId":1}
+3) POST /api/v1/orders         body: {"quantity":1}   header: Idempotency-Key: 随机UUID
+   → 返回 orderNo
+4) GET  /api/v1/orders/{orderNo}            ← 必返 10001
+   GET  /api/v1/orders/{orderNo}/pay-result ← 必返 10001
+   GET  /api/v1/orders?page=1&pageSize=3    ← 正常 code=0</pre>
+      <p><b>排查建议</b>：错误信息表明服务端在把一段 JWT 字符串当 JSON 解析（<code>eyJhbGciO</code> 是 JWT 头部）。列表正常而详情失败，说明两者走了不同的数据装配路径，详情侧某处读到的缓存值被写成了 JWT 形状。建议检索 <code>JSON.parse</code> 调用点并检查对应缓存键的实际内容。</p>
+    </div>
+
+    <h2>五、本次四项变更 —— 实测结果</h2>
+    <table>
+      <tr>
+        <th style="width:20%">变更项</th>
+        <th style="width:10%">结论</th>
+        <th>实测证据</th>
+      </tr>
+      <tr>
+        <td>停用楼宇拦单（N1）</td>
+        <td class="pass">通过</td>
+        <td>用户归属某楼后由管理员停用：首页 <code>canOrder=false</code> + <code>reason="该办公楼已暂停服务"</code>；强行下单返回 <code>60010</code>；恢复后即时恢复可下单</td>
+      </tr>
+      <tr>
+        <td>一键停售</td>
+        <td class="pass">通过</td>
+        <td>创建停售后：<code>canOrder=false</code> + <code>reason="今日暂停接单：…"</code>（原样下发我填写的原因）；强行下单返回 <code>60009</code>；resume 后即时恢复</td>
+      </tr>
+      <tr>
+        <td>盲盒服务端遮蔽</td>
+        <td class="pass">通过</td>
+        <td>未送达订单详情 <code>blindBoxName=null</code>、<code>blindBoxPending=true</code>，服务端确实不透出，非仅前端隐藏</td>
+      </tr>
+      <tr>
+        <td>终态不挂占位行</td>
+        <td class="pass">通过</td>
+        <td>取消后实测 <code>status=cancelled</code>、<code>blindBoxPending=false</code></td>
+      </tr>
+    </table>
+
+    <div class="box box-ok">
+      <p style="margin:0"><b>数据安全确认</b>：停用／停售均为「操作 → 验证 → 立即恢复」闭环。测试后已复核：银泰中心 1 栋恢复为「营业中」，停售记录已标记恢复（<code>resumedAt</code> 有值，属留痕设计而非继续生效），<b>无脏数据残留</b>。两栋本就处于待开通／暂停状态的楼为既有数据，非本次改动。</p>
+    </div>
+
+    <h2>六、其他发现（非阻断，建议处置）</h2>
+
+    <h3>P1 · 停用阈值实际为 0，导致部分场景测不出来</h3>
+    <div class="box box-warn">
+      <p>代码内置默认为 20（<code>biz-config.service.ts:183</code>），但线上实测 <b>1 笔未完结订单即触发 <code>60012</code></b>：判据是 <code>total &gt; threshold</code>，1 笔触发即说明阈值实际为 0。</p>
+      <p><b>连带影响</b>：阈值 0 时，只要有未完结订单就一定走 <code>60012</code>（需运营审批），<b><code>60006</code>／<code>60007</code> 永远不会出现，<code>forceSuspend</code> 逃生舱也永远不会放行</b>。而测试文档是按「默认 20」写的，测试人员造不出文档描述的场景。</p>
+      <p><b>建议</b>：确认线上 <code>building.suspend_force_max_count</code> 的期望值（保持 0 即严格审批，或调回预期数字），并同步更新测试文档。</p>
+    </div>
+
+    <h3>P1 · nginx 对模拟支付的封锁可被大小写绕过</h3>
+    <div class="box box-warn">
+      <pre>POST /api/v1/pay/mock/paid  -> nginx 404（已封锁）
+POST /api/v1/pay/MOCK/paid  -> 201 {"code":0}  ← 真实执行成功</pre>
+      <p>NestJS 路由大小写不敏感，故大小写与尾斜杠均能绕过。本环境 <code>PROVIDER_MODE=mock</code>、<code>mockEscaped=true</code>，该接口作用是免鉴权把订单改成已支付。建议 nginx 规则改为不区分大小写，或由应用层 <code>prod-mock-gate</code> 关闭。</p>
+    </div>
+
+    <h3>P2 · 并发下可生成多笔待支付订单</h3>
+    <p>同一用户用<b>不同</b>幂等键并发下单 5 次，成功生成 5 笔。目前只有单笔份数上限（<code>order.max_quantity=20</code>），<b>没有同一用户同一出餐日的订单笔数上限</b>，可能造成履约混乱，请确认是否需要限制。</p>
+
+    <h2>七、测试环境的重要事实（避免误判）</h2>
+    <table>
+      <tr>
+        <th style="width:28%">现象</th>
+        <th>说明</th>
+      </tr>
+      <tr>
+        <td>下单后会自动变成「已支付」</td>
+        <td>mock 模式默认开启自动支付（延迟 800ms）。<b>这是环境特性不是 bug</b>——测试人员若不知道，会误以为「没付钱怎么就付款了」</td>
+      </tr>
+      <tr>
+        <td>无团长的楼下不了单</td>
+        <td>返回 <code>30007 LEADER_NOT_FOUND</code>，属正确拦截</td>
+      </tr>
+      <tr>
+        <td>绑定待开通／暂停的楼会失败</td>
+        <td>返回 <code>60001「XX」暂未开通，请选择列表中的其他办公楼</code>，第一道闸门有效</td>
+      </tr>
+      <tr>
+        <td>取消原因必须是指定枚举</td>
+        <td><code>not_in_office</code>／<code>dish_dislike</code>／<code>price</code>／<code>delivery_time</code>／<code>ate_elsewhere</code>／<code>duplicate</code>／<code>other</code>，否则 <code>10001</code></td>
+      </tr>
+      <tr>
+        <td>线上形态</td>
+        <td>健康检查实读 <code>providerMode: mock</code>、<code>mockEscaped: true</code>。这是「任意 code 免鉴权登录任意身份 + 免鉴权改支付状态」的形态，测试环境可接受，<b>正式环境必须为 real</b></td>
+      </tr>
+    </table>
+
+    <h2>八、给你的建议</h2>
+    <ol>
+      <li><b>不建议按原计划明天上线。</b>第四节这条卡在「用户查看订单」上，且会自愈——今天上午好几个小时它一直是好的，所以极易被漏掉。</li>
+      <li>若必须上线，<b>至少先让技术现场跑一遍第四步的三条命令</b>：不需要特殊环境、任何账号都能复现，定位成本不高。</li>
+      <li>顺手处理第六节两项：确认停用阈值的期望值、nginx 封锁补上大小写。</li>
+      <li>第七节的环境特性建议同步给测试队伍，能省掉大量「是不是 bug」的往返。</li>
+    </ol>
+
+    <div class="foot">
+      ABox 上线前测试报告 · 汇总版 v2 · 生成于 2026-10-27 16:45<br />
+      数据来源：本机静态实跑 ＋ 服务器真实 HTTP 请求留证。后台测试使用专用管理员账号，操作均为「改后即恢复」，并已复核无脏数据。
+    </div>
+  </div>
+</body>
+
+</html>

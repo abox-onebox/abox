@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 首页与供应商页修改 · 完整方案 v1.0</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --text:#6E5435; --text-2:#796C57; --weak:#9A8C74;
+    --gold:#B08D57; --gold-deep:#8A6D3F; --surface2:#EFE7D8; --line:#E2D7C2;
+    --warn:#9A5B3B; --ok:#5B7A4B; --bad:#A14B3A;
+    --base:"KaiTi","STKaiti","楷体",serif;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ background:var(--bg); color:var(--text); font-family:var(--base);
+        line-height:1.85; font-size:15px; padding:40px 18px 80px; }
+  .wrap{ max-width:900px; margin:0 auto; }
+  h1{ font-size:27px; letter-spacing:1px; color:var(--text); border-bottom:3px solid var(--text);
+      padding-bottom:12px; margin-bottom:6px; }
+  .sub{ color:var(--text-2); font-size:14px; margin-bottom:28px; }
+  h2{ font-size:20px; color:var(--text); margin:42px 0 14px; padding-left:12px;
+      border-left:6px solid var(--gold); }
+  h3{ font-size:16.5px; color:var(--gold-deep); margin:24px 0 8px; }
+  h4{ font-size:14.5px; color:var(--text); margin:16px 0 6px; }
+  p{ margin:9px 0; }
+  .lead{ background:var(--surface2); border-left:4px solid var(--gold); padding:14px 18px;
+         border-radius:0 10px 10px 0; margin:14px 0; }
+  table{ width:100%; border-collapse:collapse; margin:14px 0; font-size:13px;
+         background:#fff; border:1px solid var(--line); }
+  th,td{ border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top; }
+  th{ background:var(--surface2); color:var(--text); font-weight:normal; }
+  td b{ color:var(--gold-deep); }
+  .tag{ display:inline-block; font-size:11px; padding:1px 7px; border-radius:10px;
+        background:var(--surface2); color:var(--text-2); border:1px solid var(--line); margin-right:3px; white-space:nowrap; }
+  .tag.warn{ background:#F3E4DC; color:var(--warn); border-color:#E3C3B2; }
+  .tag.ok{ background:#E7EEDD; color:var(--ok); border-color:#CBD9BC; }
+  .tag.no{ background:#F0E2E0; color:var(--bad); border-color:#E0C0BC; }
+  .card{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 20px;
+         margin:14px 0; }
+  .card h3{ margin-top:0; }
+  .risk{ background:#FBF1EA; border:1px solid #E6C9B6; border-radius:10px; padding:13px 16px;
+         margin:12px 0; color:var(--warn); }
+  .risk b{ color:var(--bad); }
+  .note{ font-size:12.5px; color:var(--weak); margin-top:6px; }
+  .step{ counter-reset:s; }
+  .step li{ list-style:none; margin:7px 0; padding-left:30px; position:relative; }
+  .step li::before{ counter-increment:s; content:counter(s); position:absolute; left:0; top:2px;
+       width:20px; height:20px; background:var(--text); color:var(--bg); border-radius:50%;
+       font-size:12px; display:flex; align-items:center; justify-content:center; }
+  ul.t{ padding-left:20px; } ul.t li{ margin:5px 0; }
+  .divider{ height:1px; background:var(--line); margin:36px 0; }
+  .foot{ margin-top:40px; font-size:12px; color:var(--weak); border-top:1px solid var(--line); padding-top:14px; }
+  code{ background:var(--surface2); padding:1px 6px; border-radius:5px; font-family:monospace; font-size:12px; }
+  .twocol{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media(max-width:680px){ .twocol{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>ABox 一盒 · 首页与供应商页修改 · 完整方案 v1.0</h1>
+  <div class="sub">整合 v0.1→v0.4 首页演进 + 高保真完整原型 + 供应商页全 29 方向穷举 · 替代创意发散式建议 · 2026-10-22</div>
+
+  <!-- ============ 决策基线 ============ -->
+  <h2>零、决策基线与范围澄清</h2>
+  <div class="lead">
+    本方案替代此前「创意发散 129 条」式的不专业建议，并整合 2026-10-10 专业版方案之后的所有新进展
+    （高保真完整原型、点菜弹窗照片墙定稿、供应商页 29 方向穷举）。底盘三条硬约束不变：
+    ① <b>单一套餐</b>（一饭四菜，用户只能订或不订）；② <b>预售制</b>（T-1 24:00 截单，次日 11:30 送达）；
+    ③ <b>小程序合规铁律</b>（见附录）。
+  </div>
+
+  <h3>0.1 前提冲突（必须先说清，否则方案建立在错误假设上）</h3>
+  <table>
+    <tr><th style="width:32%">维度</th><th>当前真实态（高保真原型）</th><th>本方案处理</th></tr>
+    <tr>
+      <td><b>点菜后弹窗</b></td>
+      <td>已定稿 = 供应商<b>四张实拍照片墙</b>（营业执照 / 门头 / 大厅 / 厨房）</td>
+      <td>资质以<b>照片</b>形式被首页吸收，供应商页"纯资质展示"已实质冗余</td>
+    </tr>
+    <tr>
+      <td><b>首页"来自：X ›"</b></td>
+      <td>高保真原型保留跳转；但弹窗已能看资质照片</td>
+      <td>两种走向都接得住：跳转型（溯源页增强）/ 原地展开型（溯源页冗余）</td>
+    </tr>
+    <tr>
+      <td><b>供应商页定位</b></td>
+      <td>仍是资质展示页，现被点菜弹窗照片墙高度重叠</td>
+      <td>本方案以"重新定位"为主轴，同时 §1.5 给"若保留跳转"的补集</td>
+    </tr>
+  </table>
+  <p class="note">结论：点菜弹窗照片墙一旦上线，供应商页"看资质"功能即被首页吸收。因此<b>重新定位的必要性比 10-10 方案更高</b>；但供应商页是否彻底删除入口，仍取决于你最终对 §1.5 走向的拍板。</p>
+
+  <h3>0.2 本方案范围</h3>
+  <ul class="t">
+    <li><b>第一部分 · 首页修改完整方案</b>：设计原则、完整页面结构（三态）、点菜弹窗定稿、功能要点、落地前置、尺寸、待拍板。</li>
+    <li><b>第二部分 · 供应商页修改完整方案</b>：全 29 方向穷举（带优先级/合规/推荐度）+ 重新定位推荐 + 边界 + 补集。</li>
+    <li><b>第三部分 · 统一落地路径与 Open Decisions</b>：落码清单、不变项、决策汇总。</li>
+  </ul>
+
+  <div class="divider"></div>
+
+  <!-- ============ 第一部分 首页 ============ -->
+  <h2>第一部分 · 首页修改完整方案</h2>
+  <p><b>核心主张</b>：首页布局 = 产品形态布局（天地盖：上两排四格菜 + 底部通栏米饭）。
+  用户一眼认出"我们就是这么一盒"，同时完成"今天下单"的转化。当前已产出<b>高保真完整原型</b>（一屏看完、含全部模块、点菜弹窗可交互），本部分即其方案固化。</p>
+
+  <h3>1.1 设计原则：两层分离（来自 v0.4 定稿）</h3>
+  <table>
+    <tr><th style="width:20%">层级</th><th>装什么</th><th>本版处理</th></tr>
+    <tr><td><b>内容层</b><br>（这盒里有什么）</td><td>天盖日期 · 四格菜 · 米饭</td><td>四格 1:1 实拍图 + 底部通栏米饭（纯展示，无任何控件）</td></tr>
+    <tr><td><b>决策层</b><br>（要几盒、付多少）</td><td>份数 · 应付 · 单价 · 上限</td><td>独立"决策条"：<code>份数 [− 1 +]  ¥25.80</code> + 小字 <code>¥25.80/份 · 单笔最多 10 份</code></td></tr>
+  </table>
+  <p><b>实物证据（最硬依据）</b>：天地盖实物里<b>没有任何一格可以单独加量</b>——不存在"米饭两份、排骨一份"。
+  所以"份"只能是<b>整盒的倍数</b>，绝不可贴在某道菜旁边。v0.3 把份数塞进饭位 → 被读成"米饭要几份"，即层级错配，v0.4 已修正。</p>
+
+  <h3>1.2 完整页面结构（三态全模块）</h3>
+  <p>原型以"已跟随团长"态为主稿呈现，以下列出三态差异。除三态各自特有模块外，<b>所有态共享</b>：倒计时 / 天盖 / 天地盖 2×2 + 米饭通栏 / 份数决策条 / 下单按钮 / 底部栏。</p>
+  <table>
+    <tr><th style="width:20%">模块</th><th>普通用户（无团长）</th><th>已跟随团长</th><th>团长身份 + 已截单</th></tr>
+    <tr><td><b>倒计时</b></td><td colspan="3">保留（取值纪律：<code>cutoffTimeText</code> 取不到整行不显示，绝不回落写死值）</td></tr>
+    <tr><td><b>天盖</b></td><td colspan="3">日期 + 两行 pill「四方好味汇一盒 / 每家只出一道拿手菜」（一字未删）</td></tr>
+    <tr><td>跟随团长卡</td><td><b>无</b>（改"无团长引导"提示条）</td><td>有：团长名 + 楼栋 + 「你通过 TA 的邀请链接进入 · 本单佣金归 TA」+ 点此切换 ›</td><td>无（团长自己不计跟随）</td></tr>
+    <tr><td>团长身份横幅</td><td>无</td><td>无</td><td><b>有</b>（金→棕渐变，进工作台）</td></tr>
+    <tr><td>天地盖 + 米饭</td><td colspan="3">2×2 四格菜（1:1 实拍图）+ 底部通栏米饭「东北珍珠米 · 当日现蒸 · 可备注少饭/免饭」</td></tr>
+    <tr><td>份数决策条</td><td colspan="3">份数控件 + 应付金额 + 单价/上限小字</td></tr>
+    <tr><td>已订概览</td><td>无</td><td>有（多单放开后的告知，不拦截）</td><td>有（但下单按钮禁用）</td></tr>
+    <tr><td><b>下单按钮</b></td><td>立即预订 ¥25.80</td><td>立即预订 ¥25.80</td><td><b>禁用</b>：本场已截单</td></tr>
+    <tr><td>底部栏</td><td colspan="3">首页(高亮) / 菜品 / 订单 / 我的</td></tr>
+  </table>
+
+  <h3>1.3 点菜弹窗定稿（用户最新指令）</h3>
+  <div class="card">
+    <h3>交互：点任意菜格 → 底部滑出该出品方实拍照片墙</h3>
+    <p>你最终拍板：弹窗<b>不要菜品介绍文字、不要资质文字行</b>，只展示供应商的
+      <b>营业执照 / 门头 / 大厅 / 厨房</b> 四张照片（2×2 占位）。这是把"看资质"从供应商页吸收进首页的最简实现。</p>
+    <ul class="t">
+      <li><b>头图</b>：菜名 + 来自哪家（认菜、知是谁做的）。</li>
+      <li><b>照片墙</b>：2×2 四格，标题固定为「营业执照 / 门头 / 大厅 / 厨房」，每格下方标「示意 · 待上传实拍」。</li>
+      <li><b>数据来源</b>：照片为占位；落码时由 U1 下发该供应商真实的四张实拍图（建议新增供应商照片字段，或在现有资质对象上扩展）。</li>
+    </ul>
+    <p class="note">合规提示：营业执照照片属于"资质以图呈现"，同样受平台审核约束；但它是 ABox 自有供应商的资质展示，不涉及第三方平台禁令。编号等敏感信息由照片本身承载，不另写文字。</p>
+  </div>
+
+  <h3>1.4 功能要点（逐项）</h3>
+  <ul class="t">
+    <li><b>顶部倒计时（保留并强化）</b>：深棕底、金字等宽数字、下圆角；取值纪律——取不到整行不显示、不回落写死值。</li>
+    <li><b>产品形态即首页</b>：天地盖 2×2 + 通栏米饭，所见即所得。</li>
+    <li><b>四格实拍图（硬前置）</b>：四张 1:1 俯拍图，后台菜品管理填 <code>imageUrl</code>。契约已存在（<code>home.dto.ts</code> 有 <code>imageUrl</code>、<code>meal.service.ts</code> 已下发），<b>无需改后端、不加表</b>。</li>
+    <li><b>份数 / 应付决策条</b>：控件带"份数"语义主语，不误读为某道菜的份数；单价回填小字行。</li>
+    <li><b>"来自：X ›"</b>：高保真原型保留跳转溯源页（不动后端）；弹窗照片墙已就地吸收资质查看，两者并存不冲突。</li>
+    <li><b>既有模块全保留</b>：骨架 / 团长身份横幅 / 跟随团长卡与佣金明示 / 无团长引导 / 最大份数提示 / 已订概览 / 主按钮 / bottom-bar / 空态分级——只做布局改造，不删不减。</li>
+  </ul>
+
+  <h3>1.5 尺寸与首屏（推算值，落码后须真机核对）</h3>
+  <table>
+    <tr><th>机型</th><th>视口高</th><th>主按钮是否首屏可见（普通用户态）</th></tr>
+    <tr><td>iPhone X / 11</td><td>812px</td><td><span class="tag ok">可见</span>（约 798px，余量偏紧）</td></tr>
+    <tr><td>iPhone SE</td><td>667px</td><td>需下滑约 1 指</td></tr>
+  </table>
+  <p class="note">推算口径：96(倒计时)+103(天盖+盖缝)+443(地盒)+70(决策条)+22(小字)+64(按钮)=798px。仅推算，真机实测为准。</p>
+
+  <h3>1.6 首页待拍板项（Open Decisions）</h3>
+  <table>
+    <tr><th style="width:34%">待定项</th><th>我的倾向</th><th>影响</th></tr>
+    <tr><td>图位比例 1:1 还是 4:3</td><td><b>1:1</b>（开盖感最强）</td><td>视觉真实感 vs 首屏余量</td></tr>
+    <tr><td>团长两块（身份横幅+跟随卡）是否挪走</td><td>可折进"我的"或默认收起</td><td>团长视角多 180px，等于让少数团长承担多数用户首屏改善</td></tr>
+    <tr><td>决策条金额是否加"应付"标签</td><td>待定（防读成"这盒单价"）</td><td>紧凑 vs 语义明确</td></tr>
+    <tr><td>是否落码到 <code>index.vue</code></td><td>等你确认后执行</td><td>纯前端渲染改造，不动契约</td></tr>
+  </table>
+
+  <div class="divider"></div>
+
+  <!-- ============ 第二部分 供应商页 ============ -->
+  <h2>第二部分 · 供应商页修改完整方案</h2>
+  <p>原页面唯一功能 = 展示供应商资质（许可证号、有效期）。被砍掉跳转外卖后更显单薄，现又被首页点菜弹窗照片墙高度重叠。
+  本部分给出<b>全 29 方向穷举</b>（你要求"所有可能性都提供给我选"）+ 重新定位推荐。</p>
+  <p><b>边界原则</b>：<b>首页是"今天下单"的转化页，供应商页应是"明天期待 / 品牌信任 / 增量营收"的内容页或工具页</b>——各司其职，不抢同一块屏幕、不重复下单控件。</p>
+
+  <h3>2.1 全 29 方向穷举（8 族，带优先级 / 合规 / 推荐度）</h3>
+  <p class="note">推荐度图例：<span class="tag ok">推荐</span> 立刻可做 / 零风险；<span class="tag">可行</span> 有价值但需配套；<span class="tag no">不推荐</span> 列给你看"为什么不能做"，非建议做。</p>
+  <table>
+    <tr><th style="width:6%">族</th><th style="width:22%">方向</th><th style="width:20%">页面定位</th><th style="width:30%">核心价值 / 说明</th><th>合规风险</th><th style="width:10%">推荐度</th></tr>
+    <tr><td rowspan="6"><b>1<br>内容<br>预览</b></td><td>1.1 明日出餐阵容</td><td>内容页</td><td>明天谁做哪道、值不值得期待；复用 <code>dishes</code> 数据</td><td>零</td><td><span class="tag ok">推荐</span></td></tr>
+    <tr><td>1.2 本周菜单</td><td>内容页</td><td>一周四菜轮换预告，提升打开频次</td><td>零</td><td><span class="tag ok">推荐</span></td></tr>
+    <tr><td>1.3 厨房人物志</td><td>内容页</td><td>主厨 / 档口故事，传递"有人在做饭"的温度</td><td>零</td><td><span class="tag ok">推荐</span></td></tr>
+    <tr><td>1.4 食材溯源</td><td>内容页</td><td>米/菜/肉产地叙事，替代冷证件号</td><td>零</td><td><span class="tag">可行</span></td></tr>
+    <tr><td>1.5 手艺/工艺展示</td><td>内容页</td><td>现做过程短视频/图文，强化"现做"卖点</td><td>零</td><td><span class="tag">可行</span></td></tr>
+    <tr><td>1.6 时令食材</td><td>内容页</td><td>当季食材科普，轻内容</td><td>零</td><td><span class="tag">可行</span></td></tr>
+    <tr><td rowspan="4"><b>2<br>信任<br>透明</b></td><td>2.1 食安透明台（活证件）</td><td>信任页</td><td>把许可证号做成"活"的、可核对的状态卡，替代冷列表</td><td>低</td><td><span class="tag ok">推荐</span></td></tr>
+    <tr><td>2.2 本楼数据墙</td><td>信任页</td><td>"这栋楼吃过 860 次 · 在供 240 天"行为数据</td><td>低（脱敏聚合）</td><td><span class="tag ok">推荐</span></td></tr>
+    <tr><td>2.3 评价聚合</td><td>信任页</td><td>本楼用户真实评价（脱敏），非单一星级</td><td>低</td><td><span class="tag">可行</span></td></tr>
+    <tr><td>2.4 明厨亮灶</td><td>信任页</td><td>后厨实时/轮播监控画面，强信任但重运营</td><td>中（隐私/带宽）</td><td><span class="tag">可行</span></td></tr>
+    <tr><td rowspan="5"><b>3<br>营收<br>交易</b></td><td>3.1 到店券 + 核销</td><td>工具页</td><td>你原创意：写字楼流量变现，核销抽佣（约 ¥250/楼/月）</td><td><span class="tag warn">高</span>（定性雷）</td><td><span class="tag">可行</span></td></tr>
+    <tr><td>3.2 异业联名</td><td>工具页</td><td>与周边商户联名权益</td><td><span class="tag no">不推荐</span>（二清/平台定性）</td><td><span class="tag no">不推荐</span></td></tr>
+    <tr><td>3.3 自有零售</td><td>工具页</td><td>卖自有周边/食材包</td><td><span class="tag no">不推荐</span>（增 SKU/库存）</td><td><span class="tag no">不推荐</span></td></tr>
+    <tr><td>3.4 企业团餐</td><td>工具页</td><td>B 端团餐预订（与零售不同，是服务）</td><td>中（合同/发票）</td><td><span class="tag">可行</span></td></tr>
+    <tr><td>3.5 储值卡</td><td>工具页</td><td>预付费储值</td><td><span class="tag no">不推荐</span>（央行预付卡监管）</td><td><span class="tag no">不推荐</span></td></tr>
+    <tr><td rowspan="3"><b>4<br>B2B<br>协同</b></td><td>4.1 供应商工作台</td><td>工具页</td><td>供应商自主维护菜品/资质/出餐</td><td>低</td><td><span class="tag">可行</span></td></tr>
+    <tr><td>4.2 团长协同</td><td>工具页</td><td>团长查看所辖楼栋订单/佣金</td><td>低</td><td><span class="tag ok">推荐</span></td></tr>
+    <tr><td>4.3 招商</td><td>工具页</td><td>招募新供应商/新楼栋</td><td>低</td><td><span class="tag">可行</span></td></tr>
+    <tr><td rowspan="4"><b>5<br>用户<br>权益</b></td><td>5.1 积分/勋章</td><td>权益页</td><td>连续订餐积分，轻运营</td><td>低</td><td><span class="tag">可行</span></td></tr>
+    <tr><td>5.2 周卡/月卡</td><td>权益页</td><td>预付费周期卡（非储值，是套餐）</td><td>中（与预售制磨合）</td><td><span class="tag">可行</span></td></tr>
+    <tr><td>5.3 拼团</td><td>权益页</td><td>楼内拼团折扣</td><td><span class="tag no">不推荐</span>（二级分销红线）</td><td><span class="tag no">不推荐</span></td></tr>
+    <tr><td>5.4 评价返券</td><td>权益页</td><td>评价返小额券</td><td>低</td><td><span class="tag">可行</span></td></tr>
+    <tr><td rowspan="3"><b>6<br>内容<br>社区</b></td><td>6.1 吃法/食谱</td><td>内容页</td><td>围绕一饭四菜的吃法延展</td><td>零</td><td><span class="tag">可行</span></td></tr>
+    <tr><td>6.2 午餐社区</td><td>社区页</td><td>本楼午餐交流</td><td>中（内容审核）</td><td><span class="tag">可行</span></td></tr>
+    <tr><td>6.3 打卡晒图</td><td>社区页</td><td>用户晒今日一盒</td><td>中（UGC审核）</td><td><span class="tag">可行</span></td></tr>
+    <tr><td rowspan="2"><b>7<br>公益<br>品牌</b></td><td>7.1 少饭公益</td><td>品牌页</td><td>"免饭/少饭"对应公益捐赠，呼应现有备注功能</td><td>低</td><td><span class="tag ok">推荐</span></td></tr>
+    <tr><td>7.2 助农故事</td><td>品牌页</td><td>食材助农叙事</td><td>零</td><td><span class="tag">可行</span></td></tr>
+    <tr><td rowspan="2"><b>8<br>数据<br>洞察</b></td><td>8.1 本楼口味洞察</td><td>洞察页</td><td>本楼偏好聚合（脱敏），趣味+复购</td><td>低（脱敏）</td><td><span class="tag">可行</span></td></tr>
+    <tr><td>8.2 复购预警</td><td>洞察页</td><td>预测某用户可能流失并触发关怀</td><td>中（个保法边界）</td><td><span class="tag">可行</span></td></tr>
+  </table>
+
+  <h3>2.2 重新定位推荐组合（P0/P1/P2）</h3>
+  <div class="card">
+    <h3>方向 A ·「明日出餐阵容」预告页 <span class="tag ok">P0 主定位</span> <span class="tag">零合规风险</span></h3>
+    <p><b>页面定位</b>：预售制下的"明天吃什么"内容页，承接首页"今日下单"之后的期待感。首页答"现在订什么"，本页答"明天谁来做、值不值得期待"。</p>
+    <p><b>功能要点</b>：明日四格菜的厨房来源预告（与首页四格对应，不重复下单）· 厨房人物卡（主厨故事，非冷证件）· 行为数据信任凭证（"这栋楼吃过 860 次"替代证件号）· 订阅"明日菜单提醒"（微信一次性授权订阅消息）。</p>
+    <p><b>为什么专业</b>：与首页不重叠；纯展示无第三方跳转，合规安全；复用现有 <code>dishes</code>/<code>supplierName</code> 数据，零新增契约。</p>
+  </div>
+  <div class="card">
+    <h3>方向 C ·「这一盒的来路」深度溯源 <span class="tag ok">P1 深化</span></h3>
+    <p><b>页面定位</b>：品牌信任页，讲"食材从哪来、谁做的、怎么到手上"，服务高端极简调性。
+      建议 <b>C 作为 A 的深化模块</b>（点厨房人物卡展开来路），而非独立成页，避免页面过多。</p>
+  </div>
+  <div class="card">
+    <h3>方向 B ·「到店券 + 核销」营收页 <span class="tag warn">P2 探索</span> <span class="tag warn">需先解定性</span></h3>
+    <p><b>页面定位</b>：把 ABox"别人拿不到的写字楼午间流量 + 信任"变现的轻资产营收页。这是此前对话里<b>唯一真正成立的创意</b>。</p>
+    <div class="risk">
+      <b><span class="tag warn">核心专业增量（原创意专家完全没提）</span></b><br>
+      若 ABox 帮合作商家"发券并抽佣"，极易被认定为<b>网络食品交易第三方平台</b> → 触发
+      <b>EDI 证 + 第三方平台备案 + 二清</b>（整套创意最大雷）。<br><br>
+      <b>安全做法（二选一）</b>：① <b>自营买断</b>：ABox 采购买断券再作为自有权益发放，性质变自营营销；
+      ② <b>广告/引流服务</b>：明确是广告而非交易，券在商家系统完成，ABox 只收广告/服务费（且小程序内<b>不得出现第三方平台名/标识/链接/可跳转物/可复制口令</b>）。
+    </div>
+  </div>
+
+  <h3>2.3 与首页的边界（不重叠原则）</h3>
+  <table>
+    <tr><th>页面</th><th>核心问题</th><th>动作</th><th>禁止</th></tr>
+    <tr><td>首页</td><td>今天订什么 / 付多少</td><td>转化（下单）</td><td>不做内容故事、不做核销</td></tr>
+    <tr><td>供应商页（新）</td><td>明天谁做 / 为什么信</td><td>内容 / 信任 / 增量营收</td><td>不重复下单控件</td></tr>
+  </table>
+
+  <h3>2.4 若你最终保留"来自：X ›"跳转（供应商页未冗余）</h3>
+  <p>则第一部分弹窗照片墙仍保留（作为首页内的快速查看），供应商页从"重新定位"转为"增强"：保留资质/照片展示，叠加方向 A 的"明日出餐阵容 + 厨房人物卡 + 订阅提醒"，把"冷证件页"升级为"有温度的出餐档案页"。方向 B（到店券）仍可作独立入口，不依赖首页是否吸收资质。</p>
+
+  <h3>2.5 供应商页待拍板项</h3>
+  <ul class="t">
+    <li>首页弹窗照片墙上线后，供应商页"看资质"功能是否彻底移除入口？—— 决定本页是"重新定位"还是"增强"。</li>
+    <li>29 方向里先落地哪几个？我推荐优先 <b>1.1 阵容 + 2.1 食安透明台 + 2.2 数据墙 + 7.1 少饭公益</b>（零/低风险、复用数据、直接解"单薄"）。</li>
+    <li>方向 B 的定性（自营买断 vs 广告服务）需法务确认，是 P2 能否启动的前提。</li>
+  </ul>
+
+  <div class="divider"></div>
+
+  <!-- ============ 第三部分 落地 ============ -->
+  <h2>第三部分 · 统一落地路径与 Open Decisions 汇总</h2>
+
+  <h3>3.1 首页落码清单（纯前端，不动契约）</h3>
+  <ol class="step">
+    <li>后台菜品管理上传四张 1:1 实拍图，写入 <code>imageUrl</code>（字段已存在）。</li>
+    <li><code>index.vue</code>：倒计时保留；天盖概念卡合并为"天盖"；四格菜改 2×2 网格 + 通栏米饭。</li>
+    <li>份数与应付合成独立"决策条"，带"份数"主语；单价回填小字行。</li>
+    <li>点菜弹窗：底部 sheet 改为供应商四张实拍照片墙（需 U1 下发供应商照片字段，或复用现有资质图片）。</li>
+    <li>"来自：X ›"保留跳转；团长两块、已订概览、空态分级等既有模块不删。</li>
+    <li>真机核对首屏高度（iPhone X/11 / SE），重点验证 798px 推算。</li>
+  </ol>
+
+  <h3>3.2 供应商页落码清单（取决于 §2.5 拍板）</h3>
+  <ol class="step">
+    <li>若重新定位：以方向 A 为主框架，接入明日阵容 + 厨房人物卡 + 行为数据墙。</li>
+    <li>食安透明台（2.1）可复用首页弹窗已有的四张照片，做"活证件"呈现。</li>
+    <li>少饭公益（7.1）对接现有"可备注少饭/免饭"功能，做轻量公益叙事。</li>
+    <li>方向 B（到店券）单独评估，需法务定性后再立项。</li>
+  </ol>
+
+  <h3>3.3 不变项（本次修改不触碰）</h3>
+  <ul class="t">
+    <li>预售制 T-1 截单 / 次日送达的业务规则与后端逻辑。</li>
+    <li>单一套餐（一饭四菜）的定价 ¥25.80 与佣金计提结构。</li>
+    <li>团长佣金归属与结算通道（已具备自动结算）。</li>
+    <li>用户信息收集边界（不收集真实姓名、不进用户表单的配送位置）。</li>
+  </ul>
+
+  <h3>3.4 Open Decisions 汇总（待你拍板）</h3>
+  <table>
+    <tr><th style="width:40%">决策点</th><th>归属</th><th>当前倾向</th></tr>
+    <tr><td>首页图位 1:1 vs 4:3</td><td>首页 §1.6</td><td>1:1</td></tr>
+    <tr><td>团长两块是否挪走 / 收起</td><td>首页 §1.6</td><td>折进"我的"或默认收起</td></tr>
+    <tr><td>决策条金额加"应付"标签</td><td>首页 §1.6</td><td>待定</td></tr>
+    <tr><td>是否落码首页到 <code>index.vue</code></td><td>首页 §1.6</td><td>待确认</td></tr>
+    <tr><td>供应商页重新定位 vs 增强</td><td>供应商 §2.5</td><td>倾向重新定位（弹窗已吸收资质）</td></tr>
+    <tr><td>供应商页优先落地方向</td><td>供应商 §2.5</td><td>1.1 + 2.1 + 2.2 + 7.1</td></tr>
+    <tr><td>方向 B 定性（自营 vs 广告）</td><td>供应商 §2.5</td><td>法务确认后 P2</td></tr>
+  </table>
+
+  <div class="divider"></div>
+
+  <!-- ============ 附录 ============ -->
+  <h2>附录 · 小程序合规铁律（改动任何页面前必读）</h2>
+  <div class="risk">
+    <b>第三方平台五项禁令（平台运营规范 5.10/5.16/5.20 等）</b>：小程序内不得出现第三方平台
+    <b>名称 / 标识 / 链接 / 可跳转物 / 可复制口令</b>。违规高风险，审核必卡。<br>
+    推论：方向 B（到店券）的核销与展示，<b>绝不可出现合作商家的平台名、Logo、外链或可复制码</b>；
+    供应商页"资质墙/照片墙"是已实装的合规替代物，保持。
+  </div>
+  <ul class="t">
+    <li><b>自营 vs 平台定性</b>：开放商家入驻 / 代销分账 = 平台 → 触发 EDI + 第三方平台备案 + 二清；采购买断自营 = 安全。</li>
+    <li><b>GB 28050 营养声称</b>：打勾 = 营养声称，须有含量依据，否则虚假声称。</li>
+    <li><b>个人信息保护法</b>：可做聚合/脱敏洞察，不可出售可识别到个人的数据。</li>
+    <li><b>微信订阅消息</b>：一次性授权（点一次收一条），<code>requestSubscribeMessage</code> 只能用户点击同步调用。</li>
+  </ul>
+
+  <div class="foot">
+    本方案为规划文档，未改动任何代码。首页与供应商页的最终走向取决于 §3.4 的 Open Decisions。
+    落地前请以真机实测尺寸与法务合规口径为准。配套高保真原型见 <code>_ABox一盒·首页高保真(完整版)/index.html</code>。
+  </div>
+
+</div>
+</body>
+</html>

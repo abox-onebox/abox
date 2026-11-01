@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>ABox 一盒 · 成为团长（海报版）</title>
+<style>
+  :root {
+    --bg-cream: #F6F0E5; --bg-cream-light: #FBF7EE; --text-brown: #6E5435; --text-brown-light: #8B7355;
+    --accent-gold: #C9A876; --accent-gold-dark: #B8915C; --border-soft: #E6D9C0;
+    --shadow: 0 1px 2px rgba(110,84,53,.06), 0 4px 12px rgba(110,84,53,.07);
+    --shadow-lg: 0 2px 6px rgba(110,84,53,.08), 0 12px 32px rgba(110,84,53,.14);
+    --font-kai: "KaiTi","STKaiti","楷体","Kaiti SC",serif;
+    --radius-md: 14px; --radius-pill: 24px; --sp-4: 20px; --sp-5: 28px; --fs-sm: 12px; --fs-md: 14px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: var(--font-kai); background:#2A2118; color:var(--text-brown); -webkit-font-smoothing:antialiased; }
+  .stage-flex { display:flex; justify-content:center; align-items:flex-start; padding:32px 16px 60px; }
+  .phone-shell { width:375px; max-width:100%; background:var(--bg-cream); border-radius:24px; box-shadow:var(--shadow-lg),0 0 0 2px rgba(201,168,118,.3); overflow:hidden; }
+  .scroll { max-height:820px; overflow-y:auto; }
+  .scroll::-webkit-scrollbar { width:6px; }
+  .scroll::-webkit-scrollbar-thumb { background:rgba(201,168,118,.45); border-radius:4px; }
+
+  /* ===== 海报头区 ===== */
+  .poster { position:relative; background:linear-gradient(135deg,#6E5435 0%,#9A7B4F 100%); color:var(--bg-cream); padding:52px var(--sp-4) 44px; overflow:hidden; }
+  .poster__ring { position:absolute; width:340px; height:340px; border-radius:50%; border:1.5px solid rgba(246,240,229,.16); top:-120px; right:-110px; pointer-events:none; }
+  .poster__ring::after { content:""; position:absolute; width:220px; height:220px; border-radius:50%; border:1.5px solid rgba(246,240,229,.10); top:130px; right:96px; }
+  .poster__dot { position:absolute; width:8px; height:8px; border-radius:50%; background:var(--accent-gold); bottom:64px; left:var(--sp-4); opacity:.85; }
+  .poster__eyebrow { position:relative; font-size:11px; letter-spacing:3px; opacity:.85; border:1px solid rgba(246,240,229,.45); border-radius:var(--radius-pill); display:inline-block; padding:3px 14px; }
+  .poster__title { position:relative; font-size:40px; font-weight:bold; letter-spacing:3px; margin-top:36px; line-height:1.42; }
+  .poster__title em { font-style:normal; color:var(--accent-gold); }
+  .poster__sub { position:relative; margin-top:18px; font-size:var(--fs-md); letter-spacing:2px; opacity:.92; }
+  .poster__meta { position:relative; margin-top:26px; padding-top:18px; border-top:1px solid rgba(246,240,229,.22); display:flex; align-items:center; gap:8px; font-size:var(--fs-sm); letter-spacing:2px; opacity:.75; }
+  .poster__meta i { font-style:normal; opacity:.6; }
+
+  /* ===== 海报信息带 ===== */
+  .facts { padding:var(--sp-5) var(--sp-4) 0; }
+  .fact + .fact { margin-top:26px; padding-top:26px; border-top:1px dashed var(--border-soft); }
+  .fact__hd { display:flex; align-items:baseline; gap:10px; }
+  .fact__no { font-size:13px; font-weight:bold; color:var(--accent-gold-dark); letter-spacing:1px; }
+  .fact__t { font-size:var(--fs-md); color:var(--text-brown-light); letter-spacing:2px; }
+  .fact__main { margin-top:8px; font-size:19px; font-weight:bold; letter-spacing:1px; line-height:1.5; }
+  .fact__main .hl { color:var(--accent-gold-dark); }
+  .fact__sub { margin-top:6px; font-size:var(--fs-sm); color:var(--text-brown-light); letter-spacing:1px; line-height:1.8; }
+
+  /* ===== 双路径 CTA ===== */
+  .cta { padding:var(--sp-5) var(--sp-4) 0; }
+  .cta__btn { width:100%; height:48px; line-height:48px; text-align:center; background:var(--text-brown); color:var(--bg-cream); border-radius:var(--radius-pill); font-size:var(--fs-md); letter-spacing:2px; box-shadow:var(--shadow); border:none; font-family:var(--font-kai); }
+  .cta__btn--ghost { background:transparent; color:var(--accent-gold-dark); border:1px solid var(--accent-gold); box-shadow:none; margin-top:12px; }
+  .cta__note { font-size:var(--fs-sm); color:var(--text-brown-light); text-align:center; margin-top:12px; line-height:1.8; }
+  .foot { font-size:11px; color:var(--text-brown-light); padding:var(--sp-4) var(--sp-4) var(--sp-5); line-height:1.8; margin-top:16px; }
+</style>
+</head>
+<body>
+<div class="stage-flex">
+  <div class="phone-shell">
+    <div class="scroll">
+
+      <header class="poster">
+        <div class="poster__ring" aria-hidden="true"></div>
+        <div class="poster__dot" aria-hidden="true"></div>
+        <span class="poster__eyebrow">ABox 一盒 · 团长招募</span>
+        <h1 class="poster__title">好事做了<br>顺手带了<br><em>钱也赚了</em></h1>
+        <p class="poster__sub">成为团长，就这么简单</p>
+        <div class="poster__meta">每天一次<i>·</i>不费事<i>·</i>大家都省心</div>
+      </header>
+
+      <section class="facts">
+
+        <div class="fact">
+          <div class="fact__hd"><span class="fact__no">01</span><span class="fact__t">钱，明明白白</span></div>
+          <div class="fact__main">每单按售价提 <span class="hl">8% – 12%</span></div>
+          <div class="fact__sub">次日入账，能抵消费，也能提现；每月好几百，稳稳当当</div>
+        </div>
+
+        <div class="fact">
+          <div class="fact__hd"><span class="fact__no">02</span><span class="fact__t">事，不添麻烦</span></div>
+          <div class="fact__main">下班转发链接，午休顺手带回</div>
+          <div class="fact__sub">同事点开，就进你的团——不占上班时间</div>
+        </div>
+
+        <div class="fact">
+          <div class="fact__hd"><span class="fact__no">03</span><span class="fact__t">人，记你的好</span></div>
+          <div class="fact__main">热心肠，有了名分</div>
+          <div class="fact__sub">你的单，同事乐意跟；好人缘，一次次加深</div>
+        </div>
+
+      </section>
+
+      <div class="cta">
+        <button class="cta__btn">申请成为团长</button>
+        <button class="cta__btn cta__btn--ghost">介绍给合适的同事</button>
+        <div class="cta__note">自己暂时不当也行——介绍他成为团长，你领 <b>5 元代金券</b>（仅单层）</div>
+      </div>
+
+      <div class="foot">金额为测算示例，以实际接单为准；介绍奖励仅单层，不涉及多级分销。</div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

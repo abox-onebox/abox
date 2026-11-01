@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 内部测试操作清单 v1.3</title>
+<style>
+  :root {
+    --bg-cream: #F6F0E5;
+    --bg-cream-light: #FBF7EF;
+    --bg-cream-dark: #EDE3D0;
+    --text-brown: #6E5435;
+    --text-brown-light: #A08A6A;
+    --accent-gold: #C9A876;
+    --accent-gold-dark: #9A7B4F;
+    --border-brown: #E6D9C0;
+    --hero-a: #6E5435;
+    --hero-b: #9A7B4F;
+    --ok: #5B7C3A;
+    --bg-blank: #FCFAF5;
+    --bg-hi: #FDF6E8;
+    --warn-bg: #FBF3E6;
+    --warn-border: #E3C79A;
+    --warn-accent: #B8862F;
+    --warn-text: #8A6318;
+    --lv-b: #C98A2F;
+    --lv-c: #8C9A6B;
+    --severe: #C44536;
+    --font-kai: "KaiTi", "STKaiti", "楷体", "Kaiti SC", serif;
+    --mono: "Consolas", "Menlo", "Courier New", monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font-kai);
+    background: var(--bg-cream);
+    color: var(--text-brown);
+    line-height: 1.72;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    padding: 0 0 40px;
+  }
+  .sheet { max-width: 820px; margin: 0 auto; background: #fff; box-shadow: 0 2px 18px rgba(110,84,53,.10); }
+  .wrap { padding: 0 30px 26px; }
+
+  .hero { background: linear-gradient(135deg, var(--hero-a) 0%, var(--hero-b) 100%); color: var(--bg-cream); padding: 28px 30px 22px; }
+  .hero .brand { font-size: 12px; letter-spacing: 4px; opacity: .82; }
+  .hero h1 { font-size: 25px; letter-spacing: 2px; font-weight: bold; margin-top: 6px; }
+  .hero .sub { font-size: 12.5px; opacity: .9; margin-top: 8px; letter-spacing: .5px; }
+  .hero .fields { margin-top: 16px; display: flex; gap: 22px; flex-wrap: wrap; font-size: 12.5px; }
+  .hero .fields span { opacity: .92; }
+  .hero .fields i { display: inline-block; width: 92px; border-bottom: 1px solid rgba(246,240,229,.55); font-style: normal; }
+
+  h2 { font-size: 15px; letter-spacing: 1.5px; margin: 22px 0 12px; padding-left: 10px; border-left: 3px solid var(--accent-gold); }
+  h2:first-of-type { margin-top: 20px; }
+  h2 .n { display: inline-block; min-width: 19px; height: 19px; line-height: 19px; text-align: center; background: var(--text-brown); color: var(--bg-cream); border-radius: 50%; font-size: 11px; letter-spacing: 0; margin-right: 7px; vertical-align: 2px; }
+  .note { font-size: 12.5px; color: var(--text-brown-light); margin-top: 8px; }
+
+  .acts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .act { background: var(--bg-cream-light); border: 1px solid var(--border-brown); border-radius: 8px; padding: 13px 14px; }
+  .act .h { font-size: 13.5px; font-weight: bold; padding-bottom: 7px; margin-bottom: 8px; border-bottom: 1px solid var(--border-brown); }
+  .act .h span { font-family: var(--mono); font-size: 11px; color: var(--accent-gold-dark); font-weight: normal; }
+  .act ol { margin-left: 16px; font-size: 12.5px; line-height: 1.68; }
+  .act li { margin-bottom: 3px; }
+  .cmd { display: block; margin-top: 8px; font-family: var(--mono); font-size: 11px; color: var(--accent-gold-dark); background: rgba(201,168,118,.14); padding: 5px 8px; border-radius: 4px; line-height: 1.6; word-break: break-all; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { border: 1px solid var(--border-brown); padding: 6px 9px; text-align: left; vertical-align: top; }
+  th { background: var(--bg-cream-dark); font-weight: bold; letter-spacing: .5px; }
+  td.no { font-family: var(--mono); color: var(--accent-gold-dark); font-weight: bold; white-space: nowrap; width: 46px; text-align: center; }
+  td.num { font-family: var(--mono); color: var(--accent-gold-dark); }
+  td.exp { color: var(--text-brown); }
+  td.exp b { color: var(--ok); }
+  td.blank { background: var(--bg-blank); height: 26px; }
+  tr.hi td { background: var(--bg-hi); }
+
+  .warn { background: var(--warn-bg); border: 1px solid var(--warn-border); border-left: 3px solid var(--warn-accent); border-radius: 6px; padding: 11px 14px; font-size: 12.5px; margin-top: 10px; }
+  .warn .t { font-weight: bold; color: var(--warn-text); letter-spacing: .5px; }
+  .warn ul { margin: 6px 0 0 16px; }
+  .warn li { margin-bottom: 4px; }
+
+  .rules { list-style: none; }
+  .rules li { position: relative; padding-left: 20px; margin-bottom: 7px; font-size: 13px; }
+  .rules li::before { content: ""; position: absolute; left: 4px; top: 10px; width: 6px; height: 6px; border-radius: 50%; background: var(--severe); }
+  .rules li b { color: var(--severe); }
+
+  .lv { display: inline-block; font-family: var(--mono); font-size: 10.5px; padding: 0 5px; border-radius: 3px; color: #fff; vertical-align: 1px; }
+  .lv.a { background: var(--severe); }
+  .lv.b { background: var(--lv-b); }
+  .lv.c { background: var(--lv-c); }
+
+  .foot { margin-top: 22px; padding: 14px 30px; background: var(--bg-cream-dark); font-size: 12.5px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .foot b { font-family: var(--mono); color: var(--accent-gold-dark); }
+  .ver { font-size: 11.5px; color: var(--text-brown-light); text-align: center; padding: 12px 30px 0; }
+
+  @media print {
+    @page { size: A4; margin: 10mm; }
+    body { background: #fff; padding: 0; font-size: 11.5px; }
+    .sheet { max-width: none; box-shadow: none; }
+    .wrap { padding: 0 0 10px; }
+    .hero { padding: 16px 0 14px; }
+    h2 { margin: 14px 0 8px; }
+    .acts { gap: 8px; }
+    .act { padding: 9px 10px; }
+    .ver { padding: 8px 0 0; }
+    .foot { padding: 10px 0; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+  /* M5-8：`.dep` 徽标已随 #79 收口**停用**（保留样式定义，旧打印件上仍有它的痕迹）。
+     新徽标 `.dep--done` 表示「这一步现在真的会走通，但**有时间/顺序前提**」——
+     与 `.dep` 的「已知未完成」语义相反，不要混用。 */
+  .dep--done { display: inline-block; font-family: var(--mono); font-size: 10.5px; line-height: 1; padding: 3px 5px; margin-left: 6px; border-radius: 3px; background: rgba(91,124,58,.10); border: 1px solid rgba(91,124,58,.32); color: var(--ok); vertical-align: 1px; white-space: nowrap; }
+  /* 与 warn 同构但语义相反：用于「原先的说明已失效 / 这件事现在会真的发生」 */
+  .tip { background: rgba(91,124,58,.07); border: 1px solid rgba(91,124,58,.32); border-left: 3px solid var(--ok); border-radius: 6px; padding: 11px 14px; font-size: 12.5px; margin-top: 10px; }
+  .tip .t { font-weight: bold; color: var(--ok); letter-spacing: .5px; }
+  .tip ul { margin: 6px 0 0 16px; }
+  .tip li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="hero">
+    <div class="brand">ABox 一盒 · 内部测试</div>
+    <h1>内部测试操作清单</h1>
+    <div class="sub">工程把环境起好，测试人只管照着点 —— 每步都有「应该看到」，不符就记在最后那张表里</div>
+    <div class="fields">
+      <span>测试人：<i></i></span>
+      <span>日期：<i></i></span>
+      <span>我的身份：<i></i></span>
+      <span>设备：<i></i></span>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <h2><span class="n">一</span>开工前：谁做什么</h2>
+    <div class="acts">
+      <div class="act">
+        <div class="h">工程 <span>开工前 5 分钟</span></div>
+        <ol>
+          <li>在本机执行下面这条命令</li>
+          <li>等终端打出<b>二维码与地址</b></li>
+          <li>把二维码/地址与<b>身份分配</b>发给测试人（可整张转《人工测试入口卡》，见本节末）</li>
+        </ol>
+        <span class="cmd">cd abox-onebox<br>node scripts/local-test.mjs --seed --build</span>
+      </div>
+      <div class="act">
+        <div class="h">测试人 <span>拿到地址后</span></div>
+        <ol>
+          <li>手机连<b>与电脑同一个 WiFi</b></li>
+          <li>扫二维码，或手输终端给的地址</li>
+          <li>登录时填<b>分给自己的身份</b>（见第二节）</li>
+        </ol>
+        <span class="cmd">http://&lt;本机IP&gt;:5180/　用户端<br>http://&lt;本机IP&gt;:5173/　运营后台</span>
+      </div>
+      <div class="act">
+        <div class="h">共同 <span>开始前先对齐</span></div>
+        <ol>
+          <li>这是<b>内部环境</b>，链接不外发、不拉外部用户</li>
+          <li>支付走的是<b>模拟通道</b>，不产生真实资金</li>
+          <li>今天的目标是<b>攒问题</b>，不是「全部跑绿」</li>
+        </ol>
+        <span class="cmd">发现问题 = 本清单最有价值的产出</span>
+      </div>
+    </div>
+
+    <h2><span class="n">二</span>环境入口与身份</h2>
+    <table>
+      <tr>
+        <th style="width:22%">入口</th>
+        <th style="width:38%">地址</th>
+        <th>账号 / 身份</th>
+      </tr>
+      <tr class="hi">
+        <td>用户端 · 团长端</td>
+        <td class="num">http://&lt;本机IP&gt;:5180/</td>
+        <td>登录框填 <b>dev:1001</b> 这类标识，不需要真实微信</td>
+      </tr>
+      <tr>
+        <td>运营后台</td>
+        <td class="num">http://&lt;本机IP&gt;:5173/</td>
+        <td><b>admin / admin123</b>（超管）　finance / finance123　sanweiwu / supplier123</td>
+      </tr>
+      <tr>
+        <td>接口文档</td>
+        <td class="num">http://&lt;本机IP&gt;:3000/docs</td>
+        <td>给工程看；测试人一般不用</td>
+      </tr>
+      <tr>
+        <td>健康检查</td>
+        <td class="num">http://&lt;本机IP&gt;:3000/api/v1/health</td>
+        <td>页面打不开时先看这里</td>
+      </tr>
+    </table>
+
+    <!-- M5-9 收尾（2026-09-18）：新增《人工测试入口卡》生成器，此处登记交叉引用 -->
+    <div class="note">
+      ⭐ 上表四个入口的<b>二维码与可转发版本</b>，见工作区根目录的 <b>_ABox一盒人工测试入口卡v1.0.html</b>
+      —— 由 <b>node scripts/make-qr.mjs</b> 生成（同目录另有 4 张 PNG，便于直接转发到群里）。
+      本清单只写「入口是什么」，那张卡负责「地址是什么、二维码在哪」。
+      <br>⚠️ <b>换网络（换 WiFi / 重启路由器）后要重新生成一次</b> —— 卡上的地址与二维码是「生成那一刻」的快照，IP 变了就扫不开。
+      <br><br>⭐ <b>本轮（2026-09-19）实测地址</b>（入口卡已按此重新生成，四个二维码均已反解校验）：
+      <span class="num">http://192.168.0.102:5180/</span>（用户端 · 团长端）·
+      <span class="num">http://192.168.0.102:5173/</span>（运营后台 · 供应商后台）·
+      <span class="num">http://192.168.0.102:3000/docs</span>（接口文档）·
+      <span class="num">http://192.168.0.102:3000/api/v1/health</span>（健康检查）。
+      <b>以入口卡上的地址为准</b> —— 上面这四个只是「生成入口卡那一刻」的同一批地址。
+    </div>
+
+    <div class="warn">
+      <div class="t">身份要一人一个，别共用</div>
+      <ul>
+        <li>同一个身份<b>在同一天只能下一单</b>（这是设计，不是故障）。两人共用 <b>dev:1001</b>，第二个人一定会被拦，然后被写成 bug。</li>
+        <li>多人同时测：A 用 <b>dev:1001</b>（李明·首席 12%）· B 用 <b>dev:1002</b>（王芳·金牌 10%）· C 用 <b>dev:1003</b>（张磊·正式 9%）· D 用 <b>dev:1004</b>（赵静·正式 9%）· E 用 <b>dev:1005</b>（陈强·见习 8%）。</li>
+        <li>如果你被提示「已提交过该日出餐的订单」——<b>先确认是不是别人用了你的身份</b>，再决定要不要记。</li>
+      </ul>
+    </div>
+
+    <!-- 内部引用：M5-9 演示/边界数据集 —— 2026-09-18（起环境时 --seed 默认叠加） -->
+    <div class="tip">
+      <div class="t">✅ 库里已经预置了一批「模拟数据」—— 页面打开就有东西，不用你自己造</div>
+      <ul>
+        <li><b>一共 34 张订单</b>，覆盖<b>全部 11 种订单状态</b>（含「待支付」「已支付未截单」「已出餐」「配送中」「已送达」等中间态）；退款单有<b>待审批 / 已通过 / 已退款 / 已驳回</b>四种；提现单<b>五种状态齐全</b>；配送单有<b>「待推进 → 已叫车 → 已发车 → 已送达」</b>完整四态。后台的看板、订单、财务、配送各页<b>打开就有数据可判</b>。</li>
+        <li>⚠️ 这些模拟订单属于<b>另一批专用账号</b>（昵称以「演示·」开头），<b>不是你的身份</b> —— 你在用户端「我的订单」里看不到它们，那是正常的；后台各页能看到。</li>
+        <li>模拟数据分布在<b>过去 9 天一直到今天</b>。之所以补<b>「今天」</b>这一天的数据，是因为<b>佣金明细、打包任务、看板「今日」档、配送单</b>这几页<b>默认就看今天</b> —— 只补历史日期的话，打开是空表，容易被误记成缺陷。</li>
+        <li>⭐ 由此可得一条<b>预期行为</b>：<b>佣金页今天显示的是「待入账」而不是「已结算」</b>。因为佣金是「出餐当天记账、<b>次日 02:00 才入账</b>」——今天完成的单本来就还没入账。这是设计，<b>不是缺陷</b>。</li>
+        <li>⚠️ <b>对账页</b>（财务 → 对账）默认看<b>今天</b>，但它算的是<b>支付日</b>（不是出餐日），而模拟数据的支付日都在过去 → <b>默认是空的，这是预期的</b>。把日期改成<b>某个出餐日的前一天</b>（支付日 = 出餐日 − 1）就能看到数据。</li>
+        <li>⚠️ <b>供应商结算页</b>默认看<b>今天</b>，而采购款按口径<b>次日 02:00 才生成</b> → <b>今天为空是正常的</b>，往前看一天才有数。</li>
+        <li>❗ 模拟订单<b>全部落在今天及更早</b>，<b>没有占用「明日」</b> —— 所以你自己下单（U6）<b>不会被挡</b>。若被提示「已提交过该日出餐的订单」，先看上面那条「身份要一人一个」。</li>
+      </ul>
+    </div>
+
+        <!-- 内部引用：《缺陷与陷阱》#79 —— 2026-09-18（M5-8）已收口：T7/T8/T9 三个写入点补齐，门禁 state:audit 豁免归零 -->
+    <div class="tip">
+      <div class="t">✅ 先看这里：上一版说「出餐 → 送达还没接上」，<b>2026-09-18 起已经接上了</b></div>
+      <ul>
+        <li><b>订单现在会跟着履约走。</b>供应商确认出餐 → 订单变「已出餐」；后台把配送单推进到「已发车」→ 订单变「配送中」；再推进到「已送达」→ 订单变「已送达」，此后才会自动确认收货、<b>才会产生佣金</b>。上一版清单里那 5 个「⚠ 已知未完成」小标签<b>已全部撤掉</b>。</li>
+        <li>⚠️ 但要看到佣金（<b>U12 / U13 / A13 / A15</b>），必须<b>先把这条链走完</b>，而且链上有<b>顺序</b>：先<b>供应商端确认出餐</b>（供应商那份清单的步骤），再回后台<b>订单 → 配送</b>把配送单一步步推进到「已送达」。<b>跳着点不行</b> —— 页面上的「推进到 X」只会给下一步，接口也会拒掉跳级。</li>
+        <li>⏳ 还有<b>时间</b>前提：佣金先记成「待入账」，要等<b>出餐日次日 02:00 的入账跑批</b>才进余额（后台「财务 → 佣金」页有<b>补跑入账</b>按钮，可以让工程帮你补，不用真的等）。<b>当天就要求余额到账，不是缺陷</b>。</li>
+        <li>❗ 真正该记的错：<b>出餐确认之后订单仍停在「已截单」</b>、或<b>推送到「已送达」之后订单仍是「配送中」</b> —— 这两条正是这个批次要保证的，请按 <b>P1（结果不对）</b> 记，写明「履约推进后订单未跟上」。</li>
+        <li>其余步骤（下单 / 支付 / 取消 / 退款 / 后台各页 / 时刻表）与上一版一致，不受影响。</li>
+      </ul>
+    </div>
+
+    <!-- 内部引用：M5-11 / M5-12 / M5-13 已收口 —— 2026-09-19（本轮新增 5 步：U16 + A21~A24） -->
+    <div class="tip">
+      <div class="t">✅ 本轮（2026-09-19）四处变化 —— 都新增了「能点出来的」验证步骤</div>
+      <ul>
+        <li><b>① 团长邀请码现在真能绑定人。</b>上一版点「授权加入」只记在手机上、服务端不动。现在会真把新人<b>绑到你名下</b>（新人之后下的单，佣金归你）。本轮团长 <b>dev:1001</b> 的邀请码是 <b>LDR0001</b>，团长端「分享中心」页能看到。</li>
+        <li><b>② 后台多了一页「跑批时刻表」</b>（系统 → 跑批时刻表）：8 个定时任务各自的<b>出厂时刻 / 实际注册时刻 / 生效时刻 / 负责哪一天</b>都在一张表上，并能对单个任务<b>手动补跑</b>。它收掉一类以前没有出口的故障：<b>某个任务压根没注册上</b>（接口返回的注册时刻为空）—— 那种情况下该任务<b>永远不会跑，且不报任何错</b>。</li>
+        <li><b>③ 后台「通知模板」页现在菜单里点得到</b>（系统 → 通知模板）。上一版这页服务端已授权、路由也有，<b>唯独侧边栏没有它</b> —— 只能手输地址。</li>
+        <li><b>④ 三处「费率」现在同一个来源。</b>上一版把佣金费率配在后台，只有「自动晋级」一条路会读它，另外三处（团长等级表 / 提现费率下拉 / 建档与改等级写入）读的是代码里的常量 ⇒ 改了费率，页面纹丝不动而两边都不报错。现已统一。<b>A24 专门验它</b>。</li>
+        <li>❗ 另外修掉一处<b>「演示订单打不开」</b>：上一版按单号打开历史模拟订单会报「单号格式不合法」（列表刷得出来、详情打不开）。现在应能正常打开，见 <b>A23</b>。</li>
+      </ul>
+    </div>
+
+<h2><span class="n">三</span>用户端 / 团长端（手机，按顺序做完）</h2>
+    <table>
+      <tr>
+        <th style="width:46px">步骤</th>
+        <th style="width:26%">做什么</th>
+        <th>应该看到</th>
+        <th style="width:20%">不符时记什么</th>
+      </tr>
+      <tr>
+        <td class="no">U1</td>
+        <td>打开首页</td>
+        <td class="exp">「明日」套餐卡片：售价 <span class="num">¥25.80</span>、<b>一饭四菜</b>、截单倒计时</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">U2</td>
+        <td>点进套餐详情</td>
+        <td class="exp">四个菜名与图片齐全；有送达信息（次日 <b>11:30</b> 送达本楼）</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">U3</td>
+        <td>下单：选份数 → 提交</td>
+        <td class="exp">提交后进入支付环节，金额 = <span class="num">¥25.80</span> × 份数</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">U4</td>
+        <td>走完支付</td>
+        <td class="exp">模拟通道<b>约 1 秒自动成功</b>；订单状态变为<b>已支付</b></td>
+        <td class="blank"></td>
+      </tr>
+      <tr class="hi">
+        <td class="no">U5</td>
+        <td>我的 → 订单列表</td>
+        <td class="exp">能找到这一单，状态<b>已支付</b>，出餐日为明日</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">U6</td>
+        <td>打开订单详情</td>
+        <td class="exp">金额、份数、出餐日、下单时间都在，且与 U3 一致</td>
+        <td class="blank"></td>
+      </tr>
+      <tr class="hi">
+        <td class="no">U7</td>
+        <td>同一天<b>再下一单</b></td>
+        <td class="exp">应<b>被拦下</b>，提示已提交过该日出餐的订单 —— <b>拦住了才是对的</b></td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">U8</td>
+        <td>回到订单详情 → 取消订单</td>
+        <td class="exp">受理成功、状态变为已取消/已退款；金额与 U3 一致</td>
+        <td class="blank"></td>
+      </tr>
+      <tr class="hi">
+        <td class="no">U9</td>
+        <td>底部第 2 个 tab「<b>供应商</b>」<br><span class="note">（上一版叫「溯源」，已改名对齐原型；页面本身此前是占位页，现在才有内容）</span></td>
+        <td class="exp">能看到本餐<b>逐道菜的出品方</b>（一菜一行），每家带「已通过 食品经营许可证 · 营业执照 核验」+ <b>三个外卖平台入口</b>；点里面<b>亮着的</b>平台 → 弹出店铺信息、可复制。<br><b>两件预期内的事，别记成缺陷</b>：① <b>灰掉的平台 = 该供应商没入驻</b>（种子数据里「四季鲜蔬/老李家 缺京东」「京味小馆 缺淘宝」）—— 置灰是<b>故意的</b>，要让人看见「缺平台」；② 真机上<b>不能一键跳转是预期的</b>（外卖平台跳转白名单<b>尚未申请</b>），能复制就是通过。<br>另：<b>未开团的日子打开这一页是空白的</b>（显示一句说明、不弹错）—— 这也是预期的。</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">U10</td>
+        <td>切到团长 tab</td>
+        <td class="exp">有邀请入口、我的佣金、余额明细三个入口，都能打开</td>
+        <td class="blank"></td>
+      </tr>
+      <tr class="hi">
+        <td class="no">U11</td>
+        <td><b>把两个地方的余额对一遍</b><br><span class="note">（历史踩过的坑，重点看）</span></td>
+        <td class="exp">「我的」页显示的余额，与「余额明细」里的数字 <b>必须一致</b>（同一时刻不该出现两个数）</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">U12</td>
+        <td>我的佣金 <span class="dep--done">⏳ 需先走完履约链</span></td>
+        <td class="exp"><b>前提</b>：已按流程走完「出餐确认 → 配送推进到已送达」，且等过次日入账跑批（或让工程在「财务 → 佣金」页补跑）。<br>应该看到：有佣金记录（先「待入账」，补跑后进余额）；U8 取消的那单<b>不应</b>变成可提现的佣金</td>
+        <td class="blank"></td>
+      </tr>
+      <tr class="hi">
+        <td class="no">U13</td>
+        <td>申请提现 <span class="dep--done">⏳ 需先走完履约链</span></td>
+        <td class="exp"><b>前提</b>：余额里已有那笔佣金（见 U12）。<br>应该看到：提交成功，状态为<b>待审批</b>（下一步到后台的 A15 去审它）</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">U14</td>
+        <td>观察项：取消之后再下一单</td>
+        <td class="exp">能不能下？<b>两种结果都可能是对的</b> —— 照实记下，交给工程判</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">U15</td>
+        <td>随手翻一遍各页（我的 / 客服 / 设置）</td>
+        <td class="exp">没有白屏、没有「加载中」卡死、没有看不懂的报错弹窗</td>
+        <td class="blank"></td>
+      </tr>
+      <tr class="hi">
+        <td class="no">U16</td>
+        <td>团长端 → <b>分享中心</b>：看自己的邀请码；再用<b>另一台手机或电脑浏览器</b>打开邀请落地页<br><span class="note">（本轮新增 · 上一版这一步是假的）</span></td>
+        <td class="exp">分享中心里能看到<b>邀请码</b>与海报；本轮团长 <b>dev:1001</b> 的码应为 <b>LDR0001</b>。<br>
+          落地页<b>免登录</b>就能打开，显示团长姓名 / 所在办公楼 / 一句邀请语：<br>
+          <span class="num">http://&lt;本机IP&gt;:5180/#/pages/leader-invite/leader-invite?code=LDR0001</span></td>
+        <td class="blank"></td>
+      </tr>
+      <tr class="hi">
+        <td class="no">U17</td>
+        <td>「我的」→ <b>设置</b> → 依次点开<b>「用户协议」</b>与<b>「隐私政策」</b><br><span class="note">（本轮新增 · M5-18 起这两条才真的能点开）</span></td>
+        <td class="exp">打开的是<b>原生页</b>（不是跳网页）：显示标题 + <b>版本 1.0-draft · 更新于 2026-09-20</b> + 正文段落；底部有<b>「联系客服」</b>按钮，点了能进客服页。<b>免登录</b>就能读。<br>⚠️ 页面顶部那条<b>「草案」提示条</b>是<b>预期</b>的（法务定稿后自动消失）—— <b>不要报为缺陷</b>。</td>
+        <td class="blank"></td>
+      </tr>
+    </table>
+
+    <h2><span class="n">四</span>运营后台（电脑，admin 账号）</h2>
+    <table>
+      <tr>
+        <th style="width:46px">步骤</th>
+        <th style="width:26%">做什么</th>
+        <th>应该看到</th>
+        <th style="width:20%">不符时记什么</th>
+      </tr>
+      <tr>
+        <td class="no">A1</td>
+        <td>登录 admin / admin123</td>
+        <td class="exp">进入后台，左侧菜单完整，右上角有当前账号</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">A2</td>
+        <td>看板</td>
+        <td class="exp">核心指标有数（不是 0、也不是空白）；注意 GMV <b>含在途退款</b>、成本取<b>净额</b></td>
+        <td class="blank"></td>
+      </tr>
+      <tr class="hi">
+        <td class="no">A3</td>
+        <td><b>看板 与 财务概览 对一遍数</b></td>
+        <td class="exp">两处的收入/成本/毛利 <b>必须是同一组数字</b>（同一次计算的两次展示）</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">A4</td>
+        <td>菜品矩阵</td>
+        <td class="exp">能看到明日套餐与档位；套餐构成确为<b>一饭四菜</b></td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">A5</td>
+        <td>订单 → 列表</td>
+        <td class="exp">能看到测试人下的那一单；金额、状态与端上一致</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">A6</td>
+        <td>订单 → 详情</td>
+        <td class="exp">金额与端上完全一致（金额一律以「分」为单位显示，不应出现 100 倍误差）</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">A7</td>
+        <td>订单 → 配送：改份数 / 司机 / 车牌</td>
+        <td class="exp">能改，保存后刷新仍在；界面对「份数与订单数不符」有提示</td>
+        <td class="blank"></td>
+      </tr>
+      <tr class="hi">
+        <td class="no">A7b</td>
+        <td>订单 → 配送：把配送单<b>推进到「已发车」</b><br><span class="note">（前提：供应商已确认出餐，见供应商那份清单）</span></td>
+        <td class="exp">点「推进到 已发车」成功，并提示<b>「联动订单 N 单」</b>；<br>
+          该楼群订单状态从<b>已出餐</b>变成<b>配送中</b>；列表「订单进度」列同步变化</td>
+        <td class="blank"></td>
+      </tr>
+      <tr class="hi">
+        <td class="no">A7c</td>
+        <td>订单 → 配送：再<b>推进到「已送达」</b><br><span class="note">（必须按顺序，不能跳步）</span></td>
+        <td class="exp">点「推进到 已送达」成功，订单变成<b>已送达</b>；<br>
+          已送达之后才可能自动确认收货 → 才可能产生佣金（见 U12 / A13）</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">A7d</td>
+        <td>反向试一下：已送达后再点「推进」</td>
+        <td class="exp">按钮<b>置灰</b>（已是终态）；即便用接口硬推，也应被<b>拒绝</b>而不是静默成功</td>
+        <td class="blank"></td>
+      </tr>
+      <tr class="hi">
+        <td class="no">A8</td>
+        <td>开两个浏览器窗口，<b>同时</b>改同一张配送单</td>
+        <td class="exp">必须有一方被提示<b>「已被他人修改，请刷新」</b> —— 都显示「成功」才是问题</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">A9</td>
+        <td>团长 → 列表 / 详情</td>
+        <td class="exp">能看到等级与佣金费率（这是<b>当时的快照</b>，不随后续改等级而变）</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">A10</td>
+        <td>团长 → 申请审批</td>
+        <td class="exp">待审批列表可打开；审批后状态随之变化</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">A11</td>
+        <td>加工场所 → 打包任务</td>
+        <td class="exp">能打开列表、看到到货明细（这个页<b>只在后台</b>，供应商端没有）</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">A12</td>
+        <td>财务 → 概览</td>
+        <td class="exp">有数，且与 A3 的看板一致；余额/冻结这类<b>当下存量</b>不随日期筛选变化</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">A13</td>
+        <td>财务 → 佣金 <span class="dep--done">⏳ 需先走完履约链</span></td>
+        <td class="exp">能看到刚那单对应的佣金记录。状态为<b>待入账</b>（还没进余额，需次日 02:00 跑批或点<b>补跑入账</b>）——「记录在、钱还没到」才是对的</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">A14</td>
+        <td>财务 → 余额</td>
+        <td class="exp">余额/冻结有数；可操作动作里包含<b>解冻</b>一项</td>
+        <td class="blank"></td>
+      </tr>
+      <tr class="hi">
+        <td class="no">A15</td>
+        <td>财务 → 提现审批：审 U13 那笔 <span class="dep--done">⏳ 需先走完履约链</span></td>
+        <td class="exp"><b>前提</b>：U13 已提交过提现申请（需要余额里先有佣金）。<br>应该看到：能看到待审记录；通过/驳回/已打款/失败四个动作都在，点完状态随之变化</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">A16</td>
+        <td>财务 → 对账</td>
+        <td class="exp">页面明确标注<b>「尚未与微信账务对平」</b> —— 这是<b>如实标注</b>，不是缺陷</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">A17</td>
+        <td>财务 → 发票</td>
+        <td class="exp">按 <b>供应商 × 月份</b> 展示，且区分「未开 / 部分 / 已开」三种状态</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">A18</td>
+        <td>统计</td>
+        <td class="exp">楼栋排行 / 菜品热度 / 留存都有内容；留存那几个数字<b>要么成对出现、要么同时为空</b></td>
+        <td class="blank"></td>
+      </tr>
+      <tr class="hi">
+        <td class="no">A19</td>
+        <td>系统 → 配置：把<b>截单时刻</b>改一个值 → 再看「跑批时刻表」→ <b>改回原值</b><br><span class="note">（时刻类配置 · 与 A24 的费率类是两回事）</span></td>
+        <td class="exp">时刻表里该任务的执行时刻<b>应当跟着变</b>（这验证「改了配置真的生效」，不是只存不进）</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">A20</td>
+        <td>系统 → 操作日志</td>
+        <td class="exp">能看到刚才 A7 / A15 / A19 / A24 这些改动都被记下来了（谁、什么时候、改了什么）</td>
+        <td class="blank"></td>
+      </tr>
+      <tr class="hi">
+        <td class="no">A21</td>
+        <td>系统 → <b>跑批时刻表</b><br><span class="note">（本轮新增的页面，上一版只能手输地址）</span></td>
+        <td class="exp">一张表列出 <b>8 个定时任务</b>，每行有「出厂时刻 / 实际注册时刻 / 生效时刻 / 负责哪一天 / 是否实装」。<br>
+          顶部概览应为 <b>8/8 已实装、8/8 已注册</b>。<br>
+          ⚠️ <b>重点看这一条</b>：如果某行的「实际注册时刻」<b>是空的</b> —— 那个任务<b>永远不会跑，而且不报任何错</b>，请立刻记 P1 并抄下任务名。</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">A22</td>
+        <td>系统 → <b>通知模板</b><br><span class="note">（上一版侧边栏里没有这一项）</span></td>
+        <td class="exp"><b>从左侧菜单能直接点开</b>（不需要手输地址）；页内有 5 类场景的通知文案可看</td>
+        <td class="blank"></td>
+      </tr>
+      <tr>
+        <td class="no">A23</td>
+        <td>订单 → 列表：随手点开一张<b>昵称以「演示·」开头</b>的历史订单详情<br><span class="note">（上一版会报错）</span></td>
+        <td class="exp">详情页<b>能正常打开</b>（上一版会弹「单号格式不合法」，但列表却刷得出来 —— 那种「列表能看、详情打不开」最容易被当成网络问题）</td>
+        <td class="blank"></td>
+      </tr>
+      <tr class="hi">
+        <td class="no">A24</td>
+        <td>系统 → 配置：把<b>「金牌团长费率」从 10 改成 11</b> → 看三处 → <b>改回 10</b><br><span class="note">（本轮新增 · 这一条验的是「费率只有一个来源」）</span></td>
+        <td class="exp">三处<b>必须同时</b>变成 11%：<br>
+          ① 后台「团长 → 列表」的<b>等级费率下拉</b>显示 <b>金牌 11%</b>；<br>
+          ② 手机端团长「佣金中心」的等级体系表里，金牌一行为 <b>11%</b>；<br>
+          ③ 此后<b>新建档 / 后台改等级</b>写进去的费率是 <b>0.1100</b>（0.11）。<br>
+          ⚠️ 另外一条是<b>设计、不是缺陷</b>：<b>已有团长</b>的费率快照<b>不会</b>被追溯改写（同「涨价不追改历史订单」）。<br>
+          ❗ 若只有其中一处变、其余仍是 10% —— 请记 <b>P1</b>，写明<b>哪一处没变</b>。</td>
+        <td class="blank"></td>
+      </tr>
+    </table>
+
+    <h2><span class="n">五</span>故意做错的三件事（最能试出问题）</h2>
+    <table>
+      <tr>
+        <th style="width:46px">编号</th>
+        <th style="width:32%">故意怎么做</th>
+        <th>必须出现的结果</th>
+        <th style="width:16%">谁做</th>
+      </tr>
+      <tr>
+        <td class="no">N1</td>
+        <td>一天之内，同一个身份<b>下两次单</b></td>
+        <td>第二次必须被拦，并说清「哪个出餐日已经下过」；<b>放过去才是 bug</b></td>
+        <td>用户端测试人</td>
+      </tr>
+      <tr>
+        <td class="no">N2</td>
+        <td>两个窗口<b>同时改同一张配送单</b></td>
+        <td>后提交的那次必须提示冲突并要求刷新；<b>静默覆盖掉别人的填写才是 bug</b></td>
+        <td>后台测试人</td>
+      </tr>
+      <tr>
+        <td class="no">N3</td>
+        <td>提现时填一个<b>大于可用余额</b>的金额</td>
+        <td>应被拒绝并说明原因（余额不足 / 冻结额不足），不应「提交成功」后没有下文</td>
+        <td>用户端测试人</td>
+      </tr>
+    </table>
+    <p class="note">
+      另外两条更有杀伤力的越权用例（换低权限账号去访问资金接口、服务端数据收窄）由<b>工程用接口直接验</b>，
+      不在本清单内 —— 让业务测试人手工点，反而测不准。
+    </p>
+
+    <h2><span class="n">六</span>问题记录表（照着填，一条一行）</h2>
+    <table>
+      <tr>
+        <th style="width:40px">#</th>
+        <th style="width:58px">步骤</th>
+        <th style="width:27%">他实际显示了什么</th>
+        <th style="width:27%">你认为应该是什么</th>
+        <th style="width:56px">严重度</th>
+        <th>截图文件名</th>
+      </tr>
+      <tr><td class="no">1</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td class="no">2</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td class="no">3</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td class="no">4</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td class="no">5</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td class="no">6</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td class="no">7</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td class="no">8</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td class="no">9</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td class="no">10</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    </table>
+    <p class="note">
+      严重度只分三档，别纠结：<br>
+      <span class="lv a">P0</span> <b>卡死</b> —— 这一步过不去，后面的步骤全做不了（例：首页打不开、登录不进去）。<br>
+      <span class="lv b">P1</span> <b>结果不对</b> —— 能继续，但结果与预期不符（例：金额算错、状态不对、该拦的没拦）。<br>
+      <span class="lv c">P2</span> <b>不好用</b> —— 功能对，但字太小/位置难找/提示看不懂。<br>
+      拿不准就写 P1，不要空着。
+    </p>
+
+    <h2><span class="n">七</span>收工与复原</h2>
+    <table>
+      <tr>
+        <th style="width:26%">什么时候</th>
+        <th>怎么做</th>
+      </tr>
+      <tr>
+        <td>测完关环境</td>
+        <td>在工程的终端窗口按 <b>Ctrl+C</b>（本次起的服务会一并停掉，不留后台进程）</td>
+      </tr>
+      <tr>
+        <td>下次想要一套干净数据</td>
+        <td>重起时加 <b>--seed</b>：<span class="num">node scripts/local-test.mjs --seed</span>（约 10 秒）</td>
+      </tr>
+      <tr>
+        <td>页面打不开 / 白屏</td>
+        <td>先让工程看 <span class="num">http://&lt;本机IP&gt;:3000/api/v1/health</span>。<b>先排除环境问题，再记为缺陷</b></td>
+      </tr>
+      <tr>
+        <td>手机连不上</td>
+        <td>九成是 Windows 防火墙拦了 node.exe —— 控制面板 → Windows Defender 防火墙 → 允许应用通过防火墙 → 勾上 node.exe</td>
+      </tr>
+      <tr class="hi">
+        <td>改过配置一定要改回</td>
+        <td>A19 改过的<b>截单时刻</b>、A24 改过的<b>金牌费率</b>，测完请务必改成原值（截单 <b>24:00</b> · 金牌 <b>10</b>）。<br>
+          ⚠️ 费率不还原最隐蔽：后面所有人看到的佣金金额都会按 11% 算，而<b>页面上看不出是谁改的</b>，只能去操作日志里翻。</td>
+      </tr>
+      <tr>
+        <td>把结果交回</td>
+        <td>把第六节那张表（含截图）发给工程。<b>「没发现问题」也要交</b> —— 那说明这一轮是绿灯，同样是有用的结论</td>
+      </tr>
+    </table>
+
+    <h2><span class="n">八</span>四条须知（记住就不会误报）</h2>
+    <ul class="rules">
+      <li><b>支付是「自动成功」的模拟通道。</b> 看到「已支付」不等于钱到了 —— 别拿它当财务依据，也别惊讶它为什么不用输密码。</li>
+      <li><b>系统内部的时间被拨快过。</b> 为了让「任何时间都能下单」，环境把北京小时平移到了 20:00。所以<b>不要拿这个环境验真实时间行为</b>（要按真实时间跑，让工程加 <span class="num">--clock=off</span> 重起）。</li>
+      <li><b>数据随手改没关系，但别当权威。</b> 这个环境里的数据是试验场；权威永远是种子脚本与正式库。测完想还原，加 <span class="num">--seed</span> 重起即可。</li>
+      <li><b>「账号注销」入口目前还没做，找不到是对的。</b> 它属<b>提审前置项</b>（尚未排期），不在「我的 / 设置 / 客服」任何一处 —— <b>不要报为普通缺陷</b>；它已在《悬而未决登记册》里单列一条。</li>
+    </ul>
+
+  </div>
+
+  <div class="foot">
+    <span>环境由工程起，问题由测试人攒 —— <b>不要为了「跑通」而绕过一步</b></span>
+    <span>ABox 一盒 · 北京巡礼之年科技有限公司</span>
+  </div>
+  <div class="ver">内部测试操作清单 <b>v1.3</b> · 就地修订 2026-09-22（文件名保持 v1.0）—— 本轮并入 <b>M5-18</b>：新增 <b>U17</b>（协议阅读页 —— 入口 = 我的 → 设置 → 用户协议 / 隐私政策；<b>原生页</b>、<b>免登录可读</b>、底部跳客服；页顶「草案」提示条属<b>预期</b>）；第八节 <b>三条 → 四条</b>（新增「账号注销入口未实装，勿报为普通缺陷」）；<b>步骤数 46 → 47</b>。· 上一版 v1.2 · 就地修订 2026-09-19（文件名保持 v1.0）—— 本轮并入 <b>M5-14</b>：底部第 2 个 tab「溯源」<b>改名「供应商」</b>，且该页此前是<b>占位页、现在才有内容</b> ⇒ <b>U9 整条重写</b>（逐道菜出品方 + 三平台入口 + 两件预期内的事：<b>灰掉=未入驻是对的</b>、<b>真机不能一键跳转也是对的</b>、未开团日打开是空白不弹错）；<b>步骤数不变（46）</b>。· 上一版 v1.1 就地修订 2026-09-19 —— 并入三处收口：① 新增 <b>U16</b>（团长邀请码<b>真绑定</b> + 免登录落地页）；② 新增 <b>A21</b>（系统 → 跑批时刻表：8 个任务是否都<b>注册上</b>）· <b>A22</b>（系统 → 通知模板：菜单可达）· <b>A23</b>（演示订单详情能打开）· <b>A24</b>（改金牌费率，看<b>三处是否同步变</b>）；③ A19 收窄为「时刻类配置」、A20 补记 A24、第七节新增「改过配置一定要改回」；④ <b>步骤数 41 → 46</b>；⑤ 四个入口按 2026-09-19 重新实测，并重新生成《人工测试入口卡》（四张二维码均已<b>反解校验</b>）。· 修订单 2026-09-18（履约链 #79 已收口：撤销 5 处「已知未完成」、新增 A7b/A7c/A7d；步骤数 38 → 41）· 补注 2026-09-18（M5-9：库里已预置 34 张模拟订单，覆盖订单 11 态 / 退款四态 / 提现五态 / 配送四态；对账页与供应商结算页「默认空」属预期，见开头提示块）· 补注 2026-09-18（M5-9 收尾：新增《人工测试入口卡》—— 四个入口的二维码 + 可转发 PNG 由 <b>node scripts/make-qr.mjs</b> 生成，见第二节末；⚠️ 换网络后需重新生成，卡上的 IP 是快照）· 配套《本地开发手册》§9.3 · 只用于内网，请勿外发链接</div>
+
+</div>
+</body>
+</html>

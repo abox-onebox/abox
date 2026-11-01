@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 上线分工与执行看板 v1.0</title>
+<style>
+  :root{
+    --bg:#F6F0E5;          /* 品牌米色 */
+    --card:#FFFFFF;
+    --ink:#2E2924;         /* 正文深色 */
+    --ink-2:#796C57;       /* 次文字（达标档） */
+    --brown:#6E5435;       /* 主色 暖棕 6.21:1 */
+    --brown-soft:#E8DDC9;
+    --line:#DCD2C0;
+    --mine:#3F6B4A;        /* 我做 · 绿 */
+    --mine-bg:#EAF1EA;
+    --yours:#8A4B2A;       /* 你做 · 暖棕红 */
+    --yours-bg:#F7EBE2;
+    --warn:#8A6A12;
+    --warn-bg:#FBF3DD;
+    --ok:#3F6B4A;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+    font-size:15px; line-height:1.75; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:48px 28px 96px}
+  .kai{font-family:KaiTi,"STKaiti",simkai,"楷体",serif}
+
+  /* ---------- 页头 ---------- */
+  header{border-bottom:2px solid var(--brown);padding-bottom:22px;margin-bottom:34px}
+  h1{font-family:KaiTi,"STKaiti",simkai,"楷体",serif;font-size:30px;font-weight:700;margin:0 0 6px;letter-spacing:.06em;color:var(--brown)}
+  .sub{color:var(--ink-2);font-size:13.5px;letter-spacing:.02em}
+  .ver{display:inline-block;margin-left:10px;padding:1px 9px;border:1px solid var(--brown-soft);border-radius:99px;font-size:12px;color:var(--brown);background:#FFF}
+
+  /* ---------- 分界线 ---------- */
+  .divider{
+    background:#FFF; border:1px solid var(--line); border-left:5px solid var(--brown);
+    border-radius:3px; padding:20px 24px; margin:0 0 34px;
+  }
+  .divider .t{font-size:12px;letter-spacing:.18em;color:var(--ink-2);margin-bottom:8px}
+  .divider .l1{font-family:KaiTi,"STKaiti",simkai,"楷体",serif;font-size:21px;color:var(--brown);font-weight:700;margin:0 0 4px}
+  .divider .l2{font-family:KaiTi,"STKaiti",simkai,"楷体",serif;font-size:21px;color:var(--mine);font-weight:700;margin:0}
+
+  /* ---------- 区块 ---------- */
+  section{margin:0 0 42px}
+  h2{
+    font-family:KaiTi,"STKaiti",simkai,"楷体",serif;
+    font-size:20px;font-weight:700;color:var(--brown);
+    margin:0 0 16px; padding-left:12px; border-left:4px solid var(--brown);
+    letter-spacing:.04em;
+  }
+  h3{font-size:14.5px;font-weight:700;color:var(--ink);margin:24px 0 10px}
+  p{margin:0 0 12px}
+  .note{color:var(--ink-2);font-size:13.5px}
+
+  /* ---------- 表格 ---------- */
+  table{width:100%;border-collapse:separate;border-spacing:0;background:#FFF;border:1px solid var(--line);border-radius:3px;overflow:hidden;font-size:14px}
+  th{background:var(--brown);color:#F6F0E5;text-align:left;padding:10px 13px;font-weight:600;font-size:13px;letter-spacing:.04em;white-space:nowrap}
+  td{padding:10px 13px;border-top:1px solid #EDE5D6;vertical-align:top}
+  tbody tr:nth-child(even) td{background:#FDFBF7}
+  td.n{width:42px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+  td.who{white-space:nowrap;font-weight:700;font-size:13px}
+  .w-you{color:var(--yours)}
+  .w-me{color:var(--mine)}
+  .w-both{color:var(--warn)}
+
+  /* ---------- 徽标 ---------- */
+  .tag{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11.5px;font-weight:700;letter-spacing:.03em;white-space:nowrap}
+  .t-you{background:var(--yours-bg);color:var(--yours);border:1px solid #E4C9B6}
+  .t-me{background:var(--mine-bg);color:var(--mine);border:1px solid #C3D6C5}
+  .t-both{background:var(--warn-bg);color:var(--warn);border:1px solid #E8D8A8}
+  .t-ok{background:#EAF1EA;color:var(--ok);border:1px solid #C3D6C5}
+  .t-risk{background:#F7EBE2;color:var(--yours);border:1px solid #E4C9B6}
+
+  /* ---------- 可打勾行 ---------- */
+  .chk{width:26px;text-align:center}
+  .chk input{width:16px;height:16px;accent-color:var(--brown);cursor:pointer;margin:0;vertical-align:-2px}
+  tr.done td{opacity:.5}
+  tr.done td .txt{text-decoration:line-through;text-decoration-color:var(--ink-2)}
+
+  /* ---------- 卡片 ---------- */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .box{background:#FFF;border:1px solid var(--line);border-radius:3px;padding:16px 18px}
+  .box .bt{font-weight:700;font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .box ul{margin:0;padding-left:19px}
+  .box li{margin:5px 0}
+  .box.can{border-top:3px solid var(--mine)}
+  .box.cant{border-top:3px solid var(--yours)}
+  .box.can .bt{color:var(--mine)}
+  .box.cant .bt{color:var(--yours)}
+
+  /* ---------- 提示块 ---------- */
+  .callout{border:1px solid var(--line);border-left:4px solid var(--warn);background:var(--warn-bg);border-radius:3px;padding:15px 19px;margin:16px 0}
+  .callout.danger{border-left-color:var(--yours);background:var(--yours-bg)}
+  .callout.ok{border-left-color:var(--ok);background:var(--mine-bg)}
+  .callout .ct{font-weight:700;margin-bottom:6px;font-size:14px}
+  .callout p:last-child{margin-bottom:0}
+  code{font-family:Consolas,"Courier New",monospace;background:#F1E9DA;border:1px solid #E3D8C4;border-radius:2px;padding:1px 5px;font-size:12.5px;color:#5A4526}
+  .mono{font-family:Consolas,"Courier New",monospace;font-size:12.5px}
+
+  /* ---------- 三模式 ---------- */
+  .modes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:760px){.modes{grid-template-columns:1fr}}
+  .mode{background:#FFF;border:1px solid var(--line);border-radius:3px;padding:16px 17px;position:relative}
+  .mode.pick{border:2px solid var(--brown);background:#FFFDF8}
+  .mode .mt{font-family:KaiTi,"STKaiti",simkai,"楷体",serif;font-size:17px;font-weight:700;color:var(--brown);margin-bottom:4px}
+  .mode .md{font-size:12.5px;color:var(--ink-2);margin-bottom:10px}
+  .mode dl{margin:0;font-size:13px}
+  .mode dt{font-weight:700;font-size:12px;color:var(--ink-2);margin-top:8px;letter-spacing:.04em}
+  .mode dd{margin:2px 0 0}
+  .rec{position:absolute;top:-9px;right:12px;background:var(--brown);color:#F6F0E5;font-size:11px;padding:1px 8px;border-radius:99px;letter-spacing:.05em}
+
+  footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);color:var(--ink-2);font-size:12.5px}
+  .prog{position:sticky;top:0;z-index:9;background:rgba(246,240,229,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:9px 0;margin:0 0 26px;font-size:13px;color:var(--ink-2)}
+  .prog b{color:var(--brown);font-variant-numeric:tabular-nums}
+  .bar{display:inline-block;width:130px;height:7px;background:#E3D8C4;border-radius:99px;vertical-align:1px;margin:0 9px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:var(--brown);transition:width .25s}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>上线分工与执行看板<span class="ver">v1.0</span></h1>
+  <div class="sub">ABox 一盒 · 腾讯云首次部署 + 小程序提审 &nbsp;|&nbsp; 2026-09-24 &nbsp;|&nbsp; 配套《腾讯云开通与首次部署执行手册 v1.0》</div>
+</header>
+
+<div class="prog" id="prog">
+  执行进度 <b><span id="pv">0</span> / <span id="pt">0</span></b>
+  <span class="bar"><i id="pbar"></i></span>
+  （勾选自动保存到本机浏览器）
+</div>
+
+<!-- ========== 分界线 ========== -->
+<div class="divider">
+  <div class="t">一 条 分 界 线</div>
+  <p class="l1">要「证明你是你」「花你的钱」「动你的账号」的 —— 只能你做。</p>
+  <p class="l2">能写成文件、能在命令行里跑完的 —— 我来做。</p>
+</div>
+
+<!-- ========== 为什么 ========== -->
+<section>
+  <h2>一、三类「只能你做」的动作</h2>
+  <p class="note">不是我不想代劳，是这三类在流程上就绑死了你的身份，任何代理都无法绕过。</p>
+  <table>
+    <thead><tr><th style="width:110px">类型</th><th>典型动作</th><th style="width:280px">为什么只能你</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="who w-you">身份核验</td>
+        <td>腾讯云企业实名、法人扫脸、备案核验短信（12381）、小程序主体认证</td>
+        <td>要法人本人身份信息，验证码只发到你手机上</td>
+      </tr>
+      <tr>
+        <td class="who w-you">花钱</td>
+        <td>买服务器 / 域名 / 证书、微信支付商户号、对公打款验证</td>
+        <td>要你的支付凭证与对公账户</td>
+      </tr>
+      <tr>
+        <td class="who w-you">账号操控</td>
+        <td>腾讯云控制台点击、微信公众平台提审、类目申请</td>
+        <td>每次登录都要你手机扫码，账号不能代持</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    <div class="ct">附带一条法律责任</div>
+    <p>备案与主体认证材料的真实性由法人负责。所以这些材料我可以替你<b>起草、逐字段写好该怎么填</b>，但<b>最后一键提交必须你按</b>，且提交前你要过一遍内容。</p>
+  </div>
+</section>
+
+<!-- ========== 阶段 A ========== -->
+<section>
+  <h2>二、阶段 A · 云资源开通（以你做为主）</h2>
+  <p class="note">目标：机器买好、域名备案路径定下来、防火墙开对。今天 1–2 小时可做完。</p>
+  <table>
+    <thead><tr><th class="chk"></th><th class="n">#</th><th>动作</th><th style="width:96px">谁做</th><th>我的交付物</th></tr></thead>
+    <tbody>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">A1</td><td><span class="txt">定用哪个腾讯云账号（新账号 / 老账号）</span></td><td class="who w-you">你 · 决策</td><td>决策依据：新账号省约 ¥1,000+ 但需先企业实名（1–2 天）</td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">A2</td><td><span class="txt">腾讯云企业实名认证</span></td><td class="who w-you">你</td><td>材料清单 + 注意事项</td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">A3</td><td><span class="txt">买轻量应用服务器：4C8G · 境内 · 包年包月 ≥3 月 · Ubuntu 22.04 纯系统镜像</span></td><td class="who w-you">你</td><td>选购清单（已给，含"不买什么"与理由）</td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">A4</td><td><span class="txt">查域名原备案接入商与当前状态</span></td><td class="who w-you">你</td><td>查询路径指引（R4 真空项，唯一不可加急的一段）</td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">A5</td><td><span class="txt">接入备案 / 新备案 提交</span></td><td class="who w-you">你</td><td>材料草稿 + 逐字段填写指引（1–20 工作日）</td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">A6</td><td><span class="txt">安全组 / 防火墙只开 22 · 80 · 443</span></td><td class="who w-you">你 · 控制台</td><td>端口规则表（含"为什么不开 8080"）</td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">A7</td><td><span class="txt">DNS 加 A 记录，解析到服务器公网 IP</span></td><td class="who w-you">你 · 控制台</td><td>记录值清单（主机记录 / 记录类型 / 值）</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== 阶段 B ========== -->
+<section>
+  <h2>三、阶段 B · 服务器部署（以我为主 · 前提是给我 SSH）</h2>
+  <div class="callout ok">
+    <div class="ct">本机实测结论（这是分工能往我这边挪的原因）</div>
+    <p>这台电脑已装 <code>OpenSSH 10.3p1</code> + <code>scp</code> + <code>git 2.55.0</code>。<br>
+    意思是：<b>你把服务器 SSH 免密配好（一次，5 分钟），后面这些步骤我可以直接登上去跑，不需要你粘贴任何命令。</b><br>
+    本机未装 Docker —— 不影响，镜像本来就在服务器上构建。</p>
+  </div>
+  <table>
+    <thead><tr><th class="chk"></th><th class="n">#</th><th>动作</th><th style="width:110px">谁做</th><th>我的交付物 / 用哪个脚本</th></tr></thead>
+    <tbody>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">B1</td><td><span class="txt">服务器初始化：装 Docker、固定时区 Asia/Shanghai、开防火墙</span></td><td class="who w-me">我 · ssh</td><td>初始化脚本（幂等，可重复跑）</td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">B2</td><td><span class="txt">把代码送到服务器（git clone 或 scp）</span></td><td class="who w-me">我</td><td>取决于仓库是否可拉取</td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">B3</td><td><span class="txt">生成 <code>.env.prod</code></span></td><td class="who w-both">我 + 你</td><td><b>我</b>生成模板与校验脚本；<b>你</b>只填真实密钥（密钥只有你有）</td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">B4</td><td><span class="txt">宿主机 nginx + certbot 免费 DV 证书</span></td><td class="who w-me">我 · ssh</td><td>nginx 配置我写好（<b>只能走这条路，见下方 R10</b>）</td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">B5</td><td><span class="txt">构建镜像 + 起容器（首次部署）</span></td><td class="who w-me">我</td><td><code>scripts/deploy.sh</code>（已有）</td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">B6</td><td><span class="txt">核对两支迁移都已应用</span></td><td class="who w-me">我</td><td>判据见下方「B7 陷阱」</td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">B7</td><td><span class="txt">健康探针 3/3</span></td><td class="who w-me">我</td><td><code>scripts/healthcheck.sh</code></td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">B8</td><td><span class="txt">备份一次 + 回滚演练一次</span></td><td class="who w-me">我</td><td><code>backup-db.sh</code> / <code>restore-db.sh</code> / <code>rollback.sh</code></td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">B9</td><td><span class="txt">注册定时任务（结算 · 备份 · 巡检）</span></td><td class="who w-me">我</td><td><code>install-cron.sh</code> 先 <code>--dry-run</code>，再真注册</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout danger">
+    <div class="ct">B7 陷阱 —— 这一步不能只看「那一步绿了」</div>
+    <p>项目的迁移配置只匹配 <code>*.ts</code>，而编译产物在 <code>dist/</code> 下是 <code>*.js</code> —— <b>零命中</b>。而 TypeORM 找不到迁移<b>不报错、正常退出 0</b>，部署流水线会显示 ✅，实际上<b>所有建表语句从未执行</b>。</p>
+    <p>唯一有效判据：<code>migration:show</code> 必须同时列出 <code>Init1700000000000</code> <b>和</b> <code>ParityFix1700000000001</code>，两支都是 <code>[X]</code>。少一支就等于没迁移。</p>
+  </div>
+
+  <div class="callout">
+    <div class="ct">为什么 HTTPS 只有「宿主机 nginx」一条路</div>
+    <p>项目有硬约束 <b>R10：一期只允许一个 API 实例</b>（时间线是进程级单例）。云负载均衡 CLB 会引入未验证的第二实例形态 —— 症状是「同一分钟下单，一台过、一台不过，两边都不报错」，极难排查。所以不买 CLB，证书装在宿主机 nginx 上。</p>
+  </div>
+</section>
+
+<!-- ========== 阶段 C ========== -->
+<section>
+  <h2>四、阶段 C · 资质与提审（只能你做 · 长周期并行）</h2>
+  <p class="note">这一段没有任何技术捷径，全是行政流程。但它是<b>真正决定上线日期</b>的一段 —— 服务器一天能搭完，资质要按月算。</p>
+  <table>
+    <thead><tr><th class="chk"></th><th class="n">#</th><th>动作</th><th style="width:96px">谁做</th><th>周期 / 卡点</th></tr></thead>
+    <tbody>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">C0</td><td><span class="txt">解除公司经营异常 + 处理税务非正常户</span></td><td class="who w-you">你</td><td><span class="tag t-risk">硬前置</span> 不解决则 C1–C4 全部卡住</td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">C1</td><td><span class="txt">小程序主体认证（企业）</span></td><td class="who w-you">你</td><td>依赖 C0</td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">C2</td><td><span class="txt">小程序备案</span></td><td class="who w-you">你</td><td>1–20 工作日 · <b>有每日提交配额</b>，别卡最后一天</td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">C3</td><td><span class="txt">类目申请（餐饮 / 食品经营许可）</span></td><td class="who w-you">你</td><td>依赖 C0 · 需食品经营许可证</td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">C4</td><td><span class="txt">微信支付商户号</span></td><td class="who w-you">你</td><td>依赖 C1</td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">C5</td><td><span class="txt">配置服务器域名（request 合法域名等）</span></td><td class="who w-you">你 · 控制台</td><td>我给域名与路径清单</td></tr>
+      <tr><td class="chk"><input type="checkbox"></td><td class="n">C6</td><td><span class="txt">上传体验版 → 提审</span></td><td class="who w-you">你</td><td>我出提审自检清单（已有 v1.2）</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========== 需要你给的 ========== -->
+<section>
+  <h2>五、要开工，我需要你给三样东西</h2>
+  <p class="note">只这三样。给了之后阶段 B 我可以全包，不用你再插手。</p>
+  <table>
+    <thead><tr><th class="n">#</th><th>我需要什么</th><th style="width:120px">怎么给</th><th>不给我会怎样</th></tr></thead>
+    <tbody>
+      <tr><td class="n">1</td><td><b>服务器 SSH 访问权</b>（公网 IP + <code>root</code> 或 sudo 用户的免密登录）</td><td>你把公钥加到服务器</td><td>退化成「我出清单、你粘贴命令」的半自助模式</td></tr>
+      <tr><td class="n">2</td><td><b>服务器公网 IP + 已解析的域名</b></td><td>直接告诉我</td><td>装不了证书、配不了 nginx</td></tr>
+      <tr><td class="n">3</td><td><b><code>.env.prod</code> 里的真实密钥</b>（数据库密码、JWT 密钥等）</td><td>你自己填进我给的模板</td><td>我可以生成随机强密钥，但<b>要把它们抄进你的密码管理器</b>，否则丢了要重来</td></tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    <div class="ct">关于第 3 条的两个安全口径</div>
+    <p>① <b>推荐你自己填</b>：你不必把生产密钥贴进对话。<br>
+    ② 如果让我生成：我用 <code>openssl rand</code> 在服务器本地生成、直接写进 <code>.env.prod</code>（权限 <code>600</code>），密钥内容<b>不经过对话</b>，只在最后告诉你存放位置。这比手打更安全 —— 手打容易造出弱密码，也容易在聊天记录里留痕。</p>
+  </div>
+</section>
+
+<!-- ========== 三种模式 ========== -->
+<section>
+  <h2>六、三种协作模式（请挑一个）</h2>
+  <div class="modes">
+    <div class="mode pick">
+      <span class="rec">推荐</span>
+      <div class="mt">① 全托</div>
+      <div class="md">你只管身份、付款、提审</div>
+      <dl>
+        <dt>你</dt><dd>买东西 · 填密钥 · 点提审 · 按提交</dd>
+        <dt>我</dt><dd>B1–B9 全部我 ssh 跑；故障我自己修自己重试</dd>
+        <dt>适合</dt><dd>想省事、要结果</dd>
+      </dl>
+    </div>
+    <div class="mode">
+      <div class="mt">② 半托</div>
+      <div class="md">关键动作你自己按</div>
+      <dl>
+        <dt>你</dt><dd>买东西 + 控制台 + 每一步亲手执行</dd>
+        <dt>我</dt><dd>出逐条命令 + 校验脚本 + 远程诊断报错</dd>
+        <dt>适合</dt><dd>想可控、想看懂发生了什么</dd>
+      </dl>
+    </div>
+    <div class="mode">
+      <div class="mt">③ 全自助</div>
+      <div class="md">只要文档</div>
+      <dl>
+        <dt>你</dt><dd>全部动作</dd>
+        <dt>我</dt><dd>只出文档与脚本，不登服务器</dd>
+        <dt>适合</dt><dd>想自己学会、或要交给别人做</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="callout">
+    <div class="ct">如果选 ① 或 ②，有一个绕不开的话题要提前说</div>
+    <p>把 SSH 交给我 = 我能在这台服务器上执行任意命令。<b>这是真实的能力，也是真实的风险</b>。三个可控点：<br>
+    ① 我可以只用你给的<b>专用部署账号</b>（不做 root 直登），权限够跑 docker 即可；<br>
+    ② 每一条要执行的命令我都<b>先贴出来给你看</b>，你认可再跑（等价于逐条确认，但不用你打字）；<br>
+    ③ 部署全过程中，凡涉及<b>删数据、改表结构、覆盖文件</b>的动作，一律先停下问你。<br>
+    你可以随时收回：改一次密码即可立刻失效。</p>
+  </div>
+</section>
+
+<!-- ========== 能力边界 ========== -->
+<section>
+  <h2>七、我的能力边界（本机实测，不是推测）</h2>
+  <div class="grid">
+    <div class="box can">
+      <div class="bt"><span class="tag t-ok">能</span> 我可以做的</div>
+      <ul>
+        <li>读写这台电脑上的任何项目文件</li>
+        <li>写脚本 / 配置 / 文档，并<b>机械复核</b>改动是否真落盘</li>
+        <li>跑本地构建与全部门禁（<code>gate.mjs all verify</code>）</li>
+        <li><b>ssh / scp 登服务器执行命令</b>（需你配免密）</li>
+        <li>git 操作（提交、推送到远端）</li>
+        <li>起草备案与提审材料、逐字段填写指引</li>
+        <li>故障排查：贴报错给我，我定位到具体行</li>
+      </ul>
+    </div>
+    <div class="box cant">
+      <div class="bt"><span class="tag t-you">不能</span> 我做不了的</div>
+      <ul>
+        <li>登录任何需要<b>扫码 / 短信</b>的控制台</li>
+        <li>替你付款、替你完成人脸核验</li>
+        <li>代持你的账号（这是平台红线，也是法律红线）</li>
+        <li>本机跑 Docker（<b>本机未安装</b>，已实测）</li>
+        <li>判断备案能否通过 —— 只有管局能决定</li>
+        <li>真机兼容性、微信真实支付 —— 项目里列为「测不了」</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 建议顺序 ========== -->
+<section>
+  <h2>八、建议的执行顺序（两条线并行）</h2>
+  <table>
+    <thead><tr><th style="width:120px">时间</th><th>服务器线</th><th>资质线</th></tr></thead>
+    <tbody>
+      <tr><td><b>今天</b></td><td>A1 定账号 → A2 企业实名 → A3 买机器 → A6 开端口</td><td><b>C0 打给代理，问经营异常解除进度</b>（最高优先级）</td></tr>
+      <tr><td><b>今天</b></td><td>A4 查域名备案接入商 → 据此定 A5 走哪条</td><td>A5 备案材料我可以先起草</td></tr>
+      <tr><td><b>+1 天</b></td><td>给我 SSH → 我跑完 B1–B9</td><td>C1 主体认证（等 C0）</td></tr>
+      <tr><td><b>+2 天起</b></td><td>服务器就绪，可内部联调</td><td>C2 备案（1–20 日）→ C3 类目 → C4 商户号</td></tr>
+      <tr><td><b>收尾</b></td><td>—</td><td>C5 配域名 → C6 体验版 → 提审</td></tr>
+    </tbody>
+  </table>
+  <div class="callout danger">
+    <div class="ct">最大风险不在技术侧</div>
+    <p>公司目前<b>存续但经营异常未移出</b>（2026-07 列入）、且曾有<b>税务非正常户</b>记录。这会直接卡住腾讯云企业实名、小程序主体认证、类目申请三条。技术线我一天能推完，资质线卡在 C0 —— <b>建议今天先花 10 分钟确认代理的处理进度</b>，它是唯一决定上线日期的事。</p>
+  </div>
+</section>
+
+<footer>
+  ABox 一盒 · 上线分工与执行看板 v1.0 &nbsp;|&nbsp; 生成于 2026-09-24 &nbsp;|&nbsp;
+  配套文档：《腾讯云开通与首次部署执行手册 v1.0》《外卖小程序最快上线路径与提审自检清单 v1.2》《部署运维手册 v1.0》<br>
+  勾选状态保存在本机浏览器 localStorage，不会上传；换浏览器需重新勾。
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('input[type=checkbox]'));
+  var KEY = 'abox_deploy_board_v1';
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e){ saved = {}; }
+
+  boxes.forEach(function(b,i){
+    var id = 'c' + i;
+    b.dataset.id = id;
+    if (saved[id]) { b.checked = true; }
+    apply(b);
+    b.addEventListener('change', function(){
+      saved[id] = b.checked;
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch(e){}
+      apply(b); refresh();
+    });
+  });
+
+  function apply(b){
+    var tr = b.closest('tr');
+    if (tr) tr.classList.toggle('done', b.checked);
+  }
+  function refresh(){
+    var n = boxes.filter(function(b){ return b.checked; }).length;
+    document.getElementById('pv').textContent = n;
+    document.getElementById('pt').textContent = boxes.length;
+    document.getElementById('pbar').style.width = (boxes.length ? (n/boxes.length*100) : 0) + '%';
+  }
+  refresh();
+})();
+</script>
+</body>
+</html>

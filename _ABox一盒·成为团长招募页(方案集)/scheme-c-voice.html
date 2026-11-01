@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>ABox 一盒 · 成为团长（方案 C · 真诚口吻）</title>
+<style>
+  :root {
+    --bg-cream: #F6F0E5; --bg-cream-light: #FBF7EE; --text-brown: #6E5435; --text-brown-light: #8B7355;
+    --accent-gold: #C9A876; --accent-gold-dark: #B8915C; --border-soft: #E6D9C0;
+    --shadow: 0 1px 2px rgba(110,84,53,.06), 0 4px 12px rgba(110,84,53,.07);
+    --shadow-lg: 0 2px 6px rgba(110,84,53,.08), 0 12px 32px rgba(110,84,53,.14);
+    --font-kai: "KaiTi","STKaiti","楷体","Kaiti SC",serif;
+    --radius-md: 14px; --radius-pill: 24px; --sp-4: 20px; --sp-5: 28px; --fs-sm: 12px; --fs-md: 14px; --fs-title: 15.5px; --fs-h1: 20px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: var(--font-kai); background:#2A2118; color:var(--text-brown); -webkit-font-smoothing:antialiased; }
+  .stage-flex { display:flex; justify-content:center; align-items:flex-start; padding:32px 16px 60px; }
+  .phone-shell { width:375px; max-width:100%; background:var(--bg-cream); border-radius:24px; box-shadow:var(--shadow-lg),0 0 0 2px rgba(201,168,118,.3); overflow:hidden; }
+  .scroll { max-height:760px; overflow-y:auto; }
+  .scroll::-webkit-scrollbar { width:6px; }
+  .scroll::-webkit-scrollbar-thumb { background:rgba(201,168,118,.45); border-radius:4px; }
+
+  .wrap { padding: var(--sp-5) var(--sp-4) 0; }
+  .eyebrow { font-size:11px; letter-spacing:3px; color:var(--accent-gold-dark); }
+  .statement { font-size:23px; font-weight:bold; line-height:1.55; margin-top:14px; }
+  .lead { font-size:var(--fs-md); color:var(--text-brown-light); line-height:1.85; margin-top:14px; }
+  .honest { font-size:var(--fs-md); color:var(--text-brown); line-height:1.85; margin-top:var(--sp-4); padding:14px 16px; background:var(--bg-cream-light); border:1px solid var(--border-soft); border-radius:var(--radius-md); box-shadow:var(--shadow); }
+  .honest b { color:var(--accent-gold-dark); }
+
+  .paths { margin-top: var(--sp-5); display:flex; flex-direction:column; gap:12px; }
+  .path { background:var(--bg-cream-light); border:1px solid var(--border-soft); border-radius:var(--radius-md); box-shadow:var(--shadow); padding:14px 16px; }
+  .path__t { font-size:var(--fs-title); font-weight:600; }
+  .path__d { font-size:var(--fs-sm); color:var(--text-brown-light); line-height:1.7; margin-top:3px; }
+
+  .submit-bar { padding: var(--sp-5) var(--sp-4) 0; }
+  .btn { width:100%; height:48px; line-height:48px; text-align:center; background:var(--text-brown); color:var(--bg-cream); border-radius:var(--radius-pill); font-size:var(--fs-md); letter-spacing:2px; box-shadow:var(--shadow); border:none; font-family:var(--font-kai); }
+  .btn--ghost { background:transparent; color:var(--accent-gold-dark); border:1px solid var(--accent-gold); box-shadow:none; margin-top:12px; }
+  .foot { font-size:11px; color:var(--text-brown-light); padding:var(--sp-4) var(--sp-4) var(--sp-5); line-height:1.8; margin-top:16px; }
+</style>
+</head>
+<body>
+<div class="stage-flex">
+  <div class="phone-shell">
+    <div class="scroll">
+      <div class="wrap">
+        <div class="eyebrow">ABox 一盒 · 团长招募</div>
+        <div class="statement">午间那一小时，<br>闲着也是闲着。</div>
+        <div class="lead">顺手帮同事带份饭，赚一笔实在的收入。不用囤货、不用垫钱——绑定办公楼就能开始。</div>
+        <div class="honest">这事儿不麻烦，就是取餐时顺手带一份；但<b>钱实在</b>，按单算，不画饼。每单赚 8%–12%（约 ¥2.06–¥3.10）。</div>
+        <div class="paths">
+          <div class="path">
+            <div class="path__t">想自己干</div>
+            <div class="path__d">提交即生效，以见习（8%）开始接单。</div>
+          </div>
+          <div class="path">
+            <div class="path__t">想介绍人</div>
+            <div class="path__d">发专属链接，他转正你拿一次性奖励（¥30/人·示例，仅单层）。</div>
+          </div>
+        </div>
+      </div>
+      <div class="submit-bar">
+        <button class="btn">成为团长</button>
+        <button class="btn btn--ghost">我只想介绍朋友</button>
+      </div>
+      <div class="foot">团长即办公室相熟同事，取餐时顺手带给大家；见习 30 天未促单自动取消。介绍奖励仅单层，不涉及多级分销。</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox P0 资金类四条核实报告</title>
+<style>
+  :root{
+    --brown:#6E5435; --brown-d:#4a3a22; --cream:#F6F0E5; --cream-2:#efe6d6;
+    --line:#d9cbb4; --ok:#3f7d4f; --part:#b07d2b; --gap:#b23b3b; --na:#7a7a7a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"楷体","KaiTi","STKaiti",simkai,serif;color:var(--brown-d);background:var(--cream);line-height:1.65;}
+  header{background:var(--brown);color:var(--cream);padding:22px 28px;}
+  header h1{margin:0 0 4px;font-size:23px;letter-spacing:2px;}
+  header p{margin:0;font-size:13.5px;opacity:.92;}
+  .wrap{max-width:1120px;margin:0 auto;padding:18px 22px 60px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13.5px;}
+  .card h3{margin:0 0 10px;color:var(--brown);font-size:15px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0;}
+  table th,table td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top;}
+  table th{background:var(--cream-2);color:var(--brown);}
+  .v-ok{color:var(--ok);font-weight:bold;}
+  .v-part{color:var(--part);font-weight:bold;}
+  .v-gap{color:var(--gap);font-weight:bold;}
+  .code{font-family:Consolas,Monaco,monospace;font-size:12px;background:var(--cream-2);padding:1px 5px;border-radius:3px;color:#5a4326;word-break:break-all;}
+  .item{border:1px solid var(--line);border-radius:10px;background:#fff;padding:16px 20px;margin:18px 0;}
+  .item h2{font-size:16.5px;margin:0 0 4px;color:var(--brown);}
+  .item .sub{font-size:12.5px;color:#8a6a3a;margin-bottom:12px;}
+  .kv{margin:6px 0;}
+  .kv b{color:var(--brown);}
+  .alert{background:#fceaea;border-left:4px solid var(--gap);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .warn{background:#fbf3e3;border-left:4px solid var(--part);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .good{background:#eaf3e8;border-left:4px solid var(--ok);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  ul{margin:6px 0 6px 18px;padding:0;}
+  li{margin:3px 0;}
+  footer{font-size:12px;color:var(--na);text-align:center;margin-top:30px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>ABox 一盒 · P0 资金类四条核实报告</h1>
+  <p>核实日期 2026-10-26 ｜ 方法：真实代码走查（含文件行号），非纸面推演 ｜ 结论先行：<b>1 条确认缺口，2 条我原先判断错误（实际已被防住），1 条降级</b></p>
+</header>
+
+<div class="wrap">
+
+  <div class="alert">
+    <b>先说最重要的一件事：我之前给你的四条「P0 高危」里，有两条是错的。</b><br>
+    原因是我的检索关键词只覆盖了「悲观锁」（<span class="code">forUpdate / pessimistic / setLock</span>），<b>没有覆盖「乐观锁」</b>——这套代码在写钱路径上系统性使用了 <span class="code">version</span> 字段自增 + <span class="code">WHERE version = :v</span> 的乐观锁手法。我据此下了「全仓无锁、并发会有超扣风险」的结论，<b>这是错误的推断，不是事实</b>。<br>
+    这条教训我会写进项目纪律：<b>探针不命中，先怀疑探针，别急着下结论。</b>
+  </div>
+
+  <div class="card">
+    <h3>四条结论一览</h3>
+    <table>
+      <tr><th>编号</th><th>探针问题</th><th>我原本的判断</th><th>核实后的结论</th><th>要不要动</th></tr>
+      <tr>
+        <td><b>S3</b></td><td>提现并发会不会把余额扣穿</td>
+        <td>P0 · 怀疑缺口</td>
+        <td class="v-ok">已实现，防住了</td><td>不用动</td>
+      </tr>
+      <tr>
+        <td><b>T3</b></td><td>手动补跑结算会不会双倍入账</td>
+        <td>P0 · 怀疑缺口</td>
+        <td class="v-ok">已实现，天然幂等</td><td>不用动</td>
+      </tr>
+      <tr>
+        <td><b>Q2</b></td><td>团长自确认送达就拿到佣金？</td>
+        <td>P0 · 怀疑敞口</td>
+        <td class="v-part">部分 — 隔三道流程，但送达状态仍是单侧推进</td><td>P0 降 P1，建议加凭证</td>
+      </tr>
+      <tr>
+        <td><b>P3</b></td><td>支付成功但回调丢失怎么办</td>
+        <td>P0 · 怀疑缺口</td>
+        <td class="v-gap">确认是缺口</td><td><b>建议补，优先级最高</b></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- P3 -->
+  <div class="item">
+    <h2>P3 · 支付单边账（回调丢失）<span class="v-gap"> —— 确认是缺口</span></h2>
+    <div class="sub">这条是四条里唯一「我的判断成立」的，也是四条里唯一真的要花钱修的。</div>
+
+    <div class="kv"><b>核实结论：</b>系统<b>没有</b>主动查单补偿机制。用户微信支付成功、但回调没打到服务器时，这笔钱在系统里<b>不会被发现</b>。</div>
+
+    <div class="kv"><b>证据：</b></div>
+    <ul>
+      <li><span class="code">payment/wxpay.service.ts</span> 对外方法只有四个：<span class="code">createPrepay</span>（下单）、<span class="code">parseNotify</span>（解析回调）、<span class="code">onPaid</span>（回调处理钩子）、<span class="code">simulatePaid</span>（模拟支付）。<b>没有 <span class="code">queryOrder</span>、没有 <span class="code">closeOrder</span></b>。</li>
+      <li>全仓 grep「主动查单 / 补单 / payQuery」：<b>零命中</b>。</li>
+      <li>9 个定时任务名单里（cutoff / commission-settle / auto-confirm / delivery-generate / leader-expire / meal-publish / reconciliation / supplier-share / page-track-cleanup）<b>没有任何查单对账类任务</b>。</li>
+    </ul>
+
+    <div class="kv"><b>实际影响：</b>用户扣了钱、订单停在「待支付」，超时后被自动关单。用户看到「订单已取消」但钱被扣了 —— 这类投诉<b>只能靠用户主动发现，你无从知晓</b>。上线后每发生一次都是一次信任损失。</div>
+
+    <div class="warn"><b>建议：</b>加一个定时查单任务。对「创建超过 N 分钟、状态仍为待支付」的订单，主动调微信查单接口：支付成功则补推进；确认未支付则关单。这是同类系统里的标准做法，工作量不大。</div>
+  </div>
+
+  <!-- S3 -->
+  <div class="item">
+    <h2>S3 · 提现并发超扣<span class="v-ok"> —— 我判断错了，实际已防住</span></h2>
+    <div class="sub">这条我原本标 P0，看完代码应当撤销。</div>
+
+    <div class="kv"><b>核实结论：</b>提现用了<b>乐观锁 + 冻结机制</b>，并发是安全的。</div>
+
+    <div class="kv"><b>证据：</b></div>
+    <ul>
+      <li><span class="code">finance/withdraw.service.ts</span> 提现申请在事务内：<span class="code">version: () => 'version + 1'</span> 且 <span class="code">.where('id = :id AND version = :v')</span>，更新行数为 0 时直接抛「余额已变动，请刷新后重试」——经典的乐观锁写法。</li>
+      <li>申请阶段不是直接扣钱，而是 <b>balance 减、frozen 加</b>（余额冻结），到账后才真正出账。</li>
+      <li>同样的乐观锁在其余写钱路径<b>系统性覆盖</b>：<span class="code">refund.service.ts</span>（4 处）、<span class="code">reversal.service.ts</span>（2 处）、<span class="code">commission.service.ts</span>、<span class="code">balance-admin.service.ts</span>、<span class="code">delivery.service.ts</span>（配送状态推进也有）。</li>
+    </ul>
+
+    <div class="good"><b>结论：</b>这条从 P0 缺口改为「已实现」。我原先依据「grep 不到悲观锁」就推定有并发风险，是<b>用不完整探针得出的错误结论</b>，请勿据此去找技术团队问责。</div>
+  </div>
+
+  <!-- T3 -->
+  <div class="item">
+    <h2>T3 · 手动补跑结算双倍入账<span class="v-ok"> —— 我判断错了，实际天然幂等</span></h2>
+    <div class="sub">这条我原本标 P0，也应撤销。</div>
+
+    <div class="kv"><b>核实结论：</b>补跑端点是幂等的，重复点不会双倍入账。</div>
+
+    <div class="kv"><b>证据：</b></div>
+    <ul>
+      <li><span class="code">commission.service.ts:720</span>：入账扫描条件是 <span class="code">{ status: 'pending' }</span> —— 只捞待入账的行。</li>
+      <li><span class="code">commission.service.ts:790-796</span>：入账用 <span class="code">UPDATE ... SET status='settled' WHERE id=:id AND status='pending'</span>，<b>更新到 0 行就跳过</b>（注释写明「并发下已被别处入账」）—— 这是行级原子的防重。</li>
+      <li>跑批路径走 <span class="code">sched.run()</span> <b>带锁</b>，同一目标日期只跑一次；手动补跑端点确实不带锁，但因为上面的写法，<b>不带锁也不会重复入账</b>。源码注释自己也写了「本方法天然可重入」。</li>
+    </ul>
+
+    <div class="good"><b>结论：</b>「手动补跑不带锁」这行注释确实存在，但它是<b>有意为之且安全的</b>——幂等由 SQL 条件保证，不靠锁。我当时只看到「不带锁」三个字就下了结论，是断章取义。</div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="item">
+    <h2>Q2 · 团长自确认送达即计佣<span class="v-part"> —— 部分成立，降为 P1</span></h2>
+    <div class="sub">不是我说的「纯自确认」，但也确实存在凭证缺口。</div>
+
+    <div class="kv"><b>核实结论：</b>佣金<b>不</b>由团长点「送达」直接触发。中间隔着三道，有天然缓冲。但<b>「是否已送达」这个前置状态，确实只有单侧（团长/管理员）能推进</b>。</div>
+
+    <div class="kv"><b>实际链路（三道）：</b></div>
+    <table>
+      <tr><th>环节</th><th>谁推进</th><th>代码位置</th></tr>
+      <tr><td>订单 → DELIVERED</td><td>团长点，或管理员推进</td><td><span class="code">delivery.service.ts:922 advanceGroupOrdersToDelivered</span></td></tr>
+      <tr><td>T 日 14:00 计佣（status=pending）</td><td><b>定时任务</b>，只捞 DELIVERED 的单</td><td><span class="code">order.service.ts:964 autoConfirmByDate</span></td></tr>
+      <tr><td>T+1 02:00 入账到团长余额</td><td><b>定时任务</b></td><td><span class="code">commission-settle.task.ts:94</span></td></tr>
+    </table>
+
+    <div class="kv"><b>为什么降级：</b></div>
+    <ul>
+      <li>计佣是<b>定时任务按日期批量做</b>，团长点送达<b>不能直接换钱</b>，中间有 14:00 到次日 02:00 的缓冲窗口，足够用户申诉。</li>
+      <li><span class="code">order.service.ts:971-977</span> 专门有一个「履约异常」分支：14:00 仍未送达的订单<b>如实计数上报</b>，绝不偷偷改状态。这说明团队考虑到这个问题了。</li>
+    </ul>
+
+    <div class="warn"><b>剩下的真实缺口：</b>全仓<b>没有取餐码 / 二维码核销</b>（grep 零命中）。所以当用户投诉「我没收到」时，<b>系统侧拿不出任何送达凭证</b>，只能靠操作日志打官司。建议在保持「团员零走动」的前提下，加一条<b>用户侧无需操作、超时自动确认 + 可申诉</b>的凭证机制。</div>
+  </div>
+
+  <div class="card">
+    <h3>下一步建议</h3>
+    <table>
+      <tr><th>优先级</th><th>动作</th><th>给谁</th></tr>
+      <tr><td><b>1</b></td><td>补支付主动查单任务（P3）</td><td><b>技术团队</b> — 这是唯一确认的开发需求</td></tr>
+      <tr><td>2</td><td>补送达凭证机制（Q2/Q3）</td><td><b>你先决定要什么形式</b>（用户免操作 + 超时自动确认，还是别的）</td></tr>
+      <tr><td>3</td><td>其余三条 P0 的编号留着，但状态改为「已核实·已实现」</td><td>我更新到探针表里</td></tr>
+    </table>
+    <div style="margin-top:10px;">
+      <b>要不要继续核剩下的？</b> P0 还有 21 条没核。考虑到这次四条里我自己错了两条，<b>建议按同样方式继续</b>——逐条走到代码里看证据。尤其推荐先核：<b>F10 发券超发</b>（有没有面额上限）和 <b>V1/V2 越权</b>（拿别人 id 能不能看到数据），这两类最容易出事，而且我能靠读代码给出确切答案。
+    </div>
+  </div>
+
+  <footer>
+    核实依据：<span class="code">abox-onebox/apps/api-server/src</span> 真实源码 ｜ 每条结论均可按文件行号回查 ｜ 本报告承认两处自身判断错误，结论以代码为准
+  </footer>
+</div>
+</body>
+</html>

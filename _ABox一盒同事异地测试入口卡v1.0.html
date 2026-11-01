@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 同事异地测试入口</title>
+<style>
+  :root{ --cream:#F6F0E5; --brown:#6E5435; --weak:#796C57; --line:rgba(110,84,53,.18); }
+  *{ box-sizing:border-box; }
+  body{ margin:0; padding:32px 20px 48px; background:var(--cream); color:var(--brown);
+        font-family:"Kaiti SC",KaiTi,STKaiti,simkai,serif; }
+  .wrap{ max-width:760px; margin:0 auto; }
+  h1{ font-size:26px; margin:0 0 6px; letter-spacing:.06em; }
+  .sub{ color:var(--weak); font-size:14px; margin-bottom:26px; }
+  .card{ background:#FBF7EF; border:1px solid var(--line); border-radius:14px;
+         padding:22px; margin-bottom:18px; }
+  .card h2{ font-size:19px; margin:0 0 4px; }
+  .card .url{ font-family:ui-monospace,Consolas,monospace; font-size:13px;
+              color:var(--weak); word-break:break-all; margin-bottom:14px; }
+  .qr{ background:#fff; border-radius:10px; padding:10px; display:inline-block; }
+  .qr svg{ display:block; width:200px; height:200px; }
+  .note{ font-size:14px; line-height:1.9; color:var(--weak); }
+  .note b{ color:var(--brown); }
+  ol{ padding-left:20px; margin:8px 0 0; }
+  li{ margin-bottom:6px; }
+  .warn{ border-left:3px solid var(--brown); background:rgba(110,84,53,.07);
+         padding:12px 14px; border-radius:0 8px 8px 0; font-size:13.5px; line-height:1.85; }
+  code{ background:rgba(110,84,53,.1); padding:1px 5px; border-radius:4px;
+        font-family:ui-monospace,Consolas,monospace; font-size:12.5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ABox 一盒 · 同事异地测试入口</h1>
+  <div class="sub">服务器 154.8.164.180 · 手机流量也能开，不用连同一个 WiFi</div>
+
+  <div class="card">
+    <h2>① 用户端（下单主流程）</h2>
+    <div class="url">http://154.8.164.180:8081/</div>
+    <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#000000" d="M1 1.5h7m1 0h1m3 0h4m2 0h7M1 2.5h1m5 0h1m1 0h2m2 0h2m1 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m1 0h4m4 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m2 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h4m2 0h3m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h1m8 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M13 8.5h2m1 0h1M1 9.5h1m2 0h6m2 0h1m1 0h1m2 0h2m2 0h1m1 0h3M4 10.5h2m3 0h2m2 0h1m1 0h1m2 0h2m2 0h3M1 11.5h1m1 0h3m1 0h1m3 0h1m1 0h1m1 0h1m3 0h2m1 0h1m2 0h1M1 12.5h1m3 0h1m2 0h1m1 0h4m1 0h1m1 0h1m4 0h4M2 13.5h3m2 0h1m1 0h2m1 0h2m4 0h1m1 0h2m3 0h1M1 14.5h2m6 0h1m4 0h2m1 0h2m1 0h2m2 0h1M1 15.5h4m1 0h2m4 0h3m3 0h8M1 16.5h1m1 0h1m1 0h1m2 0h1m2 0h2m2 0h1m2 0h2m1 0h1m1 0h1m1 0h1M1 17.5h1m5 0h4m4 0h10M9 18.5h1m1 0h4m2 0h1m3 0h1m1 0h2M1 19.5h7m1 0h1m1 0h2m4 0h1m1 0h1m1 0h3m1 0h1M1 20.5h1m5 0h1m1 0h1m3 0h1m1 0h1m1 0h1m3 0h1m1 0h1m1 0h1M1 21.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h9m2 0h2M1 22.5h1m1 0h3m1 0h1m1 0h1m5 0h1m2 0h3m1 0h2m1 0h1M1 23.5h1m1 0h3m1 0h1m2 0h2m1 0h1m1 0h2m3 0h1m2 0h3M1 24.5h1m5 0h1m2 0h1m4 0h2m2 0h4m1 0h2M1 25.5h7m1 0h3m2 0h5m2 0h2m2 0h1"/></svg>
+</div>
+    <div class="note" style="margin-top:14px">
+      手机浏览器打开即可。想让几个人各有各的账号，就在地址后加身份参数：
+      <ul>
+        <li><code>http://154.8.164.180:8081/?devCode=tom</code></li>
+        <li><code>http://154.8.164.180:8081/?devCode=lucy</code></li>
+      </ul>
+      每人用不同的英文代号，互相看不到对方的订单。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>② 运营后台（开团 / 看订单）</h2>
+    <div class="url">http://154.8.164.180:8080/</div>
+    <div class="note" style="margin-top:10px">
+      账号 <code>admin</code> ／ 口令 <code>nG2FEVYbytXTD2v2SExQ</code>（2026-10-02 已重设并验证可登录）
+    </div>
+    <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#000000" d="M1 1.5h7m4 0h2m1 0h1m3 0h7M1 2.5h1m5 0h1m1 0h1m2 0h1m1 0h2m1 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h1m1 0h1m2 0h2m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m2 0h2m2 0h1m1 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m3 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m5 0h2m1 0h2m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M12 8.5h4M1 9.5h1m1 0h1m1 0h1m1 0h1m2 0h2m1 0h1m1 0h3m3 0h1m2 0h1M3 10.5h1m2 0h1m1 0h1m3 0h3m1 0h2m2 0h2m3 0h1M1 11.5h8m2 0h1m3 0h6m2 0h3M1 12.5h1m1 0h1m1 0h2m2 0h3m1 0h1m2 0h1m2 0h2m3 0h1M1 13.5h2m1 0h1m2 0h10m4 0h2m1 0h2M2 14.5h1m1 0h1m1 0h1m1 0h3m1 0h2m2 0h2m1 0h2m1 0h1m2 0h1M1 15.5h1m1 0h1m2 0h3m3 0h2m2 0h1m1 0h2m3 0h3M2 16.5h5m1 0h1m4 0h2m1 0h2m2 0h1m1 0h1m1 0h1M1 17.5h1m2 0h2m1 0h1m1 0h4m2 0h1m1 0h5M9 18.5h4m3 0h2m3 0h2m1 0h2M1 19.5h7m2 0h1m3 0h1m1 0h2m1 0h1m1 0h1m1 0h3M1 20.5h1m5 0h1m4 0h1m3 0h2m3 0h4M1 21.5h1m1 0h3m1 0h1m1 0h3m1 0h1m3 0h6m1 0h2M1 22.5h1m1 0h3m1 0h1m3 0h4m1 0h2m3 0h1m2 0h1M1 23.5h1m1 0h3m1 0h1m1 0h5m1 0h1m1 0h2m1 0h1m1 0h1m2 0h1M1 24.5h1m5 0h1m2 0h2m1 0h3m1 0h1m3 0h1m1 0h2M1 25.5h7m1 0h1m2 0h1m2 0h1m1 0h1m2 0h2m2 0h2"/></svg>
+</div>
+    <div class="note" style="margin-top:14px">
+      电脑上开更方便。开团在这里做：<b>菜单矩阵</b> 里把明日的套餐发布出去，
+      用户端才能下单。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>测之前，先确认两件事</h2>
+    <div class="note">
+      <ol>
+        <li>✅ <b>已排好</b>：2026-10-03 ～ 10-08 共 6 天 × 5 个楼群全部已上架。<br>
+            ⚠️ 这套排期<b>只管到 10-08</b>，之后又会变成「本楼今日未开团」——
+            届时在后台菜单矩阵里用「批量复制」再补一周即可。</li>
+        <li>✅ <b>后台已能登进去</b>（见上面口令）。万一再登不进：用应急脚本重设，不经登录、不重启容器。</li>
+        <li>⚠️ <b>腾讯云安全组要放行 TCP 8081</b>，否则用户端这个码扫了打不开（后台 8080 早已放行）。</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="warn">
+    <b>注意：用户端这一版是「测试专用形态」，不是上线形态。</b><br>
+    它以 development 模式构建，<code>?devCode=</code> 可以切换成任意用户身份 ——
+    这是为了让同事在不依赖微信登录的情况下测流程。正式上线前必须换回生产构建，
+    并且把 H5 这个端口（8081）关掉。
+  </div>
+</div>
+</body>
+</html>

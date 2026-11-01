@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ABox 一盒 · 供应商页内容方案（眼前一亮版）</title>
+<style>
+  /* ===== 品牌字体（楷体）= 项目锁定，禁止 ai 默认字体 ===== */
+  @font-face{ font-family:'Kai'; src:url('ab-kaiti.woff2') format('woff2'); font-weight:400; }
+  :root{
+    --bg:#F6F0E5; --surface:#FBF7EF; --surface2:#EFE6D6; --line:#E3D8C4;
+    --ink-deep:#5A4632; --ink2:#7A6549; --ink:#8C785C; --weak:#A99B82;
+    --gold:#C8A86A; --gold-deep:#9A7B45; --ok:#5E8C5A;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:'Kai','KaiTi','楷体',serif; background:#EDE4D3; color:var(--ink-deep);
+    line-height:1.6; padding:34px 18px 70px; -webkit-font-smoothing:antialiased; }
+  .wrap{ max-width:1120px; margin:0 auto; }
+  h1{ font-size:25px; color:var(--ink-deep); letter-spacing:1px; margin-bottom:6px; }
+  .lead{ font-size:14px; color:var(--ink2); max-width:860px; margin-bottom:6px; }
+  .warn{ background:#FBF3E2; border-left:4px solid var(--gold-deep); border-radius:0 10px 10px 0;
+    padding:12px 16px; font-size:13px; color:var(--ink2); margin:16px 0 24px; max-width:900px; }
+  .warn b{ color:var(--gold-deep); }
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:26px; }
+  @media(max-width:920px){ .grid{ grid-template-columns:1fr; } }
+  .card{ background:#FFFDF8; border:1px solid var(--line); border-radius:16px; padding:16px;
+    box-shadow:0 6px 22px rgba(120,95,55,.10); }
+  .card__h{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .card__no{ width:30px; height:30px; border-radius:8px; background:var(--ink-deep); color:var(--bg);
+    font-size:15px; display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+  .card__t{ font-size:17px; color:var(--ink-deep); font-weight:700; }
+  .card__tag{ margin-left:auto; font-size:11px; padding:3px 9px; border-radius:20px; }
+  .tag-s{ background:#EAF1E6; color:var(--ok); }      /* 起步 */
+  .tag-a{ background:#F3EAD8; color:var(--gold-deep); } /* 进阶 */
+  .card__why{ font-size:12.5px; color:var(--ink2); background:var(--surface); border-radius:9px;
+    padding:8px 11px; margin-bottom:12px; line-height:1.7; }
+  .card__why b{ color:var(--gold-deep); }
+
+  /* ===== 手机框 ===== */
+  .phone{ width:300px; margin:0 auto; background:#222018; border-radius:34px; padding:9px;
+    box-shadow:0 10px 30px rgba(0,0,0,.25); }
+  .screen{ background:var(--bg); border-radius:26px; overflow:hidden; height:560px; position:relative; }
+  .statusbar{ display:flex; justify-content:space-between; padding:9px 16px 4px; font-size:11px;
+    color:var(--ink-deep); font-family:'Kai',serif; }
+  .statusbar .r{ display:flex; gap:4px; align-items:center; }
+  .statusbar .r i{ width:5px; height:5px; border-radius:50%; background:var(--ink2); display:inline-block; }
+  .ph{ height:560px; overflow-y:auto; }
+  .ph::-webkit-scrollbar{ width:0; }
+  .cnt{ padding:0 0 14px; }
+
+  /* 通用：主角大图 */
+  .hero-img{ height:150px; background:linear-gradient(135deg,#6E5435,#9A7B45); position:relative;
+    display:flex; align-items:flex-end; padding:12px 14px; }
+  .hero-img .who{ color:#FBF7EF; font-size:18px; font-weight:700; text-shadow:0 1px 4px rgba(0,0,0,.4); }
+  .hero-img .role{ color:#F1E6CF; font-size:11px; margin-top:2px; }
+  .badge-circle{ position:absolute; top:12px; right:12px; width:52px; height:52px; border-radius:50%;
+    background:rgba(251,247,239,.92); color:var(--ink-deep); font-size:11px; display:flex;
+    align-items:center; justify-content:center; text-align:center; line-height:1.25; padding:4px; }
+
+  .blk{ padding:14px 16px; }
+  .blk + .blk{ border-top:1px dashed var(--line); }
+  .blk__t{ font-size:12px; color:var(--weak); letter-spacing:2px; margin-bottom:8px; }
+  .quote{ font-size:15px; color:var(--ink-deep); line-height:1.85; padding:12px 14px;
+    background:#FBF3E2; border-radius:10px; border-left:3px solid var(--gold); }
+  .quote .sign{ display:block; text-align:right; font-size:12px; color:var(--ink); margin-top:6px; }
+  p.story{ font-size:13px; color:var(--ink2); line-height:1.95; }
+  .stat{ display:flex; gap:0; background:var(--surface2); border-radius:10px; overflow:hidden; }
+  .stat div{ flex:1; text-align:center; padding:12px 4px; }
+  .stat b{ font-size:19px; color:var(--gold-deep); display:block; font-family:Georgia,serif; }
+  .stat span{ font-size:11px; color:var(--ink); }
+  .stat div + div{ border-left:1px solid var(--line); }
+
+  /* 时间轴 */
+  .tl{ position:relative; padding-left:18px; }
+  .tl::before{ content:""; position:absolute; left:5px; top:4px; bottom:4px; width:2px; background:var(--line); }
+  .tl .node{ position:relative; margin-bottom:14px; }
+  .tl .node::before{ content:""; position:absolute; left:-17px; top:4px; width:9px; height:9px;
+    border-radius:50%; background:var(--gold); border:2px solid var(--bg); }
+  .tl .t{ font-size:12px; color:var(--gold-deep); font-weight:700; }
+  .tl .d{ font-size:13px; color:var(--ink2); line-height:1.7; }
+  .phloc{ height:64px; border-radius:9px; background:linear-gradient(135deg,#D8C9A8,#B79B6A);
+    display:flex; align-items:center; justify-content:center; color:#5A4632; font-size:12px; margin-bottom:8px; }
+
+  /* 快照九宫 */
+  .shots{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; }
+  .shots div{ aspect-ratio:1; border-radius:7px; background:linear-gradient(135deg,#E0D3B6,#C2A878);
+    display:flex; align-items:center; justify-content:center; color:#6E5435; font-size:10px; text-align:center; }
+  .prog-simple{ height:10px; border-radius:6px; background:var(--surface2); overflow:hidden; margin-top:6px; }
+  .prog-simple i{ display:block; height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-deep)); }
+
+  /* 本楼专属 */
+  .big-num{ text-align:center; padding:8px 0 4px; }
+  .big-num b{ font-size:40px; color:var(--gold-deep); font-family:Georgia,serif; }
+  .big-num span{ font-size:13px; color:var(--ink2); display:block; }
+  .fav{ background:var(--surface2); border-radius:10px; padding:11px 13px; margin-top:8px;
+    font-size:13px; color:var(--ink-deep); }
+  .fav b{ color:var(--gold-deep); }
+  .say{ font-size:13px; color:var(--ink2); line-height:1.85; padding:9px 0; border-bottom:1px dashed var(--line); }
+  .say .who2{ font-size:11px; color:var(--weak); }
+
+  .foot{ margin-top:28px; background:#FFFDF8; border:1px solid var(--line); border-radius:16px; padding:20px; }
+  .foot h3{ font-size:16px; color:var(--ink-deep); margin-bottom:10px; }
+  .foot p{ font-size:13px; color:var(--ink2); line-height:1.9; margin-bottom:8px; }
+  .foot .rec{ background:#EAF1E6; border-radius:9px; padding:10px 13px; font-size:13px; color:var(--ink-deep); }
+  .foot .rec b{ color:var(--ok); }
+  .comply{ background:#FBF3E2; border-radius:9px; padding:10px 13px; font-size:12px; color:var(--ink2); margin-top:10px; line-height:1.85; }
+  .comply b{ color:var(--gold-deep); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ABox 一盒 · 供应商页「展示什么内容」方案</h1>
+  <p class="lead">之前给你的是「功能入口清单」（发券、打榜、直播…），所以平——它把供应商当成货架。
+    这版换视角：<b>供应商页是「把这一盒背后的人和地方讲给用户听」的内容页</b>。下面 4 个方案，每个一屏完整手机页，直接看页面上该放什么。</p>
+  <p class="lead">四个方案按「制造眼前一亮」的两种情绪分：<b>温度惊喜</b>（人物 / 专属）与 <b>透明惊喜</b>（来路 / 实时）。</p>
+
+  <div class="warn">
+    <b>为什么之前平、这次不平：</b>盒饭行业最缺两样东西——「人」和「信任」。把供应商从冷冰冰的资质文件，变成一个有名字、有手艺、和你这栋楼有关系的「厨房」，内容本身就足够亮，不需要叠加营销功能。所有方案守住合规底线（见文末）。
+  </div>
+
+  <div class="grid">
+
+    <!-- ===== 方案 1 人物志 ===== -->
+    <div class="card">
+      <div class="card__h">
+        <div class="card__no">1</div>
+        <div class="card__t">掌勺的人 · 主理人人物志</div>
+        <div class="card__tag tag-s">起步可做</div>
+      </div>
+      <div class="card__why"><b>温度惊喜。</b>外卖最缺「人」。把厨房主理人推到前台，用户吃的是「老张做的饭」，不是「某供应商的饭」。<b>零实时成本</b>，纯内容，最适合起步。</div>
+      <div class="phone"><div class="screen"><div class="ph">
+        <div class="statusbar"><span>9:41</span><span class="r"><i></i><i></i><i></i></span></div>
+        <div class="hero-img">
+          <div><div class="who">老张</div><div class="role">三味屋 · 主理人 · 掌勺 20 年</div></div>
+          <div class="badge-circle">本楼<br>268天</div>
+        </div>
+        <div class="cnt">
+          <div class="blk">
+            <div class="quote">「今天的小炒黄牛肉，我多放了一勺自家豆瓣——火候我盯着的，放心。」<span class="sign">— 老张 晨 6:10 手记</span></div>
+          </div>
+          <div class="blk">
+            <div class="blk__t">他的故事</div>
+            <p class="story">老张原是川东县城老馆子的掌勺。2021 年和两个老伙计盘下这间后厨，专做一口家常味。他说：「盒饭不是将就，是想让写字楼里的人，也能吃顿热乎的。」</p>
+          </div>
+          <div class="blk">
+            <div class="blk__t">他在 ABox 出的拿手菜</div>
+            <p class="story">小炒黄牛肉（主荤）· 韭菜炒蛋（蛋类）—— 这两道，是这栋楼点得最多的。</p>
+          </div>
+          <div class="blk">
+            <div class="blk__t">本楼信任数据</div>
+            <div class="stat">
+              <div><b>268</b><span>供餐天数</span></div>
+              <div><b>1240</b><span>这栋楼吃过次数</span></div>
+              <div><b>A</b><span>食安量化</span></div>
+            </div>
+          </div>
+        </div>
+      </div></div></div>
+    </div>
+
+    <!-- ===== 方案 2 来路 ===== -->
+    <div class="card">
+      <div class="card__h">
+        <div class="card__no">2</div>
+        <div class="card__t">这一盒的来路 · 透明旅程</div>
+        <div class="card__tag tag-a">进阶可做</div>
+      </div>
+      <div class="card__why"><b>透明惊喜。</b>把「凭什么信你」做成可看的旅程。当日实拍 + 食材出身 + 配送路径，信任不再靠一纸证件。</div>
+      <div class="phone"><div class="screen"><div class="ph">
+        <div class="statusbar"><span>9:41</span><span class="r"><i></i><i></i><i></i></span></div>
+        <div class="cnt">
+          <div class="blk">
+            <div class="blk__t">这一盒，从哪儿来</div>
+            <div class="tl">
+              <div class="node"><div class="t">04:30 · 采购</div><div class="d">老张天没亮去城南菜市，牛里脊挑当日现宰的。</div></div>
+              <div class="node"><div class="t">06:00 · 备菜</div><div class="d">切配、码味，所有菜当餐现做，不过夜。</div></div>
+              <div class="node"><div class="t">09:00 · 出餐</div><div class="d">大火爆炒，装盒保温，11:30 前到楼。</div></div>
+              <div class="node"><div class="t">11:30 · 到楼</div><div class="d">团长取餐，逐层送到你工位。</div></div>
+            </div>
+          </div>
+          <div class="blk">
+            <div class="blk__t">食材出生证</div>
+            <div class="phloc">小炒黄牛肉 → 牛里脊 · 城北牧场</div>
+            <div class="phloc" style="background:linear-gradient(135deg,#CBD8B0,#9FB47A);color:#41502A;">蒜蓉菠菜 → 有机叶菜基地 · 当日现采</div>
+          </div>
+          <div class="blk">
+            <div class="blk__t">从厨房到你工位</div>
+            <div class="phloc" style="background:linear-gradient(135deg,#D8C9A8,#B79B6A);">三味屋后厨 → 中关村数码大厦 · 1.8km</div>
+          </div>
+        </div>
+      </div></div></div>
+    </div>
+
+    <!-- ===== 方案 3 当日快照 ===== -->
+    <div class="card">
+      <div class="card__h">
+        <div class="card__no">3</div>
+        <div class="card__t">今日后厨 · 当日快照</div>
+        <div class="card__tag tag-a">进阶可做</div>
+      </div>
+      <div class="card__why"><b>透明惊喜。</b>午饭前的「参与感」——看见自己的饭正在做。是<b>当日几张关键节点照</b>，不是直播，成本低、合规稳。</div>
+      <div class="phone"><div class="screen"><div class="ph">
+        <div class="statusbar"><span>9:41</span><span class="r"><i></i><i></i><i></i></span></div>
+        <div class="cnt">
+          <div class="blk">
+            <div class="blk__t">今日后厨 · 10:20 快照</div>
+            <div class="shots">
+              <div>备菜<br>切配</div><div>炒制<br>中</div><div>装盒</div>
+              <div>出餐<br>区</div><div>保温<br>柜</div><div>消毒</div>
+            </div>
+          </div>
+          <div class="blk">
+            <div class="blk__t">你的这盒</div>
+            <p class="story">正在炒制 · 预计 11:05 出餐</p>
+            <div class="prog-simple"><i style="width:62%"></i></div>
+          </div>
+          <div class="blk">
+            <div class="blk__t">今日出餐</div>
+            <div class="stat">
+              <div><b>312</b><span>已出份数</span></div>
+              <div><b>48</b><span>本楼份数</span></div>
+              <div><b>1.8</b><span>配送 km</span></div>
+            </div>
+          </div>
+          <div class="blk">
+            <div class="blk__t">今日厨房环境</div>
+            <div class="phloc">操作台实拍 · 当日 08:00</div>
+          </div>
+        </div>
+      </div></div></div>
+    </div>
+
+    <!-- ===== 方案 4 本楼专属 ===== -->
+    <div class="card">
+      <div class="card__h">
+        <div class="card__no">4</div>
+        <div class="card__t">我们楼的厨房 · 本楼专属</div>
+        <div class="card__tag tag-s">起步可做</div>
+      </div>
+      <div class="card__why"><b>温度惊喜。</b>把「陌生供应商」变成「我们楼的厨房」。归属感是最便宜的留存——用本楼数据说话，零实时成本。</div>
+      <div class="phone"><div class="screen"><div class="ph">
+        <div class="statusbar"><span>9:41</span><span class="r"><i></i><i></i><i></i></span></div>
+        <div class="cnt">
+          <div class="blk">
+            <div class="blk__t">这是为你这栋楼服务的厨房</div>
+            <div class="big-num"><b>268</b><span>天 · 它一直陪你们吃饭</span></div>
+          </div>
+          <div class="blk">
+            <div class="blk__t">你们楼的爱</div>
+            <div class="fav">本楼最爱 · <b>小炒黄牛肉</b>（1,240 次点单）</div>
+            <div class="fav" style="margin-top:8px;">本楼隐藏菜单 · <b>每周三 酸汤肥牛</b>（只在你们楼出现）</div>
+          </div>
+          <div class="blk">
+            <div class="blk__t">楼友说</div>
+            <div class="say">「老张的牛肉够嫩，一周三顿不腻。」<span class="who2">— 18 层 · 王女士</span></div>
+            <div class="say">「周三的隐藏菜是惊喜，准时蹲点。」<span class="who2">— 22 层 · 陈先生</span></div>
+            <div class="say">「送到工位，省得下楼，香。」<span class="who2">— 11 层 · 刘工</span></div>
+          </div>
+          <div class="blk">
+            <div class="blk__t">出品方</div>
+            <p class="story">三味屋 · 中关村数码大厦合作厨房 · 食品经营许可（仅销售预包装食品）在营</p>
+          </div>
+        </div>
+      </div></div></div>
+    </div>
+
+  </div>
+
+  <!-- ===== 组合建议 + 合规 ===== -->
+  <div class="foot">
+    <h3>怎么选 · 我的建议</h3>
+    <p><b>起步（现在就能做，零实时成本）：方案 1 人物志 + 方案 4 本楼专属</b>——一个给温度、一个给归属，全是静态内容，后台填一次就够，不依赖供应商配合直播或实时上传。这两个组合，已经能让你说的"眼前一亮"成立。</p>
+    <p><b>进阶（体量上来、供应商愿意配合、有奖励预算）：方案 2 来路 + 方案 3 当日快照</b>——透明叙事更重，需要当日实拍上传和稳定的出餐数据，等跑顺了再上。</p>
+    <div class="rec">推荐路径：起步先上 <b>1 + 4</b>（人物 + 本楼专属），把"供应商=人+我们楼的厨房"这个心智立住；等密度够了，再加 2/3 的透明层。所有方案都不碰"发券/打榜/直播互动"这类重运营，起步不复杂。</div>
+    <div class="comply">
+      <b>合规底线（四方案统一守）：</b>① 供应商出参禁 status / commission / 分润 / 联系电话（C8 硬约束，人物志里不放电话、不放佣金）；② 全页不得出现任何第三方平台名（五项禁令，只写"合作厨房""本楼专属"，不写具体外卖平台）；③ 营养不做"高蛋白"类声称（GB 28050，本方案未放营养声称）；④ 数据标注"示意"，落码由 U1 下发真实值。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

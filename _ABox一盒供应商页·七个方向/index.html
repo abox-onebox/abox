@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 出品方页的七个方向（不是七个变体）</title>
+<style>
+@font-face {
+  font-family: 'ABoxKai';
+  src: url('ab-kaiti.woff2') format('woff2');
+  font-weight: normal; font-style: normal; font-display: swap;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'ABoxKai', 'STKaiti', 'KaiTi', 'SimSun', serif;
+  background: #E8DFCF; color: #3A322A;
+  padding: 34px 18px 64px; line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1180px; margin: 0 auto; }
+
+/* ---- 头 ---- */
+.head { margin-bottom: 26px; }
+.head h1 { font-size: 22px; font-weight: normal; letter-spacing: 0.5px; }
+.head .sub { margin-top: 9px; font-size: 13px; color: #796C57; }
+.head .mea {
+  margin-top: 16px; background: #FFFDF9; border-left: 3px solid #8A5A2B;
+  padding: 14px 16px; border-radius: 0 10px 10px 0; font-size: 13px; color: #5F5445;
+}
+.head .mea b { color: #8A5A2B; font-weight: normal; }
+
+/* ---- 第 0 条 ---- */
+.zero {
+  background: #FFFDF9; border: 1px solid rgba(138,90,43,0.45);
+  border-radius: 14px; padding: 20px 22px; margin-bottom: 26px;
+}
+.zero h2 { font-size: 16px; font-weight: normal; color: #8A5A2B; letter-spacing: 0.5px; }
+.zero p { margin-top: 10px; font-size: 13px; color: #5F5445; }
+.zero .q {
+  margin-top: 12px; padding: 11px 14px; background: #F6F0E5; border-radius: 8px;
+  font-size: 13px; color: #3A322A;
+}
+
+/* ---- 网格 ---- */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+
+.plan {
+  background: #FFFDF9; border: 1px solid rgba(110,84,53,0.18);
+  border-radius: 14px; padding: 18px 20px 16px; display: flex; flex-direction: column;
+}
+.plan--top { border: 1px solid rgba(15,110,86,0.42); }
+
+.plan__top { display: flex; align-items: center; gap: 9px; }
+.plan__no { font-size: 12px; color: #9A8C79; letter-spacing: 1px; }
+.plan__lv {
+  font-size: 11px; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.5px;
+  color: #6E5435; background: #F6F0E5; border: 1px solid rgba(110,84,53,0.24);
+}
+.plan__lv--biz { color: #0F6E56; background: #E1F5EE; border-color: rgba(15,110,86,0.32); }
+.plan__star { margin-left: auto; font-size: 11px; color: #8A5A2B; }
+
+.plan__t { margin-top: 11px; font-size: 18px; letter-spacing: 1px; }
+.plan__one { margin-top: 6px; font-size: 13px; color: #6E5435; }
+
+.plan__ins {
+  margin-top: 13px; padding: 12px 14px; background: #F6F0E5; border-radius: 9px;
+  font-size: 13px; color: #3A322A; line-height: 1.95;
+}
+.plan__ins em { font-style: normal; color: #6E5435; }
+.plan__ins .tagi {
+  display: inline-block; font-size: 11px; color: #9A8C79;
+  border-bottom: 1px dashed rgba(110,84,53,0.4); margin-bottom: 5px;
+}
+
+.plan__sk {
+  margin-top: 12px; font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 11px; line-height: 1.85; color: #8A7A64;
+  padding: 10px 12px; border: 1px dashed rgba(110,84,53,0.28); border-radius: 8px;
+  white-space: pre-wrap;
+}
+
+.plan__foot { margin-top: 13px; display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font-size: 11px; padding: 2px 9px; border-radius: 5px; letter-spacing: 0.5px; }
+.chip--c1 { color: #0F6E56; background: #E1F5EE; }
+.chip--c2 { color: #8A5A2B; background: #FAEEDA; }
+.chip--c3 { color: #8A5A2B; background: #FBE9E7; }
+.chip--n { color: #6E5435; background: #F6F0E5; border: 1px solid rgba(110,84,53,0.2); }
+
+/* ---- 尾 ---- */
+.tail { margin-top: 28px; background: #FFFDF9; border-radius: 14px; padding: 20px 22px; border: 1px solid rgba(110,84,53,0.18); }
+.tail h2 { font-size: 15px; font-weight: normal; margin-bottom: 12px; letter-spacing: 0.5px; }
+.tail ol { margin-left: 18px; }
+.tail li { font-size: 13px; color: #5F5445; padding: 5px 0; }
+.tail li b { color: #6E5435; font-weight: normal; }
+.tail .note { margin-top: 14px; font-size: 12px; color: #9A8C79; line-height: 1.95; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="head">
+    <h1>出品方页的七个方向 —— 不是七个变体</h1>
+    <div class="sub">前四版我交的都是产品功能稿。这七个里，有三个根本不在"页面"这一层。</div>
+    <div class="mea">
+      <b>我先认三个错：</b><br>
+      ① <b>角色锁死了。</b>你要的是能看生意的人，我却一直在交页面稿 —— 投票、请客、核验日历，全是 PM 会想的东西，一条都没碰到你生意的结构。<br>
+      ② <b>方向做反了。</b>ABox 卖的是「省心」，我却一直在设计让用户「做事」的功能（投票要你投、请客要你选人）。这是在削弱你自己的定位。<br>
+      ③ <b>「顺风车」我完全理解错了。</b>你第二轮就提了，我把它做成了合规管控框架（红黄绿灯）。真正的顺风车在下面 ⑥。
+    </div>
+  </div>
+
+  <div class="zero">
+    <h2>第 0 条 · 一个反直觉建议：这个页面也许该被压缩，不是被改造</h2>
+    <p>如果 ABox 的定位是「省心」，那这个页面的最优解可能是<b>越短越好</b> —— 3 秒安心，然后走人。任何加长都是打断。</p>
+    <div class="q">
+      判据：<b>这个页面的价值上限 = 它对下单转化的边际贡献。</b><br>
+      ⭐ 先测量再决定投入：首页「来自：X ›」的点击率是多少？点进去的人 vs 没点的人，24h 下单率有没有差异？<br>
+      <b>如果点击率 &lt; 5% 且转化率无差异 —— 正确答案是删掉这个入口，不是改造这个页面。</b>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- 1 -->
+    <div class="plan">
+      <div class="plan__top">
+        <span class="plan__no">01</span>
+        <span class="plan__lv">数据层</span>
+        <span class="plan__star">改动最小</span>
+      </div>
+      <div class="plan__t">这一盒的证</div>
+      <div class="plan__one">把资质颗粒度从「供应商」细化到「今天这一批」</div>
+      <div class="plan__ins">
+        <span class="tagi">洞察</span><br>
+        合规要求的颗粒度是「这家有证」，但用户真正想知道的是<em>我手上这一盒</em>有没有问题。
+        这两者的说服力差着一个数量级 —— 前者是「我们合法」，后者是「你这份可查」。<br>
+        ⭐ 而且它是<em>食品行业的标准做法</em>（批次追溯），不是我编的。
+      </div>
+      <div class="plan__sk">三味屋 · 香煎鸡腿
+本批  10-08  检验合格证 JY-20261008-041
+留样编号  LY-1008-3  留样保留至 10-10
+⛔ 只给编号不给图 —— 绕开图片展示
+   被 ICP 备案域名卡住的现实</div>
+      <div class="plan__foot">
+        <span class="chip chip--c1">成本低</span>
+        <span class="chip chip--c2">风险：编号录错=虚假陈述</span>
+        <span class="chip chip--n">需运营录批次</span>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="plan">
+      <div class="plan__top">
+        <span class="plan__no">02</span>
+        <span class="plan__lv">关系层</span>
+      </div>
+      <div class="plan__t">让人也尝一口</div>
+      <div class="plan__one">你付钱，同事明天中午收到（v0.4 那版）</div>
+      <div class="plan__ins">
+        <span class="tagi">洞察</span><br>
+        <em>获客成本 = 0</em> —— 盒饭是用户掏钱买的，不是你补贴的。
+        写字楼天然适配：同事就在同一栋楼，赠送范围<em>天然落在既有配送半径内</em>，不扩配送不加运力。
+        这是别的外卖做不了、而你能做的。
+      </div>
+      <div class="plan__sk">这栋楼吃过 1,240 次
+[ 请 TA 吃这一盒 ]  ← 深棕主 CTA
+你请过 6 位 · 其中 4 位后来自己也订了
+        ↑ 这块是「镜子」，最值钱</div>
+      <div class="plan__foot">
+        <span class="chip chip--c2">成本中</span>
+        <span class="chip chip--c3">卡点：微信赠礼规范待查</span>
+        <span class="chip chip--n">只能请同楼</span>
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="plan">
+      <div class="plan__top">
+        <span class="plan__no">03</span>
+        <span class="plan__lv">关系层</span>
+      </div>
+      <div class="plan__t">给厨房捎句话</div>
+      <div class="plan__one">用户和厨房之间，现在是零通道</div>
+      <div class="plan__ins">
+        <span class="tagi">洞察</span><br>
+        用户吃了 100 天，厨房从没听过他一句反馈 —— 这是<em>整条链上最浪费的一段</em>。<br>
+        ⭐ 关键设计：<em>只公开聚合数字，不公开原文</em>。
+        「今天有 3 位说偏咸」拿到了反馈价值，又绕开了 UGC 审核（不用 msgSecCheck）。
+        且不破坏单一套餐 —— 用户仍不能定制，但<em>被听见了</em>。
+      </div>
+      <div class="plan__sk">今天这栋楼对它的声音
+偏咸  3 位 · 想再吃  11 位
+── 已同步给出品方
+（不展示任何一条原文）</div>
+      <div class="plan__foot">
+        <span class="chip chip--c1">成本低</span>
+        <span class="chip chip--c1">复用 ab_dish_rating</span>
+        <span class="chip chip--n">零 DDL（只聚合）</span>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="plan">
+      <div class="plan__top">
+        <span class="plan__no">04</span>
+        <span class="plan__lv">产品层</span>
+        <span class="plan__star">最贴定位</span>
+      </div>
+      <div class="plan__t">这周都归你管</div>
+      <div class="plan__one">把 5 次决策压缩成 1 次 —— 这才是「省心」该有的「做」</div>
+      <div class="plan__ins">
+        <span class="tagi">洞察</span><br>
+        ⭐ <em>我前面所有方案都在让用户做事，跟「省心」这个定位是反的。</em>
+        真正贴定位的「做」是<em>减少决策</em>：一周订一次，剩下 4 天不用想。<br>
+        复购最直接的一击 —— 5 次流失机会变成 1 次。<br>
+        ⭐ 它还能直接接上项目已有的 <em>09:30 cookConfirmDeadline</em> 硬闸：当天请假就卡这个点。
+      </div>
+      <div class="plan__sk">[ 一键包周 ]  ¥129 / 5 天
+已订：周一 周二 周三 周四 周五
+某天不想吃 → 当天 09:30 前可暂停
+        ↑ 正好接现有时间模型</div>
+      <div class="plan__foot">
+        <span class="chip chip--c2">成本中</span>
+        <span class="chip chip--n">需取消/暂停规则</span>
+        <span class="chip chip--n">不在本页，挂在下单页</span>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="plan">
+      <div class="plan__top">
+        <span class="plan__no">05</span>
+        <span class="plan__lv">分销层</span>
+      </div>
+      <div class="plan__t">团长的弹药库</div>
+      <div class="plan__one">同一个页面，两个受众</div>
+      <div class="plan__ins">
+        <span class="tagi">洞察</span><br>
+        团长是你手里的分销节点（佣金 8–12%），但<em>他手里没有弹药</em> —— 他只能说「这家的不错」。<br>
+        ⭐ 专业性在这：<em>这个页面可以同时服务两个人</em> —— 用户看的是「放心吗」，团长看的是「我拿什么去说」。
+        给团长一个可转发的证据卡，他才有东西发群里。
+      </div>
+      <div class="plan__sk">用户视角：这栋楼吃过 1,240 次
+团长视角：[ 转发到楼群 ]  带「张三推荐」
+⛔ 不得带收益诱导（既有纪律）</div>
+      <div class="plan__foot">
+        <span class="chip chip--c1">成本低</span>
+        <span class="chip chip--c2">分享文案须过合规</span>
+        <span class="chip chip--n">同一份数据两视图</span>
+      </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="plan plan--top">
+      <div class="plan__top">
+        <span class="plan__no">06</span>
+        <span class="plan__lv plan__lv--biz">商业层</span>
+        <span class="plan__star">你提的「顺风车」在这</span>
+      </div>
+      <div class="plan__t">午餐之外</div>
+      <div class="plan__one">你最值钱的资产不是盒饭，是那趟履约</div>
+      <div class="plan__ins">
+        <span class="tagi">洞察</span><br>
+        ⭐ <em>ABox 最值钱的资产不是盒饭，是「每天 11:30 准时出现在写字楼」的履约能力。
+        这个能力现在一天只用一次 —— 同一趟完全可以带下午茶、水果、日用品。</em>
+        供应商也不止能做一道菜：周末家庭装、节日礼盒。<br>
+        ⭐ 合规关键：<em>ABox 自营买断再卖</em>（跟现在采购盒饭一模一样）⇒ 不是开放入驻，<b>不触发平台定性</b>。
+        这就是你第二轮说的顺风车的正确做法。
+      </div>
+      <div class="plan__sk">三味屋 · 除了给 ABox 出这道菜
+本周六 川味卤味家庭装（3–4 人份）
+走的就是你这一趟配送
+⚠️ 自营买断，不是商家入驻</div>
+      <div class="plan__foot">
+        <span class="chip chip--c3">成本高</span>
+        <span class="chip chip--c3">许可范围须覆盖新品类</span>
+        <span class="chip chip--n">周末需另排运力</span>
+      </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="plan plan--top">
+      <div class="plan__top">
+        <span class="plan__no">07</span>
+        <span class="plan__lv plan__lv--biz">商业模式</span>
+        <span class="plan__star">杠杆最大</span>
+      </div>
+      <div class="plan__t">从每天卖，变成每月收</div>
+      <div class="plan__one">盒饭生意的终局是订阅，不是零售</div>
+      <div class="plan__ins">
+        <span class="tagi">洞察</span><br>
+        ⭐ 现在是<em>每天把同一个东西重新卖一遍</em> —— 每天都要重新获客、重新说服、重新备货。<br>
+        订阅制一次解决三件事：<em>现金流前置</em>、<em>复购 100%</em>、<em>备货完全确定</em>（损耗归零）。<br>
+        例：¥516/月 · 20 餐（折 ¥25.8/餐，单价不变，卖的是确定性）。<br>
+        ⭐ 这条远超「页面」，但它是这个生意<em>最大的杠杆</em> —— 你请的人不能只看你给的框。
+      </div>
+      <div class="plan__sk">月度午餐 · ¥516 / 20 餐
+工作日 11:30 到 · 不用每天订
+临时不吃 → 09:30 前请假，顺延</div>
+      <div class="plan__foot">
+        <span class="chip chip--c3">成本最高</span>
+        <span class="chip chip--c2">需定价与顺延规则设计</span>
+        <span class="chip chip--n">不在本页</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tail">
+    <h2>我的排序（如果你只做一件事）</h2>
+    <ol>
+      <li><b>先做第 0 条的测量</b> —— 点「来自：X ›」的人有多少、转化有没有差异。<b>免费的，且可能直接省掉后面所有事。</b></li>
+      <li><b>测量若成立，先做 01（这一盒的证）</b> —— 成本最低、最贴合规义务、且是行业标准做法。</li>
+      <li><b>再上 03（给厨房捎句话）</b> —— 零 DDL、复用既有评价表、解决一条真实存在的断点。</li>
+      <li><b>04（包周）单独排期</b> —— 它不在本页，但它对复购的作用可能比本页任何改造都大。</li>
+      <li><b>06 / 07 是你的战略选项</b> —— 不是页面能承载的，但它们才是这个生意真正的上限。要不要走，你定。</li>
+    </ol>
+    <div class="note">
+      ⛔ 02（请客）我建议<b>排在最后</b>：它的价值我一直很确信，但它跟「省心」这个定位是拧着的 —— 它让用户做事。
+      先做定位内的事，定位外的事等有余力。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

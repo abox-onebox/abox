@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox · 派工包复验与反馈（2026-10-26）</title>
+<style>
+  :root{
+    --brown:#6E5435; --brown-d:#4a3a22; --cream:#F6F0E5; --cream-2:#efe6d6;
+    --line:#d9cbb4; --ok:#3f7d4f; --part:#b07d2b; --gap:#b23b3b; --na:#7a7a7a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"楷体","KaiTi","STKaiti",simkai,serif;color:var(--brown-d);background:var(--cream);line-height:1.65;}
+  header{background:var(--brown);color:var(--cream);padding:22px 28px;}
+  header h1{margin:0 0 4px;font-size:23px;letter-spacing:2px;}
+  header p{margin:0;font-size:13.5px;opacity:.92;}
+  .wrap{max-width:1150px;margin:0 auto;padding:18px 22px 60px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13.5px;}
+  .card h3{margin:0 0 10px;color:var(--brown);font-size:15px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0;}
+  table th,table td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top;}
+  table th{background:var(--cream-2);color:var(--brown);}
+  .v-ok{color:var(--ok);font-weight:bold;}
+  .v-part{color:var(--part);font-weight:bold;}
+  .v-gap{color:var(--gap);font-weight:bold;}
+  .code{font-family:Consolas,Monaco,monospace;font-size:12px;background:var(--cream-2);padding:1px 5px;border-radius:3px;color:#5a4326;word-break:break-all;}
+  .alert{background:#fceaea;border-left:4px solid var(--gap);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .warn{background:#fbf3e3;border-left:4px solid var(--part);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .good{background:#eaf3e8;border-left:4px solid var(--ok);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  ul{margin:6px 0 6px 18px;padding:0;}
+  li{margin:3px 0;}
+  .tag{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;}
+  .t-ok{background:#eaf3e8;color:var(--ok);border:1px solid #b6d3b0;}
+  .t-part{background:#fbf3e3;color:var(--part);border:1px solid #e0caa0;}
+  .t-gap{background:#fceaea;color:var(--gap);border:1px solid #e8b4b4;}
+  footer{font-size:12px;color:var(--na);text-align:center;margin-top:30px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>派工包复验与反馈</h1>
+  <p>2026-10-26 ｜ 对象：《ABox_技术派工包_2026-10-26》｜ 方法：<b>逐条回源复验</b>（不采信任何未核对的文件:行）｜ 结论：<b>A1–A5、B 的事实与行号全部属实</b></p>
+</header>
+
+<div class="wrap">
+
+  <div class="good">
+    <b>总体评价：这份派工包质量很高。</b>我按项目纪律对每条 <span class="code">文件:行</span> 逐条回源核对，
+    他引用的文件全部真实存在（在 <span class="code">apps/api-server/src/</span> 下），
+    <b>行号级证据经我复核全部属实</b>，且他主动做了「反向验证」（grep 零命中）与「已核实不用动」的附录 —— 这是很扎实的做法，应予以肯定。
+  </div>
+
+  <div class="card">
+    <h3>一、复验结论总表</h3>
+    <table>
+      <tr><th style="width:6%">条目</th><th style="width:20%">他的判断</th><th style="width:12%">我的复验</th><th style="width:32%">关键复核证据</th><th>处置</th></tr>
+      <tr><td><b>A1</b></td><td>支付无查单能力</td><td class="v-ok">属实</td><td>wxpay 仅 <span class="code">createPrepay/parseNotify/onPaid/simulatePaid</span>；全仓 grep <span class="code">queryOrder|closeOrder|主动查单|补单</span> <b>零命中</b></td><td class="v-part">未改（功能级，需设计评审）</td></tr>
+      <tr><td><b>A2</b></td><td>幂等键降级致重复执行</td><td class="v-ok">属实</td><td><span class="code">setNx:126 catch → :127 degraded=true → :128</span> 递归走内存；<span class="code">degraded=true</span> 全文件 <b>恰好 7 处</b>，<span class="code">=false</span> 仅 :27 声明；<span class="code">maxRetriesPerRequest:1</span>(:43)/<span class="code">enableOfflineQueue:false</span>(:44)</td><td class="v-ok">已改（fail-closed）</td></tr>
+      <tr><td><b>A3</b></td><td>解除禁令零留痕</td><td class="v-ok">属实</td><td><span class="code">add():29-42</span> 有 <span class="code">createdBy</span>；<span class="code">remove():44-46</span> 仅 <span class="code">repo.delete()</span>；controller <span class="code">remove</span> 确无 <span class="code">@CurrentAdmin</span>（add 有）</td><td class="v-ok">已改（补留痕）</td></tr>
+      <tr><td><b>A4</b></td><td>面额无上限 + 限量绕过</td><td class="v-part">部分成立</td><td>面额：<span class="code">faceValueFen</span> 两处均仅 <span class="code">@Min(1)</span>、无 <span class="code">@Max</span> <b>属实</b>；「绕过」见下方商榷</td><td class="v-part">未改（数值需拍板）</td></tr>
+      <tr><td><b>A5</b></td><td>跑批/日志静默失败</td><td class="v-ok">属实</td><td><span class="code">schedule.service.ts:63-64</span> 注释自承「不落库…看日志，不查表」；无 <span class="code">schedule_run/lastRun</span> 表；<span class="code">operation-log.interceptor:240</span> 仅 WARN</td><td class="v-part">未改（需监控方案）</td></tr>
+      <tr><td><b>B</b></td><td>不可达死代码</td><td class="v-ok">属实</td><td><span class="code">applyScope</span> 第二分支 <span class="code">teamLeaderId IS NULL AND buildingId=…</span> 存在；<span class="code">order.service:337</span> 无条件写 <span class="code">teamLeaderId</span></td><td class="v-part">未改（需先查生产库）</td></tr>
+      <tr><td>附录</td><td>8 条已防住</td><td class="v-ok">基本属实</td><td>乐观锁覆盖 withdraw/commission/refund/reversal/delivery 已见；<span class="code">@Public</span> 计数有出入（见商榷）</td><td class="v-ok">采纳，不动</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>二、已采纳并已修改（2 项）</h3>
+    <div class="good">以下两项判断成立、改动面小且无业务数值待定，我已直接改掉，<b>tsc --noEmit 通过（exit 0）</b>。</div>
+    <table>
+      <tr><th style="width:6%">条目</th><th style="width:26%">改了什么</th><th>为什么这样改</th></tr>
+      <tr>
+        <td><b>A2</b></td>
+        <td><span class="code">common/cache/kv.service.ts</span><br>新增 <span class="code">driverIsRedis</span> 字段，<span class="code">setNx</span> 重写为 <b>fail-closed</b></td>
+        <td>降级有<b>两个入口</b>，只堵一个修不干净：① <span class="code">catch</span> 分支递归走内存；② <span class="code">useMemory()</span> 提前返回（<span class="code">degraded</span> 时同样走内存）。故改成：<b>只要驱动声明为 redis，就永不走内存</b>，Redis 出错直接向上抛；<span class="code">redis</span> 为 null 时抛明确错误。缓存类 <span class="code">get/set/del/incr</span> 保留降级（它们不是正确性原语），与项目队列「fail-closed 抛错不静默降级」口径统一。</td>
+      </tr>
+      <tr>
+        <td><b>A3</b></td>
+        <td><span class="code">modules/admin/op-blocklist/op-blocklist.controller.ts</span><br><span class="code">remove</span> 补 <span class="code">@CurrentAdmin</span> + <span class="code">@OperationLog({… targetParam:'opCode'})</span></td>
+        <td>用装饰器自带的 <span class="code">targetParam</span> 把 <b>opCode 记进日志目标</b>，满足他提的「谁、何时、解除了哪一条」。另加一条：<b>认不出操作人即拒绝解除</b>（本动作是物理删除，无操作人 = 审计断链），不是为凑参数而加。未采用软删方案，因需加列+迁移，留待评估。</td>
+      </tr>
+    </table>
+    <div class="warn">
+      <b>请技术一并维护 A2 的测试脚本</b>：<span class="code">scripts/test-kv-idempotency-degradation.mjs</span> 已确认存在。
+      改成 fail-closed 后，脚本里「不抛错」那条断言的<b>预期语义要同步改为「应抛错」</b> ——
+      他自己也提了这点，我确认属实，请务必照办，别让测试恒绿。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>三、判断正确但我未擅自改（3 项）</h3>
+    <div class="warn">这三条<b>不是他判断错了</b>，而是改动已属「新增功能 / 需业务数值 / 需基建方案」，不宜由我单方面落码。</div>
+    <table>
+      <tr><th style="width:6%">条目</th><th style="width:22%">为何不擅改</th><th>建议下一步</th></tr>
+      <tr><td><b>A1</b></td><td>新增 <span class="code">queryOrder</span> 定时查单任务是<b>新功能</b>，涉及超时阈值、重试上限、补单后动作（通知/计入配送单）的编排，且要动资金路径</td><td>先出一页设计（阈值/重试/异常清单去向），评审后再落码；先做只读对账兜底也可缓解</td></tr>
+      <tr><td><b>A4</b></td><td>补 <span class="code">@Max</span> 需要<b>一个业务数值</b>。他自己也写「数值请祝总定」——我不替祝总定这个数</td><td>请祝总给定上限（他建议不超过单份餐价 ¥25.80），定了即可一行加完</td></tr>
+      <tr><td><b>A5</b></td><td>心跳 + 告警 + 留存归档属<b>可观测性基建</b>，取决于监控往哪接（短信/企微/邮件）、留存期对齐哪个对账周期</td><td>先定「告警触达到谁、留存多久」，再按 <span class="code">page-track-cleanup</span> 的样子做「先归档再删」</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>四、需商榷 / 请纠正（3 点）</h3>
+    <div class="alert">
+      <b>1. A4「不传券种 ID 可整段绕过总量限制」——机制属实，但定性偏重，建议降级表述。</b><br>
+      经核 <span class="code">coupon.service.ts:23</span> 注释原文：<span class="code">关联券种定义 id（用于回写 issuedCount / 限量校验）；<b>纯补偿券可空</b></span>。
+      也就是说 <span class="code">couponDefId</span> 可空是<b>有意设计</b>：售后补偿券本就不挂券种，自然没有「券种总量」可言，
+      也就谈不上「绕过」。同理 <span class="code">issuedCount</span> 只在 <span class="code">if (couponDef)</span> 时回写 —— 无券种则无计数对象，这是自洽的，不是漏写。<br>
+      <b>真正的风险只有一条：面额无上限</b>（这条他抓对了）。<br>
+      建议把 A4 从「内控缺失·可绕过」改述为「<b>补偿券面额缺上限 + 补偿通道缺独立审计</b>」，
+      否则技术会去把 <span class="code">couponDefId</span> 改成必填 —— 那会直接<b>打断祝总最看重的售后补偿发券流程</b>。
+    </div>
+    <div class="warn">
+      <b>2. 附录 V1 的计数不准：<span class="code">@Public</span> 实际是 13 处，不是 10 处。</b><br>
+      精确统计（只算装饰器用法）：traceability 3、auth 3、payment 2、health 2、wecom-kb 1、track 1、meal 1 = <b>13</b>；
+      其余命中都在注释/note 里提到 <span class="code">@Public()</span>，不是用法。<br>
+      <b>结论仍成立</b>（全局 <span class="code">JwtAuthGuard</span> fail-closed、免鉴权端点集中在登录/健康检查/回调/溯源只读等合理场景），
+      只是请把数字修正，以免后续按「10」去核对时对不上、误判多出 3 个敞口。
+    </div>
+    <div class="warn">
+      <b>3. 一处小路径不准</b>：<span class="code">page-track-cleanup.task.ts</span> 实际在
+      <span class="code">modules/track/</span> 下，不在 <span class="code">tasks/</span>（他在正文只写了文件名，未标目录，故不算错；但若按 <span class="code">tasks/</span> 去找会找不到）。
+      另：该任务<b>确实存在且实现完整</b>（<span class="code">PAGE_TRACK_RETENTION_DAYS = 180</span>，删除失败只记 error 不抛出），可作为 A5 留存归档的样板。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>五、D 档 5 条的建议答案（供祝总拍板参考，非定稿）</h3>
+    <table>
+      <tr><th style="width:6%">#</th><th style="width:16%">待拍板</th><th>建议答案（祝总可改）</th></tr>
+      <tr><td><b>D1</b></td><td>非营业日</td><td>工作日营业；周末与法定节假日休市，<b>休市日不开放下单</b>（下单窗口应排除非营业日，而非只在「明日」上做文章）。春节提前公告。已下单遇突发休市 → 走 D2 停售流程</td></tr>
+      <tr><td><b>D2</b></td><td>一键停售</td><td><b>要，且做成一键触发三步</b>：停止接单 + 通知已下单用户 + 自动退款退券。理由：断供/大雪时逐笔人工处理几百单不现实，这正是要自动化的地方</td></tr>
+      <tr><td><b>D3</b></td><td>提现规则</td><td>建议：起提 ¥50、T+1 到账、<b>免手续费</b>、单日上限 ¥2000、当日不可重复申请（五个数值请祝总确认）</td></tr>
+      <tr><td><b>D4</b></td><td>批量退款</td><td>要。按「配送日 / 楼宇」批量，且<b>必须支持断点续退</b>（部分失败可续，避免漏单）</td></tr>
+      <tr><td><b>D5</b></td><td>楼宇停用</td><td>停用前校验无未完结订单；有则先批量退款再停用。<b>楼宇只停用、不硬删</b>，避免悬空订单</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>六、给测试工程师的下一步建议</h3>
+    <ul>
+      <li><b>C 档 5 条（H9/Q1/Q7/S2/S5）建议继续核</b>：它们集中在财务口径与退款冲正，是真金白银的地方。核完请把「自查题」升级成「确证结论」。</li>
+      <li><b>新增一条自查</b>：<span class="code">user.service.ts:141-145</span> 换绑办公楼清空 <span class="code">teamLeaderId</span>（他已列为待观察 X1）——建议一并给出「应不应该现在修」的判定，别只挂观察。</li>
+      <li><b>请补一条 A2 回归证据</b>：改 fail-closed 后，除跑脚本外，建议再补一个「Redis 恢复后业务自动恢复、不需重启」的验证（这是运维最关心的可恢复性）。</li>
+      <li><b>请核实 <span class="code">incr</span> 降级的风险</b>：<span class="code">incr</span> 用于登录失败计数/限流，Redis 抖动时降级到内存会让限流失效（各实例独立计数）。是否也应 fail-closed，建议纳入 A5 一并评估。</li>
+    </ul>
+  </div>
+
+  <footer>
+    ABox 一盒 · 派工包复验与反馈 ｜ 2026-10-26 ｜ 每条结论均经回源核对；A2/A3 已落码且类型检查通过
+  </footer>
+
+</div>
+</body>
+</html>

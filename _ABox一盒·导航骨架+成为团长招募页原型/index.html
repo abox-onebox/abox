@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 导航骨架 + 成为团长招募页原型</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --bg2:#EFE7D8; --surface:#FCFAF5; --surface2:#F2EADB;
+    --ink:#6E5435; --ink-deep:#4A3925; --ink2:#8A7350; --weak:#A99B82;
+    --gold:#C9A86A; --gold-deep:#A8843E; --ok:#5B8C5A; --warn:#B5793A;
+    --line:#E4D8C4; --red:#B05A45;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:"Kaiti SC","STKaiti","KaiTi","楷体",serif;
+    background:var(--bg2); color:var(--ink-deep);
+    line-height:1.7; padding:30px 16px 60px;
+  }
+  .wrap{max-width:1080px; margin:0 auto;}
+  .topbar{
+    background:linear-gradient(135deg,var(--ink),var(--gold-deep));
+    color:var(--bg); border-radius:18px; padding:22px 26px; margin-bottom:22px;
+    box-shadow:0 6px 18px rgba(110,84,53,.18);
+  }
+  .topbar h1{font-size:23px; letter-spacing:1px; margin-bottom:6px;}
+  .topbar p{font-size:13.5px; opacity:.92; line-height:1.8;}
+  .tagrow{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+  .pill{font-size:12px; background:rgba(255,255,255,.16); padding:4px 11px; border-radius:20px;}
+  .sec{background:var(--surface); border-radius:16px; padding:24px 26px; margin-bottom:22px;
+    box-shadow:0 3px 10px rgba(110,84,53,.07); border:1px solid var(--line);}
+  .sec h2{font-size:19px; color:var(--ink); border-left:4px solid var(--gold-deep);
+    padding-left:11px; margin-bottom:6px;}
+  .sec .lead{font-size:13px; color:var(--ink2); margin-bottom:16px;}
+  .note{background:var(--surface2); border-left:4px solid var(--warn); border-radius:8px;
+    padding:12px 16px; font-size:13px; color:var(--ink-deep); margin:14px 0; line-height:1.85;}
+  .note b{color:var(--red);}
+  /* 修正卡 */
+  .fix{background:#FBF3E4; border:1px solid var(--gold); border-radius:12px; padding:16px 18px; margin:14px 0;}
+  .fix h3{font-size:15px; color:var(--gold-deep); margin-bottom:8px;}
+  .fix p{font-size:13px; line-height:1.85; color:var(--ink-deep);}
+  .fix code{background:#fff; border:1px solid var(--line); border-radius:5px; padding:1px 6px; font-size:12.5px; color:var(--ink);}
+  /* 手机框并排 */
+  .phones{display:flex; gap:26px; flex-wrap:wrap; justify-content:center; margin:18px 0;}
+  .phone{width:300px; background:#fff; border-radius:30px; border:9px solid var(--ink-deep);
+    box-shadow:0 10px 26px rgba(74,57,37,.22); overflow:hidden; position:relative;}
+  .phone .scr{height:560px; overflow-y:auto; background:var(--bg);}
+  .phone .ph-cap{text-align:center; font-size:13px; font-weight:700; color:var(--ink); margin-bottom:6px;}
+  .phone .ph-sub{text-align:center; font-size:11.5px; color:var(--weak); margin-bottom:10px;}
+  .stat{background:var(--ink-deep); color:var(--bg); font-size:11px; padding:6px 14px; display:flex; justify-content:space-between;}
+  .navtop{background:var(--surface); border-bottom:1px solid var(--line); padding:11px 14px; font-size:14px; font-weight:700; color:var(--ink); text-align:center;}
+  .demo-body{padding:18px 16px 14px;}
+  .demo-body .blk{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px;}
+  .demo-body .blk .t{font-size:13px; font-weight:700; color:var(--ink); margin-bottom:4px;}
+  .demo-body .blk .d{font-size:11.5px; color:var(--weak); line-height:1.7;}
+  /* 底部 tab 原型 */
+  .tabbar{display:flex; background:var(--surface); border-top:1px solid var(--line);}
+  .tabbar .t{flex:1; text-align:center; padding:9px 0 7px; font-size:11px; color:var(--weak);}
+  .tabbar .t.on{color:var(--ink); font-weight:700;}
+  .tabbar .t .dot{display:block; font-size:15px; margin-bottom:2px;}
+  .tabbar .t.on .dot{color:var(--gold-deep);}
+  /* 状态机 */
+  .machine{display:flex; gap:14px; flex-wrap:wrap; align-items:center; justify-content:center; margin:14px 0;}
+  .mnode{background:var(--surface); border:1.5px solid var(--gold); border-radius:12px; padding:12px 16px; min-width:130px; text-align:center;}
+  .mnode .mt{font-size:13px; font-weight:700; color:var(--ink);}
+  .mnode .md{font-size:11px; color:var(--weak); margin-top:3px;}
+  .marr{font-size:22px; color:var(--gold-deep);}
+  /* 命名表 */
+  table{width:100%; border-collapse:collapse; margin:12px 0; font-size:12.5px;}
+  th,td{border:1px solid var(--line); padding:9px 11px; text-align:left; vertical-align:top;}
+  th{background:var(--surface2); color:var(--ink); font-weight:700;}
+  td b{color:var(--ink-deep);}
+  /* 招募页手机 */
+  .recruit .hero{background:linear-gradient(135deg,var(--ink),var(--gold-deep)); color:var(--bg); padding:22px 18px 20px;}
+  .recruit .hero .k{font-size:11.5px; opacity:.9; letter-spacing:1px;}
+  .recruit .hero h3{font-size:20px; margin:6px 0 8px; letter-spacing:1px;}
+  .recruit .hero p{font-size:12.5px; line-height:1.85; opacity:.95;}
+  .recruit .sec2{padding:16px 16px 8px;}
+  .recruit .card{background:var(--surface); border:1px solid var(--line); border-radius:13px; padding:14px; margin-bottom:13px;}
+  .recruit .card .tt{font-size:14.5px; font-weight:700; color:var(--ink); margin-bottom:8px; border-left:3px solid var(--gold-deep); padding-left:8px;}
+  /* 佣金阶梯 */
+  .ladder{display:flex; gap:7px; margin:6px 0 2px;}
+  .ladder .lv{flex:1; background:var(--surface2); border-radius:9px; padding:9px 4px; text-align:center;}
+  .ladder .lv .lp{font-size:16px; font-weight:700; color:var(--gold-deep);}
+  .ladder .lv .ln{font-size:10.5px; color:var(--ink2); margin-top:2px;}
+  .ladder .lv .lr{font-size:9.5px; color:var(--weak); margin-top:3px; line-height:1.4;}
+  .lvv{font-size:11px; color:var(--weak); line-height:1.7; margin-top:6px;}
+  /* 两类参与 */
+  .twocol{display:flex; gap:10px;}
+  .twocol .card{flex:1; margin-bottom:13px;}
+  .twocol .card .badge{display:inline-block; font-size:10.5px; background:var(--ink); color:var(--bg); border-radius:12px; padding:2px 9px; margin-bottom:7px;}
+  .twocol .card .dt{font-size:11.5px; color:var(--ink2); line-height:1.8;}
+  /* CTA */
+  .cta{background:linear-gradient(135deg,var(--ink),var(--gold-deep)); color:var(--bg); text-align:center;
+    border-radius:14px; padding:14px; font-size:15px; font-weight:700; margin:8px 16px 0; letter-spacing:1px;}
+  .cta2{text-align:center; font-size:12.5px; color:var(--ink2); padding:10px 16px 4px; text-decoration:underline; cursor:pointer;}
+  .foot-note{font-size:10.5px; color:var(--weak); padding:10px 16px 18px; line-height:1.7;}
+  /* 合规 */
+  .risk{background:#FBEDE7; border:1px solid var(--red); border-radius:12px; padding:14px 18px; margin:14px 0;}
+  .risk h3{font-size:14px; color:var(--red); margin-bottom:8px;}
+  .risk p{font-size:12.5px; line-height:1.85; color:var(--ink-deep);}
+  .od{background:var(--surface2); border-radius:12px; padding:16px 18px; margin-top:10px;}
+  .od h3{font-size:14px; color:var(--ink); margin-bottom:8px;}
+  .od li{font-size:12.5px; color:var(--ink-deep); line-height:1.9; margin-left:18px;}
+  .footer{text-align:center; font-size:11px; color:var(--weak); margin-top:20px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <h1>ABox 一盒 · 导航骨架 + 成为团长招募页原型</h1>
+    <p>按"先 B 再 A"推进：B 敲死两套导航骨架与角色切换逻辑（并修正一个前提误解），A 出「成为团长」招募页完整原型。<br>
+    全部佣金阶梯与等级门槛取自现有代码常量 <code style="color:#fff">LEVEL_UP_RULE</code>；本文件为原型讨论稿，不涉及落码。</p>
+    <div class="tagrow">
+      <span class="pill">B · 导航骨架先决</span>
+      <span class="pill">A · 招募页落地</span>
+      <span class="pill">零 emoji</span>
+      <span class="pill">品牌楷体 · 米/棕</span>
+    </div>
+  </div>
+
+  <!-- ============ B 部分 ============ -->
+  <div class="sec">
+    <h2>Part B · 导航骨架（先决）</h2>
+    <p class="lead">决定全 App 导航骨架，比单页更先决。先把"两套 tab"的真实情况摆清楚。</p>
+
+    <div class="fix">
+      <h3>先修正一个前提误解</h3>
+      <p>你记忆里是"普通用户 4 tab、团长 4 tab，两个都叫团长所以冲突"。<b>真实代码不是这样</b>（<code>ab-bottom-bar/index.vue:66-102</code>）：<br>
+      全 App 是<b>一套动态底部栏</b>——基础 4 项 <code>首页 / 供应商 / 订单 / 我的</code>，当 <code>leaderStore.isLeader=true</code>（团长身份）时，在"订单"前<b>追加第 5 项"团长"(crown → /pages/leader/workbench)</b>。<br>
+      也就是说：<b>同一用户不会同时看到两套 tab</b>，第 5 项只在已是团长时出现。你担心的"两个都叫团长"在真实架构里并不成立——但"命名容易混"的直觉是对的，下面用命名方案解决。</p>
+    </div>
+
+    <div class="note">
+      <b>关键落点：</b>底部第 2 个 tab 现在就叫 <b>「供应商」</b>（→ <code>/pages/supplier/list</code> 资质墙列表）。你前面说的"供应商页冗余、想替换"，指的就是这个 tab 的落点。资质展示已被首页点菜弹窗吸收，所以这一格可以重定位为招募入口。
+    </div>
+
+    <h3 style="font-size:15px;color:var(--ink);margin:18px 0 4px;">两套导航态真身（手机框对照）</h3>
+    <div class="phones">
+      <div>
+        <div class="ph-cap">食客态（未当团长）</div>
+        <div class="ph-sub">底部 4 项</div>
+        <div class="phone">
+          <div class="stat"><span>9:41</span><span>ABox 一盒</span></div>
+          <div class="navtop">个人中心</div>
+          <div class="scr">
+            <div class="demo-body">
+              <div class="blk"><div class="t">你是本楼食客</div><div class="d">自动跟随李姐预订，明天 11:30 送到工位。</div></div>
+              <div class="blk"><div class="t">想多赚一份收入？</div><div class="d">这栋楼还缺一个团长，把这一盒送到每一层楼，每单赚 8%–12%。</div></div>
+              <div class="blk"><div class="t">严选厨房（资质透明）</div><div class="d">我们合作的夫妻小店，拒绝预制菜与脏乱差。</div></div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="t on"><span class="dot">⌂</span>首页</div>
+            <div class="t"><span class="dot">▣</span>供应商</div>
+            <div class="t"><span class="dot">≣</span>订单</div>
+            <div class="t"><span class="dot">◷</span>我的</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="ph-cap">团长态（已是团长）</div>
+        <div class="ph-sub">底部 5 项（多"团长"）</div>
+        <div class="phone">
+          <div class="stat"><span>9:41</span><span>ABox 一盒</span></div>
+          <div class="navtop">团长工作台</div>
+          <div class="scr">
+            <div class="demo-body">
+              <div class="blk"><div class="t">今日已取货 · 待分发 48 份</div><div class="d">12 层 × 4 份，逐层送上楼。</div></div>
+              <div class="blk"><div class="t">本月佣金 ¥612.40</div><div class="d">当前等级：正式（9%）。再介绍 1 名转正团长升金牌。</div></div>
+              <div class="blk"><div class="t">邀请工具</div><div class="d">一键生成专属邀请码，介绍朋友当团长。</div></div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="t"><span class="dot">⌂</span>首页</div>
+            <div class="t"><span class="dot">▣</span>供应商</div>
+            <div class="t"><span class="dot">≣</span>订单</div>
+            <div class="t on"><span class="dot">◈</span>团长</div>
+            <div class="t"><span class="dot">◷</span>我的</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-size:15px;color:var(--ink);margin:18px 0 4px;">命名方案（解决"两个都叫团长"的观感）</h3>
+    <table>
+      <tr><th>用户状态</th><th>对应页</th><th>命名</th><th>入口位置</th><th>说明</th></tr>
+      <tr><td>未当团长</td><td>招募页（基于 <code>leader-apply</code> 扩展）</td><td><b>成为团长</b>（动词·入职前）</td><td>① 底部第 2 tab 落点改此页（替换"供应商"）<br>② 首页横幅（仅非团长见）<br>③ "我的"页卡片</td><td>同一用户未当团长时只看得到它</td></tr>
+      <tr><td>已当团长</td><td>工作台 <code>/pages/leader/workbench</code></td><td><b>团长工作台</b>（入职后）</td><td>底部第 5 项"团长"(crown)</td><td>同一用户当团长后才出现</td></tr>
+      <tr><td colspan="5" style="background:var(--surface2);color:var(--ink2)">两者靠"成为 / 工作台"区分<b>前后状态</b>，且同一用户只看其一 → 命名不冲突。进阶：招募页内放一个<b>工作台预览</b>（标"当上后长这样"），用工作台页面来"替代介绍页"，但不另立实体页。</td></tr>
+    </table>
+
+    <h3 style="font-size:15px;color:var(--ink);margin:18px 0 4px;">角色切换逻辑（状态机）</h3>
+    <div class="machine">
+      <div class="mnode"><div class="mt">食客态</div><div class="md">isLeader = false</div></div>
+      <div class="marr">→</div>
+      <div class="mnode"><div class="mt">提交申请</div><div class="md">leader-apply<br>提交即生效</div></div>
+      <div class="marr">→</div>
+      <div class="mnode"><div class="mt">团长态</div><div class="md">isLeader = true<br>底部现第 5 项</div></div>
+    </div>
+    <p class="lvv">真实对账：<code>App.vue</code> 冷启动 + <code>onShow</code> 都用 <code>GET /auth/me</code> 重新核对 <code>isLeader</code>（2026-10-21 加固，修"先闪团长 tab 再消失"瑕疵）。见习 30 天未促单 → 资格自动取消 → 回落食客态。切换天然由身份驱动，无需手动切 tab。</p>
+
+    <div class="note">
+      替换路径建议：把底部第 2 tab 的 <code>label</code> 从"供应商"改为"<b>成为团长</b>"、<code>path</code> 从 <code>/pages/supplier/list</code> 改为招募页；原资质墙内容<b>下沉</b>到招募页内的"严选厨房"小节 + 首页点菜弹窗。这样"供应商"tab 不消失、位置不变，落点换了，用户零学习成本。
+    </div>
+  </div>
+
+  <!-- ============ A 部分 ============ -->
+  <div class="sec">
+    <h2>Part A · 成为团长招募页完整原型</h2>
+    <p class="lead">基于现有 <code>leader-apply</code>（"申请成为团长·提交即生效"）扩展。核心：把"省心/放心"价值观延伸到团长——你多走几层楼，买用户省心。</p>
+
+    <div class="phones">
+      <div>
+        <div class="ph-cap">成为团长（招募页）</div>
+        <div class="ph-sub">二级页 · 可滚动完整内容</div>
+        <div class="phone recruit">
+          <div class="stat"><span>9:41</span><span>ABox 一盒</span></div>
+          <div class="navtop">‹ 返回 · 成为团长</div>
+          <div class="scr">
+            <div class="hero">
+              <div class="k">ABox 一盒 · 团长招募</div>
+              <h3>把这一盒，送到每一层楼</h3>
+              <p>你多走几层楼，别人就少跑一趟腿。<br>一盒饭的"省心"，是团长一层一层爬出来的。</p>
+            </div>
+
+            <div class="sec2">
+              <div class="card">
+                <div class="tt">你的佣金阶梯（卖一盒赚一盒）</div>
+                <div class="ladder">
+                  <div class="lv"><div class="lp">8%</div><div class="ln">见习</div><div class="lr">提交即生效</div></div>
+                  <div class="lv"><div class="lp">9%</div><div class="ln">正式</div><div class="lr">月单&gt;30<br>介绍1人</div></div>
+                  <div class="lv"><div class="lp">10%</div><div class="ln">金牌</div><div class="lr">月单&gt;60<br>介绍2人</div></div>
+                  <div class="lv"><div class="lp">12%</div><div class="ln">首席</div><div class="lr">月单&gt;100<br>介绍3人</div></div>
+                </div>
+                <div class="lvv">每单 ¥25.80，见习每单约赚 ¥2.06。等级越高抽成越多——而升级硬门槛是"月单量 + 介绍 N 名转正团长"。数据取自 <code>LEVEL_UP_RULE</code>，示意值。</div>
+              </div>
+
+              <div class="card">
+                <div class="tt">团长到底做什么（不美化）</div>
+                <div class="d" style="font-size:11.5px;color:var(--ink2);line-height:1.85;">
+                  清晨到取货点统一取餐 → 回楼逐层送上楼 → 用户零走动。<br>
+                  一栋楼约 30 份/日，爬 12 层。辛苦是真的，但复购高、邻里信任也真。<br>
+                  <b style="color:var(--ink);">这份辛苦，就是用户"省心"的来源。</b>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="tt">两种参与方式，任选</div>
+                <div class="twocol">
+                  <div class="card">
+                    <div class="badge">方式一</div>
+                    <div class="dt"><b style="color:var(--ink);">自己当团长</b><br>提交即生效，零押金。诚实告知：见习 30 天未促单，资格自动取消。</div>
+                  </div>
+                  <div class="card">
+                    <div class="badge">方式二</div>
+                    <div class="dt"><b style="color:var(--ink);">只介绍、不当</b><br>觉得身边谁适合？介绍 1 名朋友转正，你得现金红包（单层，不抽其下线）。</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="tt">当上后长这样（工作台预览 · 非真实页）</div>
+                <div class="d" style="font-size:11.5px;color:var(--ink2);line-height:1.85;">
+                  · 今日取货 / 待分发份数<br>
+                  · 本月佣金 + 当前等级<br>
+                  · 我服务的办公楼 + 团员列表<br>
+                  · 佣金流水 / 提现申请
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="tt">严选厨房（资质透明）</div>
+                <div class="d" style="font-size:11.5px;color:var(--ink2);line-height:1.85;">
+                  你即将代表的，是拒绝预制菜、拒绝脏乱差的夫妻小店。点任意一道菜，可在首页看营业执照 / 门头 / 大厅 / 厨房实拍。
+                </div>
+              </div>
+            </div>
+
+            <div class="cta">立即申请成为团长</div>
+            <div class="cta2">我暂时不当，先介绍朋友 ›</div>
+            <div class="foot-note">
+              申请即代表同意《团长协议》（v1.0）。佣金按售价计提，次月结算。介绍奖励为单层现金红包，非分销抽成。
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="risk">
+      <h3>合规红线（专业增量，落码前必须对齐）</h3>
+      <p>
+        1. <b>二级分销红线</b>：介绍他人当团长的奖励，必须钉死在"你 → 新团长"这一层。绝不能做 cascade（你推荐的团长带来的团员你也抽成），那踩微信"诱导分享 / 二级分销"严打条款。<br>
+        2. <b>招募入口不进下单流</b>：只放底部 tab（替换供应商）+ 首页横幅（非团长）+ 我的页卡片。一旦在"预订/支付"流程里弹招募，就背叛了 Part ① 的"省心"北极星。<br>
+        3. <b>如实写风险</b>：见习 30 天未促单取消资格、需逐层爬楼——写清楚反而提升留存（招来的人知道真实辛苦，做两周就跑才是真损耗）。<br>
+        4. <b>不出现第三方平台名</b>：全页只写"ABox 一盒 / 本楼"，不出现任何外卖或社交平台名（五项禁令）。
+      </p>
+    </div>
+
+    <div class="od">
+      <h3>Open Decisions（待你拍板）</h3>
+      <ul>
+        <li><b>替换方式</b>：方案 B 建议"改底部第 2 tab 落点"——你认可 label 从"供应商"改为"成为团长"吗？还是想保留"供应商"、另开一个 tab？</li>
+        <li><b>介绍奖励金额</b>：原型写"介绍 1 人转正得现金红包"，具体金额（示意 ¥30）待定，且需确认是否叠加到 <code>LEVEL_UP_RULE.referrals</code> 升级计数。</li>
+        <li><b>工作台预览</b>：招募页内嵌"当上后长这样"预览，是否保留？还是让 prospect 自己点进真工作台看？</li>
+        <li><b>落码时机</b>：本文件为原型讨论；确认后我可把 <code>leader-apply</code> 按此扩展，并改 <code>ab-bottom-bar</code> 第 2 项落点。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">ABox 一盒 · 原型讨论稿（2026-10-22）· 数据取自现有代码常量，落码时由服务端下发真实值 · 零 emoji</div>
+
+</div>
+</body>
+</html>

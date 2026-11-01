@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox · D3 提现规则定稿（含落地规格）</title>
+<style>
+  :root{
+    --brown:#6E5435; --brown-d:#4a3a22; --cream:#F6F0E5; --cream-2:#efe6d6;
+    --line:#d9cbb4; --ok:#3f7d4f; --part:#b07d2b; --gap:#b23b3b; --na:#7a7a7a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"楷体","KaiTi","STKaiti",simkai,serif;color:var(--brown-d);background:var(--cream);line-height:1.68;}
+  header{background:var(--brown);color:var(--cream);padding:22px 28px;}
+  header h1{margin:0 0 4px;font-size:23px;letter-spacing:2px;}
+  header p{margin:0;font-size:13.5px;opacity:.92;}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px 22px 60px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13.5px;}
+  .card h3{margin:0 0 10px;color:var(--brown);font-size:15px;}
+  .card h4{margin:14px 0 6px;color:var(--brown);font-size:13.5px;}
+  table{width:100%;border-collapse:collapse;font-size:12.8px;margin:10px 0;}
+  table th,table td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
+  table th{background:var(--cream-2);color:var(--brown);}
+  .v-ok{color:var(--ok);font-weight:bold;}
+  .v-part{color:var(--part);font-weight:bold;}
+  .v-gap{color:var(--gap);font-weight:bold;}
+  .code{font-family:Consolas,Monaco,monospace;font-size:11.8px;background:var(--cream-2);padding:1px 5px;border-radius:3px;color:#5a4326;word-break:break-all;}
+  .alert{background:#fceaea;border-left:4px solid var(--gap);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .warn{background:#fbf3e3;border-left:4px solid var(--part);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .good{background:#eaf3e8;border-left:4px solid var(--ok);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  ul{margin:6px 0 6px 18px;padding:0;}
+  li{margin:3px 0;}
+  .kpi{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0;}
+  .kpi div{flex:1;min-width:150px;background:var(--cream-2);border:1px solid var(--line);border-radius:8px;padding:10px 14px;text-align:center;}
+  .kpi b{display:block;font-size:19px;color:var(--brown);}
+  .kpi span{font-size:12px;color:var(--na);}
+  pre{background:var(--cream-2);border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-family:Consolas,Monaco,monospace;font-size:11.6px;overflow-x:auto;line-height:1.55;}
+  footer{font-size:12px;color:var(--na);text-align:center;margin-top:30px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>D3 提现规则 · 定稿与落地规格</h1>
+  <p>2026-10-26 用户拍板 ｜ 每条均按「文件:行」回源 ｜ 口径真源 = <span class="code">config.specs.ts</span></p>
+</header>
+
+<div class="wrap">
+
+  <div class="kpi">
+    <div><b>不限</b><span>起提金额（地板 ¥0.01）</span></div>
+    <div><b>T+1</b><span>审批通过后 1 个工作日</span></div>
+    <div><b>¥2000</b><span>单日上限 / 人 / 自然日</span></div>
+    <div><b>1 笔</b><span>当日不可重复申请</span></div>
+    <div><b>0</b><span>平台手续费（个税代扣代缴）</span></div>
+  </div>
+
+  <div class="card">
+    <h3>一、终版规则（已拍板，可直接派工）</h3>
+    <table>
+      <tr><th style="width:14%">项</th><th style="width:20%">终值</th><th>口径说明（写给技术的边界，避免理解偏差）</th></tr>
+      <tr><td>起提金额</td><td class="v-ok">不限</td><td>不设 ¥50 门槛。地板由 DTO 兜住：<span class="code">@Min(0.01)</span> ⇒ 提 ¥0 被拒，¥0.01 可提。<b>「不限」之所以成立，是因为「当日 1 笔」已经把人工打款笔数锁住了</b>（一人一天最多一笔）。</td></tr>
+      <tr><td>到账时限</td><td class="v-ok">T+1</td><td>审批通过后 <b>1 个工作日</b>内到账，节假日顺延。见第五节 —— 系统侧只能做「承诺 + 可观测」，<b>做不出自动到账</b>。</td></tr>
+      <tr><td>手续费</td><td class="v-ok">不收</td><td>平台不收手续费。<b>但个税由灵活用工平台依法代扣代缴</b>（C11 口径），团长到手是税后金额 —— 端上必须说清，否则团长会把代扣个税当成「平台扣了手续费」。</td></tr>
+      <tr><td>单日上限</td><td class="v-ok">¥2000</td><td>每人每自然日（北京时间 00:00–24:00）累计申请额上限。含本次；驳回/失败<b>不计入</b>。</td></tr>
+      <tr><td>当日笔数</td><td class="v-ok">1 笔</td><td>同一团长同一自然日已有非终态（pending/approved/paying/success）申请 ⇒ 再提直接拒。驳回/失败后可再提。</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>二、改动前的现状（我已逐条回源，别再重复查）</h3>
+    <table>
+      <tr><th style="width:18%">能力</th><th style="width:12%">现状</th><th>回源位置</th></tr>
+      <tr><td>起提金额</td><td class="v-ok">已有·可配</td><td><span class="code">withdraw.service.ts:53-66</span> 读 <span class="code">commission.min_withdraw</span>（<span class="code">biz-config.service.ts:179-181</span>，默认 <b>10</b>）；后台配置页已上架 <span class="code">config.specs.ts:247-259</span>（type=money，min=0）</td></tr>
+      <tr><td>单日上限</td><td class="v-gap">完全没有</td><td>全仓 grep <span class="code">dailyLimit / minAmount / daily_limit</span> <b>零命中</b></td></tr>
+      <tr><td>当日重复</td><td class="v-gap">完全没有</td><td>同上；<span class="code">apply()</span> 只有「最低额 / 收款方式 / 余额」三道校验</td></tr>
+      <tr><td>手续费</td><td class="v-ok">本就不收</td><td><span class="code">withdraw.service.ts:142</span> <span class="code">taxWithheldAmount='0.00'</span>（个税在打款时按实登记）</td></tr>
+      <tr><td>到账</td><td class="v-part">人工回填</td><td><span class="code">withdraw-admin.service.ts:365 markPaid</span>；<b>全仓无第三方打款调用</b>（一期 <span class="code">FLEX_MANUAL</span>）</td></tr>
+      <tr><td>当日查询索引</td><td class="v-ok">已具备</td><td><span class="code">withdraw.entity.ts:22</span> <span class="code">idx_withdraw_leader_time(leaderId, createdAt)</span> ⇒ 当日聚合走索引，<b>无需新建索引</b></td></tr>
+      <tr><td>并发保护</td><td class="v-ok">已有</td><td><span class="code">withdraw.service.ts:96-109</span> <span class="code">ab_balance</span> 乐观锁（<span class="code">version+1</span>）</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>三、逐条落地规格</h3>
+
+    <h4>1）起提不限 —— 零代码，只改配置</h4>
+    <div class="good">
+      后台把 <span class="code">commission.min_withdraw</span> 设为 <b>0</b> 即可（配置页已存在，<b>不用改代码、不用发版</b>）。<br>
+      建议顺手做两处一致性修改：<br>
+      ① <span class="code">biz-config.service.ts:180</span> 默认值 <span class="code">10</span> → <span class="code">0</span>（避免新环境出厂就是 ¥10 门槛）；<br>
+      ② <span class="code">config.specs.ts:254</span> 描述原写「避免小额出款被手续费吃掉」—— 与「不收手续费 + 不限起提」的定稿口径<b>冲突</b>，改为「0 = 不限起提金额」。
+    </div>
+
+    <h4>2）单日上限 ¥2000 —— 新增</h4>
+    <ul>
+      <li>新增配置键 <span class="code">commission.withdraw_daily_limit</span>（money，默认 <b>2000</b>，min 0），在 <span class="code">config.specs.ts</span> 登记 <span class="code">wiring:'live'</span></li>
+      <li><span class="code">BizConfigService</span> 加 <span class="code">withdrawDailyLimit()</span>（与 <span class="code">minWithdraw()</span> 同款写法）</li>
+      <li>错误码 <b>40024 WITHDRAW_DAILY_LIMIT_EXCEEDED</b>（enum + ERROR_MESSAGE 两处同时登记，门禁 <span class="code">errcode:message</span> 会查）</li>
+      <li>判定：北京时区自然日区间，含本次申请额；状态计入 pending/approved/paying/success，<b>rejected/failed 不计</b></li>
+    </ul>
+
+    <h4>3）当日不可重复 —— 新增</h4>
+    <ul>
+      <li>新增配置键 <span class="code">commission.withdraw_daily_count</span>（int，默认 <b>1</b>，min 0；0 表示不限制）</li>
+      <li>错误码 <b>40025 WITHDRAW_DAILY_DUPLICATED</b></li>
+      <li>与上面第 2 条<b>合并成一次查询</b>即可（同一区间一次取 <span class="code">SUM(amount)</span> + <span class="code">COUNT(1)</span>），先判笔数、再判金额，两个码分别抛</li>
+    </ul>
+
+    <h4>4）T+1 —— 分两步，别试图一步做出自动到账</h4>
+    <div class="warn">
+      <b>硬事实：现在没有自动打款能力</b>（<span class="code">markPaid</span> 是人工回填，一期 <span class="code">FLEX_MANUAL</span>）。<br>
+      所以 T+1 只能落成「<b>对外承诺 + 内部可观测</b>」，要「审批后立即到账」必须先接 <span class="code">FLEX_API</span>（二期）。
+    </div>
+    <table>
+      <tr><th style="width:10%">方案</th><th style="width:16%">成本</th><th>内容</th></tr>
+      <tr>
+        <td class="v-ok">甲（建议先做）</td><td>不动表结构</td>
+        <td>
+          ① <span class="code">withdraw.service.ts:166</span> tips 改为「运营审批后 <b>1 个工作日内</b>到账（节假日顺延）」；<br>
+          ② 后台待打款清单加「等待时长 = now − auditAt」，<b>超过 1 个工作日标红</b>（周末用 JS 判定；法定节假日全仓无配置 ⇒ 只按周末顺延，法定假人工兜底）；<br>
+          ③ 端上 L13 提现记录：pending/approved 态展示「预计 X 前到账」
+        </td>
+      </tr>
+      <tr>
+        <td>乙（要做精确承诺时）</td><td>加 1 列 + 1 支迁移</td>
+        <td>
+          <span class="code">ab_withdraw</span> 增可空列 <span class="code">expected_arrival_at</span>（datetime），审批通过时按「auditAt + 1 个工作日」写入；后台按此列排序与逾期标红。<br>
+          ⚠️ 新列<b>必须显式写</b> <span class="code">name: 'expected_arrival_at'</span> —— 本仓 TypeORM 不做 camelCase→snake_case 自动转换，漏写 ⇒ 生产建 <span class="code">expectedArrivalAt</span>、迁移建 <span class="code">expected_arrival_at</span>，<span class="code">schema:parity</span> 同时报「缺列 + 多列」
+        </td>
+      </tr>
+    </table>
+
+    <h4>5）手续费 —— 只改文案，不改逻辑</h4>
+    <div class="good">
+      逻辑本来就不收。只需把端上表述写全：<b>「平台不收手续费；个税由灵活用工平台依法代扣代缴，到账为税后金额」</b>。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>四、两个必须守住的实现纪律</h3>
+    <div class="alert">
+      <b>① 日累计/笔数校验必须放在事务内。</b>放在事务外读、事务内写，两个并发请求会「都读到旧值、都通过」。<br>
+      好消息是并发兜底已经存在：<span class="code">ab_balance</span> 乐观锁（<span class="code">version+1</span> + <span class="code">where version=:v</span>）会让第二个事务 <span class="code">affected=0</span> 直接抛错 —— <b>不需要另加悲观锁</b>。
+    </div>
+    <div class="warn">
+      <b>② 自然日区间别手写。</b>用时间三件套：<span class="code">bjDateTime(dateStr, 24)</span> 取「次日 0 点」作含尾上界（<span class="code">hour</span> 可传 24）；不要用 <span class="code">toISOString().replace('Z','+08:00')</span> —— 那只给 UTC 贴标签，差 8 小时。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>五、验收清单（建议写成脚本并纳入 CI）</h3>
+    <table>
+      <tr><th style="width:6%">#</th><th style="width:44%">场景</th><th>期望</th></tr>
+      <tr><td>1</td><td><span class="code">min_withdraw=0</span> 时提 ¥0.01</td><td class="v-ok">成功建单</td></tr>
+      <tr><td>2</td><td>提 ¥0（或负数）</td><td class="v-ok">DTO 拒，<span class="code">code:10001</span>（HTTP 恒 200）</td></tr>
+      <tr><td>3</td><td>当日已有非终态单，再提一笔</td><td class="v-ok">40025</td></tr>
+      <tr><td>4</td><td>当日累计 &gt; ¥2000</td><td class="v-ok">40024（验时把 <span class="code">daily_count</span> 临时设 2，否则会被 40025 先拦）</td></tr>
+      <tr><td>5</td><td>前一笔被<b>驳回</b>后当日再提</td><td class="v-ok">可提（rejected 不计入笔数与金额）</td></tr>
+      <tr><td>6</td><td>并发两笔同额同时提交</td><td class="v-ok">一笔成功、一笔被乐观锁拦（非双倍出款）</td></tr>
+      <tr><td>7</td><td>跨零点：23:59 提一笔、次日 00:01 再提</td><td class="v-ok">两笔都成功（按北京自然日分段）</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>六、派工摘要（可直接贴给技术）</h3>
+    <pre>【D3 提现规则 · 用户 2026-10-26 定稿】
+起提不限 / T+1 / 免手续费 / 单日 ¥2000 / 当日 1 笔
+
+1. commission.min_withdraw 设为 0（配置，非代码）；同步改 biz-config.service.ts:180 默认值
+   与 config.specs.ts:254 描述（原文「避免小额出款被手续费吃掉」与定稿冲突）
+2. 新增 commission.withdraw_daily_limit=2000（money）
+3. 新增 commission.withdraw_daily_count=1（int，0=不限）
+4. 新增错误码 40024（单日超限）/ 40025（当日重复），enum + ERROR_MESSAGE 两处登记
+5. apply() 事务内一次查当日 SUM+COUNT，先判笔数再判金额
+   · 区间用 bjDateTime(d, 24) 含尾上界；计入 pending/approved/paying/success
+   · 并发由 ab_balance 乐观锁兜底，不加悲观锁
+6. T+1 走方案甲：改 tips 文案 + 后台清单「等待时长/逾期标红」（按 auditAt 算，周末顺延）
+7. 手续费不改逻辑，端上补一句「平台不收手续费，个税由灵活用工平台代扣代缴」
+8. 验收：7 条场景（见上表），建议脚本化并入 CI</pre>
+  </div>
+
+  <footer>
+    ABox 一盒 · D3 提现规则定稿 ｜ 2026-10-26 ｜ 由《派工包 v2》第七节 D3 冲突项收敛而来 ｜ 每条均可按「文件:行」回源核对
+  </footer>
+
+</div>
+</body>
+</html>

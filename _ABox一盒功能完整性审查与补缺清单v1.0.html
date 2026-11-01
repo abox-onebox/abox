@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ABox 一盒 · 功能完整性审查与补缺清单 v1.0</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --surface:#FFFDF8; --ink:#2E2620; --ink-2:#5C5145; --ink-3:#796C57;
+    --brand:#6E5435; --line:#E3D9C6; --line-2:#D2C4A8;
+    --ok:#3F7A4E; --warn:#9A6B1E; --bad:#A63A34; --info:#4A6B8A;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:15px;line-height:1.75;}
+  .wrap{max-width:1080px;margin:0 auto;padding:48px 28px 80px;}
+  h1{font-family:"KaiTi","STKaiti",serif;font-size:34px;margin:0 0 6px;color:var(--brand);letter-spacing:1px;}
+  .sub{color:var(--ink-3);font-size:13px;margin-bottom:8px;}
+  .rule{height:1px;background:var(--line);margin:26px 0 32px;}
+  h2{font-family:"KaiTi","STKaiti",serif;font-size:23px;color:var(--brand);margin:44px 0 14px;
+     border-left:4px solid var(--brand);padding-left:12px;}
+  h3{font-size:16px;color:var(--ink);margin:26px 0 8px;}
+  p{margin:0 0 12px;}
+  .lead{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--brand);
+        padding:16px 18px;border-radius:6px;}
+  table{width:100%;border-collapse:collapse;background:var(--surface);
+        border:1px solid var(--line);font-size:13.5px;margin:12px 0 6px;}
+  th,td{border:1px solid var(--line);padding:9px 11px;vertical-align:top;text-align:left;}
+  th{background:#F1E9D8;color:var(--brand);font-weight:600;white-space:nowrap;}
+  td.mono{font-family:Consolas,"Courier New",monospace;font-size:12.5px;word-break:break-all;}
+  .tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;
+       border:1px solid currentColor;white-space:nowrap;}
+  .t-p0{color:var(--bad);} .t-p2{color:var(--info);} .t-ok{color:var(--ok);} .t-warn{color:var(--warn);}
+  .mini{font-size:12.5px;color:var(--ink-3);}
+  ul{margin:6px 0 14px;padding-left:22px;} li{margin:3px 0;}
+  code{font-family:Consolas,"Courier New",monospace;background:#EFE7D6;
+       padding:1px 5px;border-radius:3px;font-size:12.5px;}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px 18px;margin:14px 0;}
+  .card h4{margin:0 0 8px;font-size:15px;color:var(--brand);}
+  .quote{border-left:3px solid var(--line-2);padding-left:12px;color:var(--ink-2);font-size:13.5px;margin:8px 0;}
+  .steps{counter-reset:s;list-style:none;padding-left:0;}
+  .steps>li{counter-increment:s;position:relative;padding-left:34px;margin:8px 0;}
+  .steps>li::before{content:counter(s);position:absolute;left:0;top:1px;width:22px;height:22px;
+    border-radius:50%;background:var(--brand);color:#fff;font-size:12px;text-align:center;line-height:22px;}
+  footer{margin-top:52px;padding-top:16px;border-top:1px solid var(--line);
+         color:var(--ink-3);font-size:12.5px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>功能完整性审查与补缺清单</h1>
+<div class="sub">ABox 一盒 · 小程序端 + 运营后台 &nbsp;|&nbsp; v1.0 &nbsp;|&nbsp; 2026-10-01 &nbsp;|&nbsp; 门禁结论：24/24 全绿</div>
+<div class="rule"></div>
+
+<div class="lead">
+<p><strong>审查方式</strong>：枚举后端全部 <code>@Controller</code> / <code>@Get|Post|Put|Patch|Delete</code>（83 个 <code>/admin/*</code> 端点），
+与运营后台的 <code>api/*.ts</code> 引用、<code>router/routes.ts</code> 页面注册、前端导航分组三方交叉比对；
+再逐份检查占位文件（空壳 <code>export class X {}</code>）与「有接口无页面 / 有页面无接口 / 有字段无入口」三类不对称。</p>
+<p><strong>结论</strong>：确认 <strong>3 项真缺失</strong>（均已按优先级补完），另有 <strong>3 项经核实并不缺失</strong>（此前被当作缺失，特此排除）。</p>
+</div>
+
+<h2>一、缺失项清单（按优先级）</h2>
+
+<table>
+<thead>
+<tr><th>#</th><th>优先级</th><th>归属端</th><th>缺失项</th><th>影响范围</th><th>建议实现方式</th><th>状态</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td>1</td>
+  <td><span class="tag t-p0">P0</span></td>
+  <td>小程序端<br>+ 后端</td>
+  <td><strong>无法切换 / 自主绑定办公楼</strong></td>
+  <td>所有新用户。<code>building_id</code> 为空时首页报错且<strong>无任何出口</strong>，只能靠邀请链接或人工改库。</td>
+  <td><code>GET /building</code> 拉可选楼栋（只返营业中且未软删）→ 新页 <code>pages/building/switch</code> → <code>PUT /me/building</code>；同时把「未绑楼」从 10004 拆成独立错误码 20016，让端上能区分「可自助」与「要找运营」。</td>
+  <td><span class="tag t-ok">已完成</span></td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><span class="tag t-p0">P0</span></td>
+  <td>小程序端</td>
+  <td><strong>首页空态把所有错误都写成「本楼今日未开团」</strong></td>
+  <td>是第 1 项「看不见」的直接放大器：真实原因被压成一行小字，主按钮只有「重新加载」，点了还是同样结果。</td>
+  <td>按错误码分流：20016 → 主文案「你还没有选择办公楼」+ 按钮「选择办公楼」直达选楼页；10004 → 保持「重新加载」，提示语用服务端 message。</td>
+  <td><span class="tag t-ok">已完成</span></td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><span class="tag t-p0">P0</span></td>
+  <td>运营后台</td>
+  <td><strong>没有 C 端用户管理</strong></td>
+  <td>① <code>ab_user.status=2</code>（黑名单）登录侧有 20006 拦截，但<strong>没有任何入口能把它置上 —— 有锁没钥匙</strong>；② 用户「为什么下不了单」无排查页；③ 改绑楼栋只能改数据库。</td>
+  <td>新增 <code>/admin/users</code>（列表 / 筛选项 / 详情 / 编辑）+ 页面 <code>views/user/list.vue</code>；详情里直接给出「为什么不能下单」的归因；编辑支持改绑与解绑，但<strong>不给 status=3 注销</strong>（注销是用户单向不可逆动作）。</td>
+  <td><span class="tag t-ok">已完成</span></td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><span class="tag t-p2">P2</span></td>
+  <td>运营后台</td>
+  <td><strong>队列状态没有页面</strong>（<code>GET /admin/queue</code> 自 M4-3 就有，全仓 0 引用）</td>
+  <td>队列最大风险是<strong>静默失效</strong>：任务进不去队列、进去了没人消费、重试耗尽只剩一条日志 —— 三种都<strong>不会让接口报错</strong>。没有页面 ⇒ 只能靠用户投诉倒推「退款没重试」。</td>
+  <td>新增 <code>api/queue.ts</code> + <code>views/system/queue.vue</code>，展示驱动/durable/五个计数；<strong>刻意只读</strong>，不做重投与清空（重投一个退款任务会真实出款）。</td>
+  <td><span class="tag t-ok">已完成</span></td>
+</tr>
+</tbody>
+</table>
+
+<h3 style="margin-top:30px">经核实「不缺」的项（此前易被误报，特此排除）</h3>
+<table>
+<thead><tr><th>项目</th><th>核实结论</th></tr></thead>
+<tbody>
+<tr><td>口味红黑榜 / 评价统计（D69）</td><td><strong>已实现</strong>：<code>views/stats/dish-heat.vue</code> 内 <code>heat</code> 与 <code>rating</code> 两个 tab-pane 都在，无需新增。</td></tr>
+<tr><td>权限管理 / 角色授权</td><td><strong>已实现</strong>：<code>system/admin-user.vue</code>（后台账号）+ <code>system/role.vue</code>（角色）+ 后端 <code>admin/system/accounts</code>。角色页「不保存」是刻意设计，不是缺陷。</td></tr>
+<tr><td>「用户管理」是否等于后台账号管理</td><td><strong>不等于</strong>。<code>admin/system/accounts</code> 管的是能登录后台的人；本次新增的 <code>/admin/users</code> 管的是下单的 C 端用户 —— 两者是两张表、两套权限。</td></tr>
+</tbody>
+</table>
+
+<h2>二、改动落点</h2>
+
+<h3>后端 · api-server</h3>
+<table>
+<thead><tr><th>文件</th><th>改动</th></tr></thead>
+<tbody>
+<tr><td class="mono">modules/building/building.service.ts</td><td>由空壳改写：新增 <code>listSelectable()</code>，只返 <code>BuildingStatus.ACTIVE</code> 且 <code>deletedAt IS NULL</code>；每栋楼附带 <code>leaderName</code>（取该楼第一个在职团长，排序与 <code>resolveLeader</code> 一致）。</td></tr>
+<tr><td class="mono">modules/building/building.controller.ts</td><td>由空壳改写：<code>@Controller('building') @Get()</code>。认证走全局 <code>JwtAuthGuard</code>，不加本地守卫。</td></tr>
+<tr><td class="mono">modules/user/dto/user-building.dto.ts</td><td>新增 <code>BindBuildingDto</code>。</td></tr>
+<tr><td class="mono">modules/user/user.service.ts</td><td>新增 <code>bindBuilding()</code>：校验楼栋存在且营业中 · 拒绝已注销用户 · 拒绝在职团长（10003，防止团长把自己挪到别的楼）；<strong>换楼必清 <code>team_leader_id</code></strong>。</td></tr>
+<tr><td class="mono">modules/user/user.controller.ts</td><td>新增 <code>PUT /me/building</code>。</td></tr>
+<tr><td class="mono">modules/user/user.module.ts</td><td>注册 <code>UserAdminController/Service</code>，实体补 <code>Building</code>、<code>BuildingGroup</code>。</td></tr>
+<tr><td class="mono">modules/user/user-admin.{controller,service}.ts<br>dto/user-admin.dto.ts</td><td>新增 <code>/admin/users</code>：列表（含未绑楼计数汇总）· 筛选项 · 详情（余额走 <code>LeaderMoneyService</code> + 近 10 单 + 归因 note）· 编辑（diff 后只提交变更字段）。统计用单次聚合，无 N+1。</td></tr>
+<tr><td class="mono">common/constants/error-code.ts</td><td>新增 <code>USER_BUILDING_UNBOUND = 20016</code> <strong>及 ERROR_MESSAGE 文案</strong>（两处缺一即门禁红）。</td></tr>
+<tr><td class="mono">modules/meal/meal.service.ts</td><td><code>resolveUserGroup</code>：未绑楼由 10004 改为抛 20016（附可读文案）。</td></tr>
+<tr><td class="mono">common/constants/admin-role.ts</td><td>菜单登记 <code>/user/list</code>、<code>/system/queue</code>；新增 <code>OPERATOR_EXTRA_MENUS</code> —— 因 operator 的菜单是「过滤掉 <code>/system/*</code>」派生出来的，而队列控制器白名单含 operator，不显式放行则 operator 看不到该页。</td></tr>
+</tbody>
+</table>
+
+<h3>小程序端 · miniprogram</h3>
+<table>
+<thead><tr><th>文件</th><th>改动</th></tr></thead>
+<tbody>
+<tr><td class="mono">api/building.ts</td><td>新增 <code>fetchBuildings()</code>。</td></tr>
+<tr><td class="mono">api/user.ts</td><td>新增 <code>bindBuilding(buildingId)</code>。</td></tr>
+<tr><td class="mono">api/request.ts</td><td>新增 <code>CODE_BUILDING_UNBOUND = 20016</code>。</td></tr>
+<tr><td class="mono">pages/building/switch.vue</td><td>新增选楼页：顶部显示当前楼 · 列表带每栋楼的团长 · 无团长时弹窗警示 · 选完回退。</td></tr>
+<tr><td class="mono">pages.json</td><td>注册 <code>pages/building/switch</code>。</td></tr>
+<tr><td class="mono">pages/mine/mine.vue</td><td>「切换办公楼」由 toast 占位改为跳转选楼页。</td></tr>
+<tr><td class="mono">pages/index/index.vue</td><td>空态按错误码分流：20016 → 文案 + 「选择办公楼」按钮；其余 → 「重新加载」。</td></tr>
+</tbody>
+</table>
+
+<h3>运营后台 · admin-web</h3>
+<table>
+<thead><tr><th>文件</th><th>改动</th></tr></thead>
+<tbody>
+<tr><td class="mono">api/user.ts</td><td>由 <code>export {}</code> 空壳改写为真实接口 + 完整 TS 类型。</td></tr>
+<tr><td class="mono">api/queue.ts</td><td>新增 <code>fetchQueueStatus()</code>。</td></tr>
+<tr><td class="mono">views/user/list.vue</td><td>新增用户管理页：汇总卡 · 未绑楼警示 · 五项筛选 · 详情抽屉 · 编辑弹窗（含解绑二次确认）。</td></tr>
+<tr><td class="mono">views/system/queue.vue</td><td>新增队列状态页（只读）。</td></tr>
+<tr><td class="mono">router/routes.ts</td><td>注册 <code>user/list</code>、<code>system/queue</code> 两条路由。</td></tr>
+<tr><td class="mono">constants/index.ts</td><td>导航新增「用户」分组（icon <code>users</code>）与「系统 → 队列状态」（icon <code>refresh</code>）。</td></tr>
+</tbody>
+</table>
+
+<h2>三、如何手动验证</h2>
+
+<div class="card">
+<h4>先部署（两端都要重新构建）</h4>
+<ol class="steps">
+<li>后端：在 154.8.164.180 上 <code>docker compose build api &amp;&amp; docker compose up -d api</code>（新增了 <code>/admin/users</code> 与 20016，不重建不会出现）。</li>
+<li>小程序：<code>pnpm run build:mp</code>，再用微信开发者工具打开 <code>dist/build/mp-weixin</code> 预览（AppID 已写在 <code>mp-weixin.appid</code>）。</li>
+</ol>
+</div>
+
+<div class="card">
+<h4>小程序端</h4>
+<ol class="steps">
+<li>用一个<strong>未绑楼</strong>的账号进首页 → 应显示「你还没有选择办公楼」，主按钮是<strong>「选择办公楼」</strong>（不再是「本楼今日未开团 / 重新加载」）。</li>
+<li>点该按钮 → 进入选楼页 → 列表只出现营业中的楼，每栋楼显示其团长；选一栋 → 自动返回。</li>
+<li>回首页应正常展示次日套餐；若该楼无团长，选楼时应先弹窗提示。</li>
+<li>「我的 → 切换办公楼」走同一页；换楼后首页内容应跟着变（原团长关系会清空，这是预期）。</li>
+</ol>
+</div>
+
+<div class="card">
+<h4>运营后台</h4>
+<ol class="steps">
+<li>登录后台 → 左侧新增「<strong>用户</strong>」分组 → 打开用户列表；顶部应出现「未绑楼 N 人」警示（N 与实际一致）。</li>
+<li>用「绑定状态 = 未绑定」筛选 → 结果应全是未绑楼用户，与警示数字对得上。</li>
+<li>点任一行 → 详情抽屉：基本信息、余额（走 <code>LeaderMoneyService</code>）、最近 10 单，以及一段<strong>「为什么不能下单」的归因说明</strong>。</li>
+<li>点「编辑」→ 改绑另一栋楼（或清空 = 解绑）→ 解绑时有二次确认；保存后列表该行应立刻变化。</li>
+<li>已注销（status=3）的用户编辑按钮应不可点 —— 注销不可逆，不由运营代劳。</li>
+<li>「系统 → 队列状态」：看驱动是否为 <code>redis</code>、durable 是否为 true；若显示 <code>memory / durable=false</code> 会有一条红色警示（生产不应如此）。</li>
+</ol>
+</div>
+
+<h2>四、门禁与遗留</h2>
+<p class="mini">本次改动后 <code>node scripts/gate.mjs all</code> → <strong>通过 24/24 · 全绿</strong>。其中两处曾转红并已修：错误码 20016 漏配 <code>ERROR_MESSAGE</code> 文案（会落到「业务异常」四字兜底）；Vue 模板内误写 Markdown 的 <code>**加粗**</code>（在页面上会原样显示星号，且有一处在 script 字符串里、门禁扫不到，只能肉眼发现）。</p>
+
+<h3>遗留建议（本轮未改，低优先级）</h3>
+<ul>
+<li><code>GET /admin/buildings/filter-options</code> 后端已实现，前端零引用 —— 办公楼列表页目前没用它做筛选数据源。</li>
+<li>邀请码 <code>ab_leader_invite.invite_code</code> 种子数据全为 NULL，真实邀请链路仍未打通（选楼页已能绕开此依赖，但团长邀请入口依旧不可用）。</li>
+</ul>
+
+<footer>
+ABox 一盒 · 北京巡礼之年科技有限公司 &nbsp;|&nbsp; 本页由功能完整性审查生成，与代码同仓留档
+</footer>
+
+</div>
+</body>
+</html>

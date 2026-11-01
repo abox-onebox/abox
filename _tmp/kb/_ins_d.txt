@@ -1,0 +1,111 @@
+### 6.11 补登端点（2026-11-01 契约对账补齐）
+
+> **为什么整节补登**：`tests/tools/audit-contract.mjs` 对账出 **52 个「代码有、规范未列」** 的端点 ——
+> 它们**一直在跑、页面也一直在用**，但规范里从没有一行字写过。
+> ⭐ 直接后果：**内部助手答不上来** —— 语料只吃文档、不吃代码（见 `scan.py` 收录范围），
+> 没登记 = 助手永远不知道这些端点存在（2026-11-01 实测：助手语料里 `op-blocklist` / `wecom` /
+> `page-duration` 等关键词命中均为 0）。本节按 `@ApiOperation.summary` **逐条回源**登记，不改写口径。
+>
+> ⚠️ 本节**只补登记**，出参要点未逐一展开（service 返回类型多为 `Promise<Row>` 通用别名，
+> 从类型系统取不到可靠字段 ⇒ 宁缺勿编）。出参以后续逐条精化为准。
+
+**运营申请与审批（D86–D91）**
+
+| # | 方法 | 路径 | 说明（取自 `@ApiOperation.summary`） | 入参 DTO |
+| --- | --- | --- | --- | --- |
+| D86 | POST | `/admin/operation-requests` | 提交高危操作申请（operator 可提交，admin 可代建） | `CreateOperationRequestDto` |
+| D87 | GET | `/admin/operation-requests` | 申请单列表（**operator 仅看自己提交**） | `OperationRequestQueryDto` |
+| D88 | GET | `/admin/operation-requests/{id}` | 申请单详情 | — |
+| D89 | POST | `/admin/operation-requests/{id}/approve` | 审批通过（**两步制**：仅置 `approved`，**不执行**） | — |
+| D90 | POST | `/admin/operation-requests/{id}/reject` | 驳回申请 | `RejectOperationRequestDto` |
+| D91 | POST | `/admin/operation-requests/{id}/execute` | 执行已审批的申请（调原目标接口，复用 `@OperationLog` 审计） | — |
+
+> D89/D91 **刻意分两步**：审批人点「通过」只表示同意，**真正改数据发生在执行**。合成一步会让
+> 「审批动作」与「执行结果」绑成一次调用 —— 执行失败时既没有可重放的申请单，也没有「谁批的」留痕。
+> 撤回（`recall`）是**提交人**的动作，见 6.7 系统管理。
+
+**停售区间（D92–D94）**
+
+| # | 方法 | 路径 | 说明 | 入参 DTO |
+| --- | --- | --- | --- | --- |
+| D92 | GET | `/admin/sales-pause` | 停售区间列表（含历史） | — |
+| D93 | POST | `/admin/sales-pause` | 创建停售区间（**立刻生效**） | `CreateSalesPauseDto` |
+| D94 | POST | `/admin/sales-pause/{id}/resume` | 恢复指定停售区间（**打 `resumedAt`，不删行**） | — |
+
+**楼栋与楼群（D95–D100）**
+
+| # | 方法 | 路径 | 说明 | 入参 DTO |
+| --- | --- | --- | --- | --- |
+| D95 | GET | `/admin/buildings/filter-options` | 筛选器下拉（状态 / 楼群 / 覆盖缺口 / 团长归属） | — |
+| D96 | GET | `/admin/buildings/overview` | 总览视图 · 主数据健康度（楼栋 / 楼群 / 团长 / 集散覆盖） | — |
+| D97 | GET | `/admin/buildings/delivery-map` | 集散中心映射视图 · 办公楼 → 主/备集散中心（派生） | — |
+| D98 | GET | `/admin/buildings/{id}` | 办公楼详情（档案 + 楼群 + 团长 + 集散映射 + 近期套餐） | `BuildingIdParamDto` |
+| D99 | GET | `/admin/building-groups/filter-options` | 筛选器下拉（楼群状态 + 可搬入的楼） | — |
+| D100 | GET | `/admin/building-groups/{id}` | 楼群详情（成员楼 + 服务集散中心） | `BuildingGroupIdParamDto` |
+
+**Q3 送达凭证（D101–D103）**
+
+| # | 方法 | 路径 | 说明 | 入参 DTO |
+| --- | --- | --- | --- | --- |
+| D101 | GET | `/admin/deliveries/{id}/proofs` | 送达凭证列表（`scope`：`alive`（缺省）/ `deleted` / `all`） | `DeliveryProofListQueryDto` |
+| D102 | POST | `/admin/deliveries/{id}/proofs` | 挂一张送达凭证到配送单（`kind`：`photo` / `sign` / `other`） | `DeliveryProofCreateDto` |
+| D103 | DELETE | `/admin/deliveries/{id}/proofs/{proofId}` | 撤销一张送达凭证（**软删**） | — |
+
+> ⚠️ **D101 的 `scope` 刻意不做布尔开关**：query 里的布尔串经 `@Type(() => Boolean)` 会把 `false`
+> 转成 `true`（非空字符串一律为真）⇒ 「传了 false 却筛出全部」。`aliveCount`（有效凭证数）
+> **始终真实回查**，不会因 `scope=deleted` 变成 0。
+> ⚠️ **D102 不校验配送单是否已送达**：司机常在装车时先拍照留证；卡死在 `arrived` 之后会逼人
+> 「为了传照片先点送达」，而点送达**联动订单**。
+> ⚠️ **D103 软删**：「这张凭证曾经存在、被谁撤了」本身是审计事实。按 `(proofId, deliveryId)`
+> **双条件**定位 —— 只按 id 查会让「拿 A 单的凭证 id 去撤 B 单」成功，而它本该是 404。
+
+**E5 退款批量（D104–D109）**
+
+| # | 方法 | 路径 | 说明 | 入参 DTO |
+| --- | --- | --- | --- | --- |
+| D104 | GET | `/admin/finance/refunds/detail/{id}` | 退款单详情（**审批前二次确认**用） | `RefundIdParamDto` |
+| D105 | POST | `/admin/finance/refunds/batch-approve` | 批量审批通过（D41 的批量形态） | `BatchApproveRefundDto` |
+| D106 | POST | `/admin/finance/refunds/batch-reject` | 批量驳回（D42 的批量形态） | `BatchRejectRefundDto` |
+| D107 | POST | `/admin/finance/refunds/scope-preview` | 按配送日 / 楼宇批量 —— **预览（只算不执行）** | `BatchRefundPreviewDto` |
+| D108 | POST | `/admin/finance/refunds/scope-approve` | 按配送日 / 楼宇批量 —— 审批通过 | `BatchApproveByScopeDto` |
+| D109 | POST | `/admin/finance/refunds/scope-reject` | 按配送日 / 楼宇批量 —— 驳回 | `BatchRejectByScopeDto` |
+
+> ⭐ **D104 的存在理由**：审批弹窗不能对**打开时点的陈旧快照**点头。审批前必须回源取服务端最新金额
+> 与订单状态（前端 `refund.vue` 的 `openApprove` 已改为先调 D104）。
+> ⭐ **D107 先预览后执行**：批量动作的影响面必须由服务端**算出来给人看**，不能让人凭 id 列表想象。
+
+**商品与菜单编排（D110–D116）**
+
+| # | 方法 | 路径 | 说明 | 入参 DTO |
+| --- | --- | --- | --- | --- |
+| D110 | GET | `/admin/meal/dishes` | 商品选择器（D7 编排页候选商品 · 只读） | `ItemOptionQueryDto` |
+| D111 | GET | `/admin/meal/distribution-centers` | 集散中心选择器（D2/D3 前置数据源 · 只读） | — |
+| D112 | GET | `/admin/dishes` | 商品库列表（扩展） | `AdminDishesQueryDto` |
+| D113 | POST | `/admin/dishes` | 新增商品（扩展） | `CreateDishDto` |
+| D114 | PUT | `/admin/dishes/{id}` | 编辑商品（扩展） | `UpdateItemDto` |
+| D115 | POST | `/admin/dishes/batch-status` | 批量上下架（扩展） | `BatchDishStatusDto` |
+| D116 | GET | `/admin/packing-tasks` | 加工场所打包任务（原 S3 · P39） | `PackingTasksQueryDto` |
+
+**上传与订单（D117–D118）**
+
+| # | 方法 | 路径 | 说明 | 入参 DTO |
+| --- | --- | --- | --- | --- |
+| D117 | POST | `/admin/uploads` | 后台上传媒体文件（图片）。**通用能力** —— 商品图 / 证照 / 送达凭证都走它；`url` 拿到后再挂到各自业务域 | multipart |
+| D118 | GET | `/admin/orders/filter-options` | 订单筛选下拉（楼群 / 办公楼 / 团长 / 状态 · 只读） | — |
+
+> ⭐ **D117 刻意不做成「业务域专用上传」**：把上传绑死在配送 / 商品语义上，会让通用能力随业务改而反复重写。
+
+**供应商、团长与用户（D119–D128）**
+
+| # | 方法 | 路径 | 说明 | 入参 DTO |
+| --- | --- | --- | --- | --- |
+| D119 | GET | `/admin/suppliers/filter-options` | 筛选器下拉（审核状态 / 合作状态 / 付款方式） | — |
+| D120 | GET | `/admin/suppliers/{id}` | 供应商详情（档案 + 商品 + 应付 + 操作日志） | `SupplierIdParamDto` |
+| D121 | PUT | `/admin/suppliers/{id}/takeout-links` | 外卖平台店铺链接（美团 / 淘宝闪购 / 京东） | `SetTakeoutLinksDto` |
+| D122 | PUT | `/admin/suppliers/{id}/photos` | 供应商门店实拍 / 证照照片（照片墙） | `SetStorePhotosDto` |
+| D123 | GET | `/admin/leaders/filter-options` | 筛选器下拉（楼群 / 办公楼 / 等级 / 状态） | — |
+| D124 | GET | `/admin/leaders/{id}` | 团长详情（档案 + 裂变链 + 佣金流水 + 操作日志） | `LeaderIdParamDto` |
+| D125 | GET | `/admin/users` | C 端用户名录（分页 · 关键词 / 办公楼 / 状态 / 绑楼状态过滤） | `AdminUsersQueryDto` |
+| D126 | GET | `/admin/users/filter-options` | 筛选器下拉（办公楼 / 账号状态 / 绑楼状态） | — |
+| D127 | GET | `/admin/users/{id}` | 用户详情（档案 + 余额 + 最近 10 单） | `UserIdParamDto` |
+| D128 | PUT | `/admin/users/{id}` | 修改 C 端用户（代绑 / 解绑办公楼 · 拉黑 / 恢复正常） | `UpdateUserDto` |

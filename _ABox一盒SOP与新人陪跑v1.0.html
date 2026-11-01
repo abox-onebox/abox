@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ABox 一盒 · SOP 与新人陪跑</title>
+<style>
+/* ── token 真源（生成注入，禁手改）── */
+:root{
+  --bg: #F6F0E5;
+  --surface: #FFFDF8;
+  --surface2: #F7F1E4;
+  --surface3: #FBF6EC;
+  --text: #6E5435;
+  --text2: #796C57;
+  --text-disabled: #A79A85;
+  --gold: #C9A876;
+  --gold-deep: #936F3A;
+  --gold-deepest: #8A6620;
+  --border: #E4D8C3;
+  --border-strong: #D6CBB8;
+  --ok: #5B7C3A;
+  --warn: #C44536;
+  --info: #4A6FA5;
+  --ok-bg: #F1F5EA;
+  --ok-bd: #BBCBA6;
+  --warn-bg: #FBF0EE;
+  --warn-bd: #E3BFB8;
+  --info-bg: #EDF1F8;
+  --info-bd: #B4C4DA;
+  --mut-bg: #F7F2E8;
+  --mut-bd: #E4D8C3;
+  --gold-bg: #FBF4E6;
+  --gold-bd: #DCC79C;
+  --ok-fg: #597939;
+  --warn-fg: #C24436;
+  --info-fg: #4A6FA5;
+  --gold-fg: #8D6A38;
+  --from: #FFF6E0;
+  --to: #FFEED5;
+  --brand-meituan: #FFD400;
+  --brand-meituan-text: #000000;
+  --brand-taobao: #FF6A00;
+  --brand-taobao-text: #000000;
+  --brand-jd: #E1251B;
+  --brand-jd-text: #FFFFFF;
+  --font-display: 'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif;
+  --font-body: -apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif;
+  --font-num: 'SF Mono','Roboto Mono',Consolas,monospace;
+  --r-sm: 4px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --sp-1: 6px;
+  --sp-2: 10px;
+  --sp-3: 14px;
+  --sp-4: 20px;
+  --sp-5: 28px;
+}
+/* ── 共享外壳 ── */
+/* ─────────────────────────────────────────────────────────────
+   P0 工具集 · 共享页面外壳
+   ⚠️ 本文件**零颜色字面量**：一切颜色只能来自 `:root` token（由生成器注入）。
+      构建期断言这一条（搜不到 # / rgb( / hsl( ），否则品牌必然各写各的。
+   ⚠️ 字体分层：楷体只用于**标题 / 品牌字 / 金额大字**，正文与表格用无衬线栈。
+   ───────────────────────────────────────────────────────────── */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--gold-deep); }
+
+/* ── 顶栏 ── */
+.top {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 20;
+}
+.top .logo {
+  font-family: var(--font-display);
+  font-size: 19px; letter-spacing: .04em; color: var(--text);
+}
+.top .sub { font-size: 12px; color: var(--text2); }
+.top .spacer { flex: 1; }
+.top .ver { font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); }
+
+/* ── 页头 ── */
+.hero { padding: var(--sp-4) var(--sp-4) 0; }
+.hero h1 {
+  font-family: var(--font-display); font-size: 25px; font-weight: 400;
+  margin: 0 0 4px; letter-spacing: .02em;
+}
+.hero p { margin: 0; color: var(--text2); font-size: 13px; max-width: 78ch; }
+
+/* ── 布局 ── */
+.wrap {
+  display: flex; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4) var(--sp-5);
+  align-items: flex-start;
+}
+/* ⚠️ 侧栏必须**自己能滚**（`max-height` + `overflow-y: auto`），这不是装饰：
+   `position: sticky` 的元素一旦高于视口可用高度，底部会被**钉住不动** ——
+   滚动页面也带不上来（必须滚到**整页最底**才够得到，因为那时 sticky 才脱离钉住）。
+   实测（1440×900 笔记本，最常见的办公尺寸）：6 个带侧栏的工具里有 5 个的
+   「筛选 / 操作（导出 · 导入 · 重置）」整组够不到；G1/G2/F3 在 1080 下也够不到。
+   附带好处：对 sticky 元素 `scrollIntoView` 是无效的（滚动页面它不动），
+   给侧栏自己的滚动区之后，控件才可能被自动带进视野（自动化探针同理）。
+   62px = `.top` 的实际高度（与 `top` 一致，改一处要一起改）。 */
+.side {
+  width: 310px; flex: 0 0 310px; position: sticky; top: 62px;
+  max-height: calc(100vh - 62px - var(--sp-3));
+  overflow-y: auto; overscroll-behavior: contain;
+}
+.main { flex: 1; min-width: 0; }
+
+/* ── 卡片 ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-3);
+}
+.card > h2 {
+  font-family: var(--font-display); font-size: 16px; font-weight: 400;
+  margin: 0 0 var(--sp-2); letter-spacing: .02em;
+  display: flex; align-items: center; gap: 8px;
+}
+.card > h2 .n { font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); }
+.hint { font-size: 12px; color: var(--text2); margin: 0 0 var(--sp-2); }
+
+/* ── 表格 ── */
+.tw { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left; font-weight: 500; color: var(--text2);
+  font-size: 11.5px; letter-spacing: .04em;
+  padding: 7px 9px; border-bottom: 1px solid var(--border-strong);
+  white-space: nowrap; background: var(--surface2);
+}
+td { padding: 8px 9px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: var(--surface3); }
+td.num, th.num { text-align: right; font-family: var(--font-num); }
+td.mono { font-family: var(--font-num); font-size: 12px; }
+.big {
+  font-family: var(--font-display); font-size: 22px; line-height: 1.2;
+}
+
+/* ── 徽标 ── */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 8px; border-radius: 999px;
+  font-size: 11.5px; white-space: nowrap;
+  border: 1px solid var(--mut-bd); background: var(--mut-bg); color: var(--text2);
+}
+.pill.ok { border-color: var(--ok-bd); background: var(--ok-bg); color: var(--ok-fg); }
+.pill.warn { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.pill.info { border-color: var(--info-bd); background: var(--info-bg); color: var(--info-fg); }
+.pill.gold { border-color: var(--gold-bd); background: var(--gold-bg); color: var(--gold-fg); }
+.pill.dim { color: var(--text-disabled); }
+
+/* ── 表单 ── */
+label.f { display: block; margin-bottom: var(--sp-2); }
+label.f > span {
+  display: block; font-size: 11.5px; color: var(--text2);
+  letter-spacing: .04em; margin-bottom: 3px;
+}
+input, select, textarea {
+  width: 100%; padding: 6px 9px;
+  background: var(--surface3); color: var(--text);
+  border: 1px solid var(--border-strong); border-radius: var(--r-md);
+  font-family: var(--font-body); font-size: 13px;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--gold); background: var(--surface);
+}
+input[type=number] { font-family: var(--font-num); }
+.row2 { display: flex; gap: var(--sp-2); }
+.row2 > * { flex: 1; min-width: 0; }
+
+/* ── 按钮 ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 13px; border-radius: var(--r-md);
+  border: 1px solid var(--border-strong); background: var(--surface);
+  color: var(--text); font-size: 13px; cursor: pointer;
+}
+.btn:hover { background: var(--surface2); border-color: var(--gold); }
+.btn.primary {
+  background: var(--text); border-color: var(--text); color: var(--surface);
+  font-weight: 500;
+}
+.btn.primary:hover { background: var(--gold-deep); border-color: var(--gold-deep); }
+.btn.sm { padding: 3px 9px; font-size: 12px; }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--text2); }
+.btn.ghost:hover { background: var(--surface2); }
+.btnbar { display: flex; flex-wrap: wrap; gap: var(--sp-1); margin-bottom: var(--sp-2); }
+
+/* ── 指标格 ── */
+/* ⚠️ 阈值要按**实际可用宽度**定：侧栏 310px − 卡片左右 padding 40px = 270px，
+       minmax 定 132px 时 2×132+10(gap)=274 > 270 ⇒ 永远只排 1 列（看着像没生效）。 */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(116px, 1fr)); gap: var(--sp-1); }
+.kpi {
+  background: var(--surface3); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 9px 11px;
+}
+.kpi .k { font-size: 11.5px; color: var(--text2); letter-spacing: .04em; }
+.kpi .v { font-family: var(--font-display); font-size: 21px; line-height: 1.3; }
+.kpi .u { font-size: 12px; color: var(--text2); font-family: var(--font-body); }
+.kpi.warn { border-color: var(--warn-bd); background: var(--warn-bg); }
+.kpi.ok { border-color: var(--ok-bd); background: var(--ok-bg); }
+
+/* ── 提示条 ──
+   ⚠️ 必须是**块级正常流**，绝不能写 `display: flex`：
+      提示条文案里普遍有行内 <b> / <br> / <span class="mono">。容器一旦是 flex，
+      这些行内片段就各自变成**独立的 flex 子项**，被挤成一条条窄列、每个子项还自己
+      内部换行 —— 长文案整段会散开（G2 概览那两条实测就是 9 个子项排一行，字距被拉满、
+      末行也被撑开）。**副作用迟发**：文案短、能挤进一行时看着完全正常（G1/M1 就是这样
+      过关的），所以这个坑很晚才露头。
+      原来是 flex + `gap: 8px`；块级子元素之间的留白改由下面两条规则承担。 */
+.note {
+  display: block;
+  padding: 8px 11px; border-radius: var(--r-md);
+  border: 1px solid var(--mut-bd); background: var(--mut-bg);
+  font-size: 12.5px; color: var(--text2); margin-bottom: var(--sp-3);
+}
+.note.warn { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.note.ok { border-color: var(--ok-bd); background: var(--ok-bg); color: var(--ok-fg); }
+.note.info { border-color: var(--info-bd); background: var(--info-bg); color: var(--info-fg); }
+.note b { color: inherit; }
+/* 块级子元素之间留白（替代原来的 flex gap: 8px）—— 行内元素不受影响 */
+.note > div + div { margin-top: 6px; }
+/* 药丸横排（原来靠 flex 的 gap 撑开，块级流下要自己给左边距） */
+.note > .pill + .pill { margin-left: 4px; }
+
+/* ── 分段控件（tab）── */
+.seg { display: flex; gap: 2px; padding: 3px; background: var(--surface2); border-radius: var(--r-md); border: 1px solid var(--border); }
+.seg button {
+  border: 0; background: transparent; color: var(--text2);
+  padding: 5px 13px; border-radius: var(--r-sm); cursor: pointer; font: inherit; font-size: 13px;
+}
+.seg button.on { background: var(--surface); color: var(--text); font-weight: 500; }
+
+/* ── 条形图 ── */
+.bar { height: 8px; border-radius: 999px; background: var(--surface2); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--gold); }
+.bar.warn > i { background: var(--warn); }
+.bar.ok > i { background: var(--ok); }
+
+/* ── 自检条 ── */
+.gate {
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--surface3); padding: 8px 11px; font-size: 12.5px;
+}
+.gate .g { display: flex; gap: 7px; align-items: baseline; padding: 1px 0; }
+.gate .g i { font-style: normal; font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); flex: 0 0 auto; }
+.gate .g .t { color: var(--text2); }
+.gate .g.bad .t { color: var(--warn-fg); }
+
+/* ── 页脚 ── */
+.foot {
+  padding: var(--sp-4); color: var(--text-disabled); font-size: 11.5px;
+  border-top: 1px solid var(--border); margin-top: var(--sp-5);
+}
+
+/* ── 窄屏：单列堆叠（断点与项目后台一致，避免出现第二份断点表述）── */
+@media (max-width: 768px) {
+  .wrap { flex-direction: column; padding: var(--sp-2); }
+  /* ⚠️ 落到单列后必须**解除**侧栏的自身滚动区：否则手机上会出现一个 1/4 屏高的小滚动盒，
+        里面的卡片被裁掉一半 —— 那是「为修一个坑造一个新坑」。 */
+  .side { width: 100%; flex: auto; position: static; max-height: none; overflow-y: visible; }
+  .hero { padding: var(--sp-3) var(--sp-2) 0; }
+  table { font-size: 12px; }
+}
+
+/* ── 本系统 ── */
+/* E4 SOP 与培训 · 专属样式
+ *
+ * ⚠️ 纪律（与 F3 / M2 同源）：本文件**不许出现颜色字面量** —— 一律 var(--token)，
+ *    构建期 `assert_no_bare_color` 会硬断言（共享 build_lib）。
+ * ⚠️ 共享外壳 `.note` 不能设 flex（踩过：内部 pill 会被挤变形），这里一律不当 flex 容器用。
+ */
+
+/* ── 框架警告条（E4 最重要的一块：不许把未校准框架伪装成已验证）── */
+.fw {
+  border: 1px solid var(--warn-bd);
+  background: var(--warn-bg);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 0 0 14px;
+}
+.fw .fwt {
+  font-weight: 700;
+  color: var(--warn-fg);
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+.fw .fwb {
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.fw .fwtags {
+  margin-top: 8px;
+  display: block;
+}
+.fw .fwtags .pill {
+  margin-right: 6px;
+}
+
+/* ── SOP 三套切换 ── */
+.soptabs {
+  display: block;
+  margin-bottom: 12px;
+}
+.soptab {
+  display: inline-block;
+  padding: 6px 14px;
+  margin: 0 6px 6px 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 13px;
+}
+.soptab[aria-selected="true"] {
+  background: var(--gold-deep);
+  border-color: var(--gold-deep);
+  color: var(--bg);
+  font-weight: 700;
+}
+
+/* ── SOP 步骤 ── */
+.steps {
+  display: block;
+}
+.step {
+  display: block;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--border);
+}
+.step:last-child {
+  border-bottom: 0;
+}
+.step .at {
+  display: inline-block;
+  min-width: 96px;
+  font-weight: 700;
+  color: var(--gold-deep);
+  font-size: 13px;
+}
+.step .sd {
+  display: block;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.75;
+  margin-top: 2px;
+}
+.step .sw,
+.task .where {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-disabled);
+  font-family: var(--font-num);
+}
+.step .sw::before,
+.task .where::before {
+  content: "入口：";
+}
+
+/* ── 7 天陪跑 ── */
+.day {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0 14px 12px;
+  margin-bottom: 12px;
+  background: var(--surface);
+}
+.day.is-today {
+  border-color: var(--gold-deep);
+  box-shadow: 0 0 0 2px var(--gold-bg);
+}
+.day.is-final {
+  border-color: var(--warn-bd);
+}
+.dayhead {
+  display: block;
+  padding: 12px 0 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+.dayhead .dnum {
+  font-weight: 700;
+  color: var(--gold-deep);
+  font-size: 16px;
+}
+.dayhead .dtitle {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 15px;
+  margin-left: 8px;
+}
+.dayhead .dmode {
+  font-size: 12px;
+  color: var(--text-disabled);
+  margin-left: 8px;
+}
+.dayhead .ddate {
+  float: right;
+  font-size: 12px;
+  color: var(--text-disabled);
+  font-family: var(--font-num);
+}
+.dayhead .dgoal {
+  display: block;
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 4px;
+}
+
+/* ── 任务行（打卡）── */
+.tasks {
+  display: block;
+}
+.task {
+  display: block;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--border);
+}
+.task:last-child {
+  border-bottom: 0;
+}
+.task label {
+  display: block;
+  cursor: pointer;
+}
+.task input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  vertical-align: -2px;
+  margin-right: 8px;
+  accent-color: var(--gold-deep);
+}
+.task .do {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.7;
+}
+.task.is-done .do {
+  color: var(--text-disabled);
+  text-decoration: line-through;
+}
+.task .check {
+  display: block;
+  font-size: 12px;
+  color: var(--text2);
+  margin: 3px 0 0 26px;
+  line-height: 1.7;
+}
+.task .check::before {
+  content: "完成判据：";
+  color: var(--text-disabled);
+}
+.task .where {
+  margin-left: 26px;
+}
+
+/* ── 进度条 ── */
+.pbar {
+  height: 8px;
+  border-radius: 5px;
+  background: var(--mut-bd);
+  overflow: hidden;
+  margin-top: 6px;
+}
+.pbar > i {
+  display: block;
+  height: 100%;
+  background: var(--gold-deep);
+}
+
+/* ── 三道门 ── */
+.gates {
+  display: block;
+}
+.gatecard {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: var(--surface);
+}
+.gatecard.pass {
+  border-color: var(--ok-bd);
+  background: var(--ok-bg);
+}
+.gatecard.fail {
+  border-color: var(--warn-bd);
+  background: var(--warn-bg);
+}
+.gatecard .gt {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+}
+.gatecard.pass .gt {
+  color: var(--ok-fg);
+}
+.gatecard.fail .gt {
+  color: var(--warn-fg);
+}
+.gatecard .gd {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.8;
+  margin-top: 4px;
+}
+.gatecard .gmark {
+  float: right;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ── 验收输入 ── */
+.accept .row2 > label,
+.spot .row2 > label {
+  font-size: 13px;
+  color: var(--text2);
+}
+
+/* ── 名册看板 ── */
+.roster {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.roster th,
+.roster td {
+  border-bottom: 1px solid var(--border);
+  padding: 8px 10px;
+  text-align: left;
+  color: var(--text);
+}
+.roster th {
+  color: var(--text-disabled);
+  font-weight: 700;
+  font-size: 12px;
+}
+.roster tr.is-over td {
+  background: var(--warn-bg);
+}
+
+/* ── 来源脚注 ── */
+.src {
+  font-size: 12px;
+  color: var(--text-disabled);
+  line-height: 1.8;
+  margin-top: 8px;
+}
+.src b {
+  color: var(--text2);
+  font-weight: 700;
+}
+
+</style></head><body>
+<header class="top"><div class="logo">ABox 一盒</div><div class="sub">SOP 与培训 · 新人 7 天陪跑与独立出单验收</div><div class="spacer"></div><div class="ver">版本 <span id="ver"></span> · 基准日 <span id="date"></span></div></header>
+<div class="hero"><h1>SOP 与新人陪跑</h1><p>把「怎么干」变成可考核的卡片：三套 SOP + 新人 7 天陪跑清单 + 打卡与抽检。验收判据是「新团长按 SOP 7 天能独立出单」—— 打卡只证明点了，抽检才证明会了。数据只存在本机浏览器，不上传。</p></div>
+<div class="wrap"><aside class="side" id="side"></aside><main class="main" id="main"></main></div>
+<footer class="foot" id="foot">ABox 一盒 · E4 SOP 与培训 v1.0 · 时间轴 / 佣金四档 / 端上入口名 由生成器从代码真源注入（禁手改）· 姓名 / 楼栋 / 起始日 / 出单门槛属运营实况（非代码真源），须按实际填写 · 本工具是框架版：系统地图 E4 依赖原话「真实运营过一轮后 SOP 才准（P0 可先出框架）」，未校准项已在首屏点名 · 判定须同时过「打卡 / 验收 / 抽检」三道门，缺任一即不能独立出单</footer>
+<script>
+window.TOOL_VERSION = "v1.0";
+window.SPEC = {"_generated_by":"_tmp/p1/e4/extract.py","_doctrine":"同一口径只许有一处表述：售价 / 佣金费率 / 时间线 / 楼栋 / 团长 全部复用共享库（`_tmp/p0/_shared/extract_lib.py`），本文件不复制任何口径；端上入口名一律以 pages.json 为准，不沿用他文档的叫法。","brand":{"name":"ABox 一盒","tool":"E4 SOP 与培训"},"tokens":{"value":{"bg":"#F6F0E5","surface":"#FFFDF8","surface2":"#F7F1E4","surface3":"#FBF6EC","text":"#6E5435","text2":"#796C57","text-disabled":"#A79A85","gold":"#C9A876","gold-deep":"#936F3A","gold-deepest":"#8A6620","border":"#E4D8C3","border-strong":"#D6CBB8","ok":"#5B7C3A","warn":"#C44536","info":"#4A6FA5","ok-bg":"#F1F5EA","ok-bd":"#BBCBA6","warn-bg":"#FBF0EE","warn-bd":"#E3BFB8","info-bg":"#EDF1F8","info-bd":"#B4C4DA","mut-bg":"#F7F2E8","mut-bd":"#E4D8C3","gold-bg":"#FBF4E6","gold-bd":"#DCC79C","ok-fg":"#597939","warn-fg":"#C24436","info-fg":"#4A6FA5","gold-fg":"#8D6A38","from":"#FFF6E0","to":"#FFEED5","brand-meituan":"#FFD400","brand-meituan-text":"#000000","brand-taobao":"#FF6A00","brand-taobao-text":"#000000","brand-jd":"#E1251B","brand-jd-text":"#FFFFFF","font-display":"'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif","font-body":"-apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif","font-num":"'SF Mono','Roboto Mono',Consolas,monospace","r-sm":"4px","r-md":"10px","r-lg":"16px","sp-1":"6px","sp-2":"10px","sp-3":"14px","sp-4":"20px","sp-5":"28px"},"_src":"_ABox一盒设计token真源v2.1/design-tokens.css"},"env":{"unitPrice":25.8,"supplierTotal":14.0,"distributionCenter":5.0,"cutoffHour":24,"commission":{"trainee":0.08,"formal":0.09,"gold":0.1,"chief":0.12},"_src":"abox-onebox/.env.example"},"timeline":{"value":{"publish":"14:00","cutoff":"24:00","arrival":"11:30","autoConfirm":"14:00","deliveryGenerate":"00:30"},"_src":"abox-onebox/apps/api-server/src/common/utils/order-timeline.ts","_note":"截单 24:00 是合法值（= 次日 0 点），不是笔误"},"pages":{"list":[{"path":"pages/index/index","title":"明日套餐"},{"path":"pages/order-create/order-create","title":"下单确认"},{"path":"pages/pay-result/pay-result","title":"支付结果"},{"path":"pages/order-detail/order-detail","title":"订单详情"},{"path":"pages/order-list/order-list","title":"我的订单"},{"path":"pages/order-cancel/order-cancel","title":"取消订单"},{"path":"pages/mine/mine","title":"个人中心"},{"path":"pages/leader-apply/leader-apply","title":"申请成为团长（提交即生效）"},{"path":"pages/balance-detail/balance-detail","title":"账户余额"},{"path":"pages/leader-invite/leader-invite","title":"欢迎加入"},{"path":"pages/traceability/traceability","title":"今日这盒 · 溯源"},{"path":"pages/leader/workbench","title":"团长工作台"},{"path":"pages/leader/building","title":"我服务的办公楼"},{"path":"pages/leader/orders","title":"订单明细"},{"path":"pages/leader/refund","title":"异常订单总览"},{"path":"pages/leader/pickup","title":"取餐确认"},{"path":"pages/leader/commission","title":"佣金中心"},{"path":"pages/leader/balance-log","title":"佣金流水"},{"path":"pages/leader/withdraw","title":"提现申请"},{"path":"pages/leader/share","title":"分享中心"},{"path":"pages/leader/profile","title":"团长资料"},{"path":"pages/support/contact","title":"联系客服（U17 · 客服微信号）"},{"path":"pages/agreement/agreement","title":"用户协议"},{"path":"pages/account-cancel/account-cancel","title":"账号注销"}],"_src":"abox-onebox/apps/miniprogram/src/pages.json","_count":24},"leaderPages":{"list":[{"path":"pages/leader-apply/leader-apply","title":"申请成为团长（提交即生效）"},{"path":"pages/leader-invite/leader-invite","title":"欢迎加入"},{"path":"pages/leader/workbench","title":"团长工作台"},{"path":"pages/leader/building","title":"我服务的办公楼"},{"path":"pages/leader/orders","title":"订单明细"},{"path":"pages/leader/refund","title":"异常订单总览"},{"path":"pages/leader/pickup","title":"取餐确认"},{"path":"pages/leader/commission","title":"佣金中心"},{"path":"pages/leader/balance-log","title":"佣金流水"},{"path":"pages/leader/withdraw","title":"提现申请"},{"path":"pages/leader/share","title":"分享中心"},{"path":"pages/leader/profile","title":"团长资料"}],"_src":"abox-onebox/apps/miniprogram/src/pages.json","_note":"团长端入口真源。⚠ 《团长操作卡 v1.0》里叫「今日取餐」「异常订单」，真源名是「取餐确认」「异常订单总览」—— SOP 一律用真源名。"},"leaders":{"list":[{"key":"L1","buildingId":8,"name":"演示·华贸一号团长","floor":"6F","level":"formal","rate":0.09,"status":1,"monthOrders":26,"totalOrders":212,"invitedFormalCount":1,"agreedDaysAgo":96},{"key":"L2","buildingId":9,"name":"演示·华贸二号团长","floor":"11F","level":"gold","rate":0.1,"status":1,"monthOrders":61,"totalOrders":380,"invitedFormalCount":3,"agreedDaysAgo":210},{"key":"L3","buildingId":8,"name":"演示·国贸四号团长（已停职）","floor":"6F","level":"gold","rate":0.1,"status":2,"monthOrders":9,"totalOrders":154,"invitedFormalCount":0,"agreedDaysAgo":300}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed-demo.ts","_note":"rate 是等级费率快照（与 ab_config 真源一致）；invitedFormalCount 只作组织信息展示，**不参与任何计酬**（合规红线）"},"buildings":{"list":[{"id":1,"groupId":1,"name":"国贸三期 A 座","address":"建国门外大街 1 号 A 座","city":"北京","district":"朝阳区","population":520,"status":1},{"id":2,"groupId":1,"name":"国贸三期 B 座","address":"建国门外大街 1 号 B 座","city":"北京","district":"朝阳区","population":480,"status":1},{"id":3,"groupId":1,"name":"国贸三期 C 座","address":"建国门外大街 1 号 C 座","city":"北京","district":"朝阳区","population":310,"status":2},{"id":4,"groupId":1,"name":"国贸三期 D 座","address":"建国门外大街 1 号 D 座","city":"北京","district":"朝阳区","population":250,"status":1},{"id":5,"groupId":2,"name":"建外 SOHO 北区","address":"东三环中路 39 号","city":"北京","district":"朝阳区","population":480,"status":1},{"id":6,"groupId":3,"name":"银泰中心 1 栋","address":"建国门外大街 2 号 1 栋","city":"北京","district":"朝阳区","population":360,"status":1},{"id":7,"groupId":3,"name":"银泰中心 2 栋","address":"建国门外大街 2 号 2 栋","city":"北京","district":"朝阳区","population":320,"status":1},{"id":8,"groupId":4,"name":"华贸 1 号楼","address":"建国路 79 号 1 号楼","city":"北京","district":"朝阳区","population":380,"status":1},{"id":9,"groupId":4,"name":"华贸 2 号楼","address":"建国路 79 号 2 号楼","city":"北京","district":"朝阳区","population":280,"status":1},{"id":10,"groupId":4,"name":"华贸 3 号楼","address":"建国路 79 号 3 号楼","city":"北京","district":"朝阳区","population":260,"status":3},{"id":11,"groupId":5,"name":"远洋光华 AB 座","address":"光华路 9 号 AB 座","city":"北京","district":"朝阳区","population":320,"status":1},{"id":12,"groupId":5,"name":"远洋光华 C 座","address":"光华路 9 号 C 座","city":"北京","district":"朝阳区","population":200,"status":1}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts","_note":"status 三态：1 营业中 / 2 待开通 / 3 已暂停；population 是运营估算覆盖人数，非实时统计"},"sopSets":{"list":[{"key":"leader","name":"团长上岗 SOP","who":"新团长","_origin":"ABox一盒团长操作卡v1.0.html（既有产物 · 入口名已按 pages.json 校正）","_calibrated":false,"steps":[{"at":"开团 14:00","do":"次日套餐上架，本楼住户可下单；开团后即可转发到楼群","where":"pages/leader/workbench","src":"timeline.publish"},{"at":"截单 24:00","do":"系统自动关闭下单，不可再加单；截单前 10 分钟端上会提示","where":"pages/leader/orders","src":"timeline.cutoff"},{"at":"送达 11:30","do":"配送人员送达，系统推送取餐通知给已下单住户","where":"pages/leader/pickup","src":"timeline.arrival"},{"at":"取餐 11:30–12:30","do":"住户到指定位置凭手机取餐，你在端上核对并确认","where":"pages/leader/pickup","src":"timeline.arrival"},{"at":"自动确认 14:00","do":"自动确认收货并计佣，无需操作；佣金入账在次日 02:00","where":"pages/leader/commission","src":"timeline.autoConfirm"}],"_note":"⚠ 入口名已按 pages.json 校正：《团长操作卡》原写「今日取餐」「异常订单」，真源是「「取餐确认」」「「异常订单总览」」—— SOP 一律用真源名，否则新团长在端上照着找会找不到。"},{"key":"kitchen","name":"出餐人 SOP","who":"供应商 / 出餐岗","_origin":"「框架」 —— 仓库内无真源（供应商共用运营后台 :5173，无独立端）","_calibrated":false,"steps":[{"at":"T-1 截单后","do":"按实收份数备料（截单份数为准，不含退款冲减）","where":"（运营后台 · 待补）","src":"框架"},{"at":"T 日 出餐","do":"按出餐日冻结快照的单价与份数出餐","where":"（运营后台 · 待补）","src":"框架"},{"at":"T 日 留样","do":"每批次留样并留证（与 F3 食安留样台账联动）","where":"（运营后台 · 待补）","src":"框架"},{"at":"T 日 交接","do":"与配送交接，核对份数与封签","where":"（运营后台 · 待补）","src":"框架"}],"_note":"⚠ 仓库里没有出餐端页面（供应商共用后台），因此这四步「全部是框架」，`where` 写「待补」是「如实标注」，不是遗漏。真实运营一轮后按现场实际补，并与 F3 留样台账对齐。"},{"key":"delivery","name":"配送 SOP","who":"配送岗","_origin":"「框架」 —— 仓库内无真源（配送单由 T+1 00:30 生成，端上无配送页）","_calibrated":false,"steps":[{"at":"T+1 00:30","do":"配送单自动生成","where":"（系统自动 · 无端上页面）","src":"timeline.deliveryGenerate"},{"at":"T 日 取货","do":"到出餐点取货，核对份数与食安封签","where":"（线下 · 待补）","src":"框架"},{"at":"11:30 前","do":"送达楼栋，触发取餐通知","where":"（线下 · 待补）","src":"timeline.arrival"},{"at":"送达后","do":"异常（少送 / 错送 / 破损）当场登记","where":"pages/leader/refund","src":"框架"}],"_note":"⚠ 「配送单 T+1 00:30 自动生成」是真源（timeline.deliveryGenerate），其余三步仓库里无对应页面 ⇒ 标框架。"}],"_src":"ABox一盒团长操作卡v1.0.html（既有产物 · 入口名已按 pages.json 校正） + timeline 真源（另两套无真源，标注为框架）","_note":"E4 定义要求三套：团长上岗 SOP · 出餐人 SOP · 配送 SOP。⚠ 只有团长这套有地基，另两套在仓库里「无任何真源」 ⇒ 如实标框架。"},"onboard":{"days":[{"day":1,"title":"入职与定位","goal":"看懂这门生意的一天是怎么转的","mode":"看懂","tasks":[{"do":"提交团长申请（通过后即为见习团长，费率 8%）","where":"pages/leader-apply/leader-apply","check":"端上身份变为「见习团长」，能看到团长工作台"},{"do":"确认自己服务的楼栋已绑定，看清楼栋与楼层","where":"pages/leader/building","check":"能看到自己服务的办公楼与楼层"},{"do":"背下四个时刻：开团 14:00 · 截单 24:00 · 送达 11:30 · 自动确认收货 14:00","where":"pages/leader/workbench","check":"能不看书复述四个时刻，并说出每个时刻自己要做什么"}]},{"day":2,"title":"工作台与分享","goal":"能独立拿到本楼专属链接","mode":"看懂","tasks":[{"do":"打开团长工作台，确认「明日」套餐已上架、本楼可见","where":"pages/leader/workbench","check":"能看到明日套餐与倒计时"},{"do":"从分享中心取本楼专属链接 / 二维码","where":"pages/leader/share","check":"能拿到本楼专属链接，且链接带本楼参数"},{"do":"看懂自己的佣金比例与晋级条件","where":"pages/leader/commission","check":"能说出自己当前等级、佣金比例，以及晋级看哪两个条件"}]},{"day":3,"title":"第一次开团（跟做）","goal":"跟着老团长完整走一遍开团动作","mode":"跟做","tasks":[{"do":"开团后（14:00 之后）跟老团长确认明日套餐已上架","where":"pages/leader/workbench","check":"确认套餐与价格无误（一饭四菜 · 25.80 元）"},{"do":"把本楼链接转发到楼群，并写一句自己的话","where":"pages/leader/share","check":"楼群里已出现本楼链接（截图留存）"},{"do":"回答楼群里至少 1 个住户提问","where":"pages/support/contact","check":"答不上来的问题知道往哪儿转（联系客服）"}]},{"day":4,"title":"截单前提醒与订单核对","goal":"截单这个动作不漏","mode":"跟做","tasks":[{"do":"看本楼已下单份数","where":"pages/leader/orders","check":"能读出本楼当前份数与订单明细"},{"do":"截单前（23:50 之前）在楼群提醒一次「今晚 24:00 截止」","where":"pages/leader/orders","check":"提醒已发出（截图留存）；住户问「还能加吗」能看倒计时回答"},{"do":"看懂截单后不可自助取消的规则，知道要代客发起","where":"pages/leader/refund","check":"能说清：截单后住户不能自助退，须团长在异常订单里代发起"}]},{"day":5,"title":"送达与取餐组织","goal":"取餐窗口不出乱","mode":"半独立","tasks":[{"do":"送达后（11:30）打开取餐确认，核对到货份数与待取名单","where":"pages/leader/pickup","check":"到货份数与系统待取名单一致；不一致当场记下"},{"do":"住户来取，核对后点确认取餐","where":"pages/leader/pickup","check":"取餐窗口内确认率 100%（无人漏确认）"},{"do":"有人没来取 → 记下姓名，在异常订单总览里反馈","where":"pages/leader/refund","check":"异常订单已登记，无遗留"}]},{"day":6,"title":"佣金与提现","goal":"知道钱什么时候到、怎么拿出来","mode":"半独立","tasks":[{"do":"看懂佣金入账节奏（自动确认收货 14:00 → 佣金入账次日 02:00）","where":"pages/leader/commission","check":"能说出佣金按实发份数计、什么时候入账"},{"do":"核对佣金流水与自己的出单记录是否对得上","where":"pages/leader/balance-log","check":"流水里的每笔都能对上一天的出单"},{"do":"走一遍提现申请流程（可只填不提交）","where":"pages/leader/withdraw","check":"知道提现要填什么、多久到账"}]},{"day":7,"title":"独立出单验收","goal":"全程无老团长介入，独立跑完一整个闭环","mode":"独立","tasks":[{"do":"独立完成一个完整闭环：开团 → 转发 → 截单提醒 → 送达核对 → 取餐确认 → 佣金入账","where":"pages/leader/workbench","check":"七个环节全部由本人完成，老团长只在旁边看"},{"do":"达到独立出单门槛份数","where":"pages/leader/orders","check":"份数 ≥ 门槛（可配，默认 10 份）"},{"do":"闭环零差错：截单提醒不漏、取餐确认率 100%、异常订单零遗留","where":"pages/leader/pickup","check":"三项差错指标全为 0"}]}],"days_count":7,"_origin":"「框架」 —— 依据系统地图 E4 定义「新人 7 天陪跑清单 · 完成后打卡 + 抽检」与《团长操作卡》既有步骤编排；「尚未经真实运营校准」","_calibrated":false,"_note":"系统地图对 E4 的依赖原话：「真实运营过一轮后 SOP 才准（P0 可先出框架）」。⇒ 本清单当前是「框架版」：步骤顺序与「在哪做」有真源支撑，但「每项做多久、卡在哪、要不要调整顺序」只有跑过一轮才知道。⚠ 因此「抽检项（见 acceptance.spotCheck）比打卡项更重要」 —— 打卡只证明「点了」，抽检才证明「会了」。","_accept":"验收判据（系统地图 P1 判据表）：「新团长按 SOP 7 天能独立出单」。"},"acceptance":{"threshold":10,"conditions":[{"key":"servings","label":"独立完成出单份数 ≥ 门槛","op":">= threshold"},{"key":"errors","label":"闭环差错数 = 0（截单提醒漏发 / 取餐未确认 / 异常遗留）","op":"== 0"},{"key":"neededHelp","label":"全程无需老团长介入","op":"== false"}],"spotCheck":[{"key":"recite","label":"抽检①：不看卡片说出四个时刻与自己在该时刻的动作"},{"key":"refund","label":"抽检②：现场模拟住户截单后要退单，看处理路径对不对"},{"key":"missing","label":"抽检③：模拟有人没来取，看是否登记异常、有无遗留"}],"_src":"「运营验收口径 · 非代码真源」 —— 门槛与抽检项须由祝总按实际调","_note":"打卡只证明「点了」，「抽检才证明「会了」」 —— 系统地图 E4 原文即「完成后打卡 + 抽检」。三者缺任一即不通过，不允许「份数够就算过」。"},"framework":{"isFramework":true,"reason":"系统地图 E4 依赖原话：「真实运营过一轮后 SOP 才准（P0 可先出框架）」","uncalibrated":["leader","kitchen","delivery","onboard"],"_note":"⚠ 未校准 ≠ 不能用：它解决的是「从 0 到 1 有得照做」，不能替代「跑过一轮后的校准」。页面首屏必须红字明示，不得让用户误读为已验证。"},"_srcs":{"env":"abox-onebox/.env.example","timeline":"abox-onebox/apps/api-server/src/common/utils/order-timeline.ts","pages":"abox-onebox/apps/miniprogram/src/pages.json","leaders":"abox-onebox/apps/api-server/src/database/seeds/seed-demo.ts","biz":"abox-onebox/packages/shared-utils/src/biz.ts","tokens":"_ABox一盒设计token真源v2.1/design-tokens.css","onboard":"「框架」 —— 依据系统地图 E4 定义「新人 7 天陪跑清单 · 完成后打卡 + 抽检」与《团长操作卡》既有步骤编排；「尚未经真实运营校准」","acceptance":"「运营验收口径 · 非代码真源」 —— 门槛与抽检项须由祝总按实际调"}};
+/* ─────────────────────────────────────────────────────────────
+   P0 工具集 · 共享工具函数（纯函数为主，不碰业务）
+   ⚠️ 必须以「普通脚本」形式可被 eval（构建期启动冒烟要用），
+      故不使用 ESM 语法，只挂 `window.U`。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var U = {};
+
+  /* ── DOM ── */
+  U.$ = function (sel, root) { return (root || document).querySelector(sel); };
+  U.$$ = function (sel, root) {
+    return Array.prototype.slice.call((root || document).querySelectorAll(sel));
+  };
+  /** 绑定事件：一律挂到 document，用 closest 分发（兄弟节点挂错容器是本项目踩过的坑） */
+  U.on = function (evt, sel, fn) {
+    document.addEventListener(evt, function (e) {
+      var t = e.target && e.target.closest ? e.target.closest(sel) : null;
+      if (t) fn(e, t);
+    });
+  };
+
+  /* ── 文本 ── */
+  U.esc = function (s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  };
+  /** 数值格式化；null/undefined/NaN 一律回显 '—'（不要显示 NaN） */
+  U.num = function (v, d) {
+    if (v == null || v === '' || !isFinite(Number(v))) return '—';
+    return Number(v).toFixed(d == null ? 2 : d);
+  };
+  /** 金额：¥ + 两位小数 */
+  U.y = function (v, d) {
+    if (v == null || v === '' || !isFinite(Number(v))) return '—';
+    return '¥' + Number(v).toFixed(d == null ? 2 : d);
+  };
+  /** 分 → 元（项目内金额一律「存分、显示元」，避免浮点） */
+  U.fen2y = function (fen, d) {
+    if (fen == null || !isFinite(Number(fen))) return '—';
+    return '¥' + (Number(fen) / 100).toFixed(d == null ? 2 : d);
+  };
+  U.y2fen = function (y) { return Math.round(Number(y || 0) * 100); };
+  /** 归一两位小数（复刻 biz.ts 的 round2 语义：先乘后再四舍五入） */
+  U.round2 = function (n) { return Math.round((Number(n) + Number.EPSILON) * 100) / 100; };
+
+  /* ── 日期（一律 YYYY-MM-DD 字符串 · 本地时区 · 不碰 UTC）── */
+  U.pad2 = function (n) { return (n < 10 ? '0' : '') + n; };
+  U.today = function (d) {
+    d = d || new Date();
+    return d.getFullYear() + '-' + U.pad2(d.getMonth() + 1) + '-' + U.pad2(d.getDate());
+  };
+  /** 字符串 → Date（本地零点）；非法返回 null —— 绝不返回 Invalid Date 让它往下跑 */
+  U.dt = function (s) {
+    if (!s) return null;
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s).trim());
+    if (!m) return null;
+    var d = new Date(+m[1], +m[2] - 1, +m[3]);
+    return isNaN(d.getTime()) ? null : d;
+  };
+  U.addDays = function (s, n) {
+    var d = U.dt(s); if (!d) return null;
+    d.setDate(d.getDate() + n);
+    return U.today(d);
+  };
+  /** b − a 的天数（两个 YYYY-MM-DD）；任一非法返回 null */
+  U.diffDays = function (a, b) {
+    var x = U.dt(a), y2 = U.dt(b);
+    if (!x || !y2) return null;
+    return Math.round((y2.getTime() - x.getTime()) / 86400000);
+  };
+  /** 校验：是不是合法的 YYYY-MM-DD（且日期真实存在，如 2026-02-30 判非法） */
+  U.isDate = function (s) {
+    var d = U.dt(s);
+    return !!d && U.today(d) === String(s).trim();
+  };
+
+  /* ── 本地存储（file:// 下 localStorage 可能直接抛异常，必须容错）── */
+  U.store = {
+    get: function (k, dflt) {
+      try {
+        var v = g.localStorage.getItem(k);
+        return v == null ? dflt : JSON.parse(v);
+      } catch (e) { return dflt; }
+    },
+    set: function (k, v) {
+      try { g.localStorage.setItem(k, JSON.stringify(v)); return true; }
+      catch (e) { return false; }
+    },
+    del: function (k) {
+      try { g.localStorage.removeItem(k); return true; } catch (e) { return false; }
+    },
+    /** 存储是否可用（不可用时页面要提示「本次改动不会保存」） */
+    ok: function () {
+      try {
+        g.localStorage.setItem('__t', '1'); g.localStorage.removeItem('__t');
+        return true;
+      } catch (e) { return false; }
+    },
+  };
+
+  /* ── 导出 / 导入 ── */
+  U.download = function (name, text, mime) {
+    var blob = new Blob([text], { type: (mime || 'text/plain') + ';charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 0);
+  };
+  U.pickFile = function (accept, fn) {
+    var i = document.createElement('input');
+    i.type = 'file'; i.accept = accept || '.json';
+    i.onchange = function () {
+      var f = i.files && i.files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function () { fn(String(r.result), f); };
+      r.readAsText(f, 'utf-8');
+    };
+    i.click();
+  };
+  /** CSV：单元格内的引号/逗号/换行都要转义，否则 Excel 打开就串列 */
+  U.toCSV = function (rows) {
+    return rows.map(function (r) {
+      return r.map(function (c) {
+        var s = c == null ? '' : String(c);
+        return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      }).join(',');
+    }).join('\r\n');
+  };
+
+  /* ── 数组 ── */
+  U.groupBy = function (arr, keyFn) {
+    var out = {};
+    (arr || []).forEach(function (x) {
+      var k = keyFn(x);
+      (out[k] = out[k] || []).push(x);
+    });
+    return out;
+  };
+  U.sum = function (arr, fn) {
+    return (arr || []).reduce(function (s, x) { return s + (Number(fn ? fn(x) : x) || 0); }, 0);
+  };
+  U.sortBy = function (arr, fn, dir) {
+    var d = dir === 'desc' ? -1 : 1;
+    return (arr || []).slice().sort(function (a, b) {
+      var x = fn(a), y2 = fn(b);
+      if (x == null && y2 == null) return 0;
+      if (x == null) return 1;        /* 空值恒排末尾，不参与方向翻转 */
+      if (y2 == null) return -1;
+      return x < y2 ? -d : x > y2 ? d : 0;
+    });
+  };
+
+  g.U = U;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* E4 SOP 与培训 · 纯逻辑层（不碰 DOM · 可被 selfcheck.mjs 在 Node 里直接跑）
+ *
+ * ⭐⭐ 本模型的核心：**三道门，缺一不可**
+ *   系统地图 E4 定义原话「完成后**打卡 + 抽检**」，验收判据「新团长按 SOP 7 天能独立出单」。
+ *   ⇒ 打卡只证明「点了」，抽检才证明「会了」。
+ *   ⇒ 因此 verdict() 判「能独立出单」必须同时满足：
+ *      ① 打卡门：7 天 × 全部任务都勾了
+ *      ② 验收门：Day7 三条件（份数 ≥ 门槛 / 差错 = 0 / 无需老团长介入）
+ *      ③ 抽检门：三项抽检全过
+ *   任一不过 ⇒ 判「未通过」并列出**具体缺口**，绝不允许「份数够就算过」。
+ *
+ * ⭐ 第二处诚实性设计：本工具内容是**框架版**（spec.framework.isFramework = true），
+ *   系统地图 E4 依赖原话「真实运营过一轮后 SOP 才准（P0 可先出框架）」。
+ *   模型不掩盖这件事：`frameworkNote()` 返回它，页面首屏必须显示。
+ */
+(function (root) {
+  'use strict';
+  var S = root.SPEC || {};
+  var U = root.U || {};
+
+  var DAYS = (S.onboard && S.onboard.days) || [];
+  var ACCEPT = S.acceptance || { threshold: 10, conditions: [], spotCheck: [] };
+  var THRESHOLD = Number(ACCEPT.threshold);
+
+  /** 任务 id：`d{天}t{序号}`（与页面 DOM 的 data-id 一致） */
+  function tid(day, idx) { return 'd' + day + 't' + idx; }
+
+  /** 任务总数（7 天 × 每天若干项） */
+  function taskTotal() {
+    var n = 0;
+    for (var i = 0; i < DAYS.length; i++) n += (DAYS[i].tasks || []).length;
+    return n;
+  }
+
+  /** 一份新的带教记录（**非代码真源**：姓名 / 楼栋 / 起始日都是运营实况） */
+  function newRec(o) {
+    o = o || {};
+    return {
+      id: o.id || ('r' + Date.now() + Math.floor(Math.random() * 1000)),
+      name: o.name || '',
+      buildingId: o.buildingId == null ? '' : o.buildingId,
+      startDate: o.startDate || (U.today ? U.today() : ''),
+      done: o.done || {},
+      accept: {
+        servings: o.servings == null ? 0 : Number(o.servings),
+        errors: o.errors == null ? 0 : Number(o.errors),
+        neededHelp: !!o.neededHelp,
+      },
+      spot: { recite: false, refund: false, missing: false },
+      /* 同上：门槛 < 1 一律回落真源值，不让 0 混进状态里 */
+      threshold: (function (v) {
+        var n = Number(v);
+        return (v == null || !isFinite(n) || n < 1) ? THRESHOLD : Math.round(n);
+      })(o.threshold),
+    };
+  }
+
+  function defaults() {
+    return { version: 1, roster: [newRec({ name: '' })], activeId: null };
+  }
+
+  /** 每天进度：{day,title,mode,total,done,pct} */
+  function dayStats(rec) {
+    var out = [];
+    for (var i = 0; i < DAYS.length; i++) {
+      var d = DAYS[i], ts = d.tasks || [], c = 0;
+      for (var j = 0; j < ts.length; j++) if (rec.done[tid(d.day, j)]) c++;
+      out.push({
+        day: d.day, title: d.title, mode: d.mode, goal: d.goal,
+        total: ts.length, done: c,
+        pct: ts.length ? Math.round((c / ts.length) * 100) : 0,
+      });
+    }
+    return out;
+  }
+
+  /** 总打卡完成率（0–100） */
+  function overallPct(rec) {
+    var t = taskTotal(), c = 0;
+    for (var i = 0; i < DAYS.length; i++) {
+      var d = DAYS[i], ts = d.tasks || [];
+      for (var j = 0; j < ts.length; j++) if (rec.done[tid(d.day, j)]) c++;
+    }
+    return t ? Math.round((c / t) * 100) : 0;
+  }
+
+  /* ── 三道门 ──────────────────────────────────────────────────────────── */
+
+  /** ① 打卡门：未完成的天（返回空数组 = 通过） */
+  function checkGate(rec) {
+    var miss = [];
+    var ss = dayStats(rec);
+    for (var i = 0; i < ss.length; i++) if (ss[i].done < ss[i].total) miss.push(ss[i].day);
+    return { pass: miss.length === 0, missing: miss, label: '① 打卡门（7 天 × 全部任务）' };
+  }
+
+  /** ② 验收门：Day7 三条件（份数 ≥ 门槛 / 差错 = 0 / 无需介入） */
+  function acceptGate(rec) {
+    var a = rec.accept || {}, f = [];
+    /* ⚠️ 2026-09-26 修复：门槛为 0 时 `0 >= 0` 恒成立 ⇒ 验收门**恒开**，
+       「三道门全过 + 独立完成 0 份」也会被判「能独立出单」（实测 pass=true、blockers 为空）。
+       ⇒ 门槛非法或 < 1 一律回落真源阈值（与 R1 的 leadDaysOf 同一手法：防线在模型层，
+          输入层的拦截挡不住导入的 JSON 与旧数据）。 */
+    var th = Number(rec.threshold);
+    if (!(th >= 1)) th = THRESHOLD;
+    if (!(Number(a.servings) >= th)) f.push('servings');
+    if (Number(a.errors) !== 0) f.push('errors');
+    if (a.neededHelp === true) f.push('neededHelp');
+    return { pass: f.length === 0, failed: f, label: '② 验收门（Day7 独立出单三条件）' };
+  }
+
+  /** ③ 抽检门：三项全过（打卡只证明点了，抽检才证明会了） */
+  function spotGate(rec) {
+    var s = rec.spot || {}, f = [];
+    var ks = (ACCEPT.spotCheck || []).map(function (x) { return x.key; });
+    for (var i = 0; i < ks.length; i++) if (!s[ks[i]]) f.push(ks[i]);
+    return { pass: f.length === 0, failed: f, label: '③ 抽检门（不看卡片做给你看）' };
+  }
+
+  /** ⭐ 最终判定：三道门全过才判「能独立出单」
+   *
+   * ⚠️ 三道门一律经**导出对象** `root.E4.xxx` 调用，而不是直接调本文件的局部函数。
+   *    原因（本轮实证）：负控需要临时把某一道门换成错误实现，以验证判据真能发现它坏掉；
+   *    若 `verdict()` 直接调闭包内的 `checkGate()`，外部 patch `root.E4.checkGate` **完全无效**，
+   *    那几条负控就会「恒绿」—— 而恒绿与恒红同罪。
+   */
+  function verdict(rec) {
+    var E = root.E4 || {};
+    var g1 = (E.checkGate || checkGate)(rec);
+    var g2 = (E.acceptGate || acceptGate)(rec);
+    var g3 = (E.spotGate || spotGate)(rec);
+    var blockers = [];
+    if (!g1.pass) blockers.push('第 ' + g1.missing.join('/') + ' 天打卡未完成');
+    if (!g2.pass) blockers.push(g2.failed.map(condLabel).join(' / '));
+    if (!g3.pass) blockers.push(g3.failed.map(spotLabel).join(' / '));
+    return {
+      pass: g1.pass && g2.pass && g3.pass,
+      gates: { check: g1, accept: g2, spot: g3 },
+      blockers: blockers,
+    };
+  }
+
+  function condLabel(k) {
+    for (var i = 0; i < (ACCEPT.conditions || []).length; i++) {
+      if (ACCEPT.conditions[i].key === k) return ACCEPT.conditions[i].label;
+    }
+    return k;
+  }
+  function spotLabel(k) {
+    for (var i = 0; i < (ACCEPT.spotCheck || []).length; i++) {
+      if (ACCEPT.spotCheck[i].key === k) return ACCEPT.spotCheck[i].label;
+    }
+    return k;
+  }
+
+  /* ── 日程 ────────────────────────────────────────────────────────────── */
+
+  /** Day1..Day7 的日历日期（起始日 + N−1 天） */
+  function schedule(rec) {
+    var out = [];
+    for (var i = 0; i < DAYS.length; i++) {
+      var d = DAYS[i];
+      out.push({
+        day: d.day,
+        date: U.addDays ? U.addDays(rec.startDate, d.day - 1) : '',
+        title: d.title, mode: d.mode,
+      });
+    }
+    return out;
+  }
+
+  /** 今天是第几天（起始日 = Day1；超出 7 天一律归到 7） */
+  function todayDay(rec) {
+    if (!U.diffDays) return 1;
+    var n = U.diffDays(rec.startDate, U.today());
+    if (n == null) return 1;
+    n = n + 1;
+    if (n < 1) return 1;
+    if (n > DAYS.length) return DAYS.length;
+    return n;
+  }
+
+  /* ── 名册看板（「你（祝总）看谁没完成」）────────────────────────────────── */
+
+  function rosterRows(state) {
+    var rs = (state && state.roster) || [];
+    return rs.map(function (r) {
+      var v = verdict(r);
+      var dd = todayDay(r);
+      return {
+        id: r.id,
+        name: r.name || '（未命名）',
+        buildingId: r.buildingId,
+        dayIndex: dd,
+        overdue: overallPct(r) < 100 && (U.diffDays ? (U.diffDays(r.startDate, U.today()) + 1) : 1) > DAYS.length,
+        pct: overallPct(r),
+        pass: v.pass,
+        blockers: v.blockers,
+        gates: v.gates,
+      };
+    });
+  }
+
+  /** 名册汇总：几人 / 几人已通过 / 几人超期未完成 */
+  function rosterSummary(state) {
+    var rows = rosterRows(state);
+    var passed = 0, overdue = 0;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].pass) passed++;
+      if (rows[i].overdue) overdue++;
+    }
+    return { total: rows.length, passed: passed, overdue: overdue, rows: rows };
+  }
+
+  /* ── 框架声明（诚实性：不掩盖「尚未校准」）───────────────────────────────── */
+
+  function frameworkNote() {
+    var f = S.framework || {};
+    return {
+      isFramework: !!f.isFramework,
+      reason: f.reason || '',
+      uncalibrated: f.uncalibrated || [],
+      note: f._note || '',
+    };
+  }
+
+  /** 未校准项数（页面徽标要显示，判据要断言 > 0） */
+  function uncalibratedCount() {
+    var n = 0;
+    var sets = (S.sopSets && S.sopSets.list) || [];
+    for (var i = 0; i < sets.length; i++) if (sets[i]._calibrated === false) n++;
+    if (S.onboard && S.onboard._calibrated === false) n++;
+    return n;
+  }
+
+  root.E4 = {
+    tid: tid,
+    taskTotal: taskTotal,
+    newRec: newRec,
+    defaults: defaults,
+    dayStats: dayStats,
+    overallPct: overallPct,
+    checkGate: checkGate,
+    acceptGate: acceptGate,
+    spotGate: spotGate,
+    verdict: verdict,
+    condLabel: condLabel,
+    spotLabel: spotLabel,
+    schedule: schedule,
+    todayDay: todayDay,
+    rosterRows: rosterRows,
+    rosterSummary: rosterSummary,
+    frameworkNote: frameworkNote,
+    uncalibratedCount: uncalibratedCount,
+    _threshold: THRESHOLD,
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* E4 SOP 与培训 · 判据层（构建期 + 运行期共用 · 不碰 DOM）
+ *
+ * 契约（与 F3 / M2 同构）：SelfCheck.run(spec, state) → { rows, bad, todos }
+ *   rows: [{name, ok, detail}] · bad: 不符条数 · todos: 待办文案数组
+ *
+ * ⚠⚠ 纪律（M2 刚踩过、本文件必须遵守）：
+ *   「判据名里不许写 Markdown 粗体 `」X「`」 —— 判据名会渲染到自检面板，
+ *   写了就是渲染面出现星号。判据名一律用「」或直接在 detail 里描述。
+ */
+(function (root) {
+  'use strict';
+
+  function run(S, state) {
+    var M = root.E4;
+    var rows = [], todos = [];
+    function add(name, ok, detail) { rows.push({ name: name, ok: !!ok, detail: detail || '' }); }
+
+    var v = (S.timeline && S.timeline.value) || {};
+    var pages = (S.pages && S.pages.list) || [];
+    var pathset = {};
+    for (var i = 0; i < pages.length; i++) pathset[pages[i].path] = pages[i].title;
+    var sets = (S.sopSets && S.sopSets.list) || [];
+    var days = (S.onboard && S.onboard.days) || [];
+    var rec = (state && state.roster && state.roster[0]) || M.newRec({});
+
+    /* ── ⓪ 框架声明（E4 最重要的一条诚实性）── */
+    var fw = M.frameworkNote();
+    var unc = M.uncalibratedCount();
+    add('⓪ 框架版已如实标注（未校准项 ' + unc + ' 项，不得伪装成已验证）',
+      fw.isFramework === true && unc > 0,
+      fw.reason + ' ⇒ 未校准：' + (fw.uncalibrated.join(' / ') || '（无）'));
+    if (unc > 0) {
+      todos.push('⚠ 本工具是框架版：' + fw.reason
+        + '。步骤顺序与「在哪做」有真源支撑，但「每项做多久、卡在哪」须真实运营一轮后校准。');
+    }
+
+    /* ── ① 四个时刻与真源 timeline 一致 ── */
+    var want = { publish: '14:00', cutoff: '24:00', arrival: '11:30', autoConfirm: '14:00' };
+    var badT = [];
+    Object.keys(want).forEach(function (k) { if (v[k] !== want[k]) badT.push(k + '=' + v[k]); });
+    add('① 四个时刻与真源一致（开团 14:00 / 截单 24:00 / 送达 11:30 / 自动确认 14:00）',
+      badT.length === 0,
+      badT.length ? '不一致：' + badT.join(' ') : '四时刻全等（' + S.timeline._src + '）');
+
+    /* ── ② SOP 引用的入口名必须在 pages.json 里真实存在 ── */
+    var badP = [];
+    sets.forEach(function (s) {
+      (s.steps || []).forEach(function (st) {
+        var w = st.where || '';
+        if (w.indexOf('pages/') === 0 && !(w in pathset)) badP.push(s.key + '「' + st.at + '」→ ' + w);
+      });
+    });
+    days.forEach(function (d) {
+      (d.tasks || []).forEach(function (t) {
+        var w = t.where || '';
+        if (w.indexOf('pages/') === 0 && !(w in pathset)) badP.push('D' + d.day + ' → ' + w);
+      });
+    });
+    add('② SOP 与 7 天清单引用的入口名全部在 pages.json 中存在',
+      badP.length === 0,
+      badP.length ? '不存在：' + badP.join(' | ')
+        : '共引用 ' + countRef() + ' 处，全部命中（'
+          + (S.leaderPages._note || '入口名一律用真源') + '）');
+
+    function countRef() {
+      var n = 0;
+      sets.forEach(function (s) {
+        (s.steps || []).forEach(function (st) { if ((st.where || '').indexOf('pages/') === 0) n++; });
+      });
+      days.forEach(function (d) {
+        (d.tasks || []).forEach(function (t) { if ((t.where || '').indexOf('pages/') === 0) n++; });
+      });
+      return n;
+    }
+
+    /* ── ③ 7 天结构：7 天 · 每天 ≥ 1 项 · Day7 是独立验收 ── */
+    var emptyDay = days.filter(function (d) { return !(d.tasks || []).length; });
+    add('③ 7 天陪跑结构完整（7 天且每天至少 1 项任务）',
+      days.length === 7 && emptyDay.length === 0,
+      days.length + ' 天 · 共 ' + M.taskTotal() + ' 项任务'
+      + (emptyDay.length ? ' · 空天：' + emptyDay.map(function (d) { return d.day; }).join('/') : ''));
+
+    var last = days[days.length - 1];
+    add('④ 第 7 天是独立验收日（mode = 独立）',
+      last && last.mode === '独立',
+      last ? 'Day7「' + last.title + '」mode=' + last.mode : '（无 Day7）');
+
+    /* ── ⑤ 三套 SOP 齐 ── */
+    var keys = sets.map(function (s) { return s.key; });
+    add('⑤ 三套 SOP 齐备（团长上岗 / 出餐人 / 配送）',
+      ['leader', 'kitchen', 'delivery'].every(function (k) { return keys.indexOf(k) >= 0; }),
+      '已有：' + keys.join(' / '));
+
+    /* ── ⑥ 框架项如实标注未校准 ── */
+    var lie = sets.filter(function (s) { return s._calibrated !== false; });
+    add('⑥ 每套 SOP 都如实标注「未校准」（不得把框架当已验证）',
+      lie.length === 0 && S.onboard._calibrated === false,
+      lie.length ? '未如实标注：' + lie.map(function (s) { return s.key; }).join('/')
+        : '三套 SOP + 7 天清单均标 _calibrated=false');
+
+    /* ── ⑦ 佣金四档与真源一致 ── */
+    var c = (S.env && S.env.commission) || {};
+    var okC = c.trainee === 0.08 && c.formal === 0.09 && c.gold === 0.10 && c.chief === 0.12;
+    add('⑦ 佣金四档与真源一致（见习 8% / 正式 9% / 金牌 10% / 首席 12%）',
+      okC, JSON.stringify(c));
+
+    /* ── ⑧ 空白记录必判不通过（三道门全不该开）── */
+    var blank = M.newRec({});
+    var vb = M.verdict(blank);
+    add('⑧ 空白新人记录判「未通过」（三道门初始全关）',
+      vb.pass === false && vb.blockers.length === 3,
+      '缺口 ' + vb.blockers.length + ' 条：' + vb.blockers.join(' / ').slice(0, 90));
+
+    /* ── ⑨ 打卡全勾但验收/抽检不过 ⇒ 仍判不通过（打卡 ≠ 会了）── */
+    var rec9 = M.newRec({});
+    days.forEach(function (d) {
+      (d.tasks || []).forEach(function (t, j) { rec9.done[M.tid(d.day, j)] = true; });
+    });
+    var v9 = M.verdict(rec9);
+    add('⑨ 打卡全勾但验收与抽检未过 ⇒ 仍判未通过（打卡只证明点了）',
+      M.overallPct(rec9) === 100 && v9.pass === false
+      && v9.gates.check.pass === true && v9.gates.accept.pass === false
+      && v9.gates.spot.pass === false,
+      '打卡 ' + M.overallPct(rec9) + '% · 打卡门开 / 验收门关 / 抽检门关 ⇒ 不通过 ✅');
+
+    /* ── ⑩ 三道门全过 ⇒ 判通过 ── */
+    var rec10 = M.newRec({});
+    days.forEach(function (d) {
+      (d.tasks || []).forEach(function (t, j) { rec10.done[M.tid(d.day, j)] = true; });
+    });
+    rec10.accept = { servings: rec10.threshold, errors: 0, neededHelp: false };
+    rec10.spot = { recite: true, refund: true, missing: true };
+    var v10 = M.verdict(rec10);
+    add('⑩ 三道门全过 ⇒ 判「能独立出单」',
+      v10.pass === true && v10.blockers.length === 0,
+      v10.pass ? '判定通过（' + rec10.threshold + ' 份 · 0 差错 · 无需介入 · 抽检三项全过）'
+        : '仍不通过：' + v10.blockers.join(' / '));
+
+    /* ── ⑪ 验收门三条件缺一不可：份数不够 ── */
+    var r11 = JSON.parse(JSON.stringify(rec10));
+    r11.accept.servings = rec10.threshold - 1;
+    add('⑪ 验收门：份数差 1 份即不通过',
+      M.verdict(r11).pass === false,
+      '份数 ' + r11.accept.servings + ' < 门槛 ' + rec10.threshold + ' ⇒ 不通过');
+
+    /* ── ⑫ 验收门：有差错即不通过（哪怕份数够）── */
+    var r12 = JSON.parse(JSON.stringify(rec10));
+    r12.accept.errors = 1;
+    add('⑫ 验收门：闭环有 1 处差错即不通过（份数够也不行）',
+      M.verdict(r12).pass === false,
+      '差错 1 ⇒ 不通过');
+
+    /* ── ⑬ 验收门：需老团长介入即不通过 ── */
+    var r13 = JSON.parse(JSON.stringify(rec10));
+    r13.accept.neededHelp = true;
+    add('⑬ 验收门：需老团长介入即不通过（「独立」二字的本义）',
+      M.verdict(r13).pass === false,
+      'neededHelp=true ⇒ 不通过');
+
+    /* ── ⑭ 抽检门缺一项即不通过 ── */
+    var r14 = JSON.parse(JSON.stringify(rec10));
+    r14.spot.missing = false;
+    var v14 = M.verdict(r14);
+    add('⑭ 抽检门：三项缺任一即不通过',
+      v14.pass === false && v14.gates.spot.failed.length === 1,
+      '未过抽检：' + v14.gates.spot.failed.join('/'));
+
+    /* ── ⑮ 门槛可调且生效 ── */
+    var r15 = JSON.parse(JSON.stringify(rec10));
+    r15.threshold = rec10.threshold + 5;
+    add('⑮ 出单门槛可调，且调高后原份数不再达标',
+      M.verdict(r15).pass === false,
+      '门槛 ' + rec10.threshold + ' → ' + r15.threshold + ' ⇒ 原 ' + r15.accept.servings + ' 份不再达标');
+
+    /* ── ㉔ ⭐ 2026-09-26 新增：门槛下限必须 > 0 ──
+       起因（实测 bug）：门槛输入框允许 0（且清空后 Number('')=0），而验收门的条件是
+       `servings >= threshold` ⇒ 0 >= 0 恒成立 ⇒ 「三道门全过 + 独立完成 0 份」
+       也能判「能独立出单」，blockers 为空、19 条判据全绿。
+       验收门是最后一道闸，它一旦恒开，前面两道门就白设了。 */
+    var r24 = JSON.parse(JSON.stringify(rec10));
+    r24.threshold = 0; r24.accept.servings = 0;
+    var v24 = M.verdict(r24);
+    var r24b = JSON.parse(JSON.stringify(rec10));
+    r24b.threshold = 1; r24b.accept.servings = 1;
+    add('㉔ 门槛为 0 时不得判「能独立出单」（下限 > 0）',
+      v24.pass === false && M.verdict(r24b).pass === true,
+      '门槛 0 + 0 份 ⇒ pass=' + v24.pass + '（须 false）· 门槛 1 + 1 份 ⇒ pass='
+      + M.verdict(r24b).pass + '（须 true）');
+
+    /* ── ⑯ 任务 id 唯一 ── */
+    var ids = {}, dup = [];
+    days.forEach(function (d) {
+      (d.tasks || []).forEach(function (t, j) {
+        var k = M.tid(d.day, j);
+        if (ids[k]) dup.push(k); ids[k] = 1;
+      });
+    });
+    add('⑯ 打卡项 id 唯一（共 ' + M.taskTotal() + ' 项）',
+      dup.length === 0, dup.length ? '重复：' + dup.join('/') : '无重复');
+
+    /* ── ⑰ 日程：Day1 = 起始日，Day7 = 起始日 + 6 ── */
+    var sch = M.schedule(rec);
+    var ok17 = sch.length === 7 && sch[0].date === rec.startDate
+      && (root.U.addDays ? sch[6].date === root.U.addDays(rec.startDate, 6) : true);
+    add('⑰ 日程自洽：Day1 = 起始日 ' + rec.startDate + '，Day7 = 起始日 + 6 天',
+      ok17, sch.length ? ('Day7 = ' + sch[6].date) : '（无日程）');
+
+    /* ── ⑱ 团长端入口数 ≥ 10（真源结构未漂移）── */
+    var lp = (S.leaderPages && S.leaderPages.list) || [];
+    add('⑱ 团长端入口真源完整（≥ 10 个页面）',
+      lp.length >= 10, lp.length + ' 个' + '（' + (S.pages._src || '') + '）');
+
+    /* ── 待办：E4 依赖「真实运营一轮后校准」── */
+    todos.push('三套 SOP 与 7 天清单都是框架：真实运营一轮后，按「哪项做不动 / 哪项顺序不对」'
+      + '回头改 _tmp/p1/e4/extract.py 源件再重生成，不要手改 HTML。');
+    todos.push('⚠ 出餐人 SOP 与配送 SOP 在仓库里没有任何真源（供应商共用后台、无配送页），'
+      + '其 where 写「待补」是如实标注，不是遗漏 —— 须现场补齐。');
+
+    var bad = 0;
+    for (var k2 = 0; k2 < rows.length; k2++) if (!rows[k2].ok) bad++;
+    return { rows: rows, bad: bad, todos: todos };
+  }
+
+  root.SelfCheck = { run: run };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* E4 SOP 与培训 · 页面层
+ *
+ * ⚠ 两条纪律（本项目踩过）：
+ *   1. `data-tool-ready` 挂在 「document.body」 上（探针按 body 取；挂 html 会恒红）。
+ *   2. 渲染面文案「不许写 Markdown 粗体 `」X「`」（含判据名与待办）—— 探针会查。
+ */
+(function () {
+  'use strict';
+  var S = window.SPEC, U = window.U, M = window.E4, SC = window.SelfCheck;
+  var KEY = 'abox_e4_sop_v1';
+  var $ = U.$, esc = U.esc;
+
+  var state = U.store.get(KEY, null);
+  if (!state || !state.roster || !state.roster.length) state = M.defaults();
+  if (!state.activeId || !find(state.activeId)) state.activeId = state.roster[0].id;
+  var curSop = 'leader';
+
+  function find(id) {
+    for (var i = 0; i < state.roster.length; i++) if (state.roster[i].id === id) return state.roster[i];
+    return null;
+  }
+  function rec() { return find(state.activeId) || state.roster[0]; }
+  function save() { U.store.set(KEY, state); }
+
+  /* ── 侧栏 ── */
+  function renderSide() {
+    var r = rec();
+    var opts = state.roster.map(function (x) {
+      return '<option value="' + esc(x.id) + '"' + (x.id === state.activeId ? ' selected' : '') + '>'
+        + esc(x.name || '（未命名）') + '</option>';
+    }).join('');
+    var bopts = (S.buildings.list || []).map(function (b) {
+      return '<option value="' + b.id + '"' + (String(r.buildingId) === String(b.id) ? ' selected' : '') + '>'
+        + esc(b.name) + '</option>';
+    }).join('');
+    $('#side').innerHTML = [
+      '<div class="card">',
+      '  <h3>带教对象</h3>',
+      '  <div class="row2"><select id="pick" class="btn" style="flex:1">' + opts + '</select>',
+      '    <button class="btn" id="add">新增</button></div>',
+      '  <div class="row2" style="margin-top:8px"><button class="btn" id="del">删除当前</button></div>',
+      '</div>',
+      '<div class="card">',
+      '  <h3>基本信息</h3>',
+      '  <label>姓名<input id="f-name" type="text" value="' + esc(r.name) + '" placeholder="新团长姓名"></label>',
+      '  <label>服务楼栋<select id="f-bd">' + bopts + '</select></label>',
+      '  <label>起始日期<input id="f-date" type="date" value="' + esc(r.startDate) + '"></label>',
+      '  <label>独立出单门槛（份）<input id="f-th" type="number" min="1" step="1" value="' + r.threshold + '"></label>',
+      '</div>',
+      '<div class="card">',
+      '  <h3>数据</h3>',
+      '  <div class="row2"><button class="btn" id="exp">导出记录</button>',
+      '    <button class="btn" id="reset">清空</button></div>',
+      '  <div class="src">' + (U.store.ok() ? '本机存储可用，改动自动保存。'
+        : '⚠ 本机存储不可用，本次改动不会保存。') + '</div>',
+      '</div>',
+    ].join('');
+  }
+
+  /* ── 主区 ── */
+  function renderMain() {
+    var r = rec();
+    var fw = M.frameworkNote();
+    var html = [];
+
+    /* 1. 框架警告（首屏红字 —— E4 最重要的诚实性） */
+    html.push('<div class="card"><h2>框架版声明</h2>');
+    html.push('<div class="fw"><div class="fwt">⚠ 本工具是框架版，尚未经真实运营校准</div>');
+    html.push('<div class="fwb">' + esc(fw.reason) + '</div>');
+    html.push('<div class="fwb">' + esc(fw.note) + '</div>');
+    html.push('<div class="fwtags">' + fw.uncalibrated.map(function (k) {
+      return '<span class="pill">未校准：' + esc(k) + '</span>';
+    }).join('') + '</div></div>');
+    html.push('</div>');
+
+    /* 2. 三套 SOP */
+    html.push('<div class="card"><h2>三套 SOP</h2>');
+    html.push('<div class="soptabs">' + (S.sopSets.list || []).map(function (s) {
+      return '<span class="soptab" data-sop="' + esc(s.key) + '" aria-selected="'
+        + (s.key === curSop ? 'true' : 'false') + '">' + esc(s.name) + '</span>';
+    }).join('') + '</div>');
+    var cur = null;
+    (S.sopSets.list || []).forEach(function (s) { if (s.key === curSop) cur = s; });
+    if (cur) {
+      html.push('<div class="note">' + esc(cur._note || '') + '</div>');
+      html.push('<div class="src">来路：' + esc(cur._origin) + '</div>');
+      html.push('<div class="steps">' + (cur.steps || []).map(function (st) {
+        return '<div class="step"><span class="at">' + esc(st.at) + '</span>'
+          + '<span class="sd">' + esc(st.do) + '</span>'
+          + '<span class="sw">' + esc(st.where) + '</span></div>';
+      }).join('') + '</div>');
+    }
+    html.push('</div>');
+
+    /* 3. 7 天陪跑（打卡） */
+    var today = M.todayDay(r);
+    var sch = M.schedule(r);
+    html.push('<div class="card"><h2>新人 7 天陪跑清单</h2>');
+    html.push('<div class="note">' + esc(S.onboard._note) + '</div>');
+    html.push('<div class="src">验收判据（系统地图 P1）：' + esc(S.onboard._accept)
+      + ' · 来路：' + esc(S.onboard._origin) + '</div>');
+    (S.onboard.days || []).forEach(function (d, di) {
+      var st = M.dayStats(r)[di];
+      var cls = 'day' + (d.day === today ? ' is-today' : '') + (d.mode === '独立' ? ' is-final' : '');
+      html.push('<div class="' + cls + '">');
+      html.push('<div class="dayhead"><span class="dnum">Day' + d.day + '</span>'
+        + '<span class="dtitle">' + esc(d.title) + '</span>'
+        + '<span class="dmode">［' + esc(d.mode) + '］</span>'
+        + '<span class="ddate">' + esc(sch[di] ? sch[di].date : '') + (d.day === today ? ' · 今天' : '') + '</span>'
+        + '<span class="dgoal">' + esc(d.goal) + '</span></div>');
+      html.push('<div class="tasks">' + (d.tasks || []).map(function (t, j) {
+        var id = M.tid(d.day, j), on = !!r.done[id];
+        return '<div class="task' + (on ? ' is-done' : '') + '">'
+          + '<label><input type="checkbox" data-chk="' + id + '"' + (on ? ' checked' : '') + '>'
+          + '<span class="do">' + esc(t.do) + '</span></label>'
+          + '<span class="where">' + esc(t.where) + '</span>'
+          + '<span class="check">' + esc(t.check) + '</span></div>';
+      }).join('') + '</div>');
+      html.push('<div class="pbar"><i style="width:' + st.pct + '%"></i></div>');
+      html.push('<div class="src">本天 ' + st.done + '/' + st.total + '（' + st.pct + '%）</div>');
+      html.push('</div>');
+    });
+    html.push('</div>');
+
+    /* 4. 验收 + 抽检 */
+    html.push('<div class="card"><h2>第 7 天 · 独立出单验收与抽检</h2>');
+    html.push('<div class="note">' + esc(S.acceptance._note) + '</div>');
+    html.push('<div class="accept"><div class="row2">'
+      + '<label style="flex:1">独立完成份数<input id="a-serv" type="number" min="0" step="1" value="' + r.accept.servings + '"></label>'
+      + '<label style="flex:1">闭环差错数<input id="a-err" type="number" min="0" step="1" value="' + r.accept.errors + '"></label>'
+      + '</div>');
+    html.push('<label style="margin-top:8px"><input id="a-help" type="checkbox"'
+      + (r.accept.neededHelp ? ' checked' : '') + '> 需要老团长介入（勾选即视为不独立）</label></div>');
+    html.push('<div class="spot" style="margin-top:12px"><h3>抽检三项（不看卡片做给你看）</h3>');
+    (S.acceptance.spotCheck || []).forEach(function (sp) {
+      html.push('<label><input type="checkbox" data-spot="' + esc(sp.key) + '"'
+        + (r.spot[sp.key] ? ' checked' : '') + '> ' + esc(sp.label) + '</label>');
+    });
+    html.push('</div>');
+    html.push('<div class="src">来路：' + esc(S.acceptance._src) + '</div>');
+    html.push('</div>');
+
+    /* 5. 三道门 + 最终判定 */
+    var v = M.verdict(r);
+    html.push('<div class="card"><h2>判定：能否独立出单</h2>');
+    html.push('<div class="gates">');
+    ['check', 'accept', 'spot'].forEach(function (k) {
+      var g = v.gates[k];
+      var d = k === 'check'
+        ? (g.pass ? '7 天任务全部打卡完成' : '第 ' + g.missing.join(' / ') + ' 天尚未打完')
+        : (k === 'accept'
+          ? (g.pass ? '份数达标 · 零差错 · 无需介入' : '未满足：' + g.failed.map(M.condLabel).join(' / '))
+          : (g.pass ? '三项抽检全过' : '未过抽检：' + g.failed.map(M.spotLabel).join(' / ')));
+      html.push('<div class="gatecard ' + (g.pass ? 'pass' : 'fail') + '">'
+        + '<span class="gmark">' + (g.pass ? '通过' : '未过') + '</span>'
+        + '<div class="gt">' + esc(g.label) + '</div>'
+        + '<div class="gd">' + esc(d) + '</div></div>');
+    });
+    html.push('</div>');
+    html.push('<div class="' + (v.pass ? 'gate' : 'fw') + '" style="margin-top:4px">'
+      + '<b>' + (v.pass ? '✅ 判定：可以按 SOP 独立出单' : '⛔ 判定：还不能独立出单') + '</b>'
+      + (v.pass ? '' : '<div style="margin-top:6px">缺口：' + v.blockers.map(esc).join(' ／ ') + '</div>')
+      + '</div>');
+    html.push('</div>');
+
+    /* 6. 名册看板（「你（祝总）看谁没完成」） */
+    var rs = M.rosterSummary(state);
+    html.push('<div class="card"><h2>带教看板 · 谁还没完成</h2>');
+    html.push('<div class="kpis">'
+      + '<div class="kpi"><b>' + rs.total + '</b><span>在带人数</span></div>'
+      + '<div class="kpi"><b>' + rs.passed + '</b><span>已判定可独立</span></div>'
+      + '<div class="kpi"><b>' + rs.overdue + '</b><span>超期未完成</span></div>'
+      + '</div>');
+    html.push('<table class="roster"><thead><tr><th>姓名</th><th>当前</th><th>打卡</th><th>判定</th><th>缺口</th></tr></thead><tbody>');
+    rs.rows.forEach(function (x) {
+      html.push('<tr' + (x.overdue ? ' class="is-over"' : '') + '>'
+        + '<td>' + esc(x.name) + '</td>'
+        + '<td>Day' + x.dayIndex + (x.overdue ? '（已超期）' : '') + '</td>'
+        + '<td>' + x.pct + '%</td>'
+        + '<td>' + (x.pass ? '可独立出单' : '未完成') + '</td>'
+        + '<td>' + (x.blockers.length ? esc(x.blockers.join(' ／ ')) : '—') + '</td></tr>');
+    });
+    html.push('</tbody></table></div>');
+
+    /* 7. 自检面板 */
+    var sc = SC.run(S, state);
+    html.push('<div class="card"><h2>自检 ' + sc.rows.filter(function (x) { return x.ok; }).length
+      + '/' + sc.rows.length + (sc.bad ? '（有 ' + sc.bad + ' 条不符）' : '（全绿）') + '</h2>');
+    sc.rows.forEach(function (x) {
+      html.push('<div class="gate" style="margin-bottom:6px">'
+        + (x.ok ? '✅ ' : '❌ ') + esc(x.name)
+        + (x.detail ? '<div class="src">' + esc(x.detail) + '</div>' : '') + '</div>');
+    });
+    if (sc.todos.length) {
+      html.push('<div class="note" style="margin-top:10px"><b>待办</b>');
+      sc.todos.forEach(function (t) { html.push('<div>' + esc(t) + '</div>'); });
+      html.push('</div>');
+    }
+    html.push('</div>');
+
+    /* 8. 来源 */
+    html.push('<div class="card"><h2>口径来源</h2><div class="src">');
+    Object.keys(S._srcs || {}).forEach(function (k) {
+      html.push('<div><b>' + esc(k) + '</b>：' + esc(S._srcs[k]) + '</div>');
+    });
+    html.push('</div></div>');
+
+    $('#main').innerHTML = html.join('');
+  }
+
+  function render() { renderSide(); renderMain(); }
+
+  /* ── 事件 ── */
+  U.on('change', '[data-chk]', function (e, t) {
+    rec().done[t.getAttribute('data-chk')] = t.checked; save(); render();
+  });
+  U.on('change', '[data-spot]', function (e, t) {
+    rec().spot[t.getAttribute('data-spot')] = t.checked; save(); render();
+  });
+  U.on('click', '.soptab', function (e, t) {
+    curSop = t.getAttribute('data-sop'); renderMain();
+  });
+  U.on('change', '#pick', function (e, t) { state.activeId = t.value; save(); render(); });
+  U.on('click', '#add', function () {
+    var r = M.newRec({}); state.roster.push(r); state.activeId = r.id; save(); render();
+  });
+  U.on('click', '#del', function () {
+    if (state.roster.length <= 1) { alert('至少保留一个带教对象'); return; }
+    var i = state.roster.indexOf(rec());
+    state.roster.splice(i, 1); state.activeId = state.roster[0].id; save(); render();
+  });
+  U.on('input', '#f-name', function (e, t) { rec().name = t.value; save(); renderMain(); });
+  U.on('change', '#f-bd', function (e, t) { rec().buildingId = t.value; save(); });
+  U.on('change', '#f-date', function (e, t) {
+    if (U.isDate && U.isDate(t.value)) { rec().startDate = t.value; save(); render(); }
+  });
+  /* ⚠️ 2026-09-26 修复：原写法把 0（以及清空后的 Number('')=0）当成合法门槛，
+     而验收门的条件是 `servings >= threshold` ⇒ 0 >= 0 恒成立，
+     「三道门全过 + 独立完成 0 份」也会被判「能独立出单」（实测 pass=true、blockers 为空）。
+     ⇒ 门槛至少 1 份；非法/小于 1 一律回落真源值（ACCEPT.threshold），不静默改判。 */
+  U.on('input', '#f-th', function (e, t) {
+    var n = Number(t.value);
+    rec().threshold = (isFinite(n) && n >= 1) ? Math.round(n) : M._threshold;
+    save(); renderMain();
+  });
+  U.on('input', '#a-serv', function (e, t) {
+    rec().accept.servings = Number(t.value) || 0; save(); renderMain();
+  });
+  U.on('input', '#a-err', function (e, t) {
+    rec().accept.errors = Number(t.value) || 0; save(); renderMain();
+  });
+  U.on('change', '#a-help', function (e, t) {
+    rec().accept.neededHelp = t.checked; save(); renderMain();
+  });
+  U.on('click', '#exp', function () {
+    U.download('abox-e4-sop-' + (U.today ? U.today() : 'export') + '.json',
+      JSON.stringify(state, null, 2), 'application/json');
+  });
+  U.on('click', '#reset', function () {
+    if (!confirm('清空全部带教记录？此操作不可撤销。')) return;
+    state = M.defaults(); state.activeId = state.roster[0].id; save(); render();
+  });
+
+  /* 导出给构建期自检用：它的存在本身就是「IIFE 完整执行到最后一行」的证据 */
+  window.E4App = { render: render, getState: function () { return state; } };
+
+  /* ── 启动 ── */
+  function boot() {
+    if ($('#ver')) $('#ver').textContent = window.TOOL_VERSION || '';
+    if ($('#date')) $('#date').textContent = U.today ? U.today() : '';
+    render();
+    // ⚠ 必须挂 body（探针按 body 取；挂 html 会恒红）
+    document.body.setAttribute('data-tool-ready', '1');
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+
+</script></body></html>

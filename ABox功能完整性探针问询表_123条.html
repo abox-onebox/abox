@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 功能完整性探针问询表（123 条 · 完整版）</title>
+<style>
+  :root{
+    --brown:#6E5435; --brown-d:#4a3a22; --cream:#F6F0E5; --cream-2:#efe6d6;
+    --line:#d9cbb4; --ok:#3f7d4f; --part:#b07d2b; --gap:#b23b3b; --na:#7a7a7a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"楷体","KaiTi","STKaiti",simkai,serif;color:var(--brown-d);background:var(--cream);line-height:1.6;}
+  header{background:var(--brown);color:var(--cream);padding:22px 28px;}
+  header h1{margin:0 0 4px;font-size:24px;letter-spacing:2px;}
+  header p{margin:0;font-size:14px;opacity:.9;}
+  .wrap{max-width:1400px;margin:0 auto;padding:18px 22px 60px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:16px 0;font-size:13.5px;}
+  .card h3{margin:0 0 8px;color:var(--brown);font-size:15px;}
+  .dims{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px 14px;}
+  .dims span{border-left:3px solid var(--brown);padding-left:8px;}
+  table.find{width:100%;border-collapse:collapse;font-size:13px;}
+  table.find th,table.find td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top;}
+  table.find th{background:var(--cream-2);color:var(--brown);white-space:nowrap;}
+  .badge{display:inline-block;font-size:11px;padding:1px 6px;border-radius:10px;color:#fff;margin-right:4px;}
+  .b-p0{background:var(--gap);} .b-p1{background:var(--part);} .b-p2{background:var(--na);}
+  .b-new{background:var(--brown);}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 16px;}
+  .controls label{font-size:13px;color:var(--brown);}
+  select,button{font-family:inherit;font-size:13px;border:1px solid var(--line);border-radius:6px;padding:5px 9px;background:var(--cream);color:var(--brown-d);cursor:pointer;}
+  button.primary{background:var(--brown);color:var(--cream);border-color:var(--brown);}
+  .stats{margin-left:auto;font-size:13px;color:var(--brown);}
+  .stats b{font-size:16px;}
+  .module{margin:22px 0;}
+  .module h2{font-size:17px;color:var(--brown);border-bottom:2px solid var(--brown);padding-bottom:6px;margin:0 0 10px;}
+  .row{display:grid;grid-template-columns:52px 64px 88px 1.4fr 1fr 104px 128px;gap:9px;padding:9px 8px;border-bottom:1px dashed var(--line);align-items:start;font-size:13px;}
+  .row.head{font-weight:bold;color:var(--brown);background:var(--cream-2);border-bottom:2px solid var(--brown);}
+  .row .q{white-space:pre-wrap;}
+  .meta{font-size:11px;color:#9a8a6a;margin-top:4px;line-height:1.45;}
+  .meta b{color:#8a6a3a;}
+  .nooracle{color:var(--gap);font-weight:bold;}
+  .tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:10px;background:var(--cream-2);color:var(--brown);margin-right:3px;}
+  .actor-U{color:#2f6d8a;} .actor-L{color:#8a5a2f;} .actor-A{color:#5a3f7a;}
+  select.status{width:100%;}
+  .note{width:100%;font-family:inherit;font-size:12.5px;border:1px solid var(--line);border-radius:5px;background:#fffdf8;color:var(--brown-d);padding:3px 5px;resize:vertical;min-height:26px;}
+  .s-ok{color:var(--ok);} .s-part{color:var(--part);} .s-gap{color:var(--gap);} .s-na{color:var(--na);}
+  .isnew{box-shadow:inset 3px 0 0 var(--brown);}
+  details.card summary{cursor:pointer;list-style:none;}
+  details.card summary::-webkit-details-marker{display:none;}
+  details.card summary h3{display:inline;cursor:pointer;}
+  details.card summary h3::before{content:"\25B8  ";}
+  details.card[open] summary h3::before{content:"\25BE  ";}
+  details.card[open] summary{margin-bottom:10px;}
+  footer{font-size:12px;color:var(--na);text-align:center;margin-top:30px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>ABox 一盒 · 功能完整性探针问询表（123 条 · 完整版）</h1>
+  <p>在 v1（67 条）基础上做代码实比对后补齐：新增 56 条（合计 123 条）、新增 7 个缺失模块、每条补「判定标准」与「去哪验」。数据基于项目锁定口径（2026-10-23 起）+ 真实代码走查（2026-10-26）。</p>
+</header>
+
+<div class="wrap">
+
+  <div class="card" style="padding:10px 18px;font-size:13.5px;">
+    <b>正文即探针列表（共 123 条，已在下方逐条列出）。</b>
+    建议先用「优先级」筛选出 P0（25 条）逐条核；两张说明卡已折叠在列表下方，需要时再展开。
+  </div>
+
+  <div class="controls">
+    <label>角色
+      <select id="fActor"><option value="">全部</option><option value="U">用户/团员</option><option value="L">团长</option><option value="A">管理者/后台</option></select>
+    </label>
+    <label>模块
+      <select id="fModule"><option value="">全部</option></select>
+    </label>
+    <label>优先级
+      <select id="fPri"><option value="">全部</option><option value="P0">P0 资金/合规</option><option value="P1">P1 闭环</option><option value="P2">P2 完善</option><option value="未定">未定（v1 遗留）</option></select>
+    </label>
+    <label>状态
+      <select id="fStatus"><option value="">全部</option><option value="待核">待核</option><option value="已实现">已实现</option><option value="部分">部分</option><option value="缺口">缺口</option><option value="不可行">不可行</option><option value="不适用">不适用</option></select>
+    </label>
+    <label><input type="checkbox" id="fUnset"> 仅看“待核”</label>
+    <label><input type="checkbox" id="fNoOracle"> 仅看“缺判定标准”</label>
+    <button class="primary" id="btnExport">导出 CSV</button>
+    <button id="btnGap">导出 P0 缺口清单</button>
+    <button id="btnClear">清空我的勾选</button>
+    <span class="stats" id="stats"></span>
+  </div>
+
+  <div id="list"></div>
+
+  <details class="card" open>
+    <summary><h3>v1 审查结论（附录 · 可收起）</h3></summary>
+    <table class="find">
+      <tr><th>类别</th><th>发现</th><th>处置</th></tr>
+      <tr><td><span class="badge b-p0">设计缺陷</span></td><td>v1 只有「问句」，<b>没有判定标准（oracle）</b>——填表人无法判定什么叫「已实现」，只会凭感觉勾，67 条可能全部失真。</td><td>v2 每条新增「判定标准」列；v1 <b>原有 67 条全部未带判定标准</b>，已标红，需逐条补。</td></tr>
+      <tr><td><span class="badge b-p0">设计缺陷</span></td><td>没有「去哪验」——只有依据文档名，没有页面路径 / API / 数据表 / 日志位置，执行层面不可操作。</td><td>v2 新增「去哪验」，写真实代码路径。</td></tr>
+      <tr><td><span class="badge b-p1">设计缺陷</span></td><td>67 条 P0/P1/P2 平铺无优先级，<b>20 分钟内看不出先核什么</b>。</td><td>v2 每条打优先级，可按 P0 过滤。</td></tr>
+      <tr><td><span class="badge b-p1">设计缺陷</span></td><td>状态值缺「不适用」——只能勾「不可行」，会把「业务上不打算做」误报成「技术做不了」。</td><td>v2 状态增加「不适用」。</td></tr>
+      <tr><td><span class="badge b-p0">内容缺失</span></td><td>后端实有 <b>18 个模块</b>，v1 只覆盖约 10 个。<b>整块缺失：delivery（配送送达闭环）、finance（提现/结算/发票/对账/冲正）、tasks（9 个定时任务）、building（楼宇归属）、supplier/traceability（资质与溯源）</b>。</td><td>新增 Q / R / S / T / U 五个业务模块。</td></tr>
+      <tr><td><span class="badge b-p0">内容缺失</span></td><td><b>横向缺失：安全与越权（IDOR、金额篡改、并发超扣）</b>一个字都没问。这是唯一可以「一次事故亏掉全年利润」的类目。</td><td>新增 V 模块 7 条。</td></tr>
+      <tr><td><span class="badge b-p0">内容缺失</span></td><td><b>异常运营日（停餐/断供/大面积退款/应急接管）</b>无一条。v1 只测「正常日子」。</td><td>新增 W 模块 5 条。</td></tr>
+    </table>
+  </details>
+
+  <details class="card">
+    <summary><h3>七维探针说明（点开查看）</h3></summary>
+    <div class="dims">
+      <span><b>① 能力</b>：系统做不做得到</span>
+      <span><b>② 对象/范围</b>：谁能操作、作用于谁</span>
+      <span><b>③ 入口/触发</b>：从哪发起、何时触发</span>
+      <span><b>④ 业务规则</b>：面额/门槛/有效期/叠加</span>
+      <span><b>⑤ 边界/异常</b>：退款/撤销/过期/重复</span>
+      <span><b>⑥ 数据/一致性</b>：落库/幂等/对账</span>
+      <span><b>⑦ 可观测/审计</b>：谁/何时/可追溯</span>
+    </div>
+    <div style="margin-top:10px;font-size:13px;color:#8a6a3a;">
+      <b>写法练句：</b>「你能不能【动作】+ 作用在【谁/范围】+ 通过【什么入口】+ 遵循【什么规则】+ 当【异常】时怎么处理 + 并且【谁能追溯】？」<br>
+      <b>判定标准写法：</b>必须写出<b>可证伪的期望值</b>（如「返回 10006」「余额不变」「同一用户重放结果一致」），而不是「是否合理」。
+    </div>
+  </details>
+
+  <footer>状态与备注自动存于本机浏览器（localStorage），不会上传。导出 CSV 可留档或交开发核对。<br>v2 补充依据：真实代码走查（delivery/finance/building/supplier/traceability/tasks 模块 + 小程序页面清单），非纸面推演。</footer>
+</div>
+
+<script>
+const PROBES = [
+// ============ A 账户与身份（v1 原样保留） ============
+{id:"A1",actor:"U",module:"账户与身份",dim:"①②",op:"注册/登录",q:"是否微信授权登录即开通账户？游客能否浏览首页不下单？用户与团长共用同一身份，切换/区分逻辑是否清晰？",src:"ab_balance 同表；用户与团长共用身份"},
+{id:"A2",actor:"U",module:"账户与身份",dim:"②④",op:"信息收集",q:"用户表单是否误收真实姓名？（铁律：不收集真实姓名，靠团长认识）配送位置是否也误进表单？（铁律：不进用户表单）",src:"交付铁律·单一套餐：仅份数字段"},
+{id:"A3",actor:"U",module:"账户与身份",dim:"④⑥",op:"余额",q:"用户余额查询/变动流水是否可见？余额与团长佣金同表(ab_balance)，充值/扣减/提现路径是否清晰、对账一致？",src:"用户余额与团长佣金同表 ab_balance"},
+{id:"A4",actor:"U",module:"账户与身份",dim:"⑤⑦",op:"注销",q:"账号注销流程是否存在？注销后埋点数据是否按 180 天规则清理、券/订单如何处理？",src:"ab_page_track 180天自动清理"},
+
+// ============ B 首页与浏览 ============
+{id:"B1",actor:"U",module:"首页与浏览",dim:"①③",op:"首页展示",q:"首页是否展示当日一饭四菜（只读信息，非输入）与 X 盲盒格？信息是否从接口实时取、取不到整行不显示？",src:"交付铁律：当日一饭四菜须作为只读信息展示"},
+{id:"B2",actor:"U",module:"首页与浏览",dim:"②④",op:"套餐选择",q:"是否仅单一套餐、无任何口味/选餐/备注输入？（铁律严禁此类用户输入字段）",src:"交付铁律·单一套餐：严禁口味/选餐/备注字段"},
+{id:"B3",actor:"U",module:"首页与浏览",dim:"④",op:"价格展示",q:"价格是否恒定 ¥25.80/份？佣金四档是否对用户隐藏？",src:"¥25.80/份；佣金不展示用户"},
+{id:"B4",actor:"U",module:"首页与浏览",dim:"③⑥",op:"端上时刻",pri:"P1",op2:"",q:"端上显示的截单倒计时/送达时刻，是否一律取自接口响应（而非本地 new Date()）？把手机时区改成非北京时间，倒计时差几小时？离线打开是否显示错误的截单提示？",
+ oracle:"端上任意时刻文案均为接口返回值；手机时区改为 UTC 后，倒计时与北京时区下相差不超过 5 秒；断网时整块不显示而非显示 00:00。",
+ how:"apps/miniprogram/src/pages/index/index.vue 看是否本地计算；接口缺字段时是否整行隐藏（口径：端上时刻一律从响应取，取不到整行不显示）。",src:"口径：端上时刻一律从响应取，取不到整行不显示",new:true},
+{id:"B5",actor:"A",module:"首页与浏览",dim:"③⑤",op:"非营业日",pri:"P0",q:"周末/法定节假日/供应商休市时，首页是否仍允许下“明日”单？代码里**没有任何营业日/休市概念**（全仓 grep 无 restDay/holiday/营业日），那么周五晚下单→次日是周六，谁来送、谁来做？",
+ oracle:"要么存在营业日配置且非营业日明确拒绝下单并给出提示；要么业务上确认天天营业（含春节）并在文档中写明。二者必居其一，不能“没想过”。",
+ how:"全仓 grep 营业日/休市/holiday/restDay 均无结果 ⇒ 属实空洞。定位：order.service.isOrderable() 只判日期上界，不判是否营业日。",src:"代码走查：未发现营业日概念；isOrderable 仅判上界",new:true},
+
+// ============ C 下单与支付 ============
+{id:"C1",actor:"U",module:"下单与支付",dim:"①③",op:"下单时机",q:"是否只有“明日”可下单(isOrderable 上界)？今日/后日是否被正确禁用并说明理由？",src:"isOrderable 上界⇒只有明日能下单"},
+{id:"C2",actor:"U",module:"下单与支付",dim:"②④",op:"下单字段",q:"用户表单必要字段是否仅=份数一项？推荐团长是否靠专属链接自动归属、不要求用户选？",src:"用户侧表单必要字段仅=份数一项"},
+{id:"C3",actor:"U",module:"下单与支付",dim:"⑥",op:"幂等",q:"重复提交（同 Idempotency-Key）是否回放原结果并返 10006，绝不重复成单？",src:"幂等靠 Idempotency-Key，同键回放→10006"},
+{id:"C4",actor:"U",module:"下单与支付",dim:"④",op:"多单/上限",q:"一人一日可多单是否成立？日累计份数上限未设是否为有意为之（无上限风险）？",src:"一人一日可多单；日累计份数上限未设"},
+{id:"C5",actor:"U",module:"下单与支付",dim:"⑤",op:"支付异常",q:"微信支付失败/超时/用户中途取消时，订单状态与库存如何回滚？是否产生孤儿单？",src:"支付商户号+HTTPS；错误响应恒 200+code"},
+{id:"C6",actor:"U",module:"下单与支付",dim:"④⑥",op:"券抵扣",q:"下单时是否自动选抵扣最多的一张券并落 discount_amount？端上是否无任何选券控件（守表单仅份数）？能否关闭抵扣？",src:"下单自动选抵扣最多一张；端上不做选券控件"},
+{id:"C7",actor:"U",module:"下单与支付",dim:"③⑤⑥",op:"待支付超时",pri:"P1",q:"创建订单后有 payTimeout 到期自动关单（代码有 payExpireAt / pending_pay 超时口径）。到期前这笔 pending 订单占不占名额？\u201c已过期但微信支付回调晚到\u201d的钱进谁口袋——是否被照收但不发货？",
+ oracle:"超时订单支付被拒或原路退回；若回调晚到且订单已关，必须自动触发退款，不得出现\u201c钱扣了、单没成、无人处理\u201d；后台 abnormal 视图（待支付超时）日日不得超过未处理积压。",
+ how:"order.service.ts:356 payExpireAt；order-admin.service.ts:48 abnormal=待支付超时+退款待审批+退款中。重点看回调晚到分支。",src:"order.service.ts payExpireAt/pending_pay；admin abnormal 视图",new:true},
+{id:"C8",actor:"A",module:"下单与支付",dim:"④⑤",op:"产能与超卖",pri:"P1",q:"代码注释自承\u201c后续若启用产能上限，改读 ab_supplier.capacity_per_day\u201d（meal.service.ts:156）⇒ 产能上限实际未启用。那某天涌来 500 份、供应商只做得出 100 份时，系统是否会**照单全收**？",
+ oracle:"要么启用产能上限并在售罄时明确提示；要么书面确认\u201c无限供货，供应商兜底\u201d。当前状态不能是\u201c两边都没兜\u201d——那意味着大面积当日退款。",
+ how:"meal.service.ts:156 注释；distribution-center 是否有 capacity 字段与校验。",src:"meal.service.ts:156 产能上限未启用",new:true},
+{id:"C9",actor:"U",module:"下单与支付",dim:"⑤⑥",op:"并发重复下单",pri:"P0",q:"同一个人 1 秒内发起两次「不同 Idempotency-Key」的下单（手抖双点 / 网络重试换了 key），是否会生成两笔一样的订单并扣两次款？",
+ oracle:"同一用户+同一配送日，短时间内第二笔要么被拒（提示已有在途订单），要么走二次确认；严禁默默生成两笔待支付。并发压测 20 并发最多只应成功 1 笔。",
+ how:"order.service.create 是否加唯一约束/分布式锁/去重窗口。finance 与 order 全仓无 forUpdate/悲观锁 ⇒ 需实测确认有无乐观锁兜底。",src:"代码走查：order/finance 未见悲观锁，风险高",new:true},
+
+// ============ D 订单与取消 ============
+{id:"D1",actor:"U",module:"订单与取消",dim:"①⑦",op:"状态机",q:"订单 11 态流转是否完整闭合？每推进到终态是否必写 cancel_source（空白=未取消）？",src:"订单11态；cancel_source 四来源"},
+{id:"D2",actor:"U",module:"订单与取消",dim:"⑤",op:"用户取消",q:"用户自助取消是否触发退券？截单前取消与截单后取消处理结果是否不同？",src:"退券三处之一：用户自助取消"},
+{id:"D3",actor:"L",module:"订单与取消",dim:"②⑤",op:"团长取消",q:"团长(leader)取消权限范围？仅本团订单还是任意？cancel_source=leader 是否留痕？",src:"cancel_source 四来源 user/leader"},
+{id:"D4",actor:"A",module:"订单与取消",dim:"⑤⑦",op:"系统取消",q:"系统(source=system)截单兜底自动取消是否执行退券？失败有无告警？",src:"退券三处之二：截单兜底自动取消"},
+{id:"D5",actor:"A",module:"订单与取消",dim:"⑦",op:"管理取消",q:"管理员(admin)取消订单是否强制记录 cancel_source=admin 并进入审计日志？",src:"cancel_source 四来源 admin"},
+
+// ============ E 退款与售后 ============
+{id:"E1",actor:"U",module:"退款与售后",dim:"①③",op:"发起退款",q:"用户能否发起退款？入口在哪（订单详情/客服）？是否有时间窗限制？",src:"退款流程；审批通过才退券"},
+{id:"E2",actor:"A",module:"退款与售后",dim:"⑤⑦",op:"退款审批",q:"退款是否须审批通过才真正退券(settleRefundDb 挂在审批通过而非建单)？驳回后券是否原样保留不退？",src:"settleRefundDb 挂审批通过；D42驳回后券不退"},
+{id:"E3",actor:"A",module:"退款与售后",dim:"⑤⑥",op:"退券闭环",q:"三处退券（自助取消/截单兜底/审批通过退款）是否缺一不可？releaseForOrder 是否幂等、可重复安全调用？",src:"退券三处缺一不可；releaseForOrder 幂等"},
+{id:"E4",actor:"A",module:"退款与售后",dim:"⑥",op:"钱路径对账",q:"退款金额、原支付渠道、佣金冲减是否三方一致？(注：F-10 写钱路径闸未收口，需重点核)",src:"未收口：F-10 写钱路径闸"},
+{id:"E5",actor:"A",module:"退款与售后",dim:"③⑤",op:"批量退款",pri:"P0",q:"出现「整批做不出来 / 整栋楼停供 / 恶劣天气」时，能否按配送日或楼宇**一键批量退款**（而不是几百笔手工点）？批量中途失败能否断点续退、不重复退？",
+ oracle:"支持按 (配送日 | 楼宇 | 供应商) 维度批量发起；每笔退款幂等；批量任务有进度与失败清单可导出；严禁出现部分退款无人发现的静默失败。",
+ how:"refund-admin.service / refund-admin.controller 是否有 batch/patch 接口；是否有 breaking batch 的秒级 ding 告警。",src:"refund-admin 模块存在，批量能力待验",new:true},
+
+// ============ F 代金券系统 ============
+{id:"F1",actor:"A",module:"代金券",dim:"③",op:"发券入口",q:"后台是否有手动发券 UI？还是只能走 API/代码？(用户最关心的售后弥补入口)",src:"来源含 manual；2026-10-23 上线"},
+{id:"F2",actor:"A",module:"代金券",dim:"②",op:"发券对象",q:"发券时能否指定单个用户 / 批量用户 / 按标签筛选？还是只能全量广播？这是你问的“指定用户”能力的核心。",src:"ab_user_coupon 持有；来源 manual"},
+{id:"F3",actor:"A",module:"代金券",dim:"④⑦",op:"来源标记",q:"手动发券 vs 售后补偿发券，来源字段是否区分 manual / compensation？售后弥补应标记哪一种以便追溯？",src:"来源 referral/compensation/manual"},
+{id:"F4",actor:"A",module:"代金券",dim:"④",op:"券规则配置",q:"面额、使用门槛、有效期、是否可叠加、是否互斥能否在后台配置？默认回落规则是什么？",src:"ab_coupon 券种；blind_box 无关"},
+{id:"F5",actor:"U",module:"代金券",dim:"④",op:"自动选券",q:"下单自动选抵扣最多的一张，端上无选券控件；用户能否查看自己持有的券及预计抵扣？",src:"下单自动选抵扣最多一张"},
+{id:"F6",actor:"A",module:"代金券",dim:"⑤⑥",op:"退券",q:"三处退券缺一不可，是否真覆盖所有取消/退款路径？幂等 releaseForOrder 防重复退？",src:"退券三处缺一不可；幂等"},
+{id:"F7",actor:"L",module:"代金券",dim:"④",op:"推荐返券",q:"转正钩子 markFormal 发 5 元/30 天券，失败是否只 warn 不阻断晋级？",src:"推荐返券 markFormal 发5元/30天券"},
+{id:"F8",actor:"A",module:"代金券",dim:"⑥",op:"错误码",q:"券错误码 40020 不可用 / 40021 门槛不足 / 40022 券种不可用 / 40023 发券参数不完整，前端是否逐一友好提示？",src:"券错误码 40020-40023"},
+{id:"F9",actor:"A",module:"代金券",dim:"⑦",op:"发券审计",q:"谁发的、发给谁、面额/门槛/来源、结果，是否全量可追溯（含售后弥补发券）？",src:"ab_coupon/ab_user_coupon；审计需求"},
+{id:"F10",actor:"A",module:"代金券",dim:"④⑤⑥",op:"超发与预算",pri:"P0",q:"手动/批量发券有没有**单张上限、单人上限、单日总额上限**？输错一个数字把 500 元券发给全量用户，有没有拦截？（这是所有券系统最常见的百万级事故）",
+ oracle:"必须有面额上限校验与二次确认；超阈值请求被拒并返明确错误码；发券结果可一键批量作废/回收，且回收不影响已用券。",
+ how:"coupon 模块 admin 端 DTO 是否有 max 校验；是否有「发券回收」反向操作（当前表结构无作废动作 ⇒ 大概率缺口）。",src:"coupon 模块；当前未见单笔/单日限额设计",new:true},
+{id:"F11",actor:"U",module:"代金券",dim:"⑤⑥",op:"过期与并发核销",pri:"P1",q:"券在最后一分钟被两个人同时用；或券刚好在下单瞬间过期；或同一张券被两个请求并发占用——会不会出现「一张券抵两次」或「过期券仍抵扣成功」？",
+ oracle:"券核销必须是事务内加锁/幂等；过期判断以服务端时间为准；并发同一券仅一次成功，其余返 40020；过期券不得出现在可抵扣结果里。",
+ how:"coupon 服务核销是否 transaction + 行锁；status 是否原子更新。",src:"券核销并发场景，v1 未覆盖",new:true},
+
+// ============ G X盲盒 ============
+{id:"G1",actor:"U",module:"X盲盒",dim:"⑥",op:"抽取",q:"下单时是否从 blindBoxItems 随机抽一个并落 ab_order.blind_box_name（迁移 1700000000016）？",src:"blind_box_name；blindBoxItems()"},
+{id:"G2",actor:"U",module:"X盲盒",dim:"①③",op:"揭晓",q:"是否送达后揭晓？呈现是否仅两处（首页 x 格 + 订单详情内联），无弹层？",src:"送达后揭晓；呈现仅两处"},
+{id:"G3",actor:"A",module:"X盲盒",dim:"④",op:"配置",q:"blind_box_items 是否可在后台配置？读取为空时是否回落 DEFAULT_BLIND_BOX_ITEMS？",src:"读 ab_config.blind_box_items，回落 DEFAULT"},
+{id:"G4",actor:"A",module:"X盲盒",dim:"③",op:"范围边界",q:"是否严格不做集盒/勋章/订阅消息/弹层（用户明确“不要五屏、不作主功能”）？",src:"X盲盒轻量小辅助；不做弹层/集盒"},
+{id:"G5",actor:"A",module:"X盲盒",dim:"④⑤",op:"盲盒的现实约束",pri:"P2",q:"盲盒奖品是「虚拟称号」还是「实物/加菜」？若为实物，是否与供应商产能、配送包装绑定（抽中了但今天没做这道菜怎么算）？配置为空时端上是显示占位还是留白？",
+ oracle:"若含实物，必须有供应商侧的当日可兑现清单；配置空时必须展示既定兜底文案而非空白或报错；不得出现「抽中了但送不出」。",
+ how:"BizConfigService.blindBoxItems() 回落逻辑；order-detail 与 index 的展示分支。",src:"blindBoxItems 回落 DEFAULT；实物兑现未定义",new:true},
+
+// ============ H 团长体系 ============
+{id:"H1",actor:"U",module:"团长体系",dim:"①③",op:"申请成为团长",q:"招募页路径 A 是否清晰、CTA“成为团长”仅出现一次且仅作路径 A 动作？",src:"招募页 CTA 铁律：一屏一义"},
+{id:"H2",actor:"L",module:"团长体系",dim:"④⑦",op:"团长协议",q:"leader-agreement 版本真源是否为 v1.0？升版是否走“旧值进 HISTORY→改当前→同步 e2e”三步？",src:"leader-agreement.ts v1.0；升版三步"},
+{id:"H3",actor:"L",module:"团长体系",dim:"④⑥",op:"佣金",q:"四档 见习/正式/金牌/首席=8/9/10/12% 是否准确？结算是否自动、与 ab_balance 同表一致？",src:"佣金 8/9/10/12% ；自动结算"},
+{id:"H4",actor:"L",module:"团长体系",dim:"②④",op:"取送服务",q:"交付=团长取餐并送上楼、团员零走动；所有文案是否无“自提/用户自提/自行领取”字样？",src:"交付铁律·团长送上楼；严禁自提字样"},
+{id:"H5",actor:"L",module:"团长体系",dim:"④",op:"推荐奖励",q:"推荐返券是否仅单层、禁多级？见习 30 天取消是否保留？",src:"介绍奖励仅单层禁多级；见习30天取消保留"},
+{id:"H6",actor:"A",module:"团长体系",dim:"②",op:"团长管理后台",q:"后台能否查看团长列表/佣金明细/协议状态/提现？审核成为团长的流程是否闭环？",src:"团长协议/佣金；后台客服配置卡"},
+{id:"H8",actor:"A",module:"团长体系",dim:"③⑥",op:"佣金计提与补跑",pri:"P0",q:"佣金由 commission-settle.task 在 **T+1 02:00** 自动结算，另有手动补跑端点 `/admin/schedule/commission-settle/run`。**代码注释明示「手动补跑不带锁」**——重复点两次会不会给团长**双倍入账**？",
+ oracle:"同一 (leader, date) 结算必须幂等：重复跑第二次结果为 0 条新增，余额不变；必须能查到每次执行的处理条数与执行人。若做不到幂等，就是直接的资金事故口。",
+ how:"tasks/commission-settle.task.ts:32/92/95（注释「不带锁」）；CommissionService.settlePending()，看是否依赖状态字段做幂等。",src:"commission-settle.task.ts 注释明示不带锁；T+1 02:00",new:true},
+{id:"H9",actor:"A",module:"团长体系",dim:"⑤⑥",op:"冲正（退单后追回佣金）",pri:"P0",q:"佣金已入账后订单才退款，团队提供了 **reversal.service.ts（冲正）**。它是否覆盖了「取消/退款/带货失败」所有路径？冲到**负余额**时怎么展示？冲不平有没有告警？",
+ oracle:"任何退款完成的佣金必须被冲正，冲不平的差异入异常清单；余额流水能一键回溯到具体订单；不存在「佣金先拿走、订单后退款」的资金损失路径。",
+ how:"finance/reversal.service.ts 调用点是否在 settleRefundDb 之后；ab_balance 流水是否有 reversal 类型。",src:"finance/reversal.service.ts 存在；调用点待核",new:true},
+{id:"H10",actor:"A",module:"团长体系",dim:"④⑦",op:"发票与个税",pri:"P1",q:"存在 **invoice.service.ts**。团长佣金按劳务报酬还是经营所得？是否代扣代缴个税？能否开票？这笔成本在unit economics 里算过没有（记忆里《商业与单位经济》分册）？",
+ oracle:"税务口径有书面结论；系统能导出团长年度佣金明细供报税；如需开票，流程与时限有明确 SOP。",
+ how:"finance/invoice.service.ts list 接口；能否导出团长维度年度汇总。",src:"finance/invoice.service.ts 存在",new:true},
+{id:"H11",actor:"A",module:"团长体系",dim:"③⑤",op:"团长退出与除名",pri:"P1",q:"存在 **leader-expire.task.ts**（见习 30 天过期）。团长被系统过期/主动退出/被管理员除名时，其**未完成订单、未结算佣金、名下团员**怎么交接？团员会不会突然无人配送？",
+ oracle:"退出前必须完成交接或自动改派；未结算佣金不得凭空消失；名下团员在无团长状态下有明确提示与转派路径，不得出现「付了钱没人送」。",
+ how:"tasks/leader-expire.task.ts 逻辑；团员归属字段在团长失效后的取值与端上表现。",src:"leader-expire.task.ts 存在；交接口径未定义",new:true},
+{id:"H12",actor:"L",module:"团长体系",dim:"⑤",op:"团长缺位兜底",pri:"P1",q:"团长当天生病/请假/失联，本团当天已付款的订单由谁送？系统有没有**自动改派/管理员接管**的路径，还是只能靠群里吼？",
+ oracle:"存在管理员改派或二级兜底配送人；缺位订单有专门列表（异常订单总览）可被及时发现，时限上早于 11:30 送达窗口。",
+ how:"pages/leader/refund.vue（异常订单总览）；admin 是否有 reassign/接管接口。",src:"leader/refund.vue 异常订单总览；改派能力待验",new:true},
+
+// ============ I 客服与帮助 ============
+{id:"I1",actor:"U",module:"客服与帮助",dim:"①③",op:"客服入口",q:"csEntryLabel(mode) 是否按模式给出正确客服入口？小程序出参是否永读 takeout_links（不出第三方名）？",src:"csEntryLabel(mode)；出参永读 takeout_links"},
+{id:"I2",actor:"U",module:"客服与帮助",dim:"④",op:"客服微信",q:"账户注销终态是否刻意写“客服微信号”（B 微信）？用户能否直接联系到真人客服？",src:"account-cancel 终态写客服微信号"},
+{id:"I3",actor:"A",module:"客服与帮助",dim:"⑦",op:"售后弥补 SOP",q:"以发券作售后弥补手段，是否有标准操作 SOP（标记 compensation 来源、记录缘由、可追溯）？",src:"来源 compensation；售后弥补手段"},
+{id:"I4",actor:"U",module:"客服与帮助",dim:"⑤⑦",op:"客服承接上限",pri:"P2",q:"客服只有「企业微信/个人微信」一条人工通道。出现突发退单潮时，有没有**排队/工单/留言**？用户诉求有没有沉淀成可查的处理记录（还是全在聊天记录里、换人就失忆）？",
+ oracle:"客服处理有留痕位置（哪怕是最轻的表单），可回溯「某用户某天提了什么、怎么处理的」；不依赖私人聊天记录作为唯一载体。",
+ how:"是否有工单类表；memory 提到应急表单存在，但与系统数据如何回填（见 W3）。",src:"客服=微信单一通道；工单留痕缺失",new:true},
+
+// ============ J 评价 ============
+{id:"J1",actor:"U",module:"评价",dim:"④",op:"吃后评价",q:"ab_dish_rating 是否仅为吃后评价（非点菜偏好）？是否存在误把评价当偏好推荐的逻辑？",src:"ab_dish_rating 是吃后评价非点菜偏好"},
+{id:"J2",actor:"A",module:"评价",dim:"②",op:"推荐禁区",q:"单一套餐下，“最爱/常点/偏好推荐”是否一律不成立、无任何违规推荐入口？",src:"单一套餐用户不点菜；推荐不成立"},
+{id:"J3",actor:"U",module:"评价",dim:"④⑤⑥",op:"评价规则",pri:"P2",q:"谁能评价、评几次、能否修改删除、多久后可评、多久后截止？有没有「没吃过也能评」的漏洞、重复刷评防护？评价对谁可见（别的住宅区用户能不能看到）？",
+ oracle:"以订单为凭：仅本人已送达订单可评，一单一评，可改不可重评；无订单不得调用评价接口；刷评能被识别。",
+ how:"rating 模块是否有订单态前置校验与唯一约束。",src:"rating 模块；规则未见成文",new:true},
+
+// ============ K 消息通知 ============
+{id:"K1",actor:"U",module:"消息通知",dim:"①③",op:"订阅消息",q:"截单/送达/退款/券到账是否通过订阅消息通知？盲盒是否遵守“无订阅消息”？",src:"盲盒不做订阅消息；通知需求"},
+{id:"K2",actor:"A",module:"消息通知",dim:"⑦",op:"通知审计",q:"通知发送是否留痕、可排查“发了但用户没收到”？",src:"通知/审计需求"},
+{id:"K3",actor:"A",module:"消息通知",dim:"⑤",op:"额度与去重",pri:"P1",q:"微信订阅消息是**一次性消耗额度**的：用户在首页没点「允许」就永远收不到；额度耗尽后关键的「订单已取消/已退款」消息怎么办？同一事件会不会重复推送刷屏？",
+ oracle:"关键事件（取消/退款/配送异常）必须有订阅之外的兜底触达路径（客服或短信或站内）；同一事件有幂等键防重复推送。",
+ how:"message 模块是否有去重键与失败降级；订阅授权埋点与实际触达率是否可统计。",src:"message 模块存在；额度/兜底/去重待验",new:true},
+
+// ============ L 后台管理 ============
+{id:"L1",actor:"A",module:"后台管理",dim:"④",op:"商品配置",q:"后台能否配置套餐与“一饭四菜”内容？改当日菜单是否影响已截单订单？",src:"单一套餐；当日一饭四菜只读展示"},
+{id:"L2",actor:"A",module:"后台管理",dim:"③⑤",op:"截单",q:"T-1 24:00 截单是否系统自动？截单后新下单是否被拒并正确提示？",src:"T-1 24:00截单→次日11:30达"},
+{id:"L3",actor:"A",module:"后台管理",dim:"③⑤",op:"明日开团分配",q:"明日开团分配行是否为 0 时手动补（prod-patch-insert-assignment，须用户当轮批准）？有无只读核查先做？",src:"明日开团SOP：手动补分配行"},
+{id:"L4",actor:"A",module:"后台管理",dim:"⑦",op:"订单管理",q:"后台能否查看/筛选/导出全部订单与状态？是否只读还是可改？",src:"后台客服配置维护操作卡"},
+{id:"L5",actor:"A",module:"后台管理",dim:"②",op:"用户管理",q:"后台能否查看用户列表、余额、券持有？越权查看限制？",src:"ab_balance/ab_user_coupon"},
+{id:"L6",actor:"A",module:"后台管理",dim:"②",op:"团长管理",q:"后台能否审核团长、查看佣金明细、管理协议版本？",src:"团长体系；协议 v1.0"},
+{id:"L7",actor:"A",module:"后台管理",dim:"②③④",op:"发券管理台",q:"后台发券管理台是否支持按用户/批量/全量发放，配置面额门槛有效期，并标记来源？",src:"F1-F9 综合；manual/compensation"},
+{id:"L8",actor:"A",module:"后台管理",dim:"④",op:"客服配置",q:"后台客服配置（入口标签/微信号）维护是否有操作卡、改后即时生效？",src:"_ABox一盒_后台客服配置维护操作卡"},
+{id:"L9",actor:"A",module:"后台管理",dim:"⑦",op:"审计日志",q:"ab_operation_log 是否可查看/筛选/导出？kb_operator/kb_nl_intent/kb_op_block 三列解码是否可读？",src:"ab_operation_log 增三可空列"},
+{id:"L10",actor:"A",module:"后台管理",dim:"⑦",op:"运营日志",q:"知识助手操作日志（kb_* 头 base64 UTF-8 解码）是否准确入库、可审计？",src:"OperationLogInterceptor 从 X-KB* 解码"},
+{id:"L11",actor:"A",module:"后台管理",dim:"⑥",op:"数据看板",q:"是否有关键指标看板（销量/份数/佣金/退款率/券核销）？数据来源与订单库是否一致？",src:"数据需求；对账未收口"},
+{id:"L12",actor:"A",module:"后台管理",dim:"②",op:"权限分级",q:"admin 与 operator1 角色权限是否明确划分？operator 能否发券/退款/改商品？",src:"B2 operator账号 operator1(id4)"},
+{id:"L13",actor:"A",module:"后台管理",dim:"⑤⑦",op:"高危操作审批与二次确认",pri:"P0",q:"改价、改状态、批量退款、大额发券、手动补跑结算——这些**高危动作**有没有二次确认与审批留痕？（记忆里有《阶段3 高危审批与审计可视化》方案，是否落地？）误点的后果能不能撤销？",
+ oracle:"高危列表逐项有二次确认；执行写入审计并可导出「谁在何时改了什么」；有 undo 或至少T+0 可纠偏路径。",
+ how:"_ABox一盒_替操作_阶段3_高危审批与审计可视化.md 是否落成代码；admin 端各 PATCH 是否带 confirm 与 log。",src:"阶段3 高危审批方案；落地状态待核",new:true},
+
+// ============ M 知识助手 ============
+{id:"M1",actor:"U",module:"知识助手",dim:"①③",op:"AI 问答",q:"知识助手 v4.0 是否仅从已发布域名开放（云服务 exact Origin 放行）？非白名单域是否被拒？",src:"知识助手v4.0；exact Origin 放行"},
+{id:"M2",actor:"A",module:"知识助手",dim:"③",op:"重发控制",q:"助手重发是否须用户当轮明确要求？有无防止误重发的确认？",src:"重发须用户当轮明确要求"},
+
+// ============ N 门户 ============
+{id:"N1",actor:"A",module:"门户",dim:"③",op:"系统入口",q:"门户是否系统总入口？刷新是否走 collect.py + build.py（数字禁手写）？",src:"门户=系统总入口；刷新脚本"},
+
+// ============ O 埋点与隐私 ============
+{id:"O1",actor:"A",module:"埋点与隐私",dim:"⑦",op:"匿名埋点",q:"ab_page_track 是否只写不读、DTO 无身份字段(forbidNonWhitelisted 拒夹带 openid)？180 天清理是否生效？",src:"埋点匿名口径；page-track-cleanup 每日03:30"},
+{id:"O2",actor:"U",module:"埋点与隐私",dim:"④⑦",op:"隐私条款",q:"隐私三条款（真源 agreements.ts）是否在注册/关键操作前向用户明示并可得？",src:"隐私三条款真源 agreements.ts"},
+
+// ============ P 支付与对账 ============
+{id:"P1",actor:"A",module:"支付与对账",dim:"⑥",op:"支付商户号",q:"微信支付商户号是否配齐、HTTPS + 域名 ICP 备案是否完成（未备案不阻体验版但阻生产）？",src:"支付商户号+HTTPS；未备案不阻体验版"},
+{id:"P2",actor:"A",module:"支付与对账",dim:"⑥",op:"对账闭环",q:"订单/支付/退款/佣金四方是否可对账一致？(F-10 写钱路径闸未收口，是高优先级缺口)",src:"未收口 F-10；对账需求"},
+{id:"P3",actor:"A",module:"支付与对账",dim:"⑤⑥",op:"单边账（回调丢失）",pri:"P0",q:"微信支付成功但**回调没打过来**（网络抖动/服务重启/日志丢了）——用户扣了钱订单还在待支付。有没有**主动查单补偿**机制？多久发现？",
+ oracle:"存在定时主动查询微信订单状态的任务，超时自动补单/退款；单边账从发生到被发现的上限时间有明确值（建议 ≤15 分钟），并有告警。",
+ how:"payment 模块是否有 queryOrder/补单任务；tasks 清单中看不到此类任务 ⇒ 大概率缺口。",src:"tasks 清单无查单补偿任务；payment.service/wxpay.service 待核",new:true},
+
+// ============ Q 配送与送达闭环（v1 完全缺失） ============
+{id:"Q1",actor:"A",module:"配送与送达",dim:"③⑥",op:"配送单生成",pri:"P0",q:"存在 delivery.service.generateByDate() 与 delivery-generate.task。**按日期自动生成配送单**，当天 0 笔订单时是否生成空单？已部分配送了再又有人下单，配送单会不会被重新生成、覆盖掉人工改动？",
+ oracle:"生成幂等，重复执行不丢手工调整；配送单总份数与同日已付款订单份数必须自动对平，不平则告警。",
+ how:"delivery/delivery.service.ts:292 generateByDate / :392 aggregateOrderQuantity； tasks/delivery-generate.task.ts。",src:"delivery.service.generateByDate；delivery-generate.task",new:true},
+{id:"Q2",actor:"L",module:"配送与送达",dim:"①③⑦",op:"状态推进",pri:"P0",q:"存在 delivery.service.advanceStatus()（推 delivering → delivered）。**谁有权把它点成「已送达」**？是不是团长自己点自己确认？点了「已送达」会不会立刻触发佣金结算——那可是「自己确认、自己拿钱」。",
+ oracle:"必须至少满足其一：① 结算锚T≠团长自述（以配送单+时间窗为准）；② 送达确认需要第二凭证（用户侧确认/取餐点扫码/管理员复核）；③ 事后可审计到具体确认人与 IP/时间并有抽检机制。三者皆无即为风控敞口。",
+ how:"delivery.service.ts:639 advanceStatus / :869 advanceGroupOrdersToDelivering / :922 advanceGroupOrdersToDelivered；再看是否与 commission-settle 的锚矛盾。",src:"delivery.advanceStatus + advanceGroupOrdersToDelivered",new:true},
+{id:"Q3",actor:"A",module:"配送与送达",dim:"⑤⑦",op:"送达凭证缺失",pri:"P0",q:"**全仓 grep 无 pickupCode / 二维码核销相关实现** ⇒ 送达确认是纯人工点状态，用户侧没有任何「我收到了」的动作。那么「团长没送但点了已送达」时怎么举证、怎么追责、怎么赔付？",
+ oracle:"至少具备：团长送达后，用户侧有可见可点的「确认收货」或超时自动确认（注意不能违背「团员零走动」，所以应是无需用户操作即可自动确认）；争议时有订单时间线+操作日志可回溯；赔付规则成文。",
+ how:"交付铁律是「团长送上楼、团员零走动」——所以不能让用户去扫码取餐，但可以用「无需操作、超时自动确认 + 用户可申诉」替代。当前是否具备需实查。",src:"全仓无 pickupCode/QR 实现；time-line 存在（order-timeline.ts）",new:true},
+{id:"Q4",actor:"A",module:"配送与送达",dim:"②⑦",op:"配送单改动权限",pri:"P1",q:"存在 delivery.service.patch() 可改配送单。谁能改？改了之后**已结算的佣金会不会跟着变**？改动的每一次有没有落审计日志（不是只改数据不留痕）？",
+ oracle:"PATCH 有角色白名单；改动写入审计；若影响已结算金额，必须有冲正而非静默改写历史。",
+ how:"delivery.service.ts:984 patch + DeliveryPatchDto；是否接 OperationLog 拦截器。",src:"delivery.patch 存在；权限与审计待核",new:true},
+{id:"Q5",actor:"L",module:"配送与送达",dim:"③⑤",op:"取餐交接",pri:"P1",q:"团长到集中取餐点把几十份搬走时，**凭什么证明是本人/本团取走**？丢件、拿错、少拿（例如 30 份只搬走 28 份）由谁担责、怎么在系统里留痕？",
+ oracle:"存在取餐交接节点（哪怕是最轻的一键「已取餐」+ 时间 + 人）；少拿时有差异登记路径并可触发部分退款，而不是在现场口头解决、系统毫不知情。",
+ how:"pages/leader/pickup.vue 实际做了什么（是展示清单还是有确认动作）。",src:"leader/pickup.vue；交接动作待验",new:true},
+{id:"Q6",actor:"A",module:"配送与送达",dim:"⑤⑥",op:"部分/缺件处理",pri:"P1",q:"10 份只到 9 份、或某栋楼整批没送到。系统是支持**按份/按单部分退款**，还是只能整单退？缺件由人工记还是系统有差异工单？",
+ oracle:"支持部分退款且金额按份精确计算；差异形成可汇总的差异清单，供与供应商/配送方结算时扣减。",
+ how:"refund.service 是否支持 partial amount；否则 H9 冲正与 E5 批量退款都会卡住。",src:"refund.service；部分退款能力待验",new:true},
+{id:"Q7",actor:"A",module:"配送与送达",dim:"⑥⑦",op:"日结对平",pri:"P0",q:"每天 11:30 之后，能不能一条命令核对清楚：**当日付款份数 vs 配送单份数 vs 实际送达份数 vs 已退款份数 vs 已结佣份数**？五个数字对不平的地方在哪里、能不能自动指出来？",
+ oracle:"存在日结对平视图/报表，差异自动列出明细；这是所有财务口径的地基，不平则当天不许关账。",
+ how:"finance/reconciliation.service.ts + tasks/reconciliation.task.ts；查看有无五方对平维度。",src:"reconciliation.service/.task 存在；五方对平待验",new:true},
+
+// ============ R 楼宇与归属（v1 完全缺失） ============
+{id:"R1",actor:"A",module:"楼宇与归属",dim:"②④",op:"楼宇主数据",pri:"P0",q:"存在 building 模块（含 building-admin）与 pages/leader/building.vue「我服务的办公楼」。**楼宇由谁维护、审核口径是什么**？一栋楼停用/改名时，**已经下单的人会不会受影响、受影响时怎么通知**？",
+ oracle:"楼宇增删需要有审批/留痕；停用必须阻断新下单并对已下单用户触发通知+退款批处理，不得出现「下了单但楼没了」。",
+ how:"building/building-admin.service.ts；停用路径是否有级联处理。",src:"building + building-admin 模块；leader/building.vue",new:true},
+{id:"R2",actor:"U",module:"楼宇与归属",dim:"②③⑥",op:"用户归属楼宇",pri:"P0",q:"用户属于哪栋楼，是**定位自动判定 / 团长链接带入 / 自己选**？用户切了楼（pages/building/switch.vue）之后，**历史订单和已归属团长的佣金会不会跟着改**（这直接关系到佣金算给谁）？",
+ oracle:"归属一旦产生订单即冻结，后续切楼只影响新单；无论怎么切，历史订单的团长归属与佣金不会被追溯改写（否则就是可随意套利的漏洞）。",
+ how:"pages/building/switch.vue 切换后端是否 update 历史数据；order 表是否冗余了下单时的 building/leader 快照。",src:"building/switch.vue；订单是否存归属快照是关键",new:true},
+{id:"R3",actor:"U",module:"楼宇与归属",dim:"③⑤",op:"无团长楼的招募",pri:"P1",q:"（口径已纠偏：**一栋楼可以有多个团长**，不是一栋楼一个。）那么「这座楼没有团长」这个状态怎么判定？已有 5 个团长的楼，首页还会不会继续弹「申请成为团长」导致供给过剩？",
+ oracle:"「无团长」依据**有效在岗团长数**判定而非「是否曾经有过」；招募入口的出现条件、以及同一楼团长的合理上限有明确规则。",
+ how:"pages/leader-invite/leader-invite.vue 的入口条件；是否统计在线/在岗团长。",src:"leader-invite.vue；一栋楼多团长口径（2026-10-22 纠偏）",new:true},
+{id:"R4",actor:"U",module:"楼宇与归属",dim:"②⑤",op:"跨楼下单",pri:"P1",q:"用户在 A 楼注册，跑到 B 楼下单——允许吗？这单算 B 楼哪个团长的佣金？还是根本没有「跨楼」校验、全凭自觉？",
+ oracle:"下单时以配送楼宇为准、明确归属规则；跨楼若允许，必须让用户看到「配送到哪栋楼」，避免送错楼。",
+ how:"order-create 是否传 building_id 并校验用户与配送楼一致性。",src:"order-create；跨楼规则未见成文",new:true},
+
+// ============ S 提现与结算（v1 完全缺失） ============
+{id:"S1",actor:"L",module:"提现与结算",dim:"③④⑤",op:"提现申请",pri:"P0",q:"存在 withdraw.service.apply()（finance 模块）。团长提现的**起提金额、到账时限、是否收手续费、单日上限、可否当日重复申请**分别是多少？申请时余额被冻结还是可继续被其他操作扣走？",
+ oracle:"门槛/上限/时限有明确数值且端上可见；申请即冻结相应金额；同日重复提交要么幂等拒要么提示在途，不得重复出款。",
+ how:"finance/withdraw.service.ts:53 apply / :171 listWithdrawals / :208 summaryOf；检查是否冻结 + 幂等键。",src:"withdraw.service.apply 存在；规则与幂等待验",new:true},
+{id:"S2",actor:"A",module:"提现与结算",dim:"⑤⑥",op:"审核与打款",pri:"P0",q:"存在 withdraw-admin.service。管理员审核→打款，**打款失败怎么回滚**（钱没出去但状态已改成已打款 = 直接资金黑洞）；同一笔被两个管理员同时审核通过会不会打两次？",
+ oracle:"打款以第三方返回为准才置最终态；失败必须回到可重试状态；同一提现单并发审批只有一次生效（状态机+乐观锁）。",
+ how:"finance/withdraw-admin.service.ts；是否有状态机与 version/乐观锁。",src:"withdraw-admin.service 存在；并发与回滚待验",new:true},
+{id:"S3",actor:"A",module:"提现与结算",dim:"⑤⑥",op:"并发超扣",pri:"P0",q:"**finance 与 order 全仓未见悲观锁/行锁**（grep 无 forUpdate/setLock/pessimistic）。团长一边 20 次并发点提现，另一边订单退款正在冲正他的余额——会不会把余额扣成负数、或者凭空多点提走？",
+ oracle:"余额变更必须在事务内串行或加行锁；余额不得为负；并发 20 请求的实际出款总额 == 单次成功金额。这是必须实测（不是看代码）的一条。",
+ how:"finance/*.service.ts 是否 transaction + 行锁；ab_balance 是否唯一约束团长维度行。",src:"全仓无悲观锁 ⇒ 需实并发测试验证",new:true},
+{id:"S4",actor:"A",module:"提现与结算",dim:"④⑥",op:"供应商采购款结算",pri:"P1",q:"存在 supplier-share.service 与 supplier-share.task。自营口径下「应付只剩供应商采购款」——这笔钱**多久结一次、按什么口径（下单数还是实际送达数，退掉的算不算）**？",
+ oracle:"结算口径以**实际达且用户未退**的份数为准（不是下单数），否则退单会侵蚀毛利；结算单可导出并与供应商对账。",
+ how:"finance/supplier-share.service.ts + tasks/supplier-share.task.ts；口径是否排除了退款单。",src:"supplier-share.service/.task；自营结算口径",new:true},
+{id:"S5",actor:"A",module:"提现与结算",dim:"⑥⑦",op:"对账自动化",pri:"P0",q:"存在 reconciliation.service 与 reconciliation.task，且记忆里明写 **F-10 写钱路径闸未收口**。那么：这个任务**到底在不在跑**？跑出来的差异**有没有人看**？差异超阈值会不会告警？",
+ oracle:"任务有执行记录可查；差异自动落到可导出的差异表；超阈值有告警触达到人。\u201c跑了但没人看\u201d等同于\u201c没跑\u201d。",
+ how:"tasks/reconciliation.task.ts + finance/reconciliation.service.ts；查生产 schedule 执行日志。",src:"reconciliation.task 存在；F-10 未收口（记忆）",new:true},
+
+// ============ T 定时任务与自动化（v1 完全缺失） ============
+{id:"T1",actor:"A",module:"定时任务",dim:"③⑦",op:"任务清单与在跑证明",pri:"P0",q:"全仓实有 9 个定时任务：cutoff / commission-settle / auto-confirm / delivery-generate / leader-expire / meal-publish / reconciliation / supplier-share / page-track-cleanup。**每一个的 cron 是几点、上次执行时间、下次执行时间、上次成功还是失败，在哪能一眼看到？**",
+ oracle:"存在任务看板或至少可查询的执行记录；任何任务连续 2 次失败必然触达告警人。看不到执行记录 = 无法证明它在跑。",
+ how:"tasks/ 目录 9 个文件；是否有统一的 schedule-run-log 表记录 last run / status。",src:"tasks/ 目录实有 9 个任务文件",new:true},
+{id:"T2",actor:"A",module:"定时任务",dim:"⑤⑦",op:"任务失败告警",pri:"P0",q:"如果 **cutoff.task（截单）某天没跑成**——当天所有订单都没截单，供应商照做、系统还在收新单。谁第一个发现？多久发现？是靠用户投诉还是靠监控？",
+ oracle:"关键任务（cutoff / commission-settle / delivery-generate）失败必须有分钟级告警；并有「任务没跑」的心跳监测（不是只在抛异常时才告警——进程没起来是没异常的）。",
+ how:"是否有心跳/存活检测；仅靠 try-catch 日志无法覆盖「任务压根没被调度」。",src:"cutoff.task 等 9 个任务；告警机制待验",new:true},
+{id:"T3",actor:"A",module:"定时任务",dim:"③⑤⑥",op:"手动补跑幂等",pri:"P0",q:"`/admin/schedule/commission-settle/run` 这类手动补跑端点，**注释明示不带锁**。运维在多个浏览器里各点一次、或脚本重试点一次，会不会给全团团长重复结算？同理事件芭比 payment 回调重放。",
+ oracle:"每个补跑端点都必须是幂等的：重复调用结果一致、金额不变。清单所有 /admin/schedule/*/run 端点逐个实测重放两次看余额。",
+ how:"逐个列出 /admin/schedule/{name}/run 端点并做「执行两次」实测。",src:"commission-settle.task.ts:32/92 注释「不带锁」",new:true},
+{id:"T4",actor:"A",module:"定时任务",dim:"④⑥",op:"时区一致性",pri:"P1",q:"cron 是按服务器时区还是北京时间跑？容器里 TZ 是什么？出现过 **mysql2 DATE 在 UTC+8 下少一天**的已知坑（dateStrings 踩坑记录）——任务里取「昨天/今天」的地方有没有同类风险？",
+ oracle:"所有任务日期计算走统一的北京时间工具（toBjIso / bjDateTime），不得用 new Date().getDate()；容器 TZ 明确为 Asia/Shanghai 或全链路统一用 BJ 工具。",
+ how:"检查容器 TZ；tasks 内是否有裸 new Date() 取日期。",src:"已知坑：mysql2 DATE 时区；toBjIso/bjDateTime 工具存在",new:true},
+{id:"T5",actor:"A",module:"定时任务",dim:"③⑦",op:"人工接管 SOP",pri:"P1",q:"某个任务挂了，运维**知道该敲哪条命令补跑、补跑前先看什么、补跑后怎么验证**吗？这些写成一页可以照抄的卡片了吗？（现在只有分散的记忆，没有可执行 SOP）",
+ oracle:"高危任务各有一页「失败怎么办」的操作卡，含前置检查、命令、验证方法、回滚方式。新人照卡能操作。",
+ how:"当前是否有此类成文 SOP（现有明日开团 SOP 是一例，其余缺失）。",src:"仅明日开团 SOP 成文；其余任务缺失",new:true},
+
+// ============ U 供应商与溯源（v1 完全缺失） ============
+{id:"U1",actor:"A",module:"供应商与溯源",dim:"④⑤",op:"资质有效期",pri:"P1",q:"存在 pages/supplier/detail（资质墙）与 traceability.supplierList/supplierDetail。**供应商证照过期了系统知不知道**？过期当天还在正常卖，谁负责？",
+ oracle:"资质有有效期字段；到期前 N 天告警给指定人；过期后应有明确的处置动作（下架/停用/替换），而不是静默继续销售。",
+ how:"traceability/traceability.service.ts:195 supplierList / :228 supplierDetail；是否有 expiry 字段与提醒任务。",src:"supplier + traceability 模块；无到期提醒任务",new:true},
+{id:"U2",actor:"U",module:"供应商与溯源",dim:"①③⑤",op:"当日溯源",pri:"P1",q:"存在 traceability.today()。用户能不能看到「今天这批菜哪个供应商做的、什么批次」？**查不到那天**端上是留白、报错、还是假装有数据？出问题时能不能导出那天的批次清单？",
+ oracle:"有数据则完整展示；无数据时展示既定的兜底说明而非空白或错误；支持按日期导出批次清单供监管或内部核查。",
+ how:"traceability.service.ts:89 today() / :272 resolveGroup；缺数据分支的返回形态。",src:"traceability.today 存在；缺数据兜底待验",new:true},
+{id:"U3",actor:"A",module:"供应商与溯源",dim:"①④",op:"菜单一致性",pri:"P1",q:"已付钱的用户，明天早上看到的「今日菜单」被运营改了——**他之前看到的那个菜去哪了**？历史菜单有没有快照（能回答「他下单那天看到的是什么」），还是查不出来、扯皮赖不清？",
+ oracle:"菜单按日期有快照表；任何一笔订单都能还原出下单当时展示的菜品内容与图片。",
+ how:"meal 模块是否有按日期发布快照（meal-publish.task 发布的是什么）。",src:"meal-publish.task 存在；订单侧是否有菜单快照待验",new:true},
+{id:"U4",actor:"A",module:"供应商与溯源",dim:"④⑥",op:"外链替换口径",pri:"P2",q:"存在 supplier/takeout-link 子树。口径是「小程序出参永读 takeout_links（永不出第三方平台名）」。那么：**后台能配 ≠ 小程序带得出**——配了但前台还是旧的/absent 的情况，有没有校验和提示？",
+ oracle:"存在一个自动或半自动校验：后台配置与端上取到的值一致；不一致时有可见告警（这条是记忆里明确写过的老坑）。",
+ how:"supplier/takeout-link 子树 + 端上实际取值路径；是否有一致性校验脚本。",src:"supplier/takeout-link；记忆：后台能配≠小程序可带出",new:true},
+
+// ============ V 安全与越权（v1 横向缺失） ============
+{id:"V1",actor:"A",module:"安全与越权",dim:"②⑦",op:"水平越权 IDOR",pri:"P0",q:"把请求里的订单 id / 用户 id / 团长 id 换成别人的，**能不能看到别人的订单详情、配送地址、持有的券、佣金明细**？这是所有管理系统排第一的事故来源。",
+ oracle:"任意越权请求返回无权限错误码且数据零泄露；服务端每个查询都带上归属过滤（不能在前端传 ownerId 就信）。实测：A 用户拿 B 用户 id 调所有详情类接口，应全部被拒。",
+ how:"逐接口做 IDOR 实测（重点：order-detail / coupon-list / leader 系列 / balance-detail）。",src:"全仓横切；无集中权限清单",new:true},
+{id:"V2",actor:"A",module:"安全与越权",dim:"②⑦",op:"垂直越权",pri:"P0",q:"普通用户 token 直接调 admin 接口（改配置、发券、退款、改状态）能不能通？operator1 能不能做本不该做的（改价、大额发券、动提现）？memory 提到有《操作员权限矩阵 v1.0》，它和实际代码一致吗？",
+ oracle:"文档与代码一致；任何越权返回明确错误并被审计记录。做法：拿用户 token 扫一遍 admin 路由看返回。",
+ how:"ABox一盒操作员权限矩阵v1.0.md vs 实际装饰器；建议写一个「越权扫描脚本」自动跑。",src:"《操作员权限矩阵 v1.0》存在；与代码一致性待验",new:true},
+{id:"V3",actor:"A",module:"安全与越权",dim:"④⑤⑥",op:"金额与数量篡改",pri:"P0",q:"下单时把份数改成 **0 / 负数 / 99999**，或把价格字段一起传进去——后端信不信？总价是后端算还是取前端传值？（结合 C8 产能未启用：99999 份会不会直接生成一笔巨额订单）",
+ oracle:"价格恒由服务端按 ¥25.80 计算，前端传价一律忽略；份数为正整数且有上限；0/负数/超上限被拒并返明确错误码。",
+ how:"order DTO 是否限制 min/max；是否接受 amount/price 字段（whitelist 是否禁了）。",src:"whitelist/forbidNonWhitelisted 机制存在；数量上限待验",new:true},
+{id:"V4",actor:"A",module:"安全与越权",dim:"⑤⑦",op:"敏感信息泄露",pri:"P1",q:"接口返回里有没有**偷偷带出 openid、手机号、真实姓名、身份证**（尤其在 admin 端直接吐实体时）？日志里有没有打印这些信息？",
+ oracle:"对外响应与日志均无明文敏感字段；admin 端也走统一的脱敏 DTO（口径「后台 DTO 不可直接吐实体」，需逐出口核查有无漏网）。",
+ how:"抓若干接口的真实响应 + grep 日志输出；检查 admin 是否所有出口都走了 toXxxResult()。",src:"口径：后台 DTO 不可直接吐实体（查 aiding 是否有漏网）",new:true},
+{id:"V5",actor:"A",module:"安全与越权",dim:"⑤",op:"接口限流",pri:"P1",q:"登录/下单/发券/退款/提现这些接口有没有限流？一个人写个循环刷下单，会不会把数据库和产能拖垮（叠加 C8 无产能上限）？",
+ oracle:"关键写接口有频率限制；异常频次有告警与临时封禁路径。",
+ how:"是否有全局或路由级 throttle 配置（NestJS @nestjs/throttler 或网关层）。",src:"未见限流配置；与 C8 叠加风险高",new:true},
+{id:"V6",actor:"A",module:"安全与越权",dim:"③⑤",op:"配置与密钥",pri:"P1",q:"https://sid（支付密钥、API 证书、JWT 私钥）怎么存的？有没有被提交进 git？CORS 白名单是不是被配成「*」或过宽（memory 明确写过这个地方踩过坑）？",
+ oracle:"密钥全走环境变量且不入库不带 secrets <>; CORS 白名单显式登记、不含通配、且 *.workbuddy.host 类临时域**不要出现在生产配置里**。",
+ how:"检查 apps/api-server/.env 的 CORS_ORIGINS；审计历史 commit 中是否出现过密钥（建议跑一次密钥扫描）。",src:"memory：CORS 要显式登记；曾为 KB 临时加过白名单",new:true},
+{id:"V7",actor:"A",module:"安全与越权",dim:"⑤⑦",op:"数据与备份",pri:"P1",q:"生产数据库**多久备份一次、能不能真的恢复**（有没有实际演练过恢复）？万一被误删/勒索，能回滚到几小时前？",
+ oracle:"自动备份在跑且**恢复演练至少做过一次并留记录**；备份与生产隔离存放。只备份没演练 = 没有备份。",
+ how:"服务器上查备份作业与最近一次恢复演练记录。",src:"运维侧；当前无证据表明演练过",new:true},
+
+// ============ W 异常运营与降级（v1 完全缺失） ============
+{id:"W1",actor:"A",module:"异常运营与降级",dim:"③⑤",op:"一键停售",pri:"P0",q:"明天供应商断供/设备故障/大雪，**能不能一键把「明天」停售**？停售后：(a) 首页不再接单 (b) 已下单的用户**第一时间知道** (c) 自动退款+退券。这三件事现在是三步手工还是一键？",
+ oracle:"存在停售开关；切换后自动触发通知与批处理退款/退券，不依赖人工逐个处理；有踩 NM 记录。",
+ how:"是否有 global pause / meal stop 开关；结合 E5 批量退款与 K3 通知兜底。",src:"当前未见停售总开关 ⇒ 大概率缺口",new:true},
+{id:"W2",actor:"A",module:"异常运营与降级",dim:"⑤⑥",op:"应急表单与系统双写",pri:"P1",q:"项目里已经有《应急表单与对账模板》《宕机应急作战手册》——说明**确实准备过走人工**。那么系统恢复后，人工表单上的数据**怎么回填**、有没有「既在表单又在系统」导致重复退款/重复发券的风险？",
+ oracle:"表单与系统有唯一的权威侧与明确的回填流程；回填动作本身有二次确认与去重键，防止双写。",
+ how:"《应急表单与对账模板》《宕机应急作战手册》与系统数据的衔接 SOP 是否已写明。",src:"应急手册存在；回填与去重 SOP 缺失",new:true},
+{id:"W3",actor:"A",module:"异常运营与降级",dim:"①③⑤",op:"服务降级",pri:"P1",q:"微信支付不可用 30 分钟——能不能**先记单、后收款**（挂账模式）？还是直接全站不可用、眼睁睁看着截单时间流逝？",
+ oracle:"要么具备短暂挂账/后付能力，要么有明确的对外告知文案与补偿规则；「什么都没有、用户干瞪眼」不可接受。",
+ how:"payment 是否有异步/离线模式；前半段的失败提示文案是否用户可读（错误恒 HTTP 200 + code，端上要翻译）。",src:"payment 模块；降级路径未见",new:true},
+{id:"W4",actor:"A",module:"异常运营与降级",dim:"⑤⑦",op:"数据订正审批",pri:"P1",q:"线上数据错了需要人工改库时，**谁批准、怎么改、改完留痕、改坏了怎么回滚**？（memory 里有《阶段3 高危审批与审计可视化》方案）现在是不是「SSH 上去 UPDATE 一把梭」？",
+ oracle:"订正走审批单 + 一键脚本 + 执行前后数据快照审计；禁止裸 UPDATE，或至少事后可追溯到人与原因。",
+ how:"与 L13 联动；看服务器上是否有历史订正脚本及其留痕。",src:"阶段3 高危审批方案；落地待核",new:true},
+{id:"W5",actor:"A",module:"异常运营与降级",dim:"⑤⑦",op:"客诉与赔付规则",pri:"P2",q:"送晚了、凉了、少了一个菜、吃出问题——**赔付标准是什么**（退多少、补券多少、谁批）？现在是不是每次都由你现场决定？（不一致的赔付比不赔付更容易引起争议）",
+ oracle:"成文的赔付阶梯表（时长/缺陷类型 → 赔付动作），客服可照执行；赔付动作走券/退款并记录来源以保证可追溯。",
+ how:"是否与 I3 售后 SOP 合并成一张「客服处置卡」。",src:"借无可依的成文赔付标准",new:true}
+];
+
+const MODULES = [...new Set(PROBES.map(p=>p.module))];
+const actorName = {U:"用户",L:"团长",A:"管理者"};
+const KEY = "abox_probe_status_v2";
+let store = JSON.parse(localStorage.getItem(KEY)||"{}");
+
+const modSel = document.getElementById('fModule');
+MODULES.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;modSel.appendChild(o);});
+
+function priOf(p){return p.pri||"未定";}
+
+function render(){
+  const fa=document.getElementById('fActor').value;
+  const fm=document.getElementById('fModule').value;
+  const fp=document.getElementById('fPri').value;
+  const fs=document.getElementById('fStatus').value;
+  const fu=document.getElementById('fUnset').checked;
+  const fn=document.getElementById('fNoOracle').checked;
+  const list=document.getElementById('list');
+  list.innerHTML="";
+  let shown=0, noOracle=0;
+  const counts={已实现:0,部分:0,缺口:0,不可行:0,不适用:0,待核:0};
+  const priCount={P0:0,P1:0,P2:0,未定:0};
+  MODULES.forEach(mod=>{
+    const rows=PROBES.filter(p=>p.module===mod && (!fa||p.actor===fa) && (!fm||p.module===fm));
+    if(!rows.length) return;
+    const sec=document.createElement('div'); sec.className="module";
+    const head=document.createElement('div'); head.className="row head";
+    head.innerHTML='<div>编号</div><div>角色</div><div>操作</div><div>七维探针问题 / 去哪验</div><div>判定标准（做到哪条算“已实现”）</div><div>状态</div><div>备注 / 证据</div>';
+    const rowsHtml=[];
+    rows.forEach(p=>{
+      const st = store[p.id]?.status || "待核";
+      if(fu && st!=="待核") return;
+      if(fs && st!==fs) return;
+      const pr=priOf(p);
+      if(fp && pr!==fp) return;
+      if(fn && p.oracle) return;
+      counts[st]=(counts[st]||0)+1; shown++; priCount[pr]=(priCount[pr]||0)+1;
+      const sel='<select class="status s-'+(st==='待核'?'na':(st==='缺口'?'gap':(st==='部分'?'part':(st==='不可行'?'gap':(st==='不适用'?'na':'ok')))))+'" data-id="'+p.id+'">'
+        + ["待核","已实现","部分","缺口","不可行","不适用"].map(s=>'<option '+(s===st?'selected':'')+'>'+s+'</option>').join('') + '</select>';
+      const note=store[p.id]?.note||"";
+      const meta = '<div class="meta"><b>依据：</b>'+p.src + (p.how? '<br><b>去哪验：</b>'+p.how : '<br><b>去哪验：</b><span class="nooracle">未标注（v1 遗留，需补：页面路径/API/表/日志）</span>') + '</div>';
+      const oracleHtml = p.oracle
+        ? p.oracle
+        : '<span class="nooracle">⚠ 本条缺判定标准，无法判定“已实现”，必须先补。</span>';
+      if(!p.oracle) noOracle++;
+      const r=document.createElement('div');
+      r.className="row"+(p.new?" isnew":"");
+      r.innerHTML='<div><b>'+p.id+'</b>'+(p.new?'<br><span class="badge b-new">补</span>':'')+'<br><span class="badge b-'+pr.toLowerCase()+'">'+pr+'</span><br><span class="tag">'+p.dim+'</span></div>'
+        + '<div class="actor-'+p.actor+'">'+actorName[p.actor]+'</div>'
+        + '<div>'+p.op+'</div>'
+        + '<div class="q">'+p.q+meta+'</div>'
+        + '<div class="q" style="font-size:12.5px;">'+oracleHtml+'</div>'
+        + '<div>'+sel+'</div>'
+        + '<div><textarea class="note" data-id="'+p.id+'" placeholder="验证结论 / 实测数据 / 截图...">'+note+'</textarea></div>';
+      rowsHtml.push(r);
+    });
+    if(rowsHtml.length){
+      const h2=document.createElement('h2');
+      h2.textContent = mod + '（' + rowsHtml.length + '）';
+      sec.appendChild(h2); sec.appendChild(head);
+      rowsHtml.forEach(r=>sec.appendChild(r));
+      list.appendChild(sec);
+    }
+  });
+  document.getElementById('stats').innerHTML='显示 <b>'+shown+'</b> 条 ｜ 已实现 '+counts.已实现+' · 部分 '+counts.部分+' · <b style="color:#b23b3b">缺口 '+counts.缺口+'</b> · 不可行 '+counts.不可行+' · 不适用 '+counts.不适用+' · 待核 '+counts.待核
+    + '<br>P0 '+priCount.P0+' · P1 '+priCount.P1+' · P2 '+priCount.P2+' · 未定 '+priCount.未定+' ｜ 缺判定标准 <b style="color:#b23b3b">'+noOracle+'</b>';
+  bind();
+}
+function bind(){
+  document.querySelectorAll('select.status').forEach(s=>{
+    s.onchange=()=>{const id=s.dataset.id;store[id]=store[id]||{};store[id].status=s.value;localStorage.setItem(KEY,JSON.stringify(store));render();};
+  });
+  document.querySelectorAll('textarea.note').forEach(t=>{
+    t.oninput=()=>{const id=t.dataset.id;store[id]=store[id]||{};store[id].note=t.value;localStorage.setItem(KEY,JSON.stringify(store));};
+  });
+}
+['fActor','fModule','fPri','fStatus','fUnset','fNoOracle'].forEach(id=>{document.getElementById(id).onchange=render;});
+document.getElementById('btnClear').onclick=()=>{if(confirm('清空本机所有勾选与备注？')){store={};localStorage.removeItem(KEY);render();}};
+
+function toCsv(list,name){
+  let csv="编号,新增,优先级,角色,模块,操作,维度,探针问题,判定标准,去哪验,依据,状态,备注\n";
+  list.forEach(p=>{const st=store[p.id]?.status||"待核";const nt=(store[p.id]?.note||"").replace(/\n/g," ");
+    const c=s=>'"'+String(s||"").replace(/"/g,'""')+'"';
+    csv+=[p.id,p.new?'补':'',priOf(p),actorName[p.actor],p.module,p.op,p.dim,p.q,p.oracle||'（缺）',p.how||'（缺）',p.src,st,nt].map(x=>c(x)).join(',')+"\n";});
+  const b=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();
+}
+document.getElementById('btnExport').onclick=()=>toCsv(PROBES,"ABox功能探针核查_v2.csv");
+document.getElementById('btnGap').onclick=()=>{
+  const list=PROBES.filter(p=>{
+    const st=store[p.id]?.status||"待核";
+    return priOf(p)==="P0" && (st==="缺口"||st==="不可行");
+  });
+  if(!list.length){alert("当前还没有被标记为「缺口 / 不可行」的 P0 条目。");return;}
+  toCsv(list,"ABox_P0缺口清单.csv");
+};
+render();
+</script>
+</body>
+</html>

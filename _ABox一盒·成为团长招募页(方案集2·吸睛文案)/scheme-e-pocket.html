@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>方案 E · 小进账</title>
+<style>
+  :root{--bg:#F6F0E5;--bg-l:#FBF7EE;--ink:#6E5435;--ink-l:#8B7355;--gold:#C9A876;--gold-d:#B8915C;--line:#E6D9C0;
+    --sh:0 1px 2px rgba(110,84,53,.06),0 4px 12px rgba(110,84,53,.07);--shl:0 2px 6px rgba(110,84,53,.08),0 12px 32px rgba(110,84,53,.14);
+    --kai:"KaiTi","STKaiti","楷体","Kaiti SC",serif;--r:14px;--p:24px;--s4:20px;--s5:28px;--sm:12px;--md:14px;}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:var(--kai);background:#2A2118;color:var(--ink);-webkit-font-smoothing:antialiased}
+  .stage{display:flex;justify-content:center;align-items:flex-start;padding:32px 16px 60px}
+  .phone{width:375px;max-width:100%;background:var(--bg);border-radius:24px;box-shadow:var(--shl),0 0 0 2px rgba(201,168,118,.3);overflow:hidden}
+  .scroll{max-height:760px;overflow-y:auto}
+  .scroll::-webkit-scrollbar{width:6px}.scroll::-webkit-scrollbar-thumb{background:rgba(201,168,118,.45);border-radius:4px}
+  .hero{background:linear-gradient(135deg,#6E5435 0%,#9A7B4F 100%);color:var(--bg);padding:34px var(--s4) 30px}
+  .eb{font-size:11px;letter-spacing:3px;opacity:.85;border:1px solid rgba(246,240,229,.45);border-radius:24px;display:inline-block;padding:3px 14px}
+  .t{font-size:26px;font-weight:bold;letter-spacing:1px;margin-top:16px;line-height:1.45}
+  .t em{color:var(--gold);font-style:normal}
+  .s{font-size:var(--md);line-height:1.85;opacity:.92;margin-top:12px}
+  .body{padding:var(--s5) var(--s4) 0}
+  .fig{text-align:center;background:var(--bg-l);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:20px}
+  .fig b{font-size:34px;color:var(--gold-d);letter-spacing:1px}
+  .fig span{display:block;font-size:var(--sm);color:var(--ink-l);margin-top:6px}
+  .links{margin-top:var(--s5);display:flex;flex-direction:column;gap:12px}
+  .bar{padding:var(--s5) var(--s4) 0}
+  .btn{width:100%;height:48px;line-height:48px;text-align:center;background:var(--ink);color:var(--bg);border-radius:24px;font-size:var(--md);letter-spacing:2px;box-shadow:var(--sh);border:none;font-family:var(--kai)}
+  .mini{display:flex;gap:12px;margin-top:12px}
+  .mini a{flex:1;font-size:var(--sm);color:var(--gold-d);background:var(--bg-l);border:1px solid var(--line);border-radius:24px;padding:10px 0;text-align:center}
+  .foot{font-size:11px;color:var(--ink-l);padding:var(--s4) var(--s4) var(--s5);line-height:1.8;margin-top:16px;text-align:center}
+</style>
+</head>
+<body>
+<div class="stage"><div class="phone"><div class="scroll">
+  <div class="hero">
+    <span class="eb">团长招募</span>
+    <div class="t">顺手一天<br>有点小<em>进账</em></div>
+    <div class="s">不耽误上班、不垫钱、不囤货。<br>帮办公室把大家想要的凑成团就行。</div>
+  </div>
+  <div class="body">
+    <div class="fig"><b>¥200+ / 月</b><span>每单按售价提 8%–12%<br>身边几个同事，一个月就有一笔小收入</span></div>
+  </div>
+  <div class="bar">
+    <button class="btn">我想有这份收入</button>
+    <div class="mini"><a>申请当团长</a><a>介绍朋友当</a></div>
+  </div>
+  <div class="foot">金额为测算示例，以实际接单为准；见习 30 天未促单自动取消资格。</div>
+</div></div></div>
+</body>
+</html>

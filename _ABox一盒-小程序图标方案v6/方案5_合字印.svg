@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" preserveAspectRatio="xMidYMid meet"><defs><filter id="lp" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="0" dy="9" stdDeviation="1.5" flood-color="#4A3826" flood-opacity="0.20"/></filter></defs><rect width="1024" height="1024" fill="#F6F0E5"/>
+<rect x="42" y="42" width="940" height="940" rx="210" fill="none" stroke="#6E5435" stroke-width="6" opacity="0.10"/><g filter="url(#lp)"><rect x="242" y="242" width="540" height="540" rx="60" fill="none" stroke="#6E5435" stroke-width="44"/>
+<rect x="300" y="300" width="424" height="424" rx="44" fill="none" stroke="#6E5435" stroke-width="20"/>
+<path d="M 360 470 L 512 362 L 664 470" fill="none" stroke="#6E5435" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+<g transform="rotate(-1 512 512)"><path d="M 372 516.76 Q 512 503.88 652 511.24" stroke="#6E5435" stroke-width="46" fill="none" stroke-linecap="round"/><ellipse cx="372" cy="516.76" rx="25.355200000000004" ry="19.6144" fill="#6E5435" transform="rotate(-24 372 516.76)"/><ellipse cx="652" cy="511.24" rx="20.5712" ry="19.136000000000003" fill="#6E5435" transform="rotate(12 652 511.24)"/></g>
+<rect x="420" y="560" width="184" height="162" rx="20" fill="none" stroke="#6E5435" stroke-width="46"/></g></svg>

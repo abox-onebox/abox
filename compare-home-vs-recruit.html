@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 招募页 × 首页 同屏对比</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"KaiTi","STKaiti","楷体","Kaiti SC",serif; background:#2A2118; color:#F6F0E5; -webkit-font-smoothing:antialiased; }
+  .page { max-width:1400px; margin:0 auto; padding:36px 28px 48px; }
+  .page__hd { display:flex; align-items:baseline; gap:16px; flex-wrap:wrap; }
+  .page__hd h1 { font-size:22px; letter-spacing:2px; font-weight:bold; }
+  .page__hd span { font-size:12px; color:#A99877; letter-spacing:2px; }
+  .page__note { margin-top:10px; font-size:12px; color:#8f7f68; line-height:1.9; letter-spacing:1px; }
+  .row { display:flex; gap:30px; flex-wrap:wrap; justify-content:center; margin-top:34px; }
+  .cell { display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .cell__tag { font-size:13px; letter-spacing:2px; color:#C9A876; border:1px solid rgba(201,168,118,.4); border-radius:20px; padding:4px 16px; }
+  .cell__tag--home { color:#F6F0E5; border-color:rgba(246,240,229,.4); }
+  .cell iframe { width:440px; height:890px; border:none; border-radius:20px; background:#2A2118; box-shadow:0 20px 50px rgba(0,0,0,.5); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="page__hd">
+    <h1>招募页 × 首页 · 同屏对比</h1>
+    <span>看两页摆在一起的视觉一致性 · 文案与结构均为当前定稿</span>
+  </header>
+  <p class="page__note">
+    左为「成为团长」招募页（卡片版，22:34 轮定版保留），右为最新定案的首页（A/B/o/x 天地盖）。两页同底色（米 #F6F0E5）、同楷体、同暖棕金字体系，且底部栏已同构（第 2 项「招募」互相打通，tab 图标与小程序同源）——放一起看是否像同一个 App 里的两页。
+  </p>
+
+  <div class="row">
+
+    <div class="cell">
+      <span class="cell__tag">成为团长 · 卡片版</span>
+      <iframe src="_ABox一盒·成为团长招募页(集中版)/cards.html" loading="lazy" title="招募页 卡片版"></iframe>
+    </div>
+
+    <div class="cell">
+      <span class="cell__tag cell__tag--home">首页 · 定案（A/B/o/x 天地盖）</span>
+      <iframe src="_ABox一盒·首页高保真(完整版)/index.html" loading="lazy" title="首页 定案"></iframe>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>

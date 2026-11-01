@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 原型界面讨论稿</title>
+<style>
+  @font-face{ font-family:"ABKai"; src:url("ab-kaiti.woff2") format("woff2"); }
+  :root{
+    --bg:#F6F0E5; --text:#6E5435; --text-2:#796C57; --weak:#9A8C74;
+    --gold:#B08D57; --gold-deep:#8A6D3F; --surface2:#EFE7D8; --line:#E2D7C2;
+    --warn:#9A5B3B; --ok:#5B7A4B;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ background:#E9E1D2; color:var(--text); font-family:"ABKai","KaiTi","STKaiti","楷体",serif;
+        line-height:1.7; padding:34px 16px 70px; }
+  .top{ max-width:1180px; margin:0 auto 26px; }
+  h1{ font-size:24px; letter-spacing:1px; border-bottom:3px solid var(--text); padding-bottom:10px; }
+  .sub{ color:var(--text-2); font-size:13.5px; margin-top:8px; }
+  .gallery{ max-width:1180px; margin:0 auto; display:flex; flex-wrap:wrap; gap:26px; justify-content:center; }
+  .col{ display:flex; flex-direction:column; align-items:center; width:375px; }
+  .phone{ width:375px; height:720px; background:var(--bg); border-radius:30px; overflow:hidden;
+          box-shadow:0 14px 40px rgba(110,84,53,.28); border:1px solid var(--line);
+          position:relative; display:flex; flex-direction:column; }
+  .bar{ height:26px; background:var(--text); display:flex; align-items:center; justify-content:space-between;
+        padding:0 14px; color:var(--bg); font-size:11px; }
+  .bar .dots{ letter-spacing:2px; }
+  .screen{ flex:1; overflow:hidden; display:flex; flex-direction:column; }
+
+  /* ===== 通用元件 ===== */
+  .cd{ background:var(--text); color:var(--bg); text-align:center; padding:9px 0 13px; border-radius:0 0 30px 30px; }
+  .cd .l1{ font-size:12px; opacity:.85; }
+  .cd .num{ font-size:30px; color:#E9C885; font-family:monospace; letter-spacing:1px; }
+  .cd .l3{ font-size:11px; opacity:.78; margin-top:1px; }
+
+  .hero{ margin:11px 11px 0; background:linear-gradient(135deg,var(--gold),var(--gold-deep));
+         border-radius:18px 18px 4px 4px; padding:14px 16px 16px; color:#fff; position:relative;
+         box-shadow:inset 0 -7px 10px rgba(0,0,0,.12); }
+  .hero .date{ font-size:14px; opacity:.95; }
+  .hero .pills{ display:flex; gap:7px; margin-top:9px; flex-wrap:wrap; }
+  .hero .pill{ background:rgba(255,255,255,.22); border:1px solid rgba(255,255,255,.5);
+               padding:3px 10px; border-radius:20px; font-size:11.5px; }
+  .seam{ height:3px; margin:0 11px; background:linear-gradient(90deg,transparent,var(--gold-deep),transparent); }
+
+  .box{ margin:0 11px; background:var(--surface2); border-radius:4px 4px 14px 14px; padding:11px 11px 4px; }
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .cell{ background:#fff; border-radius:11px; padding:6px; box-shadow:0 1px 3px rgba(110,84,53,.1); }
+  .cell .img{ width:100%; aspect-ratio:1/1; border-radius:8px; background:
+              repeating-linear-gradient(45deg,#E7DCC6,#E7DCC6 8px,#E0D3B8 8px,#E0D3B8 16px);
+              display:flex; align-items:center; justify-content:center; color:var(--weak); font-size:11px; }
+  .cell .nm{ font-size:13px; margin-top:6px; color:var(--text); }
+  .cell .from{ font-size:11px; color:var(--gold-deep); margin-top:2px; }
+  .rice{ background:#fff; border-radius:11px; margin-top:8px; padding:9px 12px; display:flex;
+         align-items:center; justify-content:space-between; box-shadow:0 1px 3px rgba(110,84,53,.1); }
+  .rice .rl{ font-size:13px; }
+  .rice .rs{ font-size:11px; color:var(--weak); }
+  .rice .rp{ font-size:14px; color:var(--gold-deep); }
+
+  .decision{ margin:11px 11px 0; background:#fff; border-radius:12px; padding:11px 14px;
+             box-shadow:0 1px 3px rgba(110,84,53,.1); }
+  .decision .row{ display:flex; align-items:center; justify-content:space-between; }
+  .decision .k{ font-size:13px; color:var(--text-2); }
+  .stepper{ display:flex; align-items:center; gap:0; border:1px solid var(--line); border-radius:20px; overflow:hidden; }
+  .stepper b{ width:30px; height:28px; display:flex; align-items:center; justify-content:center;
+              font-size:16px; color:var(--text); background:var(--surface2); }
+  .stepper span{ width:34px; text-align:center; font-size:14px; }
+  .decision .money{ font-size:22px; color:var(--gold-deep); }
+  .decision .meta{ font-size:11px; color:var(--weak); text-align:right; margin-top:4px; }
+
+  .cta{ margin:11px 11px 0; background:var(--text); color:var(--bg); text-align:center;
+        padding:13px 0; border-radius:14px; font-size:15px; }
+  .nav{ height:50px; background:#fff; border-top:1px solid var(--line); display:flex; }
+  .nav .it{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+            font-size:10.5px; color:var(--weak); }
+  .nav .it.on{ color:var(--text); }
+  .nav .it .ic{ width:18px; height:18px; border:1.5px solid currentColor; border-radius:5px; margin-bottom:2px; }
+
+  /* ===== 供应商页 A ===== */
+  .sp-h{ background:var(--text); color:var(--bg); padding:10px 14px; display:flex; align-items:center; gap:8px; }
+  .sp-h .bk{ font-size:13px; opacity:.9; }
+  .sp-h .tt{ font-size:15px; }
+  .sp-body{ flex:1; overflow:auto; padding:12px; }
+  .sp-date{ text-align:center; font-size:13px; color:var(--text-2); margin-bottom:10px; }
+  .kc{ background:#fff; border-radius:12px; padding:11px; margin-bottom:10px; box-shadow:0 1px 3px rgba(110,84,53,.1); }
+  .kc .hd{ display:flex; align-items:center; gap:10px; }
+  .kc .av{ width:42px; height:42px; border-radius:50%; background:var(--surface2);
+           display:flex; align-items:center; justify-content:center; color:var(--gold-deep); font-size:13px; }
+  .kc .nm{ font-size:14px; }
+  .kc .role{ font-size:11px; color:var(--weak); }
+  .kc .trust{ font-size:11px; color:var(--ok); margin-top:7px; }
+  .kc .story{ font-size:12px; color:var(--text-2); margin-top:5px; line-height:1.6; }
+  .sub-btn{ background:var(--gold); color:#fff; text-align:center; padding:11px 0; border-radius:12px;
+            font-size:14px; margin-top:2px; }
+
+  /* ===== 供应商页 B ===== */
+  .vb-body{ flex:1; overflow:auto; padding:12px; }
+  .vb-intro{ background:var(--surface2); border-radius:12px; padding:11px 13px; font-size:12px;
+             color:var(--text-2); margin-bottom:12px; line-height:1.7; }
+  .vc{ background:#fff; border-radius:13px; padding:13px; margin-bottom:11px;
+       box-shadow:0 1px 3px rgba(110,84,53,.1); border-left:4px solid var(--gold); }
+  .vc .vt{ font-size:14px; color:var(--text); }
+  .vc .vd{ font-size:11.5px; color:var(--weak); margin-top:3px; }
+  .vc .vr{ display:flex; align-items:center; justify-content:space-between; margin-top:10px; }
+  .vc .price{ font-size:18px; color:var(--gold-deep); }
+  .vc .get{ background:var(--text); color:var(--bg); padding:7px 16px; border-radius:20px; font-size:12.5px; }
+  .vc.used{ border-left-color:var(--weak); opacity:.8; }
+  .vc .code{ font-family:monospace; font-size:15px; letter-spacing:2px; color:var(--text);
+             background:var(--surface2); padding:6px 10px; border-radius:8px; }
+  .compliance{ font-size:10.5px; color:var(--weak); text-align:center; padding:8px 14px; line-height:1.6; }
+
+  /* ===== 首页 B 稿展开态 ===== */
+  .cell.pop{ outline:2px solid var(--gold); }
+  .popover{ background:#fff; border:1px solid var(--gold); border-radius:11px; padding:10px 12px;
+            margin-top:6px; font-size:11px; color:var(--text-2); line-height:1.7; }
+  .popover .lt{ font-size:12px; color:var(--text); }
+  .popover .lc{ font-family:monospace; color:var(--gold-deep); }
+
+  .anno{ width:375px; margin-top:12px; background:#fff; border:1px solid var(--line); border-radius:12px;
+         padding:12px 14px; font-size:12.5px; color:var(--text-2); line-height:1.75; }
+  .anno b{ color:var(--gold-deep); }
+  .anno .h{ font-size:13.5px; color:var(--text); display:block; margin-bottom:5px; }
+  .tag{ display:inline-block; font-size:10.5px; padding:1px 7px; border-radius:9px;
+        background:var(--surface2); color:var(--text-2); border:1px solid var(--line); }
+  .tag.warn{ background:#F3E4DC; color:var(--warn); border-color:#E3C3B2; }
+  .tag.ok{ background:#E7EEDD; color:var(--ok); border-color:#CBD9BC; }
+  .divider{ max-width:1180px; margin:34px auto 0; height:1px; background:var(--line); }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>ABox 一盒 · 原型界面讨论稿</h1>
+  <div class="sub">讨论层原型（非开发）。四屏对应方案两大部分：首页天地盖（中栏版 / B稿资质原地展开）+ 供应商页重新定位（方向A 明日出餐阵容 / 方向B 到店券核销）。
+  图位均用占位格表示"此处为 1:1 实拍图"。</div>
+</div>
+
+<div class="gallery">
+
+  <!-- ============ 屏1：首页 v0.4 中栏版 ============ -->
+  <div class="col">
+    <div class="phone">
+      <div class="bar"><span>9:41</span><span class="dots">●●● 5G ▮</span></div>
+      <div class="screen">
+        <div class="cd">
+          <div class="l1">距离截单还剩</div>
+          <div class="num">07:23:11</div>
+          <div class="l3">今日 24:00 后将无法下单</div>
+        </div>
+        <div class="hero">
+          <div class="date">下个工作日 · 10月12日 周一</div>
+          <div class="pills"><span class="pill">四方好味汇一盒</span><span class="pill">每家只出一道拿手菜</span></div>
+        </div>
+        <div class="seam"></div>
+        <div class="box">
+          <div class="grid">
+            <div class="cell"><div class="img">实拍图</div><div class="nm">蒜蓉菠菜</div><div class="from">来自：四季鲜蔬 ›</div></div>
+            <div class="cell"><div class="img">实拍图</div><div class="nm">小炒黄牛肉</div><div class="from">来自：三味屋 ›</div></div>
+            <div class="cell"><div class="img">实拍图</div><div class="nm">红烧排骨</div><div class="from">来自：老饭盒 ›</div></div>
+            <div class="cell"><div class="img">实拍图</div><div class="nm">韭菜炒蛋</div><div class="from">来自：三味屋 ›</div></div>
+          </div>
+          <div class="rice"><div><div class="rl">米饭</div><div class="rs">可备注少饭 / 免饭</div></div><div class="rp">¥25.80</div></div>
+        </div>
+        <div class="decision">
+          <div class="row"><span class="k">份数</span>
+            <span style="display:flex;align-items:center;gap:10px;">
+              <span class="stepper"><b>−</b><span>1</span><b>+</b></span>
+              <span class="money">¥25.80</span>
+            </span></div>
+          <div class="meta">¥25.80/份 · 单笔最多 10 份</div>
+        </div>
+        <div class="cta">预订明天的这一盒</div>
+      </div>
+      <div class="nav">
+        <div class="it on"><div class="ic"></div>首页</div>
+        <div class="it"><div class="ic"></div>订单</div>
+        <div class="it"><div class="ic"></div>我的</div>
+      </div>
+    </div>
+    <div class="anno">
+      <span class="h">屏1 · 首页天地盖 v0.4（中栏版）<span class="tag ok">推荐</span></span>
+      <b>决策层 / 内容层分离</b>：四格菜 + 米饭是纯展示（内容层），份数 + 应付是独立决策条（决策层），避免被读成"米饭要几份"。
+      顶部倒计时保留深棕金字。点"来自：X ›"仍跳转溯源页（<b>不动后端</b>）。
+      尺寸推算 798px，iPhone X/11 首屏可见。
+    </div>
+  </div>
+
+  <!-- ============ 屏2：首页 B稿 资质原地展开 ============ -->
+  <div class="col">
+    <div class="phone">
+      <div class="bar"><span>9:41</span><span class="dots">●●● 5G ▮</span></div>
+      <div class="screen">
+        <div class="cd">
+          <div class="l1">距离截单还剩</div>
+          <div class="num">07:23:11</div>
+          <div class="l3">今日 24:00 后将无法下单</div>
+        </div>
+        <div class="hero">
+          <div class="date">下个工作日 · 10月12日 周一</div>
+          <div class="pills"><span class="pill">四方好味汇一盒</span><span class="pill">每家只出一道拿手菜</span></div>
+        </div>
+        <div class="seam"></div>
+        <div class="box">
+          <div class="grid">
+            <div class="cell"><div class="img">实拍图</div><div class="nm">蒜蓉菠菜</div><div class="from">来自：四季鲜蔬 ›</div></div>
+            <div class="cell pop"><div class="img">实拍图</div><div class="nm">小炒黄牛肉</div><div class="from">来自：三味屋 ›</div>
+              <div class="popover">
+                <div class="lt">三味屋 · 出餐资质</div>
+                许可证号：<span class="lc">JY2110****0234</span><br>
+                有效期至：2027-03-18<br>
+                编号可至国家企业信用信息公示系统核对
+              </div>
+            </div>
+            <div class="cell"><div class="img">实拍图</div><div class="nm">红烧排骨</div><div class="from">来自：老饭盒 ›</div></div>
+            <div class="cell"><div class="img">实拍图</div><div class="nm">韭菜炒蛋</div><div class="from">来自：三味屋 ›</div></div>
+          </div>
+          <div class="rice"><div><div class="rl">米饭</div><div class="rs">可备注少饭 / 免饭</div></div><div class="rp">¥25.80</div></div>
+        </div>
+        <div class="decision">
+          <div class="row"><span class="k">份数</span>
+            <span style="display:flex;align-items:center;gap:10px;">
+              <span class="stepper"><b>−</b><span>1</span><b>+</b></span>
+              <span class="money">¥25.80</span>
+            </span></div>
+          <div class="meta">¥25.80/份 · 单笔最多 10 份</div>
+        </div>
+        <div class="cta">预订明天的这一盒</div>
+      </div>
+      <div class="nav">
+        <div class="it on"><div class="ic"></div>首页</div>
+        <div class="it"><div class="ic"></div>订单</div>
+        <div class="it"><div class="ic"></div>我的</div>
+      </div>
+    </div>
+    <div class="anno">
+      <span class="h">屏2 · 首页 B 稿（资质原地展开）<span class="tag warn">待定</span></span>
+      点"来自：X ›"在原地展开该厨房证照，<b>不打断下单</b>。
+      这正是方案第一部分的前提——若采用此稿，独立供应商页的"资质展示"功能被首页吸收，<b>页面才真正冗余、需要重新定位</b>。
+      代价：U1 需补发证照字段，<b>会动后端</b>。
+    </div>
+  </div>
+
+  <!-- ============ 屏3：供应商页 方向A ============ -->
+  <div class="col">
+    <div class="phone">
+      <div class="bar"><span>9:41</span><span class="dots">●●● 5G ▮</span></div>
+      <div class="screen">
+        <div class="sp-h"><span class="bk">‹ 返回</span><span class="tt">明日出餐阵容</span></div>
+        <div class="sp-body">
+          <div class="sp-date">10月12日 周一 · 这一盒由 4 家厨房联手出</div>
+          <div class="kc">
+            <div class="hd"><div class="av">蔬</div><div><div class="nm">四季鲜蔬</div><div class="role">叶菜档口 · 主理人 老周</div></div></div>
+            <div class="trust">这栋楼吃过 860 次 · 在供 240 天</div>
+            <div class="story">专做写字楼午市叶菜，凌晨现采，出锅 2 小时内到楼。</div>
+          </div>
+          <div class="kc">
+            <div class="hd"><div class="av">味</div><div><div class="nm">三味屋</div><div class="role">川菜档口 · 主理人 李师傅</div></div></div>
+            <div class="trust">这栋楼吃过 1,240 次 · 在供 268 天</div>
+            <div class="story">招牌小炒黄牛肉，当天现切，拒绝预制。</div>
+          </div>
+          <div class="kc">
+            <div class="hd"><div class="av">盒</div><div><div class="nm">老饭盒</div><div class="role">家常档口 · 主理人 王姐</div></div></div>
+            <div class="trust">这栋楼吃过 1,102 次 · 在供 251 天</div>
+            <div class="story">红烧排骨慢炖 90 分钟，午市保温到楼。</div>
+          </div>
+          <div class="sub-btn">订阅明日菜单提醒</div>
+        </div>
+      </div>
+      <div class="nav">
+        <div class="it"><div class="ic"></div>首页</div>
+        <div class="it"><div class="ic"></div>订单</div>
+        <div class="it on"><div class="ic"></div>我的</div>
+      </div>
+    </div>
+    <div class="anno">
+      <span class="h">屏3 · 供应商页·方向A 明日出餐阵容 <span class="tag ok">P0 主定位</span></span>
+      把"冷证件"换成"有温度的出餐档案"：厨房人物 + <b>行为信任凭证</b>（吃过次数 / 在供天数）替代许可证号。
+      纯内容页、<b>零合规风险</b>、与首页不重叠（首页转化、本页期待）。复用现有 <code>dishes</code> 数据。
+    </div>
+  </div>
+
+  <!-- ============ 屏4：供应商页 方向B ============ -->
+  <div class="col">
+    <div class="phone">
+      <div class="bar"><span>9:41</span><span class="dots">●●● 5G ▮</span></div>
+      <div class="screen">
+        <div class="sp-h"><span class="bk">‹ 返回</span><span class="tt">楼里专属福利</span></div>
+        <div class="vb-body">
+          <div class="vb-intro">ABox 为你谈下来的楼里到店福利。领券后到店出示核销码即可，不绑定任何外卖平台。</div>
+          <div class="vc">
+            <div class="vt">午市 8 折券</div>
+            <div class="vd">合作商家 · 工作日 11:00–14:00</div>
+            <div class="vr"><span class="price">¥0 领取</span><span class="get">立即领取</span></div>
+          </div>
+          <div class="vc">
+            <div class="vt">第二份半价券</div>
+            <div class="vd">合作商家 · 咖啡 / 简餐通用</div>
+            <div class="vr"><span class="price">¥0 领取</span><span class="get">立即领取</span></div>
+          </div>
+          <div class="vc used">
+            <div class="vt">已领取 · 待核销</div>
+            <div class="vd">合作商家 · 今日有效</div>
+            <div class="vr"><span class="code">AB-7F3K</span><span class="get" style="background:var(--weak)">去核销</span></div>
+          </div>
+          <div class="compliance">福利由 ABox 自营发放，核销在合作商家门店完成。<br>本页不展示任何第三方平台名称、标识或外链。</div>
+        </div>
+      </div>
+      <div class="nav">
+        <div class="it"><div class="ic"></div>首页</div>
+        <div class="it"><div class="ic"></div>订单</div>
+        <div class="it on"><div class="ic"></div>我的</div>
+      </div>
+    </div>
+    <div class="anno">
+      <span class="h">屏4 · 供应商页·方向B 到店券核销 <span class="tag warn">P2 探索</span></span>
+      把"写字楼午间流量 + 信任"变现。券<b>以 ABox 自营名义发放</b>（规避平台定性），核销在门店完成。
+      <b>合规铁律</b>：全页不出现第三方平台名 / 标识 / 外链 / 可复制口令。
+      须先由法务确认"自营买断"还是"广告服务"定性，再小范围试点。
+    </div>
+  </div>
+
+</div>
+
+<div class="divider"></div>
+
+</body>
+</html>

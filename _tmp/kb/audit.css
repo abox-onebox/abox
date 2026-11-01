@@ -1,0 +1,63 @@
+/* ── 四期「体检」页样式（独立源件 · 由 build2.py 读入拼进产物） ── */
+.apanel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:0 0 14px}
+.ahero{font:600 15px/1.6 var(--sans);color:var(--ink);margin-bottom:8px}
+.ahero b{font:700 21px/1 var(--serif);color:var(--brand);padding:0 3px}
+.asum{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}
+.achip{background:var(--brand-soft);border-radius:9px;padding:7px 11px;font:12px/1.5 var(--sans);color:var(--ink2)}
+.achip b{color:var(--brand);font-size:15px;font-family:var(--serif);padding:0 2px}
+.achip.hot{background:#F4E3E3}
+.achip.hot b{color:var(--warn)}
+.anote{font:12px/1.85 var(--sans);color:var(--ink2);margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
+.anote code{font:11.5px ui-monospace,Menlo,Consolas,monospace;background:#F1EDE3;padding:1px 4px;border-radius:4px}
+
+.afilt{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.afilt span{border:1px solid var(--line);border-radius:999px;padding:4px 11px;font:12px/1.5 var(--sans);
+  color:var(--ink2);cursor:pointer;background:var(--card);user-select:none}
+.afilt span.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+.aitem{background:var(--card);border:1px solid var(--line);border-left-width:3px;border-radius:11px;
+  padding:10px 13px;margin:0 0 8px;cursor:pointer}
+.aitem.p1{border-left-color:var(--warn)}
+.aitem.p2{border-left-color:#C08A3E}
+.aitem.p3{border-left-color:#B9AE9A}
+.aihead{display:flex;align-items:baseline;gap:9px;font:13.5px/1.6 var(--sans);color:var(--ink)}
+.aihead .sev{font:700 11px/1 var(--sans);letter-spacing:.06em;padding:3px 6px;border-radius:5px;
+  background:var(--brand-soft);color:var(--brand);flex:0 0 auto}
+.aitem.p1 .sev{background:#F4E3E3;color:var(--warn)}
+.aihead .ar{font:11px/1 var(--sans);color:var(--ink2);border:1px solid var(--line);border-radius:5px;
+  padding:3px 6px;flex:0 0 auto}
+.aihead .tt{flex:1 1 auto}
+.aihead .wh{font:11.5px/1.5 ui-monospace,Menlo,Consolas,monospace;color:var(--ink2);flex:0 0 auto;max-width:46%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aidet{display:none;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);
+  font:12.5px/1.9 var(--sans);color:var(--ink2);word-break:break-word}
+.aitem.open .aidet{display:block}
+
+.asec{font:600 14.5px/1.6 var(--serif);color:var(--brand);margin:20px 0 8px}
+.asec small{font:12px/1.6 var(--sans);color:var(--ink2);font-weight:400;margin-left:8px}
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.acard{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+.acard h4{margin:0 0 3px;font:600 13px/1.6 var(--sans);color:var(--ink)}
+.acard .aw{font:11.5px/1.7 var(--sans);color:var(--ink2);margin-bottom:7px}
+.atbl{width:100%;border-collapse:collapse;font:12px/1.7 var(--sans)}
+.atbl td{padding:2px 4px;border-bottom:1px dotted var(--line);color:var(--ink2);vertical-align:top}
+.atbl td:last-child{text-align:right;white-space:nowrap}
+.atbl .v{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--ink)}
+.atbl .bad .v{color:var(--warn);font-weight:700}
+.aok{color:#3F7A4A;font-weight:700}
+.awarn{color:var(--warn);font-weight:700}
+.astale{margin-top:7px;font:11.5px/1.8 var(--sans);color:var(--ink2)}
+.astale b{color:var(--warn)}
+
+.aterms{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin-bottom:10px}
+.aterms h4{margin:0 0 7px;font:600 13px/1.6 var(--sans);color:var(--brand)}
+.atags{display:flex;flex-wrap:wrap;gap:6px}
+.atag{border:1px solid var(--line);border-radius:8px;padding:4px 9px;font:12px/1.6 var(--sans);color:var(--ink2);
+  background:#FBF8F1}
+.atag i{font-style:normal;color:var(--ink2);opacity:.75;padding-left:4px;font-size:11px}
+.atag.zero{background:#F4E3E3;border-color:#E2BFBF;color:var(--warn)}
+.atag.low{background:#F7EEDC;border-color:#E5D3AC;color:#8A6520}
+.atag.watch{background:#FBF6EA}
+
+/* 文案里的引用角标（回答 / 体检卡通用） */
+.abadge{font:11px/1 var(--sans);background:var(--brand-soft);color:var(--brand);border-radius:5px;padding:2px 5px}

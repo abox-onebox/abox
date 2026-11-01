@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 创业系统地图与开发路线 v1.0</title>
+<style>
+:root{
+  --bg:#F6F0E5; --card:#FFFDF9; --ink:#33291C; --brand:#6E5435;
+  --sub:#796C57; --line:#E5DBC8; --line2:#D3C4A8;
+  --ok:#2E6B4F; --ok-bg:#E8F0EA;
+  --warn:#8A5216; --warn-bg:#F8EEDC;
+  --danger:#9C2B2B; --danger-bg:#F7E6E6;
+  --info:#2C5478; --info-bg:#E6EDF4;
+  --gold:#7A5C22; --gold-bg:#F6EFDF;
+  --kai:"KaiTi","STKaiti","楷体","Kaiti SC",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; padding:0; background:var(--bg); color:var(--ink);
+  font-family:var(--sans); font-size:15px; line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px; margin:0 auto; padding:0 20px 96px}
+
+/* ---------- 页头 ---------- */
+.hero{
+  background:linear-gradient(180deg,#FFFDF9 0%,#F9F4EA 100%);
+  border-bottom:1px solid var(--line2);
+  padding:52px 20px 40px; margin-bottom:34px;
+}
+.hero .inner{max-width:1080px;margin:0 auto}
+.hero .brand{font-family:var(--kai); font-size:15px; letter-spacing:.22em; color:var(--brand); margin-bottom:14px}
+.hero h1{font-family:var(--kai); font-size:clamp(26px,4.4vw,40px); line-height:1.3; margin:0 0 14px; font-weight:400; color:var(--brand); letter-spacing:.02em}
+.hero .lede{font-size:16px; color:var(--sub); max-width:74ch; margin:0 0 22px}
+.hero .meta{font-size:13px; color:var(--sub); border-top:1px solid var(--line); padding-top:14px; display:flex; flex-wrap:wrap; gap:8px 22px}
+.hero .meta b{color:var(--brand); font-weight:600}
+
+/* ---------- 通用 ---------- */
+h2{
+  font-family:var(--kai); font-size:24px; font-weight:400; color:var(--brand);
+  margin:56px 0 6px; padding-bottom:10px; border-bottom:2px solid var(--line2); letter-spacing:.02em;
+}
+h2 .n{font-family:var(--sans); font-size:13px; color:var(--sub); letter-spacing:.16em; display:block; margin-bottom:6px; font-weight:600}
+h3{font-size:17px; font-weight:700; color:var(--brand); margin:30px 0 10px}
+h4{font-size:15px; font-weight:700; color:var(--ink); margin:22px 0 8px}
+p{margin:10px 0}
+a{color:var(--info)}
+ul,ol{margin:10px 0; padding-left:22px}
+li{margin:5px 0}
+code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:.9em; background:#F2EADB; padding:1px 5px; border-radius:4px; color:#5A4526}
+.sec-note{font-size:14px; color:var(--sub); margin:4px 0 18px; max-width:82ch}
+
+/* ---------- 卡片 ---------- */
+.card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin:14px 0; box-shadow:0 1px 2px rgba(110,84,53,.04)}
+.card.tight{padding:14px 16px}
+.grid2{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:14px}
+
+/* ---------- 表格 ---------- */
+table{width:100%; border-collapse:collapse; margin:14px 0; font-size:14px; background:var(--card); border:1px solid var(--line); border-radius:10px; overflow:hidden}
+th{background:#F1E9DA; color:var(--brand); font-weight:700; text-align:left; padding:10px 12px; border-bottom:1px solid var(--line2); white-space:nowrap}
+td{padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+tr:last-child td{border-bottom:none}
+tbody tr:nth-child(even) td{background:#FCF9F2}
+.tw{overflow-x:auto; -webkit-overflow-scrolling:touch; margin:14px 0}
+.tw table{margin:0; min-width:560px}
+.c{text-align:center} .r{text-align:right}
+td.num{font-variant-numeric:tabular-nums; white-space:nowrap}
+
+/* ---------- 徽章 ---------- */
+.b{display:inline-block; font-size:12px; font-weight:700; padding:2px 9px; border-radius:999px; white-space:nowrap; line-height:1.7; vertical-align:middle}
+.b-p0{background:var(--danger-bg); color:var(--danger)}
+.b-p1{background:var(--warn-bg); color:var(--warn)}
+.b-p2{background:var(--info-bg); color:var(--info)}
+.b-p3{background:#EFEAE0; color:var(--sub)}
+.b-ok{background:var(--ok-bg); color:var(--ok)}
+.b-no{background:#EFEAE0; color:var(--sub); text-decoration:line-through}
+.b-gold{background:var(--gold-bg); color:var(--gold)}
+.tag{display:inline-block; font-size:12px; color:var(--sub); border:1px solid var(--line2); border-radius:6px; padding:1px 7px; margin:2px 4px 2px 0}
+
+/* ---------- 结论块 ---------- */
+.key{background:linear-gradient(180deg,#FFFDF9,#FBF6EC); border:1px solid var(--line2); border-left:4px solid var(--brand); border-radius:10px; padding:16px 20px; margin:18px 0}
+.key.warn{border-left-color:var(--warn)} .key.danger{border-left-color:var(--danger)}
+.key.ok{border-left-color:var(--ok)} .key.info{border-left-color:var(--info)}
+.key h4{margin-top:0}
+.key .t{font-weight:700; color:var(--brand); margin-bottom:6px}
+
+/* ---------- 系统卡 ---------- */
+.sys{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin:12px 0; border-left:4px solid var(--line2)}
+.sys.p0{border-left-color:var(--danger)} .sys.p1{border-left-color:var(--warn)}
+.sys.p2{border-left-color:var(--info)} .sys.p3{border-left-color:#C6B99F}
+.sys .hd{display:flex; flex-wrap:wrap; align-items:baseline; gap:10px; margin-bottom:8px}
+.sys .id{font-family:ui-monospace,monospace; font-size:13px; font-weight:700; color:var(--brand); background:#F1E9DA; padding:2px 8px; border-radius:6px}
+.sys .nm{font-size:16px; font-weight:700; color:var(--ink)}
+.sys dl{margin:8px 0 0; display:grid; grid-template-columns:88px 1fr; gap:4px 12px; font-size:14px}
+.sys dt{color:var(--sub); font-weight:600}
+.sys dd{margin:0}
+.sys .who{color:var(--brand); font-weight:600}
+
+/* ---------- 价值链 ---------- */
+.chain{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:16px 0}
+.chain .step{border-radius:10px; padding:12px 12px; border:1px solid var(--line); background:var(--card)}
+.chain .step .t{font-size:13px; font-weight:700; color:var(--ink); margin-bottom:6px}
+.chain .step .d{font-size:12px; color:var(--sub)}
+.chain .have{background:#EAF2EC; border-color:#BBD4C4}
+.chain .part{background:#FBF3E4; border-color:#E2CFA8}
+.chain .none{background:#FAEBEB; border-color:#E5C4C4}
+.dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; vertical-align:middle}
+.dot.g{background:var(--ok)} .dot.y{background:#B98A2B} .dot.r{background:var(--danger)}
+
+/* ---------- 路线 ---------- */
+.road{position:relative; margin:20px 0 0; padding-left:26px}
+.road:before{content:""; position:absolute; left:7px; top:6px; bottom:6px; width:2px; background:var(--line2)}
+.phase{position:relative; margin:0 0 24px}
+.phase:before{content:""; position:absolute; left:-24px; top:6px; width:14px; height:14px; border-radius:50%; background:var(--card); border:3px solid var(--brand)}
+.phase.p0:before{border-color:var(--danger)} .phase.p1:before{border-color:var(--warn)}
+.phase.p2:before{border-color:var(--info)} .phase.p3:before{border-color:#C6B99F}
+.phase .ph{font-size:16px; font-weight:700; color:var(--brand); margin-bottom:2px}
+.phase .when{font-size:13px; color:var(--sub); margin-bottom:8px}
+
+footer{margin-top:70px; padding-top:20px; border-top:1px solid var(--line2); font-size:13px; color:var(--sub)}
+@media (max-width:640px){
+  body{font-size:14.5px}
+  .sys dl{grid-template-columns:1fr; gap:2px}
+  .sys dt{margin-top:6px}
+  h2{font-size:21px}
+  .hero{padding:34px 18px 28px}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="inner">
+    <div class="brand">ABox 一盒 · 北京巡礼之年科技有限公司</div>
+    <h1>除了小程序和后台，<br>你还该建什么系统</h1>
+    <p class="lede">
+      一份按「**能不能立刻开工 · 有没有人每天用 · 是止血还是长肉**」三条排过序的系统地图。
+      共 30 个候选系统，分 7 个域，按 P0–P3 四批给出开发节奏。
+    </p>
+    <div class="meta">
+      <span>版本 <b>v1.0</b></span>
+      <span>2026-09-24</span>
+      <span>已建边界：<b>16</b> 个 API 模块 · <b>46</b> 页后台 · <b>15</b> 页小程序</span>
+      <span>执行资源：<b>祝总 + 阿布</b>（无工程团队）</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ========== 〇 ========== -->
+<h2><span class="n">PART 00</span>先给三句话结论</h2>
+
+<div class="key danger">
+  <div class="t">结论一：你缺的不是"更多功能"，是三类系统</div>
+  <p style="margin:0">
+    <b>赚更多</b>（增长系统）、<b>少浪费</b>（决策与供给系统）、<b>活更久</b>（风险与合规系统）。
+    这三类的共同点是 —— <b>它们都不在下单流程里</b>。所以你之前做 M1–M5 里程碑时，
+    它们被天然排到了"以后"：因为里程碑回答的是"能不能上线"，而这三类回答的是"上线后能不能活"。
+  </p>
+</div>
+
+<div class="key ok">
+  <div class="t">结论二：AI 把这三类的自研成本，从"半年 + 几十万"打到了"几天"</div>
+  <p style="margin:0">
+    过去它们是「等有钱了买 SaaS」的东西：BI 要找数据分析师、CRM 要买账号、客服系统要外包。
+    现在它们属于「想让阿布做就能做」的东西。
+    <b>本报告全部价值的前提就是这一句</b> —— 否则列 30 个系统纯属添乱。
+    真正被改变的不是"能不能做"，而是<b>"值不值得做"的临界点</b>：
+    过去一个系统要一年省 30 万才值得立项；现在它的成本是 3 天，<b>一年省 3 万就值得</b>。
+    一大批"小到不值得立项"的事，如今都值得了。
+  </p>
+</div>
+
+<div class="key warn">
+  <div class="t">结论三：优先级不能按"哪个先进"排</div>
+  <p style="margin:0 0 8px">按这三条排（详细理由见 PART 05）：</p>
+  <ol style="margin:0">
+    <li><b>是否不依赖外部条件就能开工</b> —— 你现在卡在资质（公司经营异常 + 税务非正常户），
+        凡依赖"上线后有真实用户"的系统，现在做就是空转。</li>
+    <li><b>是否有人每天用</b> —— 没人用的系统是负资产：它要维护、要喂数据，还不产出。</li>
+    <li><b>防损失是否优于搏增长</b> —— 钱少的时候，先止血再长肉。少亏 1 万和少赚 1 万，
+        对活下去的意义完全不同。</li>
+  </ol>
+</div>
+
+<h3>一张路线图</h3>
+<div class="tw">
+<table>
+<thead><tr><th style="width:74px">批次</th><th style="width:150px">时间窗</th><th>上什么</th><th style="width:88px">数量</th></tr></thead>
+<tbody>
+<tr><td><span class="b b-p0">P0</span></td><td>现在 → 提审通过</td>
+    <td>知识助手 · 证照台账 · 成本卡 · 楼宇地图 · 团长 CRM · 内容工厂 · 驾驶舱（空跑版）</td><td class="num">7</td></tr>
+<tr><td><span class="b b-p1">P1</span></td><td>上线首月</td>
+    <td>食安留样 · 口味评价闭环 · 客服工单 · 需求预测 · 现金流预测 · 合规自查 · 触达矩阵 · SOP 培训</td><td class="num">8</td></tr>
+<tr><td><span class="b b-p2">P2</span></td><td>单楼跑通 → 3~5 栋</td>
+    <td>增长裂变 · 企业团餐 · 订阅月卡 · 配送优化 · 供应商绩效 · 食安巡检 · AI 客服 · 合同管理</td><td class="num">8</td></tr>
+<tr><td><span class="b b-p3">P3</span></td><td>规模化（10+ 栋）</td>
+    <td>产能排程 · 智能柜 · 损耗处置 · 排班 · 税务发票 · 个性化推荐 · 结算中心补强</td><td class="num">7</td></tr>
+</tbody>
+</table>
+</div>
+<p class="sec-note">
+  P0 的 7 个全部<b>不依赖上线、不依赖真实数据</b>，现在就能做完 —— 你被资质卡住的这段时间，
+  正好是它们的窗口期。<b>别让"等资质"变成"什么都不做"</b>。
+</p>
+
+<!-- ========== 一 ========== -->
+<h2><span class="n">PART 01</span>你现在站在哪：已建系统的真实边界</h2>
+<p class="sec-note">先看清"已经有什么"，才知道缺口在哪。避免把已有的东西当缺口重复建设。</p>
+
+<h3>已建系统的实际覆盖</h3>
+<div class="tw">
+<table>
+<thead><tr><th style="width:120px">层</th><th>规模</th><th>覆盖了什么</th></tr></thead>
+<tbody>
+<tr><td><b>小程序（端上）</b></td><td>15 个页面</td>
+    <td>首页 · 下单 · 支付结果 · 订单列表/详情/取消 · 余额明细 · 我的 · 团长（申请/邀请/工作台） · 溯源 · 协议 · 客服 · 注销</td></tr>
+<tr><td><b>运营后台</b></td><td>46 个页面 / 11 板块</td>
+    <td>套餐 · 订单 · 供应商（11 页） · 财务（8 页） · 楼栋 · 团长 · 统计 · 系统 · 工作台</td></tr>
+<tr><td><b>API 服务</b></td><td>16 个模块</td>
+    <td>order · payment · meal · supplier · delivery · distribution-center · finance · team-leader · building · user · auth · admin · message · stats · traceability</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="key">
+  <div class="t">关键判断：你的系统「履约完备、经营空白」</div>
+  <p style="margin:0">
+    把生意拆成价值链，你会发现已有系统<b>密集覆盖在"客户已经下单之后"</b>这一段 ——
+    从支付、出餐、分拣、配送、分发，一直到佣金和采购款结算，环环相扣，还有状态机和 e2e 守着。
+    <b>这一段做得比大多数早期公司扎实。</b>
+    但价值链的<b>前端</b>（选哪栋楼、招谁当团长、怎么让人第一次下单）和<b>后端</b>
+    （怎么让他再来、怎么少扔、怎么不出事）几乎是空白 —— 而这两端才是决定成败的地方。
+  </p>
+</div>
+
+<h3>价值链体检：11 个环节，你覆盖了几个</h3>
+<div class="chain">
+  <div class="step none"><div class="t"><span class="dot r"></span>选楼 / 选址</div><div class="d">靠腿跑 + 直觉，无线索库、无评分</div></div>
+  <div class="step none"><div class="t"><span class="dot r"></span>招团长</div><div class="d">靠微信谈，无漏斗、无画像、无淘汰</div></div>
+  <div class="step none"><div class="t"><span class="dot r"></span>拉用户首单</div><div class="d">靠团长发动，无裂变工具、无企业入口</div></div>
+  <div class="step part"><div class="t"><span class="dot y"></span>选品 / 定价</div><div class="d">有套餐与模板，但无成本卡、无毛利测算</div></div>
+  <div class="step none"><div class="t"><span class="dot r"></span>需求聚合</div><div class="d">报量靠人工拍，无预测、无建议量</div></div>
+  <div class="step have"><div class="t"><span class="dot g"></span>采购 / 生产</div><div class="d">供应商报量 + 出餐确认，已有完整状态</div></div>
+  <div class="step have"><div class="t"><span class="dot g"></span>分拣打包</div><div class="d">集散中心维度已进模型</div></div>
+  <div class="step have"><div class="t"><span class="dot g"></span>配送</div><div class="d">配送单 + 逐级推进，已实装</div></div>
+  <div class="step part"><div class="t"><span class="dot y"></span>分发 / 自提</div><div class="d">团长端有单，但无核销、无取餐提醒闭环</div></div>
+  <div class="step part"><div class="t"><span class="dot y"></span>售后</div><div class="d">有退款流程，但无工单、投诉不入库</div></div>
+  <div class="step have"><div class="t"><span class="dot g"></span>结算</div><div class="d">佣金 / 采购款 / 提现 / 对账，全实装</div></div>
+</div>
+<p class="sec-note">
+  <span class="dot g"></span> 已覆盖 &nbsp;<span class="dot y"></span> 半覆盖 &nbsp;<span class="dot r"></span> 空白
+  —— 一眼可见：<b>中间那一段很扎实，两头是空的</b>。
+</p>
+
+<h3>两处值得注意的"盲区"，它们是本报告的起点</h3>
+
+<div class="card tight">
+  <h4 style="margin-top:0">盲区一：里程碑只到 M5，没有 M6</h4>
+  <p style="margin:6px 0">
+    《开发里程碑计划》覆盖 M1–M5（W1–W10，终点是<b>灰度上线</b>）。之后是空白。
+    这很正常 —— 上线前的计划只应该管上线。但它会造成一个心理惯性：
+    <b>团队会默认"M5 完了就没事了"</b>。而创业的真相是：上线那天，真正的工作才开始。
+  </p>
+</div>
+
+<div class="card tight">
+  <h4 style="margin-top:0">盲区二：风险登记册 8 条，全是"开发期技术风险"</h4>
+  <p style="margin:6px 0">
+    逐条看：发票链条 · 灵活用工对接 · 云资源 · 平台费率 · 楷体降级 · 跑批稳定 ·
+    口径被改 · 协作覆盖 —— <b>全是"能不能顺利上线"的风险</b>。
+    而真正的经营风险：<b>食安事故 · 供应商断供 · 报量失准致损耗 · 现金流断 · 楼密度起不来 · 团长流失 ·
+    只有一个人会干活</b> —— 一条都没有。
+  </p>
+  <p style="margin:6px 0 0">
+    这不是疏漏，是<b>阶段不同</b>。所以本报告第二部分专门补一张「经营风险 → 该上哪个系统」的对照表。
+  </p>
+</div>
+
+<!-- ========== 二 ========== -->
+<h2><span class="n">PART 02</span>缺口地图：7 个域，30 个候选系统</h2>
+<p class="sec-note">
+  下面 30 个系统全部按同一个格式写：<b>是什么 · 谁会每天用 · 解决什么 · 为什么现在能做 · 量级 · 依赖</b>。
+  其中「<b>谁会每天用</b>」是筛掉伪需求的那一刀 —— <b>答不上来的，就不该做</b>。
+</p>
+
+<div class="tw">
+<table>
+<thead><tr><th style="width:56px">域</th><th style="width:170px">域名称</th><th>它回答的问题</th><th style="width:88px">系统数</th></tr></thead>
+<tbody>
+<tr><td><b>G</b></td><td>增长与获客</td><td>楼从哪来？团长从哪来？用户第一次为什么下单？</td><td class="num">4</td></tr>
+<tr><td><b>S</b></td><td>供给与产能</td><td>该做多少？该花多少？供应商行不行？</td><td class="num">5</td></tr>
+<tr><td><b>F</b></td><td>履约与体验</td><td>送到没有？好不好吃？出问题怎么办？</td><td class="num">5</td></tr>
+<tr><td><b>M</b></td><td>资金与经营</td><td>今天赚了还是亏了？钱还能撑几天？</td><td class="num">4</td></tr>
+<tr><td><b>R</b></td><td>风险与合规</td><td>会不会一票否决？证照过期了吗？</td><td class="num">4</td></tr>
+<tr><td><b>E</b></td><td>内部效率</td><td>这些活能不能别让我干？</td><td class="num">5</td></tr>
+<tr><td><b>U</b></td><td>用户与留存</td><td>他为什么不再来了？怎么让他锁住？</td><td class="num">3</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- ---------- G ---------- -->
+<h3>G 域 · 增长与获客（4 个）</h3>
+<p class="sec-note">
+  这是你最空的一块，也是最值钱的一块。你的生意本质是<b>「以楼为单位的密度生意」</b>：
+  同一栋楼里 100 单和 20 单，配送成本几乎一样，但毛利差 5 倍。<b>所以"选对楼"比"多做功能"重要得多。</b>
+</p>
+
+<div class="sys p0">
+  <div class="hd"><span class="id">G1</span><span class="nm">楼宇拓展作战地图</span><span class="b b-p0">P0</span></div>
+  <dl>
+    <dt>是什么</dt><dd>一张可筛选的写字楼线索库 + 打分模型 + 拓展漏斗看板：楼名/地址/层数/入驻公司数/周边餐饮均价/已进楼层，自动算「密度潜力分」，并按「线索 → 接触 → 试吃 → 签约 → 上线」记录每一步。</dd>
+    <dt>谁每天用</dt><dd class="who">你（BD 期天天用）· 未来给拓展岗</dd>
+    <dt>解决什么</dt><dd>把「跑楼」从凭手感变成有命中率的过程。现在的问题是<b>谈过的楼散在微信聊天记录里</b>，过两周就忘了谈到哪、谁在跟、为什么没成。</dd>
+    <dt>现在能做</dt><dd>不需要任何线上数据。楼宇名录可用公开地图与工商信息补，评分模型是<b>规则 + 权重</b>，不需要训练。AI 能把"周边餐饮均价"这类调研整理成结构化表。</dd>
+    <dt>量级</dt><dd>2–3 天（后台加一个模块：线索表 + 评分 + 漏斗看板 + 跟进记录）</dd>
+    <dt>依赖</dt><dd>无</dd>
+  </dl>
+</div>
+
+<div class="sys p0">
+  <div class="hd"><span class="id">G2</span><span class="nm">团长招募与运营 CRM</span><span class="b b-p0">P0</span></div>
+  <dl>
+    <dt>是什么</dt><dd>团长从「线索 → 沟通 → 培训 → 试跑 → 在职 → 停职/淘汰」的全生命周期台账，含：画像标签（写字楼前台 / 行政 / 便利店 / 宝妈）、产能看板（人均带单量、复购率）、<b>收入模拟器</b>（用真实历史数据算"你在这个楼大概能赚多少"）、连续 N 天 0 单自动预警。</dd>
+    <dt>谁每天用</dt><dd class="who">你（招募与陪跑期）· 未来给团长运营岗</dd>
+    <dt>解决什么</dt><dd>团长是你唯一的增长杠杆，但现在是<b>招进来就散养</b>。没有画像 ⇒ 招错人；没有产能看板 ⇒ 不知道该帮谁；没有淘汰机制 ⇒ 一堆挂名团长拉低密度。</dd>
+    <dt>现在能做</dt><dd>招募话术、筛选清单、物料这些"人工活"AI 能直接产出（内容工厂 E3 覆盖）；<b>收入模拟器尤其值钱</b> —— 它把"你大概能赚 XX 元"从口头承诺变成可出示的数据，而且是<b>合规的区间描述</b>（不承诺具体收益）。</dd>
+    <dt>量级</dt><dd>3–4 天</dd>
+    <dt>依赖</dt><dd>产能数据要等上线（P0 先把台账与模拟器做好）</dd>
+  </dl>
+</div>
+
+<div class="sys p2">
+  <div class="hd"><span class="id">G3</span><span class="nm">用户增长与裂变工具箱</span><span class="b b-p2">P2</span></div>
+  <dl>
+    <dt>是什么</dt><dd>邀请有礼 · 楼内拼团 · 首单立减 · 老带新阶梯奖励 · 分享海报一键生成 · 楼内排行。核心指标：<b>每栋楼的渗透率</b>（下单人数 ÷ 楼内白领数）。</dd>
+    <dt>谁每天用</dt><dd class="who">团长（发动用户）· 你（看渗透率）</dd>
+    <dt>解决什么</dt><dd>单靠团长一个人拉，增长有天花板。裂变让<b>用户帮你拉用户</b>。同时把"每栋楼渗透率"变成可看的数 —— 这是你判断"这栋楼该加码还是放弃"的依据。</dd>
+    <dt>现在能做</dt><dd>拼团/邀请的规则引擎是标准件，AI 能一次写出来；海报生成已在用 AI 出图，只差"批量 + 模板化"。</dd>
+    <dt>量级</dt><dd>4–6 天</dd>
+    <dt>依赖</dt><dd><b>必须先有量</b>（单楼日单 &lt; 30 时做裂变等于放大噪音）</dd>
+  </dl>
+</div>
+
+<div class="sys p2">
+  <div class="hd"><span class="id">G4</span><span class="nm">企业团餐通道（B 端）</span><span class="b b-p2">P2</span></div>
+  <dl>
+    <dt>是什么</dt><dd>面向公司行政的批量订餐：按部门/人数批量下单、支持月结、统一开票、指定送达与分发方式、企业专属菜单与价格档。</dd>
+    <dt>谁每天用</dt><dd class="who">企业行政（下单）· 你（对账开票）</dd>
+    <dt>解决什么</dt><dd>把一个"每天靠个人想起来才点"的生意，变成<b>一张盖了章的月度合同</b>。企业单的客单价与稳定性远高于散客，且<b>几乎不用营销</b> —— 谈成一家公司 = 锁住几十到几百人的日频需求。</dd>
+    <dt>现在能做</dt><dd>技术上就是"批量下单 + 账期结算 + 发票"，都已有基础（订单、结算、发票台账）。难的是商务，不是代码。</dd>
+    <dt>量级</dt><dd>5–7 天</dd>
+    <dt>依赖</dt><dd>发票能力（M3）· 已有客户跑顺</dd>
+  </dl>
+</div>
+
+<!-- ---------- S ---------- -->
+<h3>S 域 · 供给与产能（5 个）</h3>
+<p class="sec-note">
+  盒饭是<b>易腐品 + 预售制</b>：报多了扔掉，报少了客人吃不上。<b>这个域的每一个系统都在直接抠毛利。</b>
+  你 25.8 元一份，四菜一饭，如果每份多扔 2 元，等于毛利率直接掉几个点。
+</p>
+
+<div class="sys p0">
+  <div class="hd"><span class="id">S2</span><span class="nm">成本卡与毛利测算</span><span class="b b-p0">P0</span><span class="tag">最该先做的一个</span></div>
+  <dl>
+    <dt>是什么</dt><dd>每个套餐的 BOM（一饭四菜 → 每道菜的食材 → 供应商报价），自动算：单份食材成本、毛利率、按楼/按天/按 SKU 的毛利看板，以及<b>调价与换料模拟器</b>（"把红烧肉换成鸡腿会怎样""涨到 26.8 会怎样"）。</dd>
+    <dt>谁每天用</dt><dd class="who">你（定价与选品时）· 财务</dd>
+    <dt>解决什么</dt><dd><b>这是你现在最该知道、却最不知道的一个数</b>：25.8 元一份，到底赚多少钱？
+        哪些菜在吃毛利？哪个套餐是亏本引流？换一家供应商能省多少？
+        这些现在只能靠手工拉 Excel 算，且算一次就过时。</dd>
+    <dt>现在能做</dt><dd>纯计算 + 表格，<b>不需要上线、不需要用户数据</b>，现在就能用真实报价跑起来。
+        AI 擅长把"零散的报价单/菜谱"整理成结构化成本卡。</dd>
+    <dt>量级</dt><dd>2–3 天</dd>
+    <dt>依赖</dt><dd>无（只需你提供报价与菜谱）</dd>
+  </dl>
+</div>
+
+<div class="sys p1">
+  <div class="hd"><span class="id">S1</span><span class="nm">需求预测与备货建议</span><span class="b b-p1">P1</span></div>
+  <dl>
+    <dt>是什么</dt><dd>按楼 × 按 SKU × 按星期几给出次日建议申报量：基线 = 近 4 周同星期均值，叠加天气、节假日、楼内事件（团建/体检/放假）、历史类似日的修正系数。输出直接推给供应商。</dd>
+    <dt>谁每天用</dt><dd class="who">你（每日报量时）· 供应商</dd>
+    <dt>解决什么</dt><dd>报量现在是"人工拍"。报多 = 扔掉（直接吃毛利），报少 = 流失用户（客人第一周遇到两次卖完，就不会再来了）。
+        <b>这是盒饭生意最核心的一台机器</b> —— 对标玉子屋，它的真正护城河就是"预订制 + 精准报量"。</dd>
+    <dt>现在能做</dt><dd>⚠️ 关键分寸：<b>不要上"机器学习"</b>。你的数据量（单楼日几十单）撑不起模型，反而更差。
+        正确形态是<b>规则 + 简单统计 + 人工确认</b>：系统给建议量，人拍板。AI 的活是"算得快、记得住历史"。</dd>
+    <dt>量级</dt><dd>3–4 天</dd>
+    <dt>依赖</dt><dd><b>需要至少 2–3 周真实订单数据</b>（所以是 P1 不是 P0）</dd>
+  </dl>
+</div>
+
+<div class="sys p2">
+  <div class="hd"><span class="id">S3</span><span class="nm">供应商绩效与比价</span><span class="b b-p2">P2</span></div>
+  <dl>
+    <dt>是什么</dt><dd>供应商能力画像：准时率、实收量偏差率、缺货率、品质投诉率、报价走势、结算履约情况；同品类多供应商横向比价。</dd>
+    <dt>谁每天用</dt><dd class="who">你（议价与换供应商时）</dd>
+    <dt>解决什么</dt><dd>你现在 4 家供应商都在集散中心 1 之下。一旦某家开始"今天少送 10 份""菜越做越咸"，
+        你很难量化，因为<b>没有记录</b>。有了绩效数据，议价就不是"我觉得"而是"你上个月准时率 87%"。</dd>
+    <dt>现在能做</dt><dd>数据已经在库里（出餐确认、实收量、配送单），只是没被汇总成"人的分"。</dd>
+    <dt>量级</dt><dd>3 天</dd>
+    <dt>依赖</dt><dd>需要若干周运营数据积累</dd>
+  </dl>
+</div>
+
+<div class="sys p3">
+  <div class="hd"><span class="id">S4</span><span class="nm">产能排程与冲突预警</span><span class="b b-p3">P3</span></div>
+  <dl>
+    <dt>是什么</dt><dd>各加工场所/集散中心的当日产能上限 vs 需求量，超载预警与分流建议。</dd>
+    <dt>谁每天用</dt><dd class="who">你（扩楼决策时）· 加工场所负责人</dd>
+    <dt>解决什么</dt><dd>防止"接单接到做不出来"。规模化的隐形天花板通常不是需求，是<b>产能</b>。</dd>
+    <dt>现在能做</dt><dd>是个纯统计 + 阈值系统，简单。</dd>
+    <dt>量级</dt><dd>2 天</dd>
+    <dt>依赖</dt><dd>多场所运营后才有意义（单场所时是伪需求）</dd>
+  </dl>
+</div>
+
+<div class="sys p3">
+  <div class="hd"><span class="id">S5</span><span class="nm">损耗与临期处置</span><span class="b b-p3">P3</span></div>
+  <dl>
+    <dt>是什么</dt><dd>当日未售出 / 退单 / 报损的记录、归因（报量错 / 用户爽约 / 品质问题）与处置流（员工餐 / 折价 / 捐赠 / 报废），出月度损耗率报表。</dd>
+    <dt>谁每天用</dt><dd class="who">你（每天盘一次）</dd>
+    <dt>解决什么</dt><dd><b>损耗是盒饭生意最容易失控的成本</b>，而它现在很可能根本没被记录 —— 没记录就无法优化。
+        它同时是食安合规的一环（临期与废弃物处置要有痕迹）。</dd>
+    <dt>现在能做</dt><dd>一张表单 + 一个看板，极简。</dd>
+    <dt>量级</dt><dd>2 天</dd>
+    <dt>依赖</dt><dd>有真实报损后才有数据</dd>
+  </dl>
+</div>
+
+<!-- ---------- F ---------- -->
+<h3>F 域 · 履约与体验（5 个）</h3>
+<p class="sec-note">
+  你的配送、出餐链已经建得很扎实。这里的缺口集中在<b>「最后一米」</b>和<b>「出事之后」</b>。
+</p>
+
+<div class="sys p1">
+  <div class="hd"><span class="id">F3</span><span class="nm">食安留样与全链追溯</span><span class="b b-p1">P1</span><span class="tag">开业第一天就要有</span></div>
+  <dl>
+    <dt>是什么</dt><dd>每批次留样记录（菜品 + 时间 + 留样人 + 照片 + 保存温度与到期时间）· 供应商资质与健康证到期 · 出餐环境自检 · 与已有 <code>traceability</code> 模块打通，形成"这一份饭从哪来、谁做的、谁送的"完整链。</dd>
+    <dt>谁每天用</dt><dd class="who">加工场所 / 出餐人（留样登记）· 你（看异常）</dd>
+    <dt>解决什么</dt><dd><b>这是唯一一个"不做可能直接死"的系统。</b>
+        食安事故对餐饮创业是一票否决：不只是赔钱，是牌照、口碑、平台准入全部归零。
+        它的价值分两层：<b>不出事</b>（有检查表就不会漏）+ <b>出了事能自证</b>（有留样与追溯，责任边界清楚）。</dd>
+    <dt>现在能做</dt><dd>表单 + 照片 + 到期提醒，没有技术难度。<code>traceability</code> 模块已经在，
+        这一步是把它从"给用户看的溯源页"扩展成"给自己用的合规底账"。</dd>
+    <dt>量级</dt><dd>3–4 天</dd>
+    <dt>依赖</dt><dd>上线后才有真实批次（P0 可先搭好模板与提醒）</dd>
+  </dl>
+</div>
+
+<div class="sys p1">
+  <div class="hd"><span class="id">F4</span><span class="nm">客服工单与异常处理</span><span class="b b-p1">P1</span></div>
+  <dl>
+    <dt>是什么</dt><dd>把"微信里的抱怨"变成工单：来源（端上/团长/电话/微信群）· 类型（漏送/异物/迟到/口味/退款）· 处理过程 · 赔付 · <b>归因统计</b>（哪家供应商、哪道菜、哪条配送线的问题最多）。</dd>
+    <dt>谁每天用</dt><dd class="who">你（处理 + 看趋势）</dd>
+    <dt>解决什么</dt><dd>投诉现在散在微信里 —— <b>处理了，但没有沉淀</b>。
+        结果是同一个问题反复发生（同一道菜连续被投诉三次，你不会知道）。
+        工单把"个体抱怨"变成"系统性缺陷"的信号。</dd>
+    <dt>现在能做</dt><dd>标准表单系统。AI 可做自动分类与情绪识别，但不必要 —— 简单分类就够。</dd>
+    <dt>量级</dt><dd>2–3 天</dd>
+    <dt>依赖</dt><dd>上线后</dd>
+  </dl>
+</div>
+
+<div class="sys p1">
+  <div class="hd"><span class="id">F5</span><span class="nm">通知触达矩阵</span><span class="b b-p1">P1</span></div>
+  <dl>
+    <dt>是什么</dt><dd>订阅消息 / 企微 / 短信 三条通道的编排与到达率统计：截单提醒、出餐、配送中、已送达、取餐提醒、超时未取、复购召回。</dd>
+    <dt>谁每天用</dt><dd class="who">系统自动 · 你看到达率</dd>
+    <dt>解决什么</dt><dd><b>"忘了下单"和"忘了取餐"是两笔最冤的损失</b>：前者少一单，后者要么赔一份要么得罪人。
+        已有 <code>message</code> 模块，缺的是"按人按场景编排 + 到达率回看"。</dd>
+    <dt>现在能做</dt><dd>模块已在，是补强不是新建。</dd>
+    <dt>量级</dt><dd>2 天</dd>
+    <dt>依赖</dt><dd>订阅消息模板审核（微信侧流程）</dd>
+  </dl>
+</div>
+
+<div class="sys p2">
+  <div class="hd"><span class="id">F1</span><span class="nm">配送调度与路线优化</span><span class="b b-p2">P2</span></div>
+  <dl>
+    <dt>是什么</dt><dd>多点配送的路线与顺序建议、时效跟踪（预计到达 vs 实际）、司机工作量与结算。<b>不是自建配送团队，是把已有运力调度好。</b></dd>
+    <dt>谁每天用</dt><dd class="who">司机 / 调度者 · 你（看准点率）</dd>
+    <dt>解决什么</dt><dd>11:30 送达是硬承诺。楼多了之后，"先送哪栋"直接决定准点率。现在配送单已有状态，缺的是<b>顺序决策</b>与准点率统计。</dd>
+    <dt>现在能做</dt><dd>路线优化有成熟算法，但<b>你的规模用不上</b> —— 先用"按楼群分组 + 固定顺序 + 手工微调"即可，AI 写规则就好。</dd>
+    <dt>量级</dt><dd>3 天</dd>
+    <dt>依赖</dt><dd>≥3 栋楼（单栋时无优化空间）</dd>
+  </dl>
+</div>
+
+<div class="sys p3">
+  <div class="hd"><span class="id">F2</span><span class="nm">取餐核销与保温柜管理</span><span class="b b-p3">P3</span></div>
+  <dl>
+    <dt>是什么</dt><dd>取餐码/扫码核销、超时未取提醒、保温柜格口分配（远期：IoT 柜联动、体温控记录）。</dd>
+    <dt>谁每天用</dt><dd class="who">团长（核销）· 用户（取餐）</dd>
+    <dt>解决什么</dt><dd>现在取餐很可能靠"团长认人"。人有名字、有记录，才有"未取赔付"的依据；也堵住"多拿""拿错"。</dd>
+    <dt>现在能做</dt><dd>核销是简单的；<b>智能柜是硬件投入，别急</b> —— 先用二维码 + 人工核销跑通流程。</dd>
+    <dt>量级</dt><dd>2–3 天（无柜）· 数周（含硬件）</dd>
+    <dt>依赖</dt><dd>硬件采购（远期）</dd>
+  </dl>
+</div>
+
+<!-- ---------- M ---------- -->
+<h3>M 域 · 资金与经营（4 个）</h3>
+<p class="sec-note">
+  这个域里最有价值的不是"更细的报表"，而是<b>每天早上替你看一眼、异常时主动喊你</b>。
+</p>
+
+<div class="sys p0">
+  <div class="hd"><span class="id">M1</span><span class="nm">经营驾驶舱（日清日结）</span><span class="b b-p0">P0</span><span class="tag">建议做成"每天早上一条推送"</span></div>
+  <dl>
+    <dt>是什么</dt><dd>每日一份经营快照：单量 · GMV · <b>毛利率</b> · 客单价 · 各楼排名 · 团长产能 · 报量偏差 · 损耗 · 投诉 · 异常订单。
+        形态建议：<b>后台有页面，但更重要的是每天早上 8:00 推一条消息给你</b>（企微/微信），异常项标红。</dd>
+    <dt>谁每天用</dt><dd class="who">你（每天 1 分钟看完）</dd>
+    <dt>解决什么</dt><dd>现在你有 <code>stats</code> 模块，但那是"去查才看得到"。
+        <b>经营感知的关键是"不用查"</b> —— 让你在刷牙的时候就知道昨天掉了没有。</dd>
+    <dt>现在能做</dt><dd>✅ <b>现在就能做，而且应该现在就做</b>：先把"指标定义 + 页面 + 推送通道"搭好，用种子数据空跑。
+        等上线有真数据，它自动变成真看板 —— <b>不浪费一天</b>。</dd>
+    <dt>量级</dt><dd>3–4 天</dd>
+    <dt>依赖</dt><dd>无（空跑版）</dd>
+  </dl>
+</div>
+
+<div class="sys p1">
+  <div class="hd"><span class="id">M2</span><span class="nm">现金流与账期预测</span><span class="b b-p1">P1</span></div>
+  <dl>
+    <dt>是什么</dt><dd>滚动现金流表：用户预收（下单即付）· 采购款支出（日结 T+1）· 佣金（月结/自动）· 提现流出 · 固定成本（场所/人力/服务器）。
+        核心输出一句话：<b>"按现在的速度，钱还能撑 XX 天"</b>，以及"如果下月砍掉某栋楼会怎样"。</dd>
+    <dt>谁每天用</dt><dd class="who">你（每周看一次，紧张时每天看）</dd>
+    <dt>解决什么</dt><dd>你的模式有一处结构性优势：<b>用户先付、供应商后结</b>（预售制 + T+1 付款）⇒ 天然正现金流。
+        但这个优势只有在"单量增长"时才成立；一旦增长停滞或退款激增，它会迅速反转。
+        <b>这个系统就是盯住这个反转的仪表盘。</b></dd>
+    <dt>现在能做</dt><dd>资金数据已在库里（订单/佣金/应付单/提现/余额），是汇总与推演，不涉及新数据源。</dd>
+    <dt>量级</dt><dd>3 天</dd>
+    <dt>依赖</dt><dd>上线后有真实流水（P0 可先用模型跑）</dd>
+  </dl>
+</div>
+
+<div class="sys p3">
+  <div class="hd"><span class="id">M3</span><span class="nm">税务与发票台账</span><span class="b b-p3">P3</span></div>
+  <dl>
+    <dt>是什么</dt><dd>进项/销项发票台账、灵活用工申报记录、纳税申报日历与提醒、税务异常状态跟踪。</dd>
+    <dt>谁每天用</dt><dd class="who">你 / 代账会计（月度）</dd>
+    <dt>解决什么</dt><dd>你公司<b>现在正卡在"税务非正常户"</b> —— 这个系统就是为了"以后不再因为忘了某件事而卡住"。
+        同时它是企业团餐（G4）开票能力的底座。</dd>
+    <dt>现在能做</dt><dd>台账 + 日历 + 提醒，简单。真正的难点在税务筹划本身，不在系统。</dd>
+    <dt>量级</dt><dd>2–3 天</dd>
+    <dt>依赖</dt><dd>正规化经营之后（当前状态未恢复正常）</dd>
+  </dl>
+</div>
+
+<div class="sys p2">
+  <div class="hd"><span class="id">M4</span><span class="nm">结算与对账中心（补强，已在）</span><span class="b b-p2">P2</span></div>
+  <dl>
+    <dt>是什么</dt><dd>你已有佣金、采购款、提现、余额与对账能力。此处列为"补强项"：加<b>供应商月度对账单生成</b>与<b>差异归因</b>（应付 ≠ 已付时的定位）。</dd>
+    <dt>谁每天用</dt><dd class="who">你 · 财务</dd>
+    <dt>解决什么</dt><dd>现在采购款是"人工对公转账 + 回执登记"。笔数一多，人工对账必出错，而钱错了最难查。</dd>
+    <dt>现在能做</dt><dd>已有底座，是加一层对账单导出与差异表。</dd>
+    <dt>量级</dt><dd>2 天</dd>
+    <dt>依赖</dt><dd>供应商数量与单量上来之后</dd>
+  </dl>
+</div>
+
+<!-- ---------- R ---------- -->
+<h3>R 域 · 风险与合规（4 个）</h3>
+<p class="sec-note">
+  这个域的特点是：<b>平时看不出价值，出问题时决定生死</b>。
+  它们的成本极低（天级），但如果不做，一次事故就能把前面所有的努力清零 —— <b>性价比最高的一域</b>。
+</p>
+
+<div class="sys p0">
+  <div class="hd"><span class="id">R1</span><span class="nm">证照与资质台账</span><span class="b b-p0">P0</span><span class="tag">你现在正卡在这</span></div>
+  <dl>
+    <dt>是什么</dt><dd>一张带到期提醒的台账：营业执照 · 食品经营许可证 · 健康证（每人）· 小程序主体认证 · 类目资质 · 平台准入材料 · 供应商资质（营业执照/食品流通许可）。
+        外加一条：<b>公司经营状态跟踪</b>（异常名录 / 税务状态 / 年报截止）。</dd>
+    <dt>谁每天用</dt><dd class="who">你（看提醒）· 系统自动提醒</dd>
+    <dt>解决什么</dt><dd>你现在的上线节奏，<b>不是被技术卡住的，是被行政卡住的</b>（C0：解除经营异常 + 税务非正常户）。
+        而这类事情的特点是 —— <b>忘一次 = 卡一个月</b>。
+        台账把它从"靠记性"变成"到期自动喊你"，同时给代账会计一个对接口。</dd>
+    <dt>现在能做</dt><dd>纯表单 + 提醒，半天到一天。<b>现在做，立刻有用</b>，因为它管的是当下正在发生的事。</dd>
+    <dt>量级</dt><dd>0.5–1 天</dd>
+    <dt>依赖</dt><dd>无</dd>
+  </dl>
+</div>
+
+<div class="sys p1">
+  <div class="hd"><span class="id">R3</span><span class="nm">分销合规自查（传销红线）</span><span class="b b-p1">P1</span></div>
+  <dl>
+    <dt>是什么</dt><dd>按固定规则扫描现行分润结构并出报告：<b>返利层级 ≤ 2 级</b> · 佣金基于<b>实际销售</b>而非拉人头 · 无入门费/加盟费 ·
+        无"团队计酬"式多层级分润 · 招募文案不含绝对化用语或不实收益承诺。</dd>
+    <dt>谁每天用</dt><dd class="who">你（改分润规则、发招募文案后跑一次）</dd>
+    <dt>解决什么</dt><dd>你做的是团长分销，<b>这是监管明确盯着的形态</b>。红线不是"会不会被罚"，是"定性之后整个模式作废"。
+        你对合规的敏感度一直很高，但这个检查目前<b>只能靠人记</b>；变成脚本之后，它就成了<b>改规则时的自动刹车</b>。</dd>
+    <dt>现在能做</dt><dd>规则是确定的（返利层级、计酬依据、入门费），可以写成机械检查。
+        你项目里已有"机械门禁 + 自证"的成熟做法（<code>gate.mjs</code> 那一套），直接用同样的思路做即可。</dd>
+    <dt>量级</dt><dd>1–2 天</dd>
+    <dt>依赖</dt><dd>分润规则定稿后（随规则变更常跑）</dd>
+  </dl>
+</div>
+
+<div class="sys p2">
+  <div class="hd"><span class="id">R2</span><span class="nm">食安自检与巡检</span><span class="b b-p2">P2</span></div>
+  <dl>
+    <dt>是什么</dt><dd>每日开餐前检查表（照片留证）· 每周深度巡检 · 整改项跟踪闭环 · 历史检查记录可导出（应对监管检查）。</dd>
+    <dt>谁每天用</dt><dd class="who">加工场所 / 出餐人（填写）· 你（看整改）</dd>
+    <dt>解决什么</dt><dd>F3 管的是"每一份饭有据可查"，R2 管的是"整个环境是干净的"。
+        两者合起来才是完整的食安防线。</dd>
+    <dt>现在能做</dt><dd>表单 + 照片 + 提醒，简单。</dd>
+    <dt>量级</dt><dd>1–2 天</dd>
+    <dt>依赖</dt><dd>加工场所实际投用后</dd>
+  </dl>
+</div>
+
+<div class="sys p2">
+  <div class="hd"><span class="id">R4</span><span class="nm">合同与协议管理</span><span class="b b-p2">P2</span></div>
+  <dl>
+    <dt>是什么</dt><dd>供应商 / 团长 / 物业 / 企业客户 四类合同的台账：期限 · 关键条款（价格、账期、违约金、排他）· 到期续签提醒 · 电子附件归档。</dd>
+    <dt>谁每天用</dt><dd class="who">你（续签与纠纷时）</dd>
+    <dt>解决什么</dt><dd>合同是你唯一的"纸面护城河"（尤其与物业的排他约定）。
+        而合同最容易死在两件事上：<b>过期没续</b>和<b>出事时找不到那份文件</b>。</dd>
+    <dt>现在能做</dt><dd>台账 + 提醒 + 附件，简单。AI 还能顺手做"关键条款摘要"（把一页合同压成三行要点）。</dd>
+    <dt>量级</dt><dd>1–2 天</dd>
+    <dt>依赖</dt><dd>有合同之后（物业/供应商合同已该有了）</dd>
+  </dl>
+</div>
+
+<!-- ---------- E ---------- -->
+<h3>E 域 · 内部效率（5 个）</h3>
+<p class="sec-note">
+  <b>这一域是 AI 红利最直接兑现的地方</b>，也是你今天就能享受、不用等上线的。
+  它解决的问题不是"业务"，而是<b>「所有事都压在你一个人身上」</b>。
+</p>
+
+<div class="sys p0">
+  <div class="hd"><span class="id">E1</span><span class="nm">AI 内部助手（知识库 + 问数）</span><span class="b b-p0">P0</span><span class="tag">AI 红利最典型的一个</span></div>
+  <dl>
+    <dt>是什么</dt><dd>两个能力合体：<b>① 问文档</b> —— 把已有的 40+ 份文档（PRD、接口规范、执行手册、测试指引、各版方案）喂进去，用大白话提问："退款的钱怎么走""团长佣金什么时候到账""供应商结算是日结还是月结"，直接给答案 + 出处。
+        <b>② 问数据</b> —— "上周哪栋楼掉单最多""这道菜被投诉几次""哪家供应商准时率最低"，自然语言出结果。</dd>
+    <dt>谁每天用</dt><dd class="who">你 · 未来的新同事 / 新团长 / 外包财务</dd>
+    <dt>解决什么</dt><dd>你现在是<b>唯一的"活字典"</b>：所有口径都在你脑子里，别人问什么都得找你。
+        更现实的是：<b>你明天就有可能忘掉一个月前的某个决定</b>（这个项目里已经发生过多轮"这个数到底是多少"的追查）。
+        助手把"记忆"从人脑搬到可查询的地方 —— <b>这是给"一人公司"加的第一个虚拟同事</b>。</dd>
+    <dt>现在能做</dt><dd>✅ 现在就能做，<b>而且是所有系统里投入产出比最高的一个</b>：语料已经写好了（你已经有 40 多份 md），
+        不需要任何业务数据，不需要上线。</dd>
+    <dt>量级</dt><dd>1–2 天</dd>
+    <dt>依赖</dt><dd>无</dd>
+  </dl>
+</div>
+
+<div class="sys p0">
+  <div class="hd"><span class="id">E3</span><span class="nm">AI 内容工厂</span><span class="b b-p0">P0</span></div>
+  <dl>
+    <dt>是什么</dt><dd>把"每样物料都要现想"变成"填空出图"：每日菜单海报 · 朋友圈文案（早中晚三条）· 团长招募包（话术 + 收入模拟 + 物料）· 楼群接龙文案 · 活动海报 · 节日物料。
+        要求只有一个：<b>模板化 + 批量 + 品牌一致</b>（米色 #F6F0E5 / 暖棕 #6E5435 / 楷体）。</dd>
+    <dt>谁每天用</dt><dd class="who">你 · 团长（每天要发的东西）</dd>
+    <dt>解决什么</dt><dd>团长的日常是"发什么" —— 发不出来的团长就是没产能的团长。
+        你项目里已经在用 AI 出图（Logo、物料），缺的是<b>把偶发动作变成流水线</b>：
+        以前是一次性生成几个方案，现在是每天/每场活动一键出全套。</dd>
+    <dt>现在能做</dt><dd>✅ 出图与文案能力已具备，剩下的是"模板库 + 批量脚本 + 自动排期"。现在做，上线时正好有全套物料。</dd>
+    <dt>量级</dt><dd>2–3 天（模板库是持续投入）</dd>
+    <dt>依赖</dt><dd>无</dd>
+  </dl>
+</div>
+
+<div class="sys p1">
+  <div class="hd"><span class="id">E4</span><span class="nm">SOP 与培训系统</span><span class="b b-p1">P1</span></div>
+  <dl>
+    <dt>是什么</dt><dd>把"怎么干"变成可考核的卡片：团长上岗 SOP（含话术、发起接龙、处理售后、取餐组织）· 出餐人 SOP · 配送 SOP ·
+        新人 7 天陪跑清单 · 完成后打卡 + 抽检。</dd>
+    <dt>谁每天用</dt><dd class="who">新团长 / 新员工（照着做）· 你（看谁没完成）</dd>
+    <dt>解决什么</dt><dd><b>你是唯一会干所有事的人</b>，这是当前最大的单点故障。
+        SOP 化是把"你会"变成"别人照着也能干"，是复制的前提。
+        团长尤其需要：他们不是员工，是合作方，<b>没有 SOP 就只能靠悟性，淘汰率会很高</b>。</dd>
+    <dt>现在能做</dt><dd>内容为主 + 轻量打卡，AI 能直接把现有文档改写成 SOP 卡。</dd>
+    <dt>量级</dt><dd>1–2 天（内容逐步补）</dd>
+    <dt>依赖</dt><dd>真实运营过一轮后 SOP 才准（P0 可先出框架）</dd>
+  </dl>
+</div>
+
+<div class="sys p2">
+  <div class="hd"><span class="id">E2</span><span class="nm">AI 客服（对外）</span><span class="b b-p2">P2</span></div>
+  <dl>
+    <dt>是什么</dt><dd>端上/企微的自动答疑：配送时间 · 怎么退款 · 发票 · 口味 · 团长怎么加入 · 为什么没送到。答不了的转人工并记工单。</dd>
+    <dt>谁每天用</dt><dd class="who">用户 / 团长（自助）· 你（少了重复问答）</dd>
+    <dt>解决什么</dt><dd>用户问的问题 <b>90% 是重复的</b>，而每一次都要你或团长手打回复。
+        它同时也是 E1 知识库的对外复用 —— <b>同一套语料，对内对外两个入口</b>。</dd>
+    <dt>现在能做</dt><dd>技术上是 E1 的延伸，语料可直接复用。</dd>
+    <dt>量级</dt><dd>2 天（含 E1 复用）</dd>
+    <dt>依赖</dt><dd>最好在 E1 之后做（省一半工）· 需要真实用户提问样本</dd>
+  </dl>
+</div>
+
+<div class="sys p3">
+  <div class="hd"><span class="id">E5</span><span class="nm">排班与人力</span><span class="b b-p3">P3</span></div>
+  <dl>
+    <dt>是什么</dt><dd>出餐 / 打包 / 配送各岗排班 · 工时与工资 · 临时工与外包结算。</dd>
+    <dt>谁每天用</dt><dd class="who">你 · 现场负责人</dd>
+    <dt>解决什么</dt><dd>需求按工作日波动，人力却是固定成本。<b>排班是规模之后最大的可控成本项之一。</b></dd>
+    <dt>现在能做</dt><dd>简单排班表 + 工时表。</dd>
+    <dt>量级</dt><dd>2–3 天</dd>
+    <dt>依赖</dt><dd>有正式雇佣之后（现在谈这个是伪需求）</dd>
+  </dl>
+</div>
+
+<!-- ---------- U ---------- -->
+<h3>U 域 · 用户与留存（3 个）</h3>
+<p class="sec-note">
+  这一域回答一个问题：<b>「他为什么不再来了？」</b>
+  盒饭生意的利润几乎全在复购里 —— 首单基本不赚钱，第 10 单才开始赚。
+</p>
+
+<div class="sys p1">
+  <div class="hd"><span class="id">U2</span><span class="nm">口味评价与菜品迭代闭环</span><span class="b b-p1">P1</span><span class="tag">对标玉子屋的核心能力</span></div>
+  <dl>
+    <dt>是什么</dt><dd>每餐后一键评价（好吃 / 一般 / 不好，可选填原因）→ 按菜品聚合 → 出「菜品红黑榜」→ 菜单迭代有据。
+        加上"这道菜本月第几次被投诉"的红线告警。</dd>
+    <dt>谁每天用</dt><dd class="who">用户（十秒评价）· 你（定下周菜单时）</dd>
+    <dt>解决什么</dt><dd><b>玉子屋真正的护城河不是便宜，是"菜单天天变、且越变越对"</b> —— 而它靠的是每天回收的顾客反馈。
+        你现在没有这个回路：菜好不好吃，只能靠零星的微信反馈，<b>而且是幸存者偏差</b>（难吃的人不吭声，直接不来了）。</dd>
+    <dt>现在能做</dt><dd>一个评价按钮 + 一张聚合表。极简，但价值极高。</dd>
+    <dt>量级</dt><dd>2 天</dd>
+    <dt>依赖</dt><dd>上线后（要有真实用餐）</dd>
+  </dl>
+</div>
+
+<div class="sys p2">
+  <div class="hd"><span class="id">U3</span><span class="nm">订阅 / 月卡（锁复购 + 前置现金流）</span><span class="b b-p2">P2</span></div>
+  <dl>
+    <dt>是什么</dt><dd>周卡 / 月卡 / 包月午餐：一次付费、每日自动配餐、可请假可转让。基于已有的余额体系扩展（你已有 <code>ab_balance</code> 与余额明细）。</dd>
+    <dt>谁每天用</dt><dd class="who">用户（不用每天决策）· 你（锁定需求）</dd>
+    <dt>解决什么</dt><dd>三重价值：<b>① 锁定复购</b>（用户不必每天决定，流失率骤降）；<b>② 现金流前置</b>（先收钱后做饭，改善你已经天然占优的现金流）；<b>③ 报量变得可预测</b>（月卡用户是确定量，直接让 S1 预测准一个量级）。</dd>
+    <dt>现在能做</dt><dd>余额、订单、套餐都已具备，是组合而非新建。<b>但要小心</b>：预收是负债，退卡规则必须写清楚（这也正好由 R4 合同管理与 R1 台账兜住）。</dd>
+    <dt>量级</dt><dd>3–4 天</dd>
+    <dt>依赖</dt><dd>菜品质量稳定（否则月卡会放大负面口碑）</dd>
+  </dl>
+</div>
+
+<div class="sys p3">
+  <div class="hd"><span class="id">U1</span><span class="nm">菜单个性化推荐</span><span class="b b-p3">P3</span></div>
+  <dl>
+    <dt>是什么</dt><dd>根据历史订单与口味偏好，给不同用户推荐不同套餐组合；对忌口/宗教/过敏做硬过滤。</dd>
+    <dt>谁每天用</dt><dd class="who">用户（看首页）· 系统自动</dd>
+    <dt>解决什么</dt><dd>提升客单价与满意度。但<b>优先级低</b> —— 在 SKU 只有几个套餐、用户每天只买一份的场景下，推荐空间很小。
+        ⚠️ 真要现在做，只做<b>硬过滤（忌口/过敏）</b>那部分，它同时是食安风险控制。</dd>
+    <dt>现在能做</dt><dd>过滤是规则；推荐需要足够历史。</dd>
+    <dt>量级</dt><dd>2–4 天</dd>
+    <dt>依赖</dt><dd>SKU 与用户量都够大之后（否则是伪需求）</dd>
+  </dl>
+</div>
+
+<!-- ========== 三 ========== -->
+<h2><span class="n">PART 03</span>AI 时代重估：8 类"过去做不起"的系统</h2>
+<p class="sec-note">
+  这是你问题里最关键的一问。下面每一行，过去都属于"想都不敢想 / 问了报价就放弃"，
+  现在属于"**半天到几天，且不需要专业团队**"。
+</p>
+
+<div class="tw">
+<table>
+<thead><tr><th style="width:132px">系统</th><th style="width:250px">过去怎么做 · 为什么放弃</th><th>现在为什么能做</th><th style="width:74px">量级</th></tr></thead>
+<tbody>
+<tr>
+  <td><b>BI / 经营看板</b></td>
+  <td>招数据分析师（月薪 2–3 万）→ 建数仓 → 出报表。等报表出来，业务问题早变了</td>
+  <td>结构已存在库里，AI 直接写查询 + 页面；更关键的是能加<b>"自然语言问数"</b> —— 你想到什么问什么，不用等人排期</td>
+  <td class="num">3–4 天</td>
+</tr>
+<tr>
+  <td><b>需求预测</b></td>
+  <td>要算法工程师建模（半年 + 数十万），且初创数据量根本喂不饱模型</td>
+  <td>正确形态其实不是 ML，是<b>规则 + 简单统计 + 人工确认</b>。AI 恰好最擅长写这类"逻辑清楚但代码琐碎"的东西</td>
+  <td class="num">3–4 天</td>
+</tr>
+<tr>
+  <td><b>CRM（团长 / 客户）</b></td>
+  <td>买 SaaS（年费数万起）或定制开发（十几万）。且通用 CRM 不贴你的业务，用不起来</td>
+  <td>你的业务模型已经很清楚了（团长 = 等级 + 楼栋 + 佣金），<b>在现有后台加一个模块就行</b>，还天然和订单/佣金数据打通</td>
+  <td class="num">3–4 天</td>
+</tr>
+<tr>
+  <td><b>智能客服</b></td>
+  <td>外包或买系统（年费 3–10 万），且要人工维护知识库，维护成本比使用成本还高</td>
+  <td>知识库可以<b>直接从你已有的 40 多份文档生成</b>，不用重新写。维护 = 更新文档</td>
+  <td class="num">1–2 天</td>
+</tr>
+<tr>
+  <td><b>内容 / 设计外包</b></td>
+  <td>每张海报 ¥500–2000，每月物料是一笔真实开销；改稿还要排队</td>
+  <td>你已经在用 AI 出图（Logo、物料都跑过）。差的是<b>模板化 + 批量 + 品牌一致性锁定</b></td>
+  <td class="num">2–3 天</td>
+</tr>
+<tr>
+  <td><b>食安 / 合规台账</b></td>
+  <td>纸质表 + Excel，靠人记；一到检查就翻箱倒柜</td>
+  <td>表单 + 照片 + 到期提醒。技术难度为零，过去不做纯粹是"没想起来"</td>
+  <td class="num">1–2 天</td>
+</tr>
+<tr>
+  <td><b>选址 / 拓展评分</b></td>
+  <td>请咨询公司做市场调研（万元级），或请人全职跑楼</td>
+  <td>公开数据 + 规则权重 + AI 整理，就能做出够用的评分模型。<b>关键是它可迭代</b> —— 每谈成一栋楼，就修正一次权重</td>
+  <td class="num">2–3 天</td>
+</tr>
+<tr>
+  <td><b>内部知识库 / 培训</b></td>
+  <td>要建企业 wiki、要专人维护、要写培训课件。通常公司到 50 人才做</td>
+  <td>语料已存在（你自己写的那些文档），AI 只是换个入口把它变成"能问的"。<b>这是"一人公司"能拥有第一个虚拟同事的原因</b></td>
+  <td class="num">1–2 天</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<div class="key ok">
+  <div class="t">特别提醒：AI 改变的是"临界点"，不是"能不能"</div>
+  <p style="margin:0 0 8px">这张表最该记住的不是"这些都能做了"，而是<b>筛选标准变了</b>：</p>
+  <div class="tw" style="margin:8px 0 0">
+  <table>
+  <thead><tr><th>时代</th><th>立项门槛</th><th>结果</th></tr></thead>
+  <tbody>
+  <tr><td>过去</td><td>这个系统要一年省 <b>30 万</b>，才值得花 3 个月做</td><td>只有大系统被立项，无数"小痛点"永远排队</td></tr>
+  <tr><td><b>现在</b></td><td>这个系统要一年省 <b>3 万</b>，就值得花 3 天做</td><td><b>一大批"小到不值得立项"的事，突然都值得了</b></td></tr>
+  </tbody>
+  </table>
+  </div>
+  <p style="margin:10px 0 0">
+    ⇒ 所以真正该问的不是"哪个系统最先进"，而是
+    <b>「我每天有哪些动作，是在重复地、低效地、凭记忆地做的事情？」</b>
+    —— 那些全是候选系统。</p>
+</div>
+
+<!-- ========== 四 ========== -->
+<h2><span class="n">PART 04</span>约束之下的五条铁律，与六件明确不做的事</h2>
+<p class="sec-note">
+  在"一个人 + 一个 AI + 有限资金"的约束下，<b>不做什么比做什么更重要</b>。
+  以下五条是从你的实际处境推出来的，不是通用建议。
+</p>
+
+<h3>先把约束摆清楚：六条现实条件</h3>
+<p class="sec-note">这六条不是背景说明，<b>每一条都直接否掉了一类做法</b>。下面的铁律全部由它们推导而来。</p>
+
+<div class="tw">
+<table>
+<thead><tr><th style="width:96px">约束</th><th style="width:280px">你的实际状况</th><th>它否掉了什么 / 逼出了什么</th></tr></thead>
+<tbody>
+<tr><td><b>人</b></td>
+    <td>执行者 = <b>你 + 我（AI）</b>，没有工程团队，也没有运营团队</td>
+    <td>否掉：任何"需要专人每天运营"的系统（如社群运营工具、内容日历人工维护）。
+        逼出：<b>自研边际成本极低</b> —— 这也正是这 30 个系统成立的前提。</td></tr>
+<tr><td><b>时间</b></td>
+    <td>你的时间被行政流程、BD、供应链切得很碎；我的时间相对充裕但需要按批交付</td>
+    <td>否掉：需要学习成本、需要培训才会用的系统。
+        逼出：<b>交付即用 · 能推送就不要查询 · 一次只做 1–2 个</b>。</td></tr>
+<tr><td><b>钱</b></td>
+    <td>自筹资金，连"服务器选哪个规格"都是一个要权衡的决策</td>
+    <td>否掉：一切<b>订阅制 SaaS</b>（年费是长期负债，且会随规模涨价）。
+        逼出：<b>一次投入的自动化 &gt; 持续付费的服务</b>；自研优先。</td></tr>
+<tr><td><b>数据</b></td>
+    <td><b>还没上线，零真实业务数据</b></td>
+    <td>否掉：现在做预测、绩效、推荐、损耗分析（全是空转）。
+        逼出：<b>先做台账与骨架，把数据接进来是第二步</b>。</td></tr>
+<tr><td><b>外部条件</b></td>
+    <td>资质未恢复（公司经营异常 + 税务非正常户），<b>上线时间不完全由你决定</b></td>
+    <td>否掉："等上线了再说"的拖延心态。
+        逼出：<b>做空跑版，把等待期变成建设期</b> —— 这是当下最大的可趁之机。</td></tr>
+<tr><td><b>技术底座</b></td>
+    <td>已有一套很扎实的系统：NestJS + Vue + 27 表 + 22 道门禁 + e2e 基线 + 单 API 实例约束</td>
+    <td>否掉：拆微服务、建数据中台、为每个系统新开仓库。
+        逼出：<b>全部挂在现有后台当模块</b>，白得鉴权 / 权限 / 审计 / 导出 / 门禁。</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="key warn">
+  <div class="t">这六条合起来，指向一个反直觉的结论</div>
+  <p style="margin:0">
+    约束越多，<b>越不该做"大而全的平台"，越该做"小而准的一把刀"</b>。
+    因为你没有能力维护一个平台，但你有能力在一个具体痛点上做到极致。
+    ⇒ 30 个系统里，凡是"平台型"的描述（如"客户运营中台""供应链协同平台"）我都刻意没用 ——
+    <b>它们全都写成了具体的、当天能用的动作</b>。
+  </p>
+</div>
+
+<h3>五条取舍铁律</h3>
+
+<div class="card">
+  <h4 style="margin-top:0">铁律一 · 不做"没人每天用"的系统</h4>
+  <p style="margin:6px 0">
+    每个系统在立项时都要回答：<b>谁、多长时间用一次、用来做什么决定？</b>
+    答不上来的就不做 —— 因为它会变成<b>负资产</b>：要维护、要喂数据、要修 bug，还不产出。
+    ⚠️ 反例提醒：报告类系统最常见的死法是"上线那天看了一眼，之后再没打开"。
+    ⇒ 所以 <b>M1 经营驾驶舱必须是"推送制"而不是"查询制"</b>。
+  </p>
+</div>
+
+<div class="card">
+  <h4 style="margin-top:0">铁律二 · 先做"喂数据"的，后做"吃数据"的</h4>
+  <p style="margin:6px 0">
+    需求预测、供应商绩效、口味迭代 —— 这三个都需要<b>真实运营数据</b>。
+    你还没上线，现在做它们只能空转。
+    ⇒ <b>顺序必须是：台账类（先有记录）→ 分析类（才有结论）→ 智能类（才谈优化）</b>。
+    跳过第一步直接做第三步，是这个领域最常见的失败方式。
+  </p>
+</div>
+
+<div class="card">
+  <h4 style="margin-top:0">铁律三 · 防损失优先于搏增长</h4>
+  <p style="margin:6px 0">
+    你现在钱少、时间紧。<b>少亏 1 万和少赚 1 万，对"活下去"的意义完全不同</b>。
+    ⇒ 排序上：食安（一票否决）&gt; 现金流（会猝死）&gt; 损耗（每天漏）&gt; 合规（会被定性）&gt; 增长（可以慢）。
+    ⚠️ 但注意：<b>"防损失"不是"不做增长"</b>，而是说在资源冲突时，先做前者。
+  </p>
+</div>
+
+<div class="card">
+  <h4 style="margin-top:0">铁律四 · 全部挂在现有后台，不为任何系统新开一个仓</h4>
+  <p style="margin:6px 0">
+    你已经有 NestJS + Vue 后台 + 27 张表 + 22 道门禁 + e2e 基线。
+    <b>这套地基是资产，别浪费</b>：新系统一律做成新模块 / 新页面，复用鉴权、角色、操作日志、导出。
+    ⇒ 独立系统 = 独立部署 + 独立账号 + 独立数据 → <b>维护成本翻倍，而你只有一个人</b>。
+    ⚠️ 技术上还有一条硬约束：一期<b>只允许一个 API 实例</b>（时间线是进程级单例），
+    所以也别想着拆微服务。
+  </p>
+</div>
+
+<div class="card">
+  <h4 style="margin-top:0">铁律五 · 依赖外部条件的，先做"空跑版"</h4>
+  <p style="margin:6px 0">
+    你现在被资质卡着，上线时间不完全可控。
+    ⇒ 凡"上线后才用得上"的系统，<b>现在就把骨架搭好、用种子数据空跑</b>：
+    指标定义、页面、推送通道全部先跑通，等真数据进来它自动变真。
+    <b>这样上线那天你不是从零开始，而是"打开开关"。</b>
+  </p>
+</div>
+
+<h3>六件明确不做的事（同样重要）</h3>
+<div class="tw">
+<table>
+<thead><tr><th style="width:200px">不做</th><th>为什么</th></tr></thead>
+<tbody>
+<tr><td><span class="b b-no">自建配送团队管理系统</span></td>
+    <td>运力是别人的专业。你要的是"调度好别人的运力"，不是"养车养人"。养人 = 固定成本 + 管理成本，与预售制的轻模式冲突。</td></tr>
+<tr><td><span class="b b-no">自研支付 / 钱包</span></td>
+    <td>微信支付已经解决了，且自研支付涉及牌照与备付金，是重罪区。你已有的余额体系是"记账"，不是支付，边界要守住。</td></tr>
+<tr><td><span class="b b-no">独立供应商客户端</span></td>
+    <td>这一点你已经裁定过了（供应商共用后台）。<b>保持不变</b> —— 供应商数量少且是合作关系，给他们开独立 App 的收益远低于维护成本。</td></tr>
+<tr><td><span class="b b-no">用户端 App</span></td>
+    <td>小程序已经够用，且获客成本低得多。App 只在"高频 + 需要推送 + 需要离线"时才值得，你不是。</td></tr>
+<tr><td><span class="b b-no">复杂机器学习预测 / 推荐</span></td>
+    <td>单楼日单几十的量级，<b>任何模型都会过拟合</b>。规则 + 统计 + 人工确认在这个阶段严格优于 ML。</td></tr>
+<tr><td><span class="b b-no">微服务化 / 数据中台改造</span></td>
+    <td>你已有一条硬约束（一期单 API 实例），而且这个阶段的瓶颈在业务不在架构。<b>等日均几千单再谈</b>。</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- ========== 五 ========== -->
+<h2><span class="n">PART 05</span>开发路线：P0 → P3 四批</h2>
+<p class="sec-note">
+  分批依据：<b>外部依赖（能不能现在开工）× 数据依赖（有没有数据可用）× 风险等级（不做会不会死）</b>。
+  每批都给了验收判据 —— 没有判据的"做完了"不算做完。
+</p>
+
+<div class="road">
+
+<div class="phase p0">
+  <div class="ph">P0 · 现在 → 提审通过（7 个）</div>
+  <div class="when">特征：<b>全部不依赖上线、不依赖真实数据</b>。你被资质卡住的这段时间，正好是它们的窗口期。</div>
+  <div class="tw">
+  <table>
+  <thead><tr><th style="width:56px">序</th><th style="width:160px">系统</th><th>为什么排在这</th><th style="width:74px">量级</th></tr></thead>
+  <tbody>
+  <tr><td class="num">1</td><td><b>E1</b> AI 内部助手</td><td>投入产出比最高。语料已存在，做完立刻能用，且往后每个系统都受益（问口径不用再翻文档）</td><td class="num">1–2 天</td></tr>
+  <tr><td class="num">2</td><td><b>R1</b> 证照资质台账</td><td>正在卡你的就是这件事。<b>先把自己从"忘事"里救出来</b></td><td class="num">0.5–1 天</td></tr>
+  <tr><td class="num">3</td><td><b>S2</b> 成本卡与毛利测算</td><td>25.8 元到底赚多少，这是经营的地基。没有它，后面所有定价决策都是猜</td><td class="num">2–3 天</td></tr>
+  <tr><td class="num">4</td><td><b>M1</b> 经营驾驶舱（空跑版）</td><td>先把指标体系与推送通道搭好。做成"每天早上一条"，不是"一个要打开的页面"</td><td class="num">3–4 天</td></tr>
+  <tr><td class="num">5</td><td><b>G1</b> 楼宇拓展地图</td><td>你现在正在谈楼，这是当下就能用的弹药</td><td class="num">2–3 天</td></tr>
+  <tr><td class="num">6</td><td><b>G2</b> 团长招募 CRM</td><td>上线前就要开始招人。收入模拟器尤其值钱，且合规</td><td class="num">3–4 天</td></tr>
+  <tr><td class="num">7</td><td><b>E3</b> AI 内容工厂</td><td>上线时要有全套物料。现在做，等于提前备货</td><td class="num">2–3 天</td></tr>
+  </tbody>
+  </table>
+  </div>
+  <div class="key ok" style="margin-top:12px">
+    <div class="t">P0 的验收判据（一句话）</div>
+    <p style="margin:0">
+      <b>E1</b> 能用大白话问出"退款的钱怎么走"并给出正确出处 ·
+      <b>R1</b> 每张证照的到期日都进系统且会提醒 ·
+      <b>S2</b> 能当场说出每个套餐的单份毛利与最贵的一道菜 ·
+      <b>M1</b> 用种子数据跑通"每日推送"链路 ·
+      <b>G1</b> 已谈/在谈的楼全部入库且各有下一步 ·
+      <b>G2</b> 任一候选团长能算出"预计月收入区间" ·
+      <b>E3</b> 一次生成一周的菜单海报与文案。
+    </p>
+  </div>
+</div>
+
+<div class="phase p1">
+  <div class="ph">P1 · 上线首月（8 个）</div>
+  <div class="when">特征：<b>有真实数据了，第一批"会主动发现问题"的系统上线</b>。这一批直接决定第一个月能不能跑正。</div>
+  <div class="tw">
+  <table>
+  <thead><tr><th style="width:56px">序</th><th style="width:160px">系统</th><th>为什么排在这</th><th style="width:74px">量级</th></tr></thead>
+  <tbody>
+  <tr><td class="num">8</td><td><b>F3</b> 食安留样与追溯</td><td><b>开业第一天就必须有</b>。它不做不会立刻出事，但出事时它是唯一能救你的东西</td><td class="num">3–4 天</td></tr>
+  <tr><td class="num">9</td><td><b>F5</b> 通知触达矩阵</td><td>"忘了下单"和"忘了取餐"是最冤的两笔损失。模块已在，补强即可</td><td class="num">2 天</td></tr>
+  <tr><td class="num">10</td><td><b>U2</b> 口味评价闭环</td><td>复购的地基。第一个月收集的反馈决定了第二个月的菜单质量</td><td class="num">2 天</td></tr>
+  <tr><td class="num">11</td><td><b>F4</b> 客服工单</td><td>把微信群里的抱怨变成可统计的缺陷信号</td><td class="num">2–3 天</td></tr>
+  <tr><td class="num">12</td><td><b>S1</b> 需求预测（轻量版）</td><td>⚠️ 要攒够 2–3 周数据。<b>这是盒饭生意最核心的一台机器</b>，但必须等数据</td><td class="num">3–4 天</td></tr>
+  <tr><td class="num">13</td><td><b>M2</b> 现金流预测</td><td>"钱还能撑几天"必须随时知道。上线后流水真实了，它才有意义</td><td class="num">3 天</td></tr>
+  <tr><td class="num">14</td><td><b>R3</b> 分销合规自查</td><td>一旦开始大规模招团长，这条红线的检查频率必须跟上</td><td class="num">1–2 天</td></tr>
+  <tr><td class="num">15</td><td><b>E4</b> SOP 与培训</td><td>团长数量一多，"靠悟性"就不行了。同时也是在给你自己卸单点</td><td class="num">1–2 天</td></tr>
+  </tbody>
+  </table>
+  </div>
+  <div class="key ok" style="margin-top:12px">
+    <div class="t">P1 的验收判据（一句话）</div>
+    <p style="margin:0">
+      <b>F3</b> 任取一份餐能查到留样照片与批次 ·
+      <b>F5</b> 截单与取餐提醒的到达率可见 ·
+      <b>U2</b> 能说出本周最差的三道菜 ·
+      <b>F4</b> 投诉量按供应商/菜品可聚合 ·
+      <b>S1</b> 建议申报量与实际需求偏差 &lt; 10% ·
+      <b>M2</b> 能给出"按当前速度还能撑 XX 天" ·
+      <b>R3</b> 分润规则改动后自动跑一次红线检查 ·
+      <b>E4</b> 新团长按 SOP 7 天能独立出单。
+    </p>
+  </div>
+</div>
+
+<div class="phase p2">
+  <div class="ph">P2 · 单楼跑通 → 3~5 栋（8 个）</div>
+  <div class="when">特征：<b>模式已验证，开始复制</b>。这一批解决"复制时质量会掉"的问题。</div>
+  <div class="tw">
+  <table>
+  <thead><tr><th style="width:56px">序</th><th style="width:160px">系统</th><th>为什么排在这</th><th style="width:74px">量级</th></tr></thead>
+  <tbody>
+  <tr><td class="num">16</td><td><b>G3</b> 增长裂变工具箱</td><td>有量之后裂变才有效。<b>单楼日单 &lt; 30 时做裂变 = 放大噪音</b></td><td class="num">4–6 天</td></tr>
+  <tr><td class="num">17</td><td><b>U3</b> 订阅 / 月卡</td><td>锁复购 + 前置现金流 + 让报量可预测，一举三得。但要等菜品质量稳定</td><td class="num">3–4 天</td></tr>
+  <tr><td class="num">18</td><td><b>S3</b> 供应商绩效</td><td>"你上个月准时率 87%" 比 "我觉得你最近不行" 有力得多</td><td class="num">3 天</td></tr>
+  <tr><td class="num">19</td><td><b>G4</b> 企业团餐通道</td><td>从"每天靠人想起来"变成"一张月度合同"。需要发票能力先就位</td><td class="num">5–7 天</td></tr>
+  <tr><td class="num">20</td><td><b>F1</b> 配送调度优化</td><td>≥3 栋楼之后才有优化空间</td><td class="num">3 天</td></tr>
+  <tr><td class="num">21</td><td><b>R2</b> 食安自检巡检</td><td>与 F3 合起来才是完整食安防线</td><td class="num">1–2 天</td></tr>
+  <tr><td class="num">22</td><td><b>E2</b> AI 客服（对外）</td><td>复用 E1 的语料，且用户量上来后重复问答才成规模</td><td class="num">2 天</td></tr>
+  <tr><td class="num">23</td><td><b>R4</b> 合同与协议管理</td><td>合同多了之后，"找不到那份文件"会变成真实成本</td><td class="num">1–2 天</td></tr>
+  </tbody>
+  </table>
+  </div>
+</div>
+
+<div class="phase p3">
+  <div class="ph">P3 · 规模化（10+ 栋）（7 个）</div>
+  <div class="when">特征：<b>从"跑通"进入"跑稳"</b>。多数系统到这里才第一次真正需要。</div>
+  <div class="tw">
+  <table>
+  <thead><tr><th style="width:56px">序</th><th style="width:160px">系统</th><th>为什么排在这</th><th style="width:74px">量级</th></tr></thead>
+  <tbody>
+  <tr><td class="num">24</td><td><b>S4</b> 产能排程</td><td>规模化的隐形天花板通常不是需求，是产能</td><td class="num">2 天</td></tr>
+  <tr><td class="num">25</td><td><b>S5</b> 损耗与临期处置</td><td>损耗是盒饭最容易失控的成本，也是食安合规的一环</td><td class="num">2 天</td></tr>
+  <tr><td class="num">26</td><td><b>M3</b> 税务与发票台账</td><td>正规化经营 + 企业客户开票的底座</td><td class="num">2–3 天</td></tr>
+  <tr><td class="num">27</td><td><b>M4</b> 结算中心补强</td><td>笔数多了，人工对账必出错，而钱错了最难查</td><td class="num">2 天</td></tr>
+  <tr><td class="num">28</td><td><b>F2</b> 取餐核销（无柜版）</td><td>堵"多拿/拿错"，并给未取赔付提供依据</td><td class="num">2–3 天</td></tr>
+  <tr><td class="num">29</td><td><b>E5</b> 排班与人力</td><td>有正式雇佣之后才需要</td><td class="num">2–3 天</td></tr>
+  <tr><td class="num">30</td><td><b>U1</b> 个性化推荐</td><td>SKU 与用户量都够大才有意义；<b>忌口/过敏硬过滤可以先做</b></td><td class="num">2–4 天</td></tr>
+  </tbody>
+  </table>
+  </div>
+</div>
+
+</div><!-- /road -->
+
+<div class="key info">
+  <div class="t">节奏提醒：不要一次铺开</div>
+  <p style="margin:0">
+    30 个系统如果同时开工，结果一定是<b>30 个半成品</b>。
+    建议的节奏是 <b>P0 一次只做 1–2 个，做完一个用一周</b>；
+    每个系统都必须有"谁每天用"的答案，否则立刻停手。
+    ⚠️ 特别提示 <b>P0 的排序可以按你当下的痛点调整</b>：
+    如果你这周主要在处理资质，就先做 R1；如果主要在谈楼，就先做 G1。
+  </p>
+</div>
+
+<!-- ========== 六 ========== -->
+<h2><span class="n">PART 06</span>经营风险对冲对照表</h2>
+<p class="sec-note">
+  补上《里程碑计划》风险登记册缺的那一半 —— 它那 8 条全是开发期风险，
+  这一张是<b>上线之后的经营风险</b>。
+</p>
+
+<div class="tw">
+<table>
+<thead><tr><th style="width:160px">风险</th><th style="width:66px">概率</th><th style="width:66px">影响</th><th>现在的兜底方式</th><th style="width:150px">该上哪个系统</th></tr></thead>
+<tbody>
+<tr><td><b>食安事故</b></td><td class="c">低</td><td class="c"><span class="b b-p0">致命</span></td>
+    <td>暂无系统性机制（靠人盯）</td><td><b>F3</b> 留样追溯 + <b>R2</b> 巡检</td></tr>
+<tr><td><b>现金流断</b></td><td class="c">中</td><td class="c">高</td>
+    <td>预售制天然占优，<b>但无人监控反转</b></td><td><b>M2</b> 现金流预测</td></tr>
+<tr><td><b>报量失准致损耗</b></td><td class="c">高</td><td class="c">中</td>
+    <td>人工拍量，无历史参照</td><td><b>S1</b> 预测 + <b>S5</b> 损耗归因</td></tr>
+<tr><td><b>供应商断供 / 降质</b></td><td class="c">中</td><td class="c">高</td>
+    <td>依赖 4 家互备，但<b>无质量量化</b></td><td><b>S3</b> 供应商绩效</td></tr>
+<tr><td><b>楼密度起不来</b></td><td class="c">高</td><td class="c">高</td>
+    <td>靠团长个人能力，无选择标准</td><td><b>G1</b> 选址 + <b>G2</b> 团长 CRM + <b>G3</b> 裂变</td></tr>
+<tr><td><b>团长流失</b></td><td class="c">高</td><td class="c">中</td>
+    <td>无预警、无淘汰、无梯队</td><td><b>G2</b> 团长 CRM（0 单预警）</td></tr>
+<tr><td><b>合规定性（分销红线）</b></td><td class="c">低</td><td class="c"><span class="b b-p0">致命</span></td>
+    <td>你个人把关，无机械检查</td><td><b>R3</b> 合规自查</td></tr>
+<tr><td><b>证照/资质失效</b></td><td class="c">中</td><td class="c">高</td>
+    <td>靠记性。<b>当前正卡在此</b></td><td><b>R1</b> 资质台账</td></tr>
+<tr><td><b>单点依赖（只有一个人会）</b></td><td class="c">高</td><td class="c">中</td>
+    <td>口径全在你脑子里</td><td><b>E1</b> 知识助手 + <b>E4</b> SOP</td></tr>
+<tr><td><b>复购起不来（不好吃）</b></td><td class="c">中</td><td class="c">高</td>
+    <td>零星微信反馈，<b>幸存者偏差</b></td><td><b>U2</b> 口味迭代闭环</td></tr>
+<tr><td><b>投诉累积成口碑崩塌</b></td><td class="c">中</td><td class="c">高</td>
+    <td>处理了但不沉淀，同问题反复发生</td><td><b>F4</b> 客服工单</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="key danger">
+  <div class="t">这一栏最值得盯的两个</div>
+  <p style="margin:0">
+    <b>① 食安事故（低概率 / 致命影响）</b> —— 它的期望损失最高，因为一旦发生，
+    <b>损失不是线性的，是清零式的</b>（牌照 + 口碑 + 平台准入一起归零）。
+    <b>② 楼密度起不来（高概率 / 高影响）</b> —— 这是最可能发生的失败方式：
+    不是死于事故，是死于"每栋楼都不温不火"，永远到不了盈亏平衡点。
+    ⇒ 这两个恰好一个在 P1（F3）、一个在 P0（G1/G2），<b>排序上已经照顾到了</b>。
+  </p>
+</div>
+
+<!-- ========== 七 ========== -->
+<h2><span class="n">PART 07</span>形态建议：怎么"轻"地做</h2>
+<p class="sec-note">
+  同样的系统，用不同的形态做，维护成本能差 5 倍。<b>在"只有一个人"的约束下，形态选择比功能选择更重要。</b>
+</p>
+
+<div class="grid2">
+  <div class="card tight">
+    <h4 style="margin-top:0">① 一律做成现有后台的模块 / 页面</h4>
+    <p style="margin:6px 0 0">复用鉴权、角色、操作日志、导出、分页。<b>不要为任何系统新开仓库或新部署</b>。你已有的 22 道门禁与 e2e 基线，是新模块天然自带的保险。</p>
+  </div>
+  <div class="card tight">
+    <h4 style="margin-top:0">② 能"每天推一条"的，优于"随时可查"的</h4>
+    <p style="margin:6px 0 0">查询型系统死于"没人打开"。推送型系统每天主动找你。<b>M1 / F4 / R1 / S2 都应该带推送。</b></p>
+  </div>
+  <div class="card tight">
+    <h4 style="margin-top:0">③ AI 只碰"判断"，不碰"账"</h4>
+    <p style="margin:6px 0 0">让 AI 做摘要、分类、生成、建议量；<b>资金、佣金、结算的最终写入必须是确定性的代码</b>。你的资金链已经有严格的状态机与对账，别让模型靠近它。</p>
+  </div>
+  <div class="card tight">
+    <h4 style="margin-top:0">④ 每个系统上线时就带"自证"</h4>
+    <p style="margin:6px 0 0">你项目最强的习惯就是"机械判据 + 自证"（<code>gate.mjs</code>、e2e 基线、sha256 冻结）。
+    <b>把同一套做法用到经营系统上</b>：每个系统配一条"怎么算它有效"的判据，否则它会悄悄坏掉而没人知道。</p>
+  </div>
+  <div class="card tight">
+    <h4 style="margin-top:0">⑤ 先做只读的，再做写入的</h4>
+    <p style="margin:6px 0 0">只读看板（M1 / S2 / S3）风险为零，当天可用；写入型（G3 / U3 / G4）牵动资金与订单，要慎。<b>先读后写，能少一半返工。</b></p>
+  </div>
+  <div class="card tight">
+    <h4 style="margin-top:0">⑥ 别追求"完整"，追求"当天能用"</h4>
+    <p style="margin:6px 0 0">P0 的每个系统建议压到 <b>1–3 天出可用版</b>，然后按真实使用反馈迭代。
+    ⚠️ 反例：花两周做一个"完整 CRM"，结果业务已经变了。<b>能用 &gt; 完整。</b></p>
+  </div>
+</div>
+
+<!-- ========== 收尾 ========== -->
+<h2><span class="n">PART 08</span>如果只记三件事</h2>
+
+<div class="key danger">
+  <div class="t">一 · 你的系统是"履约完备、经营空白"</div>
+  <p style="margin:0">下单到结算这一段你做得比多数早期公司扎实；<b>选楼、招人、复购、合规、防损这五件事几乎是零</b>。而创业成不成，看的是这五件。</p>
+</div>
+
+<div class="key ok">
+  <div class="t">二 · AI 把"值不值得做"的门槛降了一个数量级</div>
+  <p style="margin:0">过去要"一年省 30 万"才立项，现在"一年省 3 万"就值得。<b>所以别再按"大系统"的思路规划</b> —— 那些小到不值得立项的事，现在正是最该做的。</p>
+</div>
+
+<div class="key warn">
+  <div class="t">三 · 先从四个"当天能用"的开始</div>
+  <p style="margin:0">
+    如果只能挑四个：<b>E1 知识助手</b>（把记忆变成可查询）· <b>R1 资质台账</b>（正卡着你）·
+    <b>S2 成本卡</b>（25.8 到底赚多少）· <b>M1 驾驶舱空跑版</b>（每天早上一条）。
+    四个加起来约 <b>一周多</b>，全部不依赖上线。
+  </p>
+</div>
+
+<footer>
+  <p style="margin:0 0 6px">
+    <b>ABox 一盒 · 创业系统地图与开发路线 v1.0</b> · 2026-09-24 ·
+    配套《上线分工与执行看板》《开发里程碑计划》《悬而未决登记册》
+  </p>
+  <p style="margin:0">
+    数据来源：本项目实际代码边界（16 API 模块 / 46 后台页 / 15 小程序页）·
+    《开发里程碑计划 v1.1.30》风险登记册 ·
+    私域分销技能包（社区团购型：团长 / 提货 / 损耗 / 复购口径）。
+    本文件带 <code>_</code> 前缀，属方案稿，不入仓库镜像。
+  </p>
+</footer>
+
+</div><!-- /wrap -->
+</body>
+</html>
+

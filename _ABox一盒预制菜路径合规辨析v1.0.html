@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 预制菜路径合规辨析 v1.0</title>
+<style>
+:root{
+  --bg:#F6F0E5; --card:#FFFDF8; --ink:#2E2620; --brand:#6E5435;
+  --brand-soft:#EFE6D6; --line:#DDD2BE; --muted:#796C57;
+  --ok:#4B6B3C; --warn:#8A5A1B; --bad:#8C3A2B; --info:#3E5A70;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:15px; line-height:1.85; padding:0 0 80px;
+}
+.wrap{max-width:920px;margin:0 auto;padding:0 20px}
+h1,h2,h3,h4{font-family:"KaiTi","STKaiti","楷体",serif;font-weight:600;letter-spacing:.02em}
+header{padding:44px 0 22px;border-bottom:2px solid var(--line);margin-bottom:28px}
+h1{font-size:29px;margin:0 0 8px;color:var(--brand)}
+.sub{color:var(--muted);font-size:14px}
+.tagline{margin-top:16px;padding:14px 18px;background:#FBEFEC;border-left:4px solid var(--bad);border-radius:0 6px 6px 0;font-size:15.5px}
+h2{font-size:22px;margin:44px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line);color:var(--brand)}
+h3{font-size:17.5px;margin:26px 0 10px;color:var(--brand)}
+h4{font-size:15.5px;margin:18px 0 6px;color:var(--ink)}
+p{margin:8px 0}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:5px 0}
+code{background:var(--brand-soft);padding:1px 6px;border-radius:4px;font-size:13.5px;color:var(--brand)}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px;background:var(--card)}
+th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+th{background:var(--brand-soft);color:var(--brand);font-weight:600;font-family:"KaiTi","STKaiti",serif}
+tbody tr:nth-child(even){background:#FBF7EF}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px 20px;margin:16px 0}
+.card.big{border-left:4px solid var(--brand)}
+.badge{display:inline-block;font-size:12px;padding:1px 8px;border-radius:10px;margin-right:6px;vertical-align:middle;white-space:nowrap}
+.b-must{background:#E3EDE0;color:var(--ok);border:1px solid #B9CFAF}
+.b-cond{background:#F6E7CD;color:var(--warn);border:1px solid #E0C48E}
+.b-no{background:#F0E4E1;color:var(--bad);border:1px solid #DCBEB6}
+.b-info{background:#E2E9EF;color:var(--info);border:1px solid #BCCBD8}
+.b-risk{background:#F2DDD8;color:var(--bad);border:1px solid #DDB5AA}
+.note{border-left:3px solid var(--warn);background:#FDF6E9;padding:10px 14px;margin:12px 0;border-radius:0 6px 6px 0}
+.note.bad{border-left-color:var(--bad);background:#FBEFEC}
+.note.oke{border-left-color:var(--ok);background:#F1F6EE}
+.toc{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 20px;margin:20px 0 8px}
+.toc ol{margin:4px 0;padding-left:20px;font-size:14px}
+.quote{background:#FBF7EF;border:1px dashed var(--line);border-radius:6px;padding:12px 16px;margin:12px 0;font-size:14px;color:var(--muted)}
+.quote b{color:var(--ink)}
+.hit{border-left:4px solid var(--bad);background:#FBEFEC;padding:12px 16px;margin:16px 0;border-radius:0 6px 6px 0}
+.hit h3{margin:0 0 8px;color:var(--bad);font-size:17px}
+.checks{list-style:none;padding-left:0;margin:10px 0}
+.checks li{margin:7px 0;display:flex;align-items:flex-start;gap:9px;font-size:14px}
+.checks input{margin-top:5px;accent-color:var(--brand);flex:0 0 auto;width:15px;height:15px}
+.prog{font-size:12.5px;color:var(--muted);margin-top:8px}
+footer{margin-top:50px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+.small{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>预制菜路径合规辨析</h1>
+  <div class="sub">ABox 一盒 · "让合作商家提供预制菜，就不用办食品经营许可证了吗" · v1.0 · 2026-09-29</div>
+  <div class="tagline">
+    <b>结论：这条路省不掉《食品经营许可证》，而且有一个岔路口必须先定清楚。</b><br>
+    你说法里<b>对的一半</b>是：仅销售预包装食品确实<b>不需要许可、改为备案</b>。
+    <b>错的一半</b>是：① 官方文件把"<b>盒饭</b>"逐字排除在预制菜之外；② 加热与组合属于制售行为，<b>仍要许可</b>；
+    ③ 无实体门店<b>申请不到</b>任何制售项目。<br>
+    <b>最紧急的一条</b>：如果"合作商家"是以<b>自己的名义</b>在小程序上卖，性质立刻变成第三方入驻平台，
+    上一轮定下的<b>EDI 与 ICP 证豁免当场作废</b>。
+  </div>
+</header>
+
+<div class="toc">
+  <b>目录</b>
+  <ol>
+    <li>先分清：你说的是哪一种"商家"</li>
+    <li>硬伤一：官方定义里，"盒饭"不属于预制菜</li>
+    <li>硬伤二：加热、组合属于制售，许可省不掉</li>
+    <li>硬伤三：无实体门店，申请不到制售项目</li>
+    <li>你对的一半：仅销售预包装食品，备案替代许可</li>
+    <li>三条路径的合规成本对照</li>
+    <li>不管走哪条都躲不掉的法定义务</li>
+    <li>商业代价：用了预制菜就必须明示</li>
+    <li>建议与下一步</li>
+  </ol>
+</div>
+
+<h2>一、先分清：你说的"合作商家"是哪一种</h2>
+
+<p>这是<b>整个方案的分水岭</b>，也是我必须最先问你的问题。同样是"商家提供预制菜"，两种身份的法律后果<b>天差地别</b>：</p>
+
+<table>
+<thead><tr><th style="width:22%">身份</th><th style="width:28%">怎么卖</th><th>电信证照后果</th><th>食品资质后果</th></tr></thead>
+<tbody>
+<tr>
+  <td><b>A. 商家是供应商</b></td>
+  <td>ABox 采购进来，<b>以 ABox 自己的名义</b>卖给顾客，顾客只知道 ABox</td>
+  <td><span class="badge b-no">豁免保持</span>自营、无第三方入驻，EDI 与 ICP 证仍<b>不需要</b></td>
+  <td><span class="badge b-must">ABox 自己要有</span>《食品经营许可证》，且经营项目覆盖你的实际动作</td>
+</tr>
+<tr>
+  <td><b>B. 商家是入驻卖家</b></td>
+  <td>商家<b>以自己的名义</b>在小程序上开店、挂牌卖，ABox 收佣金</td>
+  <td><span class="badge b-risk">豁免作废</span>构成第三方入驻，<b>EDI 证 + ICP 经营许可证双证</b>（60~90 天、注册资本、社保）</td>
+  <td><span class="badge b-risk">平台义务</span>ABox 成为网络食品交易第三方平台提供者，承担资质审核、定期核验、信息报送等一整套义务</td>
+</tr>
+</tbody>
+</table>
+
+<p class="note bad"><b>如果你心里的"合作商家"是 B，那这一条比食品许可证重要得多</b>：上一轮我们判定"不用办 EDI、不用办 ICP 证"的前提是<b>自营、无第三方入驻</b>。这个前提一旦破了，结论整体翻转，成本从"几天备案"变成"两个月审批 + 注册资本 + 社保 + 场地"。<b>请先把这一定性确定下来。</b></p>
+
+<h2>二、硬伤一：官方定义里，"盒饭"不属于预制菜</h2>
+
+<p>这是最容易被忽略、也最致命的一点。预制菜在国家层面<b>有明确定义</b>，且定义里<b>逐字排除了盒饭</b>。</p>
+
+<div class="quote">
+《关于加强预制菜食品安全监管 促进产业高质量发展的通知》（市场监管总局等六部门，国市监食生发〔2024〕27 号）：<br>
+预制菜……是指……加热或熟制后方可食用的<b>预包装菜肴</b>，<b>不包括主食类食品，如速冻面米食品、方便食品、盒饭、盖浇饭</b>、馒头、糕点、肉夹馍、面包、汉堡、三明治、披萨等。
+</div>
+
+<p>2026 年 2 月国务院食安办等部门就预制菜国家标准征求意见，新华社解读进一步明确，预制菜<b>"不包括主食类食品、净菜类食品、即食类食品和中央厨房制作的菜肴"</b>——也就是说，"盒饭不是预制菜"这个口径在 2026 年不仅没松动，<b>反而被再次确认和收紧</b>。</p>
+
+<div class="hit">
+  <h3>对 ABox 的直接后果</h3>
+  <p>你的产品是<b>一饭四菜的盒饭</b>。"盒饭"两个字被官方文件<b>原文列为排除项</b>。所以：</p>
+  <ul>
+    <li>无论供应商给你的是不是预制菜包，<b>你对外交付的成品形态是盒饭</b>，监管上按盒饭/主食类管，不按预制菜管；</li>
+    <li>你<b>无法用"我们卖的是预制菜"这个名目</b>去主张豁免——文件里没这个口子；</li>
+    <li>更微妙的是：就算菜是预制菜包，你<b>配上米饭、加热、组装成盒</b>，这个成品叫盒饭（主食类），而这个"配+热+装"的动作又把你推进制售行为（见下一条）。<b>两头都不占便宜。</b></li>
+  </ul>
+</div>
+
+<h2>三、硬伤二：加热、组合属于制售，许可省不掉</h2>
+
+<p>《食品安全法》第三十五条确实给了豁免，但豁免的边界是"<b>仅</b>销售"——<b>不动手</b>。一旦有拆封、加热、组合，就出圈了。北京的实施细则把这件事写得非常直白：</p>
+
+<div class="quote">
+《北京市食品经营许可审查细则》（京市监发〔2025〕40 号，2025-08-01 施行）第十三条：<br>
+食品经营者从事<b>拆封、解冻、简单加热、冲调、组合、摆盘、洗切</b>等食品安全风险较低的简单制售……<b>应取得相应食品经营项目许可</b>。行政审批部门应在食品经营许可证标注"简单制售"。
+</div>
+
+<p>换句话说：<b>"简单加热"和"组合"被明确点名，且明确要求"应取得许可"。</b>好消息是审查可以简化——可不设初加工、切配、烹饪场所，可减少或不设清洗水池。</p>
+
+<p class="note">广东、贵州等地的实施办法口径一致：食品销售经营者把已熟制的预包装食品<b>拆封、简单加热</b>提供给消费者的，按<b>散装熟食销售</b>许可；同时提供热食类制售的，要符合<b>餐饮服务制售类许可审查要求</b>。</p>
+
+<h4>对 ABox 的三档归类</h4>
+
+<table>
+<thead><tr><th style="width:30%">你的实际动作</th><th style="width:24%">归类</th><th>需要什么</th></tr></thead>
+<tbody>
+<tr><td>原封不动转售预包装成品，<b>不拆不热不组</b></td><td>仅销售预包装食品</td><td><span class="badge b-cond">备案即可</span>不需许可，但<b>必须备案</b></td></tr>
+<tr><td>拆封 + <b>组合摆盘</b>即食成品，不再加热熟制</td><td>冷食类食品<b>简单制售</b></td><td><span class="badge b-must">需许可</span>但按简单制售审查，要求较轻</td></tr>
+<tr><td><b>加热</b>后配米饭装盒，热食配送</td><td><b>热食类食品制售</b></td><td><span class="badge b-must">需许可</span>按餐饮服务审查，要求最完整</td></tr>
+</tbody>
+</table>
+
+<p class="note bad"><b>按你对产品的设定——「一饭四菜、次日 11:30 热食送达」——落在第三档，也就是最完整的那一档。</b>想省掉食品经营许可证，唯一的办法是把动作压到第一档（完全不动手），但那意味着你卖的是<b>原封不动的预包装成品</b>，不是现在定义的热食盒饭。</p>
+
+<h2>四、硬伤三：无实体门店，申请不到制售项目</h2>
+
+<p>这一条是硬约束，与预制菜无关，但会卡住你的方案：</p>
+
+<div class="quote">
+《北京市食品经营许可审查细则》第五条（要点解读列为负面清单第 1 条）：<br>
+<b>无实体门店的互联网食品经营者不得申请食品制售项目以及散装熟食销售</b>，利用自动设备从事食品经营的除外。
+</div>
+
+<p>北京市 2026 年 4 月发布的《网络餐饮服务经营者落实食品安全主体责任监督管理规定》第二十二条也明确：<b>入网餐饮服务提供者应当具有实体经营门店</b>，依法取得食品经营许可，且实际经营地址与证书载明地址一致。</p>
+
+<p class="note bad"><b>对 ABox 的后果</b>：只要你还做加热、组合这类制售动作，就<b>必须有一个实体加工场所</b>。这不是"要不要办证"的问题，是"有没有地方办证"的问题。量子大厦试运行阶段要先解决这个物理前提。</p>
+
+<p>另外注意该规定第二十六条第（五）项：<b>入网餐饮服务提供者不得将订单委托其他食品经营者加工制作</b>。如果模式是"ABox 接单、甩给合作商家加工"，直接踩线；如果是"向有资质的生产企业采购预制菜包、自己复热"，属于采购行为，性质不同——<b>但这条边界很窄，建议提前向属地市场监管所确认。</b></p>
+
+<h2>五、你对的一半：仅销售预包装食品，备案替代许可</h2>
+
+<p>这一条你说对了，只是要把它说完整：</p>
+
+<div class="quote">
+《中华人民共和国食品安全法》第三十五条：<br>
+国家对食品生产经营实行许可制度。从事食品生产、食品销售、餐饮服务，应当依法取得许可。<b>但是，销售食用农产品和仅销售预包装食品的，不需要取得许可。仅销售预包装食品的，应当报所在地县级以上地方人民政府食品安全监督管理部门备案。</b>
+</div>
+
+<p class="note"><b>关键在"仅"字</b>：豁免的是"<b>仅</b>销售"，不是"销售预包装食品"。而且<b>"不需要许可"不等于"什么都不用办"</b>——法条后半句紧接着要求<b>备案</b>。实操上要在营业执照的经营范围里选择"食品销售（仅销售预包装食品）"项目，并在开展销售前向辖区市场监督管理所办理备案。</p>
+
+<p>还有一个<b>真正能用上的场景</b>：如果你的小程序将来顺带卖<b>原封不动的瓶装水、预包装零食、品牌成品</b>（不拆不热不组），这部分可以走备案、不占许可——<b>但盒饭主力产品不行。</b></p>
+
+<h2>六、三条路径的合规成本对照</h2>
+
+<table>
+<thead><tr><th style="width:16%">路径</th><th style="width:26%">怎么做</th><th style="width:22%">食品资质</th><th style="width:18%">电信证照</th><th>代价</th></tr></thead>
+<tbody>
+<tr>
+  <td><b>甲 · 现做自营</b><br><span class="small">（原方案）</span></td>
+  <td>自有/合作厨房现做，热食配送</td>
+  <td><span class="badge b-must">食品经营许可</span>热食类食品制售；须有实体场所</td>
+  <td><span class="badge b-no">豁免</span>EDI / ICP 证均不需要</td>
+  <td>重资产（厨房 + 现场核查），但<b>品牌叙事一致</b></td>
+</tr>
+<tr>
+  <td><b>乙 · 预制菜自营</b><br><span class="small">（你的新想法）</span></td>
+  <td>向有资质厂家采购预制菜包，ABox 复热组装后以自己名义卖</td>
+  <td><span class="badge b-must">仍然要许可</span>复热 = 热食类制售；<b>同样须有实体场所</b></td>
+  <td><span class="badge b-no">豁免保持</span>商家只是供应商，不构成入驻</td>
+  <td><b>证照一点没省</b>，还多了进货查验、复热温度、<b>明示义务</b>；省的是厨房设备投入与人工</td>
+</tr>
+<tr>
+  <td><b>丙 · 商家入驻平台</b></td>
+  <td>商家以自己名义开店，ABox 抽佣</td>
+  <td><span class="badge b-risk">平台义务</span>资质审核、半年核验、信息报送、记录留存</td>
+  <td><span class="badge b-risk">双证</span>EDI + ICP 经营许可证</td>
+  <td><b>成本最高</b>：两个月审批 + 注册资本 100 万 + 社保 + 场地；平台责任也最重</td>
+</tr>
+</tbody>
+</table>
+
+<p class="note oke"><b>如果只图和甲对比</b>：乙路径真正能省的<b>不是证照，是厨房的重资产投入和人工</b>——复热比现做对场所设备的要求低得多（简单制售可不设初加工、切配、烹饪场所）。但<b>证照数量一项也没少</b>，实体场所一项也没少。把"省证照"当成走乙的理由，期望会落空；把"省厨房投入"当理由，才成立。</p>
+
+<h2>七、不管走哪条都躲不掉的法定义务</h2>
+
+<p>这些与"预制菜还是现做"无关，是食品经营者（含入网经营者）的通用义务：</p>
+
+<ul>
+  <li><b>进货查验记录</b>：查验供货者资质证明、产品合格证明，保存凭证。预制菜经营的记录和凭证保存期限<b>不得少于产品保质期满后六个月</b>。</li>
+  <li><b>从业人员健康证明</b>：接触直接入口食品的人员须取得健康证后方可上岗。</li>
+  <li><b>复热温度</b>：再加热或熟制时，食品<b>中心温度应达到 70℃ 以上</b>；配送环节保温温度一般要求 60℃ 以上。</li>
+  <li><b>贮存运输</b>：容器工具设备安全无害清洁，不得与有毒有害物品混装；委托运输的，受托方须具备相应资质与条件。</li>
+  <li><b>包装封口</b>：应使用符合食品安全标准的容器餐具和包装材料，封口<b>开启后无法复原</b>，防止配送过程污染。</li>
+  <li><b>食品留样</b>：多个品种分别留样，留样量不少于 125g、留样时间不少于 48 小时（你系统里已有的留样功能正对应这项）。</li>
+  <li><b>日管控、周排查、月调度</b>：建立《食品安全风险管控清单》，配食品安全管理人员。</li>
+  <li><b>信息公示</b>：在主页面显著位置持续展示经营资质、实体门店、实际经营地址；不提供堂食的须设置"<b>无堂食</b>"标识。</li>
+  <li><b>配送人员培训</b>：自行配送的，培训记录保存期限不得少于二年。</li>
+</ul>
+
+<h2>八、商业代价：用了预制菜就必须明示</h2>
+
+<p>这是合规之外的代价，但同样会影响你的品牌。</p>
+
+<div class="quote">
+六部门通知：<b>大力推广餐饮环节使用预制菜明示，保障消费者的知情权和选择权。</b><br>
+地方规范进一步要求：预制菜餐饮服务提供单位要在<b>菜单或自设点菜平台上，明示经营菜品是否为预制菜</b>，供消费者选择。
+</div>
+
+<p class="note bad"><b>对 ABox 的冲突</b>：你的定位是"现做盒饭""对标玉子屋"，卖点是新鲜、热食、匠心。<b>一旦改用预制菜，小程序上必须明示，顾客会直接看到。</b>这意味着产品实质与品牌叙事撞车——这不是技术问题，是定位问题，而且改不回来（明示是强制的）。</p>
+
+<h2>九、建议与下一步</h2>
+
+<div class="card big">
+<h4>第一步：先把"合作商家"的定性定下来（今天就能定）</h4>
+<p>供应商还是入驻卖家？这一条不定，后面的证照清单全是浮动的。按你的描述（ABox 统一品牌、统一定价 25.8 元、统一配送），<b>大概率应是 A（供应商）</b>——只要商家不以自己名义挂牌卖，EDI 豁免就还在。</p>
+
+<h4>第二步：别把"省证照"当作走预制菜的理由</h4>
+<p>它省不掉食品经营许可证，也省不掉实体场所。<b>它真正省的是厨房的重资产投入和厨师人工。</b>如果这是你的真实诉求，路径乙成立，值得做；如果诉求是绕开许可，这条路不成立。</p>
+
+<h4>第三步：确认实体加工场所</h4>
+<p>只要涉及加热/组合，就必须有实体场所且能通过现场核查。这是所有路径的共同前提，建议<b>优先于其他事项</b>落实——它决定你能申请到哪一档经营项目。</p>
+
+<h4>第四步：向属地市场监管所确认三个口径</h4>
+<ul>
+  <li>"向厂家采购预制菜包 + 自己复热装盒配送"，北京按<b>热食类制售</b>还是<b>简单制售</b>归类？（两者审查强度差很多）</li>
+  <li>是否触及"不得将订单委托其他食品经营者加工制作"这条红线？</li>
+  <li>量子大厦这个场所能否作为经营场所申请许可？</li>
+</ul>
+<p class="small">这三问建议带着你的<b>实际流程图</b>（谁加热、在哪加热、怎么装盒、谁配送）去问，比口头描述有效得多。</p>
+</div>
+
+<h2>本节自检清单</h2>
+<div class="card">
+<ul class="checks" id="ck">
+<li><input type="checkbox" id="c1"><label for="c1">已明确"合作商家"是<b>供应商</b>还是<b>入驻卖家</b>（决定 EDI 豁免是否失效）</label></li>
+<li><input type="checkbox" id="c2"><label for="c2">已理解"<b>盒饭</b>"被官方定义排除在预制菜之外</label></li>
+<li><input type="checkbox" id="c3"><label for="c3">已理解加热/组合属于制售，许可省不掉</label></li>
+<li><input type="checkbox" id="c4"><label for="c4">已理解"不需要许可"≠"什么都不用办"，备案仍是义务</label></li>
+<li><input type="checkbox" id="c5"><label for="c5">已确认有可用的<b>实体加工场所</b>（无实体门店申请不到制售项目）</label></li>
+<li><input type="checkbox" id="c6"><label for="c6">已向属地市场监管所确认归类口径（热食类制售 / 简单制售）</label></li>
+<li><input type="checkbox" id="c7"><label for="c7">已核对供货商持有《食品生产许可证》并能提供产品合格证明</label></li>
+<li><input type="checkbox" id="c8"><label for="c8">已评估"必须明示预制菜"对品牌叙事的冲击</label></li>
+<li><input type="checkbox" id="c9"><label for="c9">已把进货查验、留样、复热温度、健康证列入运营 SOP</label></li>
+<li><input type="checkbox" id="c10"><label for="c10">已确认不走"委托商家代加工"这条红线</label></li>
+</ul>
+<div class="prog" id="pg">进度：0 / 10</div>
+</div>
+
+<footer>
+  依据：《中华人民共和国食品安全法》（2025 修正）第三十五条；《关于加强预制菜食品安全监管 促进产业高质量发展的通知》（国市监食生发〔2024〕27 号，市场监管总局等六部门）；2026 年 2 月预制菜国家标准等文件征求意见稿及新华社解读；《北京市食品经营许可审查细则》（京市监发〔2025〕40 号，2025-08-01 施行）及北京市市场监管局要点解读；《网络餐饮服务经营者落实食品安全主体责任监督管理规定》（北京市人民政府门户网站，2026-04-28 发布）；广东、贵州、福建等省食品经营许可和备案实施办法；地方网络餐饮与预制菜经营规范。<br>
+  <b>免责与使用边界</b>：本文为概念辨析与内部判断参考，不构成法律意见。食品经营许可的<b>项目归类与现场核查由属地区级市场监管部门掌握</b>，各省细则存在差异（如集体用餐配送单位的场所面积要求各地不一）。<b>文中第四步的三个问题，请以北京属所的答复为准。</b>
+</footer>
+
+</div>
+<script>
+(function(){
+  var box=document.getElementById('ck'), pg=document.getElementById('pg');
+  var KEY='abox-yuzhicai-v1';
+  var items=box.querySelectorAll('input[type=checkbox]');
+  function save(){var o={};items.forEach(function(i){o[i.id]=i.checked;});try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}}
+  function load(){var s=null;try{s=localStorage.getItem(KEY);}catch(e){}if(!s)return;var o=JSON.parse(s);items.forEach(function(i){if(o[i.id])i.checked=true;});}
+  function up(){var n=0;items.forEach(function(i){if(i.checked)n++;});pg.textContent='进度：'+n+' / '+items.length;save();}
+  items.forEach(function(i){i.addEventListener('change',up);});
+  load();up();
+})();
+</script>
+</body>
+</html>

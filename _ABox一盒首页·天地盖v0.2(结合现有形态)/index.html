@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 首页天地盖 v0.2（结合现有形态）</title>
+<style>
+@font-face {
+  font-family: 'ABoxKai';
+  src: url('ab-kaiti.woff2') format('woff2');
+  font-weight: normal; font-style: normal; font-display: swap;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ⭐ 色值全部取自 apps/miniprogram/src/styles/tokens.scss（v2.1），不新造 */
+:root{
+  --bg:#f6f0e5; --surface:#fffdf8; --surface2:#f7f1e4; --surface3:#fbf6ec;
+  --text:#6e5435; --weak:#796c57; --disabled:#a79a85;
+  --gold:#c9a876; --gold-deep:#936f3a; --gold-deepest:#8a6620;
+  --border:#e4d8c3; --border-strong:#d6cbb8;
+  --success:#5b7c3a; --warning:#c44536;
+  --gold-fg:#8a6620; --ok-fg:#577738;
+  --kai:'ABoxKai', KaiTi, STKaiti, 楷体, 'Noto Serif SC', serif;
+  --base:-apple-system, BlinkMacSystemFont, 'PingFang SC', 'HarmonyOS Sans SC', 'Noto Sans CJK SC', 'Microsoft YaHei', Arial, sans-serif;
+  --num:'SF Mono','Roboto Mono',Consolas,monospace;
+}
+body{
+  font-family: var(--kai);
+  background:#e8dfcf; color:#3a322a; padding:30px 16px 70px; line-height:1.8;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{ max-width:1180px; margin:0 auto; }
+h1{ font-size:21px; font-weight:normal; letter-spacing:.5px; color:var(--text); }
+.lead{ margin-top:8px; font-size:13px; color:#5f5445; max-width:900px; font-family:var(--base); line-height:1.95; }
+.lead b{ color:var(--text); font-weight:600; }
+
+/* ⭐ 本轮最重要的发现 —— 单独立块，不当普通说明 */
+.hit{
+  margin-top:16px; background:var(--surface); border:1px solid var(--border-strong);
+  border-left:6px solid var(--gold-deep); border-radius:12px; padding:14px 18px;
+}
+.hit h3{ font-size:14px; font-weight:normal; color:var(--gold-fg); letter-spacing:.5px; }
+.hit p{ margin-top:6px; font-size:13px; color:#3a322a; font-family:var(--base); line-height:1.95; }
+.hit code{
+  font-family:var(--num); font-size:12px; background:var(--surface2);
+  padding:1px 5px; border-radius:4px; color:var(--gold-fg);
+}
+.hit .src{ margin-top:8px; font-size:11.5px; color:var(--weak); font-family:var(--base); }
+
+/* 三栏 */
+.three{ display:flex; gap:24px; flex-wrap:wrap; margin-top:26px; align-items:flex-start; }
+.col{ flex:1; min-width:330px; }
+.col h2{ font-size:14.5px; font-weight:normal; color:var(--text); letter-spacing:.5px; }
+.col .who{ font-size:11.5px; color:var(--weak); margin:3px 0 12px; font-family:var(--base); line-height:1.7; }
+
+/* 手机壳 */
+.phone{
+  width:375px; max-width:100%; background:var(--bg); border-radius:18px;
+  box-shadow:0 2px 18px rgba(58,50,42,.14); padding:0 0 14px; overflow:hidden;
+}
+
+/* ---------- 模块：倒计时（三稿共用 · 原样保留） ---------- */
+.cd{
+  background:var(--text); color:var(--bg); text-align:center;
+  padding:14px 20px; border-radius:0 0 18px 18px;
+}
+.cd__l{ font-size:12px; opacity:.92; font-family:var(--base); }
+.cd__n{
+  margin-top:6px; font-size:18px; font-weight:700; color:var(--gold);
+  letter-spacing:2px; font-family:var(--num);
+}
+.cd__s{ margin-top:6px; font-size:12px; opacity:.85; font-family:var(--base); }
+
+/* ---------- 模块：通用卡片 ---------- */
+.card{
+  margin:14px 20px 0; padding:20px; background:var(--surface);
+  border:1px solid var(--border); border-radius:16px;
+  box-shadow:0 1px 4px rgba(110,84,53,.06);
+}
+.card__t{
+  display:block; margin-bottom:10px; font-size:15px; font-weight:700;
+  letter-spacing:.5px; color:var(--text);
+}
+
+/* ---------- 现状：hero-card ---------- */
+.hero{
+  margin:10px 20px 0; padding:22px 20px;
+  background:linear-gradient(135deg,var(--gold),var(--gold-deep));
+  border-radius:18px; color:#fff; text-align:center;
+}
+.hero__d{ margin-top:10px; font-size:12px; opacity:.92; font-family:var(--base); }
+.hero__p{
+  margin-top:20px; padding:10px 20px; background:rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.4); border-radius:16px;
+}
+.hero__p span{ display:block; font-size:12px; line-height:1.6; font-family:var(--base); }
+
+/* ---------- 团长横幅 ---------- */
+.lb{
+  display:flex; align-items:center; gap:14px; margin:14px 20px 0; padding:14px 20px;
+  background:linear-gradient(135deg,var(--gold),var(--text)); border-radius:10px; color:#fff;
+}
+.lb__m{ flex:1; }
+.lb__t{ font-size:14px; font-weight:700; }
+.lb__s{ margin-top:6px; font-size:12px; opacity:.92; font-family:var(--base); }
+.lb__c{ font-size:12px; padding:6px 10px; background:rgba(255,255,255,.2); border-radius:4px; font-family:var(--base); }
+
+/* ---------- 跟随团长 ---------- */
+.lr{ display:flex; align-items:center; justify-content:space-between; }
+.lr__l{ display:flex; flex-direction:column; }
+.lr__a{ font-size:12px; color:var(--weak); font-family:var(--base); }
+.lr__n{ margin-top:6px; font-size:14px; font-weight:700; color:var(--text); }
+.lr__b{ margin-top:6px; font-size:12px; color:var(--weak); font-family:var(--base); }
+.lr__s{ margin-top:6px; font-size:12px; line-height:1.6; color:var(--text); font-family:var(--base); }
+.lr__x{ font-size:12px; color:var(--weak); font-family:var(--base); }
+
+/* ---------- guide ---------- */
+.gd{
+  margin:14px 20px 0; padding:10px 14px; background:var(--surface3);
+  border-left:3px solid var(--gold); border-radius:4px;
+  font-size:12px; line-height:1.7; color:var(--weak); font-family:var(--base);
+}
+
+/* ---------- 现状：纵向菜行 ---------- */
+.dr{
+  display:flex; align-items:center; gap:14px; padding:14px 0;
+  border-bottom:1px dashed var(--border-strong);
+}
+.dr:last-child{ border-bottom:none; }
+.dr__i{
+  flex:none; width:56px; height:56px; background:var(--surface2);
+  border-radius:16px; display:flex; align-items:center; justify-content:center;
+  font-size:11px; color:var(--gold-fg);
+}
+.dr__n{ display:block; font-size:14px; font-weight:700; color:var(--text); }
+.dr__f{ margin-top:6px; text-align:right; font-size:12px; color:var(--gold-fg); font-family:var(--base); }
+
+/* ---------- 价格 ---------- */
+.pr{ display:flex; align-items:center; justify-content:space-between; }
+.pr__l{ display:flex; flex-direction:column; }
+.pr__a{ font-size:12px; color:var(--weak); font-family:var(--base); }
+.pr__p{ display:flex; align-items:baseline; margin-top:6px; }
+.pr__big{ font-size:30px; font-weight:700; color:var(--text); line-height:1.2; font-family:var(--num); }
+.pr__u{ margin-left:6px; font-size:14px; color:var(--weak); font-family:var(--base); }
+.qty{ display:inline-flex; align-items:center; background:var(--bg); border:1px solid var(--border-strong); border-radius:999px; overflow:hidden; }
+.qty span{ width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:var(--surface2); color:var(--text); font-size:18px; }
+.qty b{ width:36px; text-align:center; font-size:14px; color:var(--text); }
+.hint{ display:block; margin:6px 20px 0; text-align:right; font-size:12px; color:var(--weak); font-family:var(--base); }
+
+/* ---------- 主按钮 ---------- */
+.cta{
+  display:block; margin:14px 20px 0; padding:14px 0; text-align:center;
+  background:linear-gradient(135deg,var(--text) 0%,var(--gold-deep) 100%);
+  color:var(--bg); font-size:15px; font-weight:700; letter-spacing:2px; border-radius:999px;
+}
+.cta--ghost{ background:var(--surface); color:var(--text); border:1px solid var(--text); }
+
+/* ---------- bottom-bar ---------- */
+.bb{
+  margin-top:16px; display:flex; border-top:1px solid var(--border);
+  background:var(--surface);
+}
+.bb i{ flex:1; text-align:center; padding:9px 0; font-style:normal; font-size:11px; color:var(--weak); font-family:var(--base); }
+.bb i.on{ color:var(--gold-fg); font-weight:700; }
+
+/* ---------- 新版：天地盖盒 ---------- */
+.box{ margin:14px 20px 0; border-radius:18px; overflow:hidden; box-shadow:0 2px 10px rgba(110,84,53,.10); }
+.box__lid{
+  background:linear-gradient(135deg,var(--gold),var(--gold-deep));
+  color:#fff; text-align:center; padding:15px 18px 16px;
+}
+.box__lid-d{ font-size:12.5px; opacity:.95; letter-spacing:1px; }
+.box__lid-p{
+  margin-top:9px; padding:6px 14px; background:rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.4); border-radius:14px;
+}
+.box__lid-p span{ display:block; font-size:11.5px; line-height:1.55; font-family:var(--base); }
+
+.box__body{ background:var(--surface); border:1px solid var(--border); border-top:none; padding:12px; border-radius:0 0 18px 18px; }
+.grid{ display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.cell{
+  background:var(--surface); border:1px solid rgba(110,84,53,.22);
+  border-radius:11px; padding:7px;
+}
+.cell--tap{ cursor:pointer; }
+.cell--on{ border-color:var(--gold-deep); box-shadow:0 0 0 2px rgba(201,168,118,.35); }
+.ph{
+  height:129px; border-radius:7px; display:flex; align-items:center; justify-content:center;
+  font-size:11.5px; color:rgba(255,253,248,.92); letter-spacing:1px; font-family:var(--base);
+}
+.im1{ background:#6b7a4e; }
+.im2{ background:#8a6b4f; }
+.im3{ background:#7a4e42; }
+.im4{ background:#5e6e52; }
+.cell__n{ margin-top:7px; font-size:14px; font-weight:700; color:var(--text); padding:0 2px; }
+.cell__s{ font-size:11.5px; color:var(--weak); padding:0 2px; font-family:var(--base); }
+.cell__s em{ font-style:normal; color:var(--gold-fg); }
+
+/* 通栏米饭 */
+.rice{
+  margin-top:9px; background:var(--surface); border:1px solid rgba(110,84,53,.22);
+  border-radius:11px; padding:10px 13px; display:flex; align-items:center;
+}
+.rice__ic{
+  width:34px; height:24px; flex:none; border-radius:12px;
+  background:#fff; border:1px solid rgba(110,84,53,.3); position:relative; overflow:hidden;
+}
+.rice__ic i{
+  position:absolute; width:4px; height:2.5px; background:#e9d98a;
+  border-radius:2px; transform:rotate(24deg);
+}
+.rice__t{ margin-left:10px; font-size:13px; color:var(--text); }
+.rice__s{ font-size:11px; color:var(--weak); font-family:var(--base); }
+.rice__p{ margin-left:auto; font-size:16px; color:var(--gold-fg); font-family:var(--num); }
+
+/* 原地展开的来源证照（B 稿） */
+.pop{
+  margin-top:9px; background:var(--surface); border:1px solid var(--border-strong);
+  border-radius:11px; padding:11px 13px; display:none;
+}
+.pop--on{ display:block; }
+.pop__hd{ display:flex; align-items:baseline; }
+.pop__n{ font-size:13.5px; font-weight:700; color:var(--text); }
+.pop__c{
+  margin-left:7px; font-size:11px; color:#fff; background:var(--text);
+  padding:2px 7px; border-radius:4px; font-family:var(--base);
+}
+.pop__b{ margin-top:5px; font-size:11.5px; color:var(--weak); font-family:var(--base); }
+.pop__lic{ margin-top:6px; font-size:11px; color:var(--weak); font-family:var(--base); line-height:1.85; }
+.pop__cl{ margin-top:7px; font-size:11px; color:var(--weak); text-align:center; font-family:var(--base); }
+
+/* 图位说明角标 */
+.tag{
+  display:inline-block; margin-top:10px; font-size:11px; color:var(--warning);
+  background:#fbf0ee; border:1px solid #e3bfb8; border-radius:4px; padding:3px 8px; font-family:var(--base);
+}
+
+/* 实物对照 */
+.ref{ margin-top:30px; background:var(--surface); border:1px solid var(--border); border-radius:13px; padding:16px 20px 18px; }
+.ref h2{ font-size:15px; font-weight:normal; color:var(--text); letter-spacing:.5px; }
+.ref__f{ display:flex; gap:18px; flex-wrap:wrap; margin-top:10px; align-items:flex-start; }
+.ref img{ width:240px; border-radius:10px; border:1px solid rgba(110,84,53,.25); }
+.ref__why{ flex:1; min-width:280px; margin-left:19px; }
+.ref__why li{ font-size:12.5px; color:#3a322a; padding:4px 0; line-height:1.9; font-family:var(--base); }
+.ref__why b{ color:var(--text); font-weight:600; }
+.ref__gap{
+  margin-top:12px; padding-top:11px; border-top:1px dashed var(--border-strong);
+  font-size:12px; color:var(--weak); font-family:var(--base); line-height:1.9;
+}
+
+/* 说明 */
+.note{ margin-top:13px; font-size:12.5px; color:var(--weak); line-height:2; font-family:var(--base); }
+.note b{ color:var(--text); font-weight:600; }
+
+/* 表格 */
+.tbl{ margin-top:30px; background:var(--surface); border-radius:13px; padding:16px 20px 18px; border:1px solid var(--border); }
+.tbl h2{ font-size:15px; font-weight:normal; color:var(--text); letter-spacing:.5px; }
+table{ width:100%; border-collapse:collapse; margin-top:10px; font-family:var(--base); }
+th,td{ font-size:12.5px; text-align:left; padding:7px 9px; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.75; }
+th{ color:var(--text); font-weight:600; background:var(--surface2); white-space:nowrap; }
+td.k{ color:var(--text); font-weight:600; white-space:nowrap; }
+.keep{ color:var(--ok-fg); font-weight:600; }
+.chg{ color:var(--gold-fg); font-weight:600; }
+.new{ color:var(--warning); font-weight:600; }
+
+/* 数字账 */
+.calc{ margin-top:26px; background:var(--surface); border-radius:13px; padding:16px 20px 18px; border:1px solid var(--border); }
+.calc h2{ font-size:15px; font-weight:normal; color:var(--text); letter-spacing:.5px; }
+.calc pre{
+  margin-top:10px; font-family:var(--num); font-size:12px; line-height:2; color:#3a322a;
+  background:var(--surface3); border:1px solid var(--border); border-radius:8px; padding:12px 14px;
+  white-space:pre-wrap;
+}
+.calc .caveat{ margin-top:9px; font-size:11.5px; color:var(--warning); font-family:var(--base); line-height:1.9; }
+
+/* 纪律 */
+.rule{ margin-top:26px; background:var(--surface); border:1px dashed rgba(110,84,53,.45); border-radius:13px; padding:15px 20px 16px; }
+.rule h2{ font-size:15px; font-weight:normal; color:var(--gold-deepest); letter-spacing:.5px; }
+.rule li{ font-size:12.5px; color:#3a322a; padding:5px 0; line-height:1.95; font-family:var(--base); }
+.rule ol{ margin-left:19px; margin-top:6px; }
+.rule code{ font-family:var(--num); font-size:11.5px; background:var(--surface2); padding:1px 5px; border-radius:4px; color:var(--gold-fg); }
+
+/* 待拍板 */
+.ask{ margin-top:26px; background:var(--surface); border:1px solid var(--border-strong); border-radius:13px; padding:15px 20px 16px; }
+.ask h2{ font-size:15px; font-weight:normal; color:var(--warning); letter-spacing:.5px; }
+.ask li{ font-size:12.5px; color:#3a322a; padding:5px 0; line-height:1.95; font-family:var(--base); }
+.ask ol{ margin-left:19px; margin-top:6px; }
+.ask b{ color:var(--warning); font-weight:600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>首页 · 天地盖 v0.2 · 结合现有形态</h1>
+  <div class="lead">
+    上一版（v0.1）是从零画的布局，没有参照你现在的代码。这一版改成：<b>以你现有首页为真身，只动"一饭四菜"那一块</b>，
+    其余模块原样保留——<b>尤其顶部倒计时横幅，一行都不动</b>。
+    左栏是照着你现在的 <code>pages/index/index.vue</code> 逐块还原的现状；中、右两栏是改造后的两个方向。
+  </div>
+
+  <div class="hit">
+    <h3>动手前先说一件决定工期的事：图片数据早就在端上了，只是一直没被渲染</h3>
+    <p>
+      我原本以为"要上四张菜照"意味着要加表、加字段、改 DTO。回源查完发现不是——
+      <code>MealDishView</code> 里<b>本来就有</b> <code>imageUrl</code>，服务端 <code>dishesOfSetMeal</code>
+      也<b>已经在下发</b>，只是你现在首页的 <code>.dish-row__ico</code> 放的是 iconfont 占位图标，
+      压根没读这个字段。
+    </p>
+    <p>
+      ⇒ 所以这次改造<b>不动契约、不加表、不改后端</b>，是<b>纯前端渲染改造</b>。
+      真正的前置工作只有一件：<b>把四张 1:1 俯拍实拍图传上去（后台菜品管理里填 imageUrl）</b>。
+    </p>
+    <div class="src">
+      依据：<code>packages/shared-types/src/dto/home.dto.ts:11</code>（字段 <code>imageUrl: string | null</code>）·
+      <code>apps/api-server/src/modules/meal/meal.service.ts:329</code>（<code>imageUrl: dish?.imageUrl ?? null</code>）·
+      <code>apps/miniprogram/src/pages/index/index.vue:76-78</code>（图位只放了 <code>{{ I[dishIcon(d.category)] }}</code>，未用 imageUrl）
+    </div>
+  </div>
+
+  <div class="three">
+
+    <!-- ============ 左：现状 ============ -->
+    <div class="col">
+      <h2>左 · 现状（照你现有代码还原）</h2>
+      <div class="who">倒计时 → 概念大卡 → 团长 → 引导 → 纵向菜行 → 价格份数 → 按钮</div>
+      <div class="phone">
+
+        <div class="cd">
+          <div class="cd__l">距离截单还剩</div>
+          <div class="cd__n">08:42:15</div>
+          <div class="cd__s">24:00 后将无法下单</div>
+        </div>
+
+        <div class="hero">
+          <div style="font-size:20px;">◍</div>
+          <div class="hero__d">10月12日 周一</div>
+          <div class="hero__p">
+            <span>四方好味汇一盒</span>
+            <span>每家只出一道拿手菜</span>
+          </div>
+        </div>
+
+        <div class="lb">
+          <div style="font-size:16px;">◈</div>
+          <div class="lb__m">
+            <div class="lb__t">您是金牌团长</div>
+            <div class="lb__s">中海国际中心</div>
+          </div>
+          <div class="lb__c">进入工作台 ›</div>
+        </div>
+
+        <div class="card">
+          <div class="lr">
+            <div class="lr__l">
+              <div class="lr__a">跟随团长</div>
+              <div class="lr__n">张敏</div>
+              <div class="lr__b">中海国际中心 · A 座 12F</div>
+              <div class="lr__s">你通过 TA 的邀请链接进入 · 本单佣金归 TA</div>
+            </div>
+            <div class="lr__x">点此切换 ›</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="card__t">◍ 一饭四菜</span>
+          <div class="dr">
+            <div class="dr__i">图</div>
+            <div style="flex:1;">
+              <span class="dr__n">四季鲜蔬蒜蓉菠菜</span>
+              <div class="dr__f">来自：四季鲜蔬 ›</div>
+            </div>
+          </div>
+          <div class="dr">
+            <div class="dr__i">图</div>
+            <div style="flex:1;">
+              <span class="dr__n">三味屋小炒黄牛肉</span>
+              <div class="dr__f">来自：三味屋 ›</div>
+            </div>
+          </div>
+          <div class="dr">
+            <div class="dr__i">图</div>
+            <div style="flex:1;">
+              <span class="dr__n">老饭盒红烧排骨</span>
+            <div class="dr__f">来自：老饭盒 ›</div>
+            </div>
+          </div>
+          <div class="dr">
+            <div class="dr__i">图</div>
+            <div style="flex:1;">
+              <span class="dr__n">三味屋韭菜炒蛋</span>
+              <div class="dr__f">来自：三味屋 ›</div>
+            </div>
+          </div>
+          <div class="dr">
+            <div class="dr__i">图</div>
+            <div style="flex:1;">
+              <span class="dr__n">东北长粒香米饭</span>
+              <div class="dr__f">主食 · 集散中心统一供米</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="pr">
+            <div class="pr__l">
+              <div class="pr__a">统一售价</div>
+              <div class="pr__p">
+                <span class="pr__big">¥25.80</span><span class="pr__u">/份</span>
+              </div>
+            </div>
+            <div class="qty"><span>−</span><b>1</b><span>+</span></div>
+          </div>
+        </div>
+        <div class="hint">单笔最多 10 份</div>
+
+        <div class="cta">立即预订 ¥25.80</div>
+        <div class="cta cta--ghost">查看今日订单</div>
+
+        <div class="bb"><i class="on">首页</i><i>订单</i><i>我的</i></div>
+      </div>
+
+      <div class="note">
+        <b>这块是对的，别动：</b>倒计时（深棕金字）、团长身份横幅、跟随团长卡与「佣金归 TA」的明示、
+        无团长引导、份数与上限提示、两个主按钮、底部导航。
+        尤其<b>佣金归属那一行</b>——它是合规与信任的落点，不是装饰。
+      </div>
+    </div>
+
+    <!-- ============ 中：v0.2-A ============ -->
+    <div class="col">
+      <h2>中 · v0.2-A · 天地盖盒</h2>
+      <div class="who">倒计时原样；概念大卡降为「天盖」，菜行变 2×2 + 通栏米饭</div>
+      <div class="phone">
+
+        <div class="cd">
+          <div class="cd__l">距离截单还剩</div>
+          <div class="cd__n">08:42:15</div>
+          <div class="cd__s">24:00 后将无法下单</div>
+        </div>
+
+        <!-- 天盖 = 原 hero-card 的日期 + 两行文案（一字未删，只去掉图标、压缩内边距） -->
+        <div class="box" style="margin-top:10px;">
+          <div class="box__lid">
+            <div class="box__lid-d">10月12日 周一 · 明天 11:30 到楼</div>
+            <div class="box__lid-p">
+              <span>四方好味汇一盒</span>
+              <span>每家只出一道拿手菜</span>
+            </div>
+          </div>
+
+          <!-- 地盒 = 原纵向菜行改 2×2，主食行升格为通栏 -->
+          <div class="box__body">
+            <div class="grid">
+              <div class="cell">
+                <div class="ph im1">实拍图位</div>
+                <div class="cell__n">蒜蓉菠菜</div>
+                <div class="cell__s">来自：<em>四季鲜蔬</em></div>
+              </div>
+              <div class="cell">
+                <div class="ph im2">实拍图位</div>
+                <div class="cell__n">小炒黄牛肉</div>
+                <div class="cell__s">来自：<em>三味屋</em></div>
+              </div>
+              <div class="cell">
+                <div class="ph im3">实拍图位</div>
+                <div class="cell__n">红烧排骨</div>
+                <div class="cell__s">来自：<em>老饭盒</em></div>
+              </div>
+              <div class="cell">
+                <div class="ph im4">实拍图位</div>
+                <div class="cell__n">韭菜炒蛋</div>
+                <div class="cell__s">来自：<em>三味屋</em></div>
+              </div>
+            </div>
+
+            <div class="rice">
+              <div class="rice__ic">
+                <i style="left:7px; top:6px;"></i><i style="left:16px; top:10px;"></i>
+                <i style="left:24px; top:5px;"></i><i style="left:11px; top:14px;"></i>
+              </div>
+              <div class="rice__t">米饭<span class="rice__s">　·　可备注少饭 / 免饭</span></div>
+              <div class="rice__p">¥25.80<span style="font-size:11px;">/份</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lb">
+          <div style="font-size:16px;">◈</div>
+          <div class="lb__m">
+            <div class="lb__t">您是金牌团长</div>
+            <div class="lb__s">中海国际中心</div>
+          </div>
+          <div class="lb__c">进入工作台 ›</div>
+        </div>
+
+        <div class="card">
+          <div class="lr">
+            <div class="lr__l">
+              <div class="lr__a">跟随团长</div>
+              <div class="lr__n">张敏</div>
+            <div class="lr__b">中海国际中心 · A 座 12F</div>
+            <div class="lr__s">你通过 TA 的邀请链接进入 · 本单佣金归 TA</div>
+            </div>
+            <div class="lr__x">点此切换 ›</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="pr">
+            <div class="pr__l">
+              <div class="pr__a">合计</div>
+              <div class="pr__p">
+                <span class="pr__big">¥25.80</span>
+              </div>
+            </div>
+            <div class="qty"><span>−</span><b>1</b><span>+</span></div>
+          </div>
+        </div>
+        <div class="hint">单笔最多 10 份</div>
+
+        <div class="cta">立即预订 ¥25.80</div>
+        <div class="cta cta--ghost">查看今日订单</div>
+
+        <div class="bb"><i class="on">首页</i><i>订单</i><i>我的</i></div>
+      </div>
+
+      <div class="note">
+        <b>天盖 = 盒盖，地盒 = 盒身。</b>原来"概念大卡"和"一饭四菜"在说同一件事，是双重表述；
+        合并成一个盒之后，品牌文案一个字没删，但少了一个卡容器，还顺带把主食行升格成通栏——
+        <b>饭就是底座，价格和下单落在饭上</b>。
+      </div>
+    </div>
+
+    <!-- ============ 右：v0.2-B ============ -->
+    <div class="col">
+      <h2>右 · v0.2-B · 天地盖盒 + 来源可点</h2>
+      <div class="who">在 A 基础上，点任意菜格 → 来源厨房证照原地展开（点格子试试）</div>
+      <div class="phone">
+
+        <div class="cd">
+          <div class="cd__l">距离截单还剩</div>
+        <div class="cd__n">08:42:15</div>
+          <div class="cd__s">24:00 后将无法下单</div>
+        </div>
+
+        <div class="box" style="margin-top:10px;">
+          <div class="box__lid">
+            <div class="box__lid-d">10月12日 周一 · 明天 11:30 到楼</div>
+            <div class="box__lid-p">
+              <span>四方好味汇一盒</span>
+              <span>每家只出一道拿手菜</span>
+            </div>
+          </div>
+
+          <div class="box__body">
+            <div class="grid" id="g2">
+              <div class="cell cell--tap" data-k="0">
+                <div class="ph im1">实拍图位</div>
+                <div class="cell__n">蒜蓉菠菜</div>
+                <div class="cell__s">来自：<em>四季鲜蔬</em> ⌄</div>
+              </div>
+              <div class="cell cell--tap" data-k="1">
+                <div class="ph im2">实拍图位</div>
+                <div class="cell__n">小炒黄牛肉</div>
+                <div class="cell__s">来自：<em>三味屋</em> ⌄</div>
+              </div>
+              <div class="cell cell--tap" data-k="2">
+                <div class="ph im3">实拍图位</div>
+                <div class="cell__n">红烧排骨</div>
+                <div class="cell__s">来自：<em>老饭盒</em> ⌄</div>
+              </div>
+              <div class="cell cell--tap" data-k="3">
+                <div class="ph im4">实拍图位</div>
+                <div class="cell__n">韭菜炒蛋</div>
+                <div class="cell__s">来自：<em>三味屋</em> ⌄</div>
+              </div>
+            </div>
+
+            <div class="pop" id="p2">
+              <div class="pop__hd">
+                <span class="pop__n" id="p2n">三味屋</span><span class="pop__c" id="p2c">川菜 · 主荤</span>
+              </div>
+              <div class="pop__b" id="p2b">这栋楼吃过 1,240 次 · 在供 268 天</div>
+              <div class="pop__lic">食品经营许可证 JY11105…… · 有效期至 2027-04-18<br>编号可至国家企业信用信息公示系统核对</div>
+              <div class="pop__cl">— 收起 ⌃ —</div>
+            </div>
+
+            <div class="rice">
+              <div class="rice__ic">
+                <i style="left:7px; top:6px;"></i><i style="left:16px; top:10px;"></i>
+                <i style="left:24px; top:5px;"></i><i style="left:11px; top:14px;"></i>
+              </div>
+              <div class="rice__t">米饭<span class="rice__s">　·　可备注少饭 / 免饭</span></div>
+              <div class="rice__p">¥25.80<span style="font-size:11px;">/份</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="pr">
+            <div class="pr__l">
+              <div class="pr__a">合计</div>
+              <div class="pr__p"><span class="pr__big">¥25.80</span></div>
+            </div>
+            <div class="qty"><span>−</span><b>1</b><span>+</span></div>
+          </div>
+        </div>
+        <div class="hint">单笔最多 10 份</div>
+
+        <div class="cta">立即预订 ¥25.80</div>
+        <div class="cta cta--ghost">查看今日订单</div>
+
+        <div class="bb"><i class="on">首页</i><i>订单</i><i>我的</i></div>
+      </div>
+
+      <div class="note">
+        <b>点格子不跳页。</b>证照在格子下方原地展开，菜单不消失、不打断下单。
+        这是之前供应商页讨论里"最好的合规页是没有页面"那个结论——借着这次改版一起落掉。
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ 实物 ↔ 屏幕 对照 ============ -->
+  <div class="ref">
+    <h2>格子是怎么对上实物的</h2>
+    <div class="ref__f">
+      <img src="_产品实拍参考.png" alt="产品实拍：天地盖一饭四菜，上两排四格菜、底部通栏米饭">
+      <ul class="ref__why">
+        <li><b>数据来源不用改。</b><code>daily.dishes</code> 现在就是 4 条（服务端按 <code>slot ASC</code> 排好序），
+          主食单独在 <code>daily.rice</code>。⇒ 正好 4 格菜 + 1 条通栏饭，<b>不用改契约</b>。</li>
+        <li><b>图位就是 <code>imageUrl</code>。</b>现在纵向菜行里那块 112rpx 图位放的是 iconfont 占位图标，
+          改造后直接读 <code>d.imageUrl</code>——<b>字段已经在响应里了</b>，见页首。</li>
+        <li><b>顺序不重排。</b>格子按 <code>dishes</code> 原序从左到右、从上到下填入，
+          因为那一排是后台编排出来的结果，端上一改就是第二份口径。</li>
+        <li><b>盒色不搬。</b>实物的青绿是耗材色，屏幕上仍走品牌米色底 + 暖棕描边，
+          格子用白底描边代替塑料盒边。</li>
+        <li><b>饭 = 底座 = 决策位。</b>实物里饭格最长、最靠底；屏幕上通栏放米饭 + 单价，
+          紧接其下是份数与预订按钮——<b>整盒的价格落在整盒的底座上</b>，暗示"这是一份，不是四份"。</li>
+      </ul>
+    </div>
+    <div class="ref__gap">
+      三栏之间的高度差异可以直观看出：中/右两栏的「概念大卡 + 菜列表」合并成一盒后，
+      底部按钮比左栏明显上提。
+    </div>
+  </div>
+
+  <!-- ============ 改动 / 保留 对照表 ============ -->
+  <div class="tbl">
+    <h2>一、保留什么、动什么（对着你现在的 index.vue 逐块说）</h2>
+    <table>
+      <thead><tr><th style="width:150px;">现有模块</th><th style="width:78px;">处置</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="k">.countdown<br>倒计时横幅</td>
+          <td class="keep">保留</td>
+          <td><b>一行不动。</b>深棕底 + 米色字 + 下圆角 36rpx + 金字等宽数字，全部保持。连带保留
+            <code>cutoffTimeText</code> 那条纪律：<b>取不到就整行不显示，不回落写死时刻</b>。</td>
+        </tr>
+        <tr>
+          <td class="k">ab-loading 骨架</td>
+          <td class="keep">保留</td>
+          <td><code>v-if="loading && !daily"</code>，文案「正在取今日套餐」不变。</td>
+        </tr>
+        <tr>
+          <td class="k">.hero-card<br>套餐概念大卡</td>
+          <td class="chg">合并</td>
+          <td><b>内容一个字不删</b>（日期行 + 「四方好味汇一盒 / 每家只出一道拿手菜」），
+            但容器合并进天地盖盒的「天盖」：去掉 iconfont 图标、内边距 44rpx → 30rpx。
+            它原来的作用（视觉分组 + 品牌调性）由盒容器接管。</td>
+        </tr>
+        <tr>
+          <td class="k">.leader-banner<br>团长身份横幅</td>
+          <td class="keep">保留</td>
+          <td><code>v-if="leaderStore.isLeader"</code> 与 <code>goWorkbench()</code> 不变。
+            位置挪到盒<b>之前</b>——身份优先于商品，且避免把它夹在盒中间打断"开盖"的连贯感。</td>
+        </tr>
+        <tr>
+          <td class="k">.leader-row<br>跟随团长 + 佣金明示</td>
+          <td class="keep">保留</td>
+          <td>含 <code>leaderSourceText</code> 两档文案（bound / building_default）。<b>不动</b>，
+            它回答的是"钱归谁"，与布局改造无关。</td>
+        </tr>
+        <tr>
+          <td class="k">.guide / .guide--warn</td>
+          <td class="keep">保留</td>
+          <td>无团长引导（含「申请成为团长」链接）与截单原因，文案与判据都不动。</td>
+        </tr>
+        <tr>
+          <td class="k">.dish-row ×5<br>一饭四菜纵向列表</td>
+          <td class="chg">改造</td>
+          <td><b>本轮唯一的结构性改动。</b>4 道菜 → 2×2 格子（图 + 菜名 + 来自）；
+            主食行 → 底部通栏。图位改读 <code>d.imageUrl</code>（数据已在，见页首）。</td>
+        </tr>
+        <tr>
+          <td class="k">.price-row<br>价格 + 份数</td>
+          <td class="chg">改造</td>
+          <td><b>单价上移到米饭通栏</b>（¥25.80/份 = 这一盒多少钱）；
+            本卡标签「统一售价」→「<b>合计</b>」，大字改显示 <code>totalText</code>（随份数变）。
+            ⇒ 一个说"一份多少"，一个说"你这次付多少"，不重复也不缺。</td>
+        </tr>
+        <tr>
+          <td class="k">.max-hint</td>
+          <td class="keep">保留</td>
+          <td>「单笔最多 {{ ORDER_MAX_QUANTITY }} 份」。</td>
+        </tr>
+        <tr>
+          <td class="k">已订概览</td>
+          <td class="keep">保留</td>
+          <td><code>orderedSummary</code> + 「可继续追加」。多单口径不动。</td>
+        </tr>
+        <tr>
+          <td class="k">两个主按钮</td>
+          <td class="keep">保留</td>
+          <td><code>orderBtnText</code>（已订 →「再来一单」）/ 禁用态「本场已截单」/「查看今日订单」。</td>
+        </tr>
+        <tr>
+          <td class="k">ab-bottom-bar</td>
+          <td class="keep">保留</td>
+          <td><code>active="index"</code>。</td>
+        </tr>
+        <tr>
+          <td class="k">ab-empty-state</td>
+          <td class="keep">保留</td>
+          <td>含 <code>needsBuilding</code> 分级（未绑楼 → 主按钮变「选择办公楼」）。</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============ 尺寸账 ============ -->
+  <div class="calc">
+    <h2>二、格子会不会把"预订按钮"推得更远？（这是改布局最该先算的）</h2>
+    <pre>口径：375px 视口（小程序基准 750rpx ⇒ 1rpx = 0.5px），间距/字号取 tokens.scss v2.1 实际值
+
+【现状】一饭四菜卡（纵向 5 行）
+  卡片内宽   = 375 − 40(card margin) − 40(card padding) = 295px
+  标题       ≈ 15px×1.6 + 10px = 34px
+  单行高     = 56px(图标) + 28px(padding $space-3×2) = 84px
+  5 行小计   = 420px
+  卡总高     = 20 + 34 + 420 + 20 = 494px
+  加前一块 hero-card ≈ 177px            ⇒ 现状两段合计 ≈ 671px
+
+【v0.2】天地盖盒
+  天盖（压缩后）≈ 98px
+  格子内宽   = (295 − 9 gap) / 2 = 143px ⇒ 图位宽 = 143 − 14 = 129px
+  图位 1:1   = 高 129px
+  单格高     = 7 + 129 + 7 + 22(菜名) + 18(来源) + 7 = 190px
+  两排小计   = 190×2 + 9 = 389px
+  通栏米饭   ≈ 55px
+  盒总高     = 20 + 389 + 55 + 20 = 484px
+  加天盖 98px                          ⇒ v0.2 两段合计 ≈ 582px
+
+⇒ 结论：不仅没推远，反而比现状【省约 90px】（≈ iPhone SE 首屏的 13%）
+   省下来的主要来自「概念大卡」与「菜卡」去重合并，不是靠压缩图片。</pre>
+    <div class="caveat">
+      ⚠️ 口径声明：以上是<b>按 token 值推算</b>，用于判断方向是否值得做；<b>不是真机实测</b>。
+      落码后必须上真机核对一次首屏——尤其是图位从 1:1 改成 4:3 时，格子会再省 40px（但"开盖感"会弱一些），
+      这个取舍要你拍板，我给不了。
+    </div>
+  </div>
+
+  <!-- ============ 落码纪律 ============ -->
+  <div class="rule">
+    <h2>三、落码时必须守的（这五条是有前科的）</h2>
+    <ol>
+      <li>
+        <b>时刻一律从响应取，端上不写死。</b><code>daily.cutoffAt</code> / <code>deliverAt</code>。
+        这条你已经踩过一次——原写死 <code>24:00</code>，后台把截单改成别的时刻时横幅还在报 24:00，
+        而全仓门禁<b>一条都不红</b>。取不到就<b>整行不显示</b>，不要回落任何写死值（回落值就是新的硬编码）。
+      </li>
+      <li>
+        <b>格子的顺序 = 服务端的顺序，端上不重排。</b><code>dishesOfSetMeal</code> 按
+        <code>slot ASC</code> 下发；格子只是把这条纵列折成两排。<b>不要为了"荤素搭配好看"在端上排序</b>——
+        那一排是后台编排出来的结果，端上一改就等于造了第二份编排口径。
+      </li>
+      <li>
+        <b>⛔ 小程序端不许写 <code>&lt;ab-icon&gt;</code> 组件。</b>唯一写法是
+        <code>&lt;text class="abi abi-16"&gt;{{ I.chart }}&lt;/text&gt;</code>，且
+        <b>script 段不许出现 <code>I.xxx</code></b>。有图标锁门禁看着。
+      </li>
+      <li>
+        <b>⛔ 格子里的"来自：X"不许变成第三方平台的东西。</b>名称 / 标识 / 链接 / 可跳转物 / 可复制口令，
+        五项全禁（撞《运营规范》5.10 / 5.20 / 5.15.4，处理是下架）。现在它指向自家溯源页，是安全的，
+        <b>改布局时别顺手把它改成"去某团点这家"</b>。
+      </li>
+      <li>
+        <b>菜数不等于 4 时要有降级，不能空一格占位。</b>
+        <code>dishesOfSetMeal</code> 目前<b>没有过滤主食槽位（slot=5）</b>，它只是恰好种子数据里没编主食；
+        一旦某天编排了 3 道或 5 道，2×2 就会破版。
+        ⇒ 建议规则：<b>4 条走 2×2；3 条走上一排 2 + 下一排 1（左对齐）；≥5 条或 &lt;3 条退回现有纵向列表</b>。
+      </li>
+    </ol>
+  </div>
+
+  <!-- ============ 待拍板 ============ -->
+  <div class="ask">
+    <h2>四、需要你拍板的三件事</h2>
+    <ol>
+      <li>
+        <b>图位比例：1:1 还是 4:3？</b>1:1 最像实物俯拍（开盖感最强，比现状多约 26px）；
+        4:3 更省高度（比现状省约 38px）。<b>我倾向 1:1</b>——这个布局的全部价值就在"像打开盒子"，
+        为此多 26px 值得。
+      </li>
+      <li>
+        <b>「来自：X」点下去是跳溯源页，还是原地展开证照（B 稿）？</b>
+        现在是跳页。改 B 稿需要 U1 补发证照字段（或点开时现取），
+        <b>会动后端</b>；但换来"不打断下单"。
+      </li>
+      <li>
+        <b>如果 B 稿成立，独立供应商页的入口是不是就可以删了？</b>
+        之前那条线（跳转外卖平台被否后只剩资质文件）其实一直没找到答案；
+        首页原地展开证照正好是它的解——<b>整条供应商页线就此收口</b>。你说删我就删，不说我不动。
+      </li>
+    </ol>
+  </div>
+
+</div>
+
+<script>
+var data = [
+  { n:'四季鲜蔬', c:'素菜 · 叶菜', b:'这栋楼吃过 860 次 · 在供 240 天',
+    lic:'食品经营许可证 JY11201…… · 有效期至 2027-06-02' },
+  { n:'三味屋',   c:'川菜 · 主荤', b:'这栋楼吃过 1,240 次 · 在供 268 天',
+    lic:'食品经营许可证 JY11105…… · 有效期至 2027-04-18' },
+  { n:'老饭盒',   c:'家常 · 半荤', b:'这栋楼吃过 1,102 次 · 在供 251 天',
+    lic:'食品经营许可证 JY11333…… · 有效期至 2027-09-15' },
+  { n:'三味屋',   c:'川菜 · 蛋类', b:'这栋楼吃过 1,240 次 · 在供 268 天',
+    lic:'食品经营许可证 JY11105…… · 有效期至 2027-04-18' }
+];
+
+var pop  = document.getElementById('p2');
+var pN   = document.getElementById('p2n');
+var pC   = document.getElementById('p2c');
+var pB   = document.getElementById('p2b');
+var pLic = document.querySelector('#p2 .pop__lic');
+var cur  = -1;
+
+document.querySelectorAll('#g2 .cell').forEach(function (cell) {
+  cell.onclick = function () {
+    var k = parseInt(this.getAttribute('data-k'), 10);
+    // 再点同一格 = 收起
+    if (cur === k) { pop.classList.remove('pop--on'); this.classList.remove('cell--on'); cur = -1; return; }
+    document.querySelectorAll('#g2 .cell').forEach(function (c) { c.classList.remove('cell--on'); });
+    cur = k;
+    this.classList.add('cell--on');
+    pN.textContent   = data[k].n;
+    pC.textContent   = data[k].c;
+    pB.textContent   = data[k].b;
+    pLic.innerHTML   = data[k].lic + '<br>编号可至国家企业信用信息公示系统核对';
+    pop.classList.add('pop--on');
+  };
+});
+
+document.querySelector('#p2 .pop__cl').onclick = function () {
+  pop.classList.remove('pop--on');
+  document.querySelectorAll('#g2 .cell').forEach(function (c) { c.classList.remove('cell--on'); });
+  cur = -1;
+};
+</script>
+
+</body>
+</html>

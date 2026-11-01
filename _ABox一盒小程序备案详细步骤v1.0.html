@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox一盒 · 小程序备案详细步骤 v1.0</title>
+<style>
+  :root{
+    --brown:#6E5435; --cream:#F6F0E5; --line:#E3D8C5; --gold:#C9A876;
+    --ink:#3a2e1d; --red:#9c3b2e; --green:#4d6b3f;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--cream); color:var(--ink);
+    font-family:"楷体","KaiTi","STKaiti","霞鹜文楷",serif;
+    line-height:1.75; font-size:17px; padding:32px 18px;
+  }
+  .wrap{max-width:860px; margin:0 auto;}
+  h1{color:var(--brown); font-size:30px; text-align:center; margin:0 0 6px; letter-spacing:2px;}
+  .sub{text-align:center; color:var(--gold); font-size:15px; margin-bottom:26px; letter-spacing:1px;}
+  h2{color:var(--brown); font-size:22px; border-left:6px solid var(--gold); padding-left:12px; margin:30px 0 14px;}
+  .card{background:#fffdf8; border:1px solid var(--line); border-radius:12px; padding:18px 22px; margin:14px 0; box-shadow:0 2px 8px rgba(110,84,53,.06);}
+  .warn{background:#fbf2ec; border:1px solid #e7c4b4;}
+  .warn b{color:var(--red);}
+  table{width:100%; border-collapse:collapse; margin:8px 0;}
+  th,td{border:1px solid var(--line); padding:9px 11px; text-align:left; vertical-align:top; font-size:15.5px;}
+  th{background:#f3ebdc; color:var(--brown); font-weight:normal;}
+  .step{display:flex; gap:12px; margin:12px 0; align-items:flex-start;}
+  .num{flex:0 0 30px; height:30px; border-radius:50%; background:var(--brown); color:#fff; display:flex; align-items:center; justify-content:center; font-size:15px;}
+  .step .body{flex:1;}
+  code{background:#efe6d6; padding:1px 6px; border-radius:4px; font-family:monospace; font-size:14px; color:var(--brown);}
+  .tag{display:inline-block; padding:1px 9px; border-radius:20px; font-size:13px; color:#fff; margin-right:6px;}
+  .t-need{background:var(--red);} .t-late{background:var(--gold);} .t-ok{background:var(--green);}
+  ul{margin:6px 0; padding-left:22px;} li{margin:5px 0;}
+  .pill{display:inline-block; background:var(--brown); color:#fff; border-radius:6px; padding:2px 10px; font-size:14px; margin:2px 4px 2px 0;}
+  .pick{background:#fbf6ee; border:1px solid var(--line); border-left:4px solid var(--brown); border-radius:10px; padding:12px 18px; margin:10px 0;}
+  .pick-h{font-weight:700; color:var(--brown); margin:0 0 8px;}
+  .pick p{margin:6px 0;}
+  .pick-x{background:#fbf2ec; border:1px solid #e7c4b4; border-radius:8px; padding:8px 12px; color:#8a4a36;}
+  .foot{margin-top:30px; text-align:center; color:#998a72; font-size:13px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>小程序备案 · 详细步骤</h1>
+  <div class="sub">ABox一盒 · 预包装快消路线 · 2026-10-21 核</div>
+
+  <div class="card warn">
+    <b>⚠️ 第一前提（你现在卡在这）：微信认证必须先「通过」。</b><br>
+    你的认证状态是「审核中」（年审），<b>审核中不能发起小程序备案</b>。等 1–3 工作日出结果（留意 mp 后台站内信 + 短信），一通过立刻进下一步。
+    类目「商家自营-食品饮料」<span class="tag t-ok">已通过</span>，不用再申请。
+  </div>
+
+  <h2>一、提前准备的材料</h2>
+  <div class="card">
+    <table>
+      <tr><th>类别</th><th>材料</th><th>说明</th></tr>
+      <tr><td>主体</td><td>营业执照彩色扫描件/拍照</td><td>四角完整、不反光、清晰；系统自动识别填充企业名/信用代码，核对即可</td></tr>
+      <tr><td>主体负责人</td><td>法人身份证正反面</td><td>一般为法定代表人</td></tr>
+      <tr><td>小程序负责人</td><td>负责人身份证正反面 + 本人核验</td><td>通常是小程序管理员本人（你扫码登录的微信号）</td></tr>
+      <tr><td>联系方式</td><td>手机号 ×2（负责人 + 应急）+ 邮箱</td><td><b>两个号码不能重复、不能是同一个人的</b></td></tr>
+      <tr><td>服务内容</td><td>选「商家自营-食品饮料」</td><td>你已通过该类目，备案时直接勾选，备注写实际经营内容（20–200字）</td></tr>
+      <tr><td>前置审批</td><td>选「以上都不涉及」</td><td>预包装食品销售不需前置审批</td></tr>
+    </table>
+    <p style="margin:8px 0 0; color:var(--brown)"><b>特别注意（北京实操坑）：</b>若「小程序负责人」与「法人」不是同一人，北京管局通常要求上传 <b>《小程序备案法人授权书》</b>。最省事的做法——<b>负责人直接填法人本人</b>（即管理员微信号对应法人），可免授权书。请先确认你这个管理员微信号是不是法人本人。</p>
+  </div>
+
+  <h2>二、备案入口</h2>
+  <div class="card">
+    <div class="step"><div class="num">1</div><div class="body">电脑浏览器登录 <code>mp.weixin.qq.com</code>，用<b>小程序管理员微信号</b>扫码（你的小程序 <code>wx389db239bcec75ca</code>）。</div></div>
+    <div class="step"><div class="num">2</div><div class="body">左侧「<b>设置</b>」→「<b>小程序备案</b>」，点「<b>去备案</b>」；或首页顶部吸顶提示的「去备案」按钮（未上架小程序从首页进）。</div></div>
+    <div class="step"><div class="num">3</div><div class="body">管理员微信扫码验证身份 → 选择备案类型（首次选「新增备案」）。</div></div>
+  </div>
+
+  <h2>三、填写四块信息（核心）</h2>
+  <div class="card">
+    <p><span class="pill">第1块 主体信息</span>选主办单位地区（北京→实际区）→ 传营业执照 → 系统自动填企业名/住所/信用代码 → 核对点「验证」。</p>
+    <p><span class="pill">第2块 主体负责人</span>填法人姓名、身份证号、手机号、应急手机号、邮箱；传身份证正反面。</p>
+    <p><span class="pill">第3块 小程序信息</span>填小程序名称（ABox一盒）、<b>服务内容标识</b>按下面选：</p>
+    <div class="pick">
+      <p class="pick-h">服务内容标识怎么选（下拉里有一堆"其他"，别选错）</p>
+      <p><b>① 首选：</b>如果能找到一级类目 <b>「批发和零售业」→ 二级「零售批发」</b>，优先选它。微信官方对"卖货电商"的答复就是选这个——你的业务本质是<b>商品销售流通</b>，最契合，且备注里可写明涉及食品销售需上传预包装资质。</p>
+      <p><b>② 兜底：</b>如果下拉里没有"批发和零售业"这一项（或你只看到一堆"其他"），选 <b>一级「生活服务」→ 二级「其他」</b>。<span class="warn">父类必须选"生活服务"，再在它下面找"其他"。</span></p>
+      <p class="pick-x"><b>✘ 千万别选：</b>一级「餐饮」→ 二级「其他」（那是"餐厅排队"），你是预包装销售不是餐饮；也不要选「生活服务-企业管理」（那是 OA/办公工具）。</p>
+    </div>
+    <p>无论选①还是②，<b>备注栏必填 20–200 字</b>写清实际经营，例如：<i>"小程序主要提供预包装食品、快消品在线销售及同城配送服务"</i>；前置审批选「以上都不涉及」。</p>
+    <p style="margin:6px 0 0; color:var(--brown)"><b>⚠️ 别混淆：</b>你截图里那个「商家自营-食品饮料」是<b>服务类目</b>（在「设置→基本设置→服务类目」里，已通过，是对的），<b>不是</b>备案这里的"服务内容标识"。备案的"服务内容标识"是另一套互联网信息服务分类词表，没有"商家自营-食品饮料"这个选项——所以要么选「批发和零售业-零售批发」，要么选「生活服务-其他」+ 备注写清楚。</p>
+    <p><span class="pill">第4块 小程序负责人</span>填负责人姓名/身份证/手机号/应急号/邮箱，传身份证正反面，最后做<b>人脸核验</b>。</p>
+    <p style="margin:6px 0 0; color:var(--brown)"><b>人脸核验环境：</b>白色或浅色干净背景，无杂物、无他人入镜；不戴帽子/口罩/耳机；表情自然、不闭眼。核验失败要重来。</p>
+    <p style="margin:6px 0 0">生成《互联网信息服务备案承诺书》《真实性核验单》，阅读确认 → 材料预览无误 → 点底部「提交」。</p>
+  </div>
+
+  <h2>四、提交后的五环节时间线</h2>
+  <div class="card">
+    <div class="step"><div class="num">A</div><div class="body"><b>平台初审</b>（微信）1–2 工作日。期间<b>保持电话畅通</b>，可能来电核验。结果站内信/模板消息通知。</div></div>
+    <div class="step"><div class="num">B</div><div class="body"><b>工信部短信核验</b>：初审过 → 主体负责人 + 小程序负责人收到 <code>12381</code> 短信 → <b>24 小时内</b>登录 <code>beian.miit.gov.cn</code> 点链接核验。<br><span class="warn" style="display:inline-block; padding:6px 10px; margin-top:6px"><b>超时整套作废，要回微信重新提交！</b>这是最容易翻车的环节。</span></div></div>
+    <div class="step"><div class="num">C</div><div class="body"><b>通管局审核</b>（北京）1–20 工作日，实务约 1–2 周。结果短信/站内信通知。</div></div>
+    <div class="step"><div class="num">D</div><div class="body"><b>备案成功</b> → 下发小程序备案号。发布上线后备案号自动展示在「更多资料」页，不用自己挂。</div></div>
+  </div>
+
+  <h2>五、和你这个项目强相关的两条</h2>
+  <div class="card warn">
+    <p style="margin:0 0 8px"><b>1. 提审发布必须用「正式模式」重新构建。</b>你现在体验版是 development 模式（带 <code>demoMode</code> 后门、能切任意 <code>devCode</code> 身份），审核员看到调试态会打回或留隐患。上线前我会帮你用正式模式重构建上传。</p>
+    <p style="margin:0"><b>2. 注意「团长/分销/佣金」特征。</b>如果上线版本实际含多级分销或平台撮合交易，可能不能只选「商家自营」，会被要求升「电商平台」类目（资质更严）。备案时服务内容描述按「商家自营卖预包装食品」写，功能边界要落到这。</p>
+  </div>
+
+  <h2>六、一句话行动清单</h2>
+  <div class="card">
+    <ul>
+      <li><b>今天/现在</b>：确认管理员微信号是法人本人（免授权书）；<code>xunlizhinian.cn</code> 域名备案已可并行提交（最长的一段，先动）。</li>
+      <li><b>等认证通过</b>（1–3 工作日）：立刻进 mp → 设置 → 小程序备案 → 去备案。</li>
+      <li><b>填完提交后</b>：盯 12381 短信，24 小时内核验。</li>
+      <li><b>备案号下来后</b>：正式模式构建 → 提审 → 发布。</li>
+    </ul>
+  </div>
+
+  <div class="foot">ABox一盒 · 预包装快消路线发布合规 · 小程序备案步骤卡 · 与《预包装路线发布合规清单》配套使用</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 商业分析：单位经济与盈亏平衡</title>
+<style>
+@font-face {
+  font-family: 'ABoxKai';
+  src: url('ab-kaiti.woff2') format('woff2');
+  font-weight: normal; font-style: normal; font-display: swap;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'ABoxKai', 'STKaiti', 'KaiTi', 'SimSun', serif;
+  background: #E8DFCF; color: #3A322A; padding: 34px 18px 64px; line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1120px; margin: 0 auto; }
+
+h1 { font-size: 22px; font-weight: normal; letter-spacing: 0.5px; }
+.sub { margin-top: 8px; font-size: 13px; color: #796C57; }
+
+.lead {
+  margin-top: 18px; background: #FFFDF8; border-left: 3px solid #936F3A;
+  padding: 15px 18px; border-radius: 0 10px 10px 0; font-size: 14px; color: #3A322A;
+}
+.lead b { color: #936F3A; font-weight: normal; }
+
+section { margin-top: 30px; }
+h2 { font-size: 16px; font-weight: normal; color: #6E5435; letter-spacing: 0.5px; margin-bottom: 12px; }
+h2 span { font-size: 12px; color: #9A8C79; margin-left: 8px; }
+
+.panel { background: #FFFDF8; border: 1px solid #E4D8C3; border-radius: 14px; padding: 20px 22px; }
+.panel + .panel { margin-top: 14px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #E4D8C3; }
+th { color: #9A8C79; font-weight: normal; font-size: 12px; letter-spacing: 0.5px; }
+td.n { text-align: right; font-family: 'SFMono-Regular', Consolas, monospace; }
+tr.total td { border-bottom: none; border-top: 2px solid #6E5435; color: #6E5435; }
+.src { font-size: 11px; color: #9A8C79; margin-top: 10px; line-height: 1.8; }
+
+.alert {
+  background: #FBF0EE; border: 1px solid #E3BFB8; border-radius: 14px; padding: 18px 22px;
+}
+.alert h3 { font-size: 15px; font-weight: normal; color: #C44536; margin-bottom: 9px; }
+.alert p { font-size: 13px; color: #5F5445; }
+.alert code { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 12px; color: #8A5A2B; }
+
+/* ---- 测算器 ---- */
+.calc { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+.inputs { flex: 1; min-width: 300px; }
+.row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px dashed #E4D8C3; }
+.row:last-child { border-bottom: none; }
+.row label { font-size: 13px; color: #3A322A; width: 118px; flex: none; }
+.row input[type=range] { flex: 1; accent-color: #6E5435; }
+.row .val { width: 74px; text-align: right; font-family: 'SFMono-Regular', Consolas, monospace; font-size: 13px; color: #6E5435; flex: none; }
+.row select {
+  font-family: inherit; font-size: 13px; color: #6E5435; background: #FFFDF8;
+  border: 1px solid #D6CBB8; border-radius: 6px; padding: 4px 8px;
+}
+
+.outs { width: 320px; flex: none; background: #F6F0E5; border-radius: 14px; padding: 18px 20px; }
+.out { padding: 10px 0; border-bottom: 1px dashed #D6CBB8; }
+.out:last-child { border-bottom: none; }
+.out__l { font-size: 12px; color: #796C57; }
+.out__v { font-size: 25px; color: #6E5435; font-family: 'SFMono-Regular', Consolas, monospace; line-height: 1.2; margin-top: 4px; }
+.out__v small { font-size: 13px; color: #796C57; }
+.out--warn .out__v { color: #C44536; }
+.out--ok .out__v { color: #5B7C3A; }
+
+/* ---- 敏感度 ---- */
+table.sens td { text-align: right; font-family: 'SFMono-Regular', Consolas, monospace; }
+table.sens td:first-child { text-align: left; font-family: inherit; }
+table.sens .bad { color: #C44536; }
+
+/* ---- 判断 ---- */
+.judge { background: #FFFDF8; border: 1px solid #E4D8C3; border-radius: 14px; padding: 18px 22px; margin-bottom: 12px; }
+.judge__t { font-size: 15px; color: #6E5435; letter-spacing: 0.5px; }
+.judge__p { margin-top: 9px; font-size: 13px; color: #5F5445; line-height: 1.95; }
+.judge__p em { font-style: normal; color: #936F3A; }
+.judge__p b { font-weight: normal; color: #C44536; }
+
+ol.acts { margin-left: 20px; }
+ol.acts li { font-size: 13px; color: #5F5445; padding: 8px 0; line-height: 1.9; }
+ol.acts li b { color: #6E5435; font-weight: normal; }
+.tag0 { display: inline-block; font-size: 11px; color: #5B7C3A; background: #F1F5EA; border: 1px solid #BBCBA6; border-radius: 4px; padding: 1px 7px; margin-right: 6px; }
+.tag1 { display: inline-block; font-size: 11px; color: #936F3A; background: #F6F0E5; border: 1px solid #D6CBB8; border-radius: 4px; padding: 1px 7px; margin-right: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>ABox 一盒 · 商业分析：单位经济与盈亏平衡</h1>
+  <div class="sub">全部数字取自项目真源（成本卡 SPEC / 驾驶舱毛利公式 / 现金流固定成本），不是估算。</div>
+  <div class="lead">
+    <b>一句话结论：</b>这份饭的毛利上限是 ¥11.80/份（45.7%），看着很健康。
+    但在<b>配送、打包、场地三项履约成本登记进系统之前，这个数只是上限，不是利润</b>——
+    项目自己在口径里写着：<b>「三项履约成本未登记时毛利仅为上限值」</b>。
+    而盈亏平衡点对配送费<b>极度敏感</b>：配送费从 ¥2 涨到 ¥7，需要的日份数从 135 份涨到 407 份。<br>
+    <b>这门生意不会因增长而失血（预售制：先收钱后付钱），只会因密度不足而饿死。</b>
+  </div>
+
+  <!-- 单位经济 -->
+  <section>
+    <h2>一、单位经济拆解 <span>每份 · 真数据</span></h2>
+    <div class="panel">
+      <table>
+        <tr><th>项</th><th style="text-align:right">金额</th><th style="text-align:right">占售价</th><th>说明</th></tr>
+        <tr><td>售价</td><td class="n">25.80</td><td class="n">100.0%</td><td>统一售价，单一套餐</td></tr>
+        <tr><td>− 供价（一盒四菜）</td><td class="n">14.00</td><td class="n">54.3%</td><td>主荤 7.5 + 半荤 1.5 + 素菜 3.0 + 汤 2.0</td></tr>
+        <tr class="total"><td>= 毛利上限</td><td class="n">11.80</td><td class="n">45.7%</td><td>扣完采购款，未扣履约与佣金</td></tr>
+      </table>
+      <table style="margin-top:14px">
+        <tr><th>再扣</th><th style="text-align:right">见习 8%</th><th style="text-align:right">正式 9%</th><th style="text-align:right">金牌 10%</th><th style="text-align:right">首席 12%</th></tr>
+        <tr><td>佣金（按售价计）</td><td class="n">2.06</td><td class="n">2.32</td><td class="n">2.58</td><td class="n">3.10</td></tr>
+        <tr class="total"><td>剩余（未扣履约）</td><td class="n">9.74</td><td class="n">9.48</td><td class="n">9.22</td><td class="n">8.70</td></tr>
+      </table>
+      <div class="src">
+        真源：<code>_ABox一盒成本卡与毛利测算v1.0.html</code> → <code>env.unitPrice=25.8 / supplierTotal=14.0 / commission{8,9,10,12%}</code>；
+        菜品供价 12 道（主荤 6.0–8.5 / 半荤 1.5 / 素菜 2.2–3.0 / 汤 2.0），按 slots 四格各取一道 = 14.00，与 supplierTotal 吻合。<br>
+        毛利公式（<code>经营驾驶舱</code> 真源）：GMV − 半成品采购款 − 履约成本(场所摊销 + 打包人工 + 配送费×份数) − 佣金。
+      </div>
+    </div>
+
+    <div class="alert" style="margin-top:14px">
+      <h3>⚠ 这个模型现在有一个洞，而且它决定一切</h3>
+      <p>
+        履约三项（<code>场所摊销 / 打包人工 / 配送费</code>）在系统里<b>默认是 0，且被判定为「尚未登记」</b>。
+        项目口径自己写明：<code>&gt; 0 才算已登记（0 / 空 / 非数字一律视为尚未登记）</code>，
+        以及 <code>「三项履约成本未登记时毛利仅为上限值」</code>。<br><br>
+        <b>含义：今天任何一份报表上看到的「毛利 11.80」都还没扣掉把这份饭送到楼上门口的钱。</b>
+        在填进真实数字之前，扩张、定价、佣金档位——所有决策都是在赌。
+      </p>
+    </div>
+  </section>
+
+  <!-- 测算器 -->
+  <section>
+    <h2>二、盈亏平衡测算器 <span>拖动看它有多敏感</span></h2>
+    <div class="panel">
+      <div class="calc">
+        <div class="inputs">
+          <div class="row">
+            <label>配送费 / 份</label>
+            <input type="range" id="iDel" min="0" max="10" step="0.5" value="3">
+            <span class="val" id="vDel">¥3.0</span>
+          </div>
+          <div class="row">
+            <label>打包人工 / 份</label>
+            <input type="range" id="iPack" min="0" max="5" step="0.5" value="1">
+            <span class="val" id="vPack">¥1.0</span>
+          </div>
+          <div class="row">
+            <label>场所摊销 / 份</label>
+            <input type="range" id="iSite" min="0" max="5" step="0.5" value="0.5">
+            <span class="val" id="vSite">¥0.5</span>
+          </div>
+          <div class="row">
+            <label>团长档位</label>
+            <select id="iLv">
+              <option value="0">无团长（自购）</option>
+              <option value="0.08">见习 8%</option>
+              <option value="0.09" selected>正式 9%</option>
+              <option value="0.10">金牌 10%</option>
+              <option value="0.12">首席 12%</option>
+            </select>
+            <span class="val"></span>
+          </div>
+          <div class="row">
+            <label>团长单占比</label>
+            <input type="range" id="iShare" min="0" max="100" step="5" value="60">
+            <span class="val" id="vShare">60%</span>
+          </div>
+          <div class="row">
+            <label>在跑楼数</label>
+            <input type="range" id="iBld" min="1" max="40" step="1" value="12">
+            <span class="val" id="vBld">12 栋</span>
+          </div>
+          <div class="row">
+            <label>单栋可触达人数</label>
+            <input type="range" id="iPop" min="200" max="3000" step="100" value="800">
+            <span class="val" id="vPop">800 人</span>
+          </div>
+        </div>
+
+        <div class="outs">
+          <div class="out" id="oCon">
+            <div class="out__l">单份贡献毛利</div>
+            <div class="out__v"><span id="oConV">–</span><small> / 份</small></div>
+          </div>
+          <div class="out">
+            <div class="out__l">月盈亏平衡份数</div>
+            <div class="out__v"><span id="oMonV">–</span><small> 份/月</small></div>
+          </div>
+          <div class="out">
+            <div class="out__l">折算每天（22 个工作日）</div>
+            <div class="out__v"><span id="oDayV">–</span><small> 份/天</small></div>
+          </div>
+          <div class="out">
+            <div class="out__l">摊到每栋楼</div>
+            <div class="out__v"><span id="oPerV">–</span><small> 份/天·栋</small></div>
+          </div>
+          <div class="out" id="oPen">
+            <div class="out__l">需要的楼内渗透率</div>
+            <div class="out__v"><span id="oPenV">–</span><small> %</small></div>
+          </div>
+        </div>
+      </div>
+      <div class="src">
+        固定成本 ¥22,200/月 = 人力 18,000 + 服务器 1,200 + 其他 3,000
+        （真源 <code>现金流与账期预测</code> → <code>fixedCost</code>，标注为「经营实况输入 · 非代码真源」）。
+        佣金按团长单占比加权计入。退款率 2%（占份数）为真源值，本表未扣——它会让平衡点再上移一点。
+      </div>
+    </div>
+  </section>
+
+  <!-- 敏感度 -->
+  <section>
+    <h2>三、敏感度 <span>配送费每涨 1 元，平衡点移动多少</span></h2>
+    <div class="panel">
+      <table class="sens">
+        <tr><th>佣金档（按 100% 团长单算，最保守）</th><th>配送 ¥2</th><th>配送 ¥3</th><th>配送 ¥5</th><th>配送 ¥7</th></tr>
+        <tr><td>自购（无团长）</td><td>103</td><td>115</td><td>149</td><td>211</td></tr>
+        <tr><td>见习 8%</td><td>131</td><td>150</td><td>214</td><td>369</td></tr>
+        <tr><td>正式 9%</td><td>135</td><td>156</td><td>226</td><td class="bad">408</td></tr>
+        <tr><td>金牌 10%</td><td>140</td><td>163</td><td>240</td><td class="bad">455</td></tr>
+        <tr><td>首席 12%</td><td>151</td><td>177</td><td>273</td><td class="bad">593</td></tr>
+      </table>
+      <div class="src">表内 = 盈亏平衡所需的<b>每天份数</b>；打包人工与场所摊销按 0 计 ⇒ 这是<b>乐观下限</b>，真实门槛只会更高。</div>
+    </div>
+  </section>
+
+  <!-- 判断 -->
+  <section>
+    <h2>四、五个结构性判断</h2>
+
+    <div class="judge">
+      <div class="judge__t">1. 这是「密度生意」，不是「外卖生意」</div>
+      <div class="judge__p">
+        每份饭的配送成本，<em>随单栋楼的出单密度摊薄</em>。送一栋楼 50 份和送 5 栋楼各 10 份，路程一样、份数一样，
+        <b>但后者每份的配送成本是前者的数倍</b>（分拣、等电梯、找人的时间都按楼算，不按份算）。<br>
+        ⇒ <em>12 栋楼各 20 人，输给 5 栋楼各 50 人。</em>选楼的标准不是"能进"，是"能进到多深"。
+      </div>
+    </div>
+
+    <div class="judge">
+      <div class="judge__t">2. 佣金按售价计，是个反向杠杆</div>
+      <div class="judge__p">
+        佣金 = 25.80 × 档位（8–12%），<b>不是按毛利计</b>。也就是说团长抽的是营业额，不是利润。
+        首席档 12% 抽走 ¥3.10，相当于<b>吃掉毛利上限的 26.3%</b>。<br>
+        ⇒ 在配送成本还没测出来之前，<em>高佣金档位是敞口风险</em>：高佣金的楼如果密度低，可能越卖越亏。
+        佣金档位应该<em>跟该楼的实际密度挂钩</em>，而不是只跟团长等级挂钩。
+      </div>
+    </div>
+
+    <div class="judge">
+      <div class="judge__t">3. 单一套餐既是护城河，也是天花板</div>
+      <div class="judge__p">
+        玉子屋式单一菜单 ⇒ 采购集中、生产标准化 ⇒ 供价压到 ¥14.00（占售价 54.3%），这是护城河。<br>
+        代价：<b>客单价被钉死在 ¥25.80</b>。用户没有"多点一份"的理由（不能加菜、不能加量）。
+        ⇒ 增长只剩两个变量：<em>人数 × 天数</em>。<b>客单价这一维天然为零。</b>
+      </div>
+    </div>
+
+    <div class="judge">
+      <div class="judge__t">4. 所以：复购（天数）是唯一的内生增长杠杆</div>
+      <div class="judge__p">
+        既然客单价动不了，收入的唯一内生增量就是<em>同一个人多订一天</em>。
+        一个人从周订 3 天提到 4 天，收入 +33%，<b>而获客成本为零</b>。<br>
+        ⇒ 这也解释了为什么「包周 / 订阅」的价值远大于任何拉新动作：
+        <em>它直接作用在唯一能动的那个变量上</em>，而且是唯一能把"每天都要重新卖一次"变成"一次卖一个月"的办法。
+      </div>
+    </div>
+
+    <div class="judge">
+      <div class="judge__t">5. 履约复用是唯一「营收增加、配送不加」的路径</div>
+      <div class="judge__p">
+        同一趟配送里，盒饭已经把配送费付完了。再多带一件东西（下午茶 / 水果 / 日用品），
+        <b>它的边际配送成本约等于零</b>——这在数学上是必然的，不是猜想。<br>
+        ⇒ 这意味着新增品类的毛利率<em>结构性高于盒饭本身</em>。
+        而且它<em>不触碰平台定性</em>：ABox 自营买断再卖，跟现在采购盒饭完全一样。<br>
+        ⇒ 这才是你第二轮说的「顺风车」的正确形态——我当时做成合规管控框架，理解错了。
+      </div>
+    </div>
+  </section>
+
+  <!-- 建议 -->
+  <section>
+    <h2>五、如果只做三件事</h2>
+    <div class="panel">
+      <ol class="acts">
+        <li><span class="tag0">零成本</span><b>把三项履约成本登记进系统。</b>
+          不用改造任何东西，只要把配送费 / 打包人工 / 场所摊销的真实数字填进后台配置。
+          <b>在这之前，上面所有数字都只是上限，不是利润。</b>这是唯一一件"不做就全是猜测"的事。</li>
+        <li><span class="tag1">高杠杆</span><b>用密度重排楼栋优先级，而不是继续铺数量。</b>
+          把现有 5 个楼群的<i>单栋日出单量</i>排个序，砍掉密度垫底的，把资源压到密度最高的两三栋。
+          同样的人力，密度翻倍等于配送成本减半。</li>
+        <li><span class="tag1">高杠杆</span><b>上「包周」而不是继续做拉新。</b>
+          客单价动不了的前提下，同一个人多订一天是唯一的内生增量，且获客成本为零。
+          它还能直接复用项目已有的 09:30 硬闸做当日请假。</li>
+      </ol>
+      <div class="src">
+        没列进来的：请客拉新（跟「省心」定位拧着）、投票（回馈太慢）、资质/核验类改造（对转化无边际贡献）。
+        <b>它们不是错，只是在这三件事面前优先级更低。</b>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+var F = 22200, PRICE = 25.80, COST = 14.00;
+function num(id) { return parseFloat(document.getElementById(id).value); }
+function fmt(n, d) { return n.toFixed(d === undefined ? 2 : d); }
+
+var elDel = document.getElementById('iDel'), elPack = document.getElementById('iPack'),
+    elSite = document.getElementById('iSite'), elLv = document.getElementById('iLv'),
+    elShare = document.getElementById('iShare'), elBld = document.getElementById('iBld'),
+    elPop = document.getElementById('iPop');
+
+function calc() {
+  var del = num('iDel'), pack = num('iPack'), site = num('iSite');
+  var lv = parseFloat(elLv.value), share = num('iShare') / 100;
+  var bld = num('iBld'), pop = num('iPop');
+
+  document.getElementById('vDel').textContent = '¥' + fmt(del, 1);
+  document.getElementById('vPack').textContent = '¥' + fmt(pack, 1);
+  document.getElementById('vSite').textContent = '¥' + fmt(site, 1);
+  document.getElementById('vShare').textContent = num('iShare') + '%';
+  document.getElementById('vBld').textContent = bld + ' 栋';
+  document.getElementById('vPop').textContent = pop + ' 人';
+
+  var contrib = PRICE - COST - (site + pack + del) - lv * share * PRICE;
+
+  var oCon = document.getElementById('oCon'), oPen = document.getElementById('oPen');
+  document.getElementById('oConV').textContent = fmt(contrib);
+
+  if (contrib <= 0.05) {
+    oCon.className = 'out out--warn'; oPen.className = 'out out--warn';
+    document.getElementById('oMonV').textContent = '不可达';
+    document.getElementById('oDayV').textContent = '不可达';
+    document.getElementById('oPerV').textContent = '—';
+    document.getElementById('oPenV').textContent = '—';
+    return;
+  }
+
+  var mon = F / contrib, day = mon / 22, per = day / bld, pen = per / pop * 100;
+  document.getElementById('oMonV').textContent = Math.ceil(mon).toLocaleString();
+  document.getElementById('oDayV').textContent = Math.ceil(day).toLocaleString();
+  document.getElementById('oPerV').textContent = fmt(per, 1);
+  document.getElementById('oPenV').textContent = fmt(pen, 1);
+
+  oCon.className = 'out' + (contrib < 3 ? ' out--warn' : ' out--ok');
+  oPen.className = 'out' + (pen > 15 ? ' out--warn' : ' out--ok');
+}
+
+[elDel, elPack, elSite, elLv, elShare, elBld, elPop].forEach(function (e) {
+  e.addEventListener('input', calc);
+  e.addEventListener('change', calc);
+});
+calc();
+</script>
+
+</body>
+</html>

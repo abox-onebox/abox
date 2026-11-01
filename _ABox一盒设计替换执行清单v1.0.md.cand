@@ -1,0 +1,529 @@
+# ABox 一盒 · 设计替换执行清单 v1.0
+
+> 生成日期 2026-09-19 · 依据《设计系统 v2.1 规格》（两份设计交付：`_ABox一盒用户端全量页面稿v1.0.html` / `_ABox一盒后台全量页面稿v1.0.html`）
+
+> **本清单是「统一替换」的执行依据。** 所有数字由 `_tmp/dsg/scan-replace.py` 机械扫描产出，不采信记忆值。**批次顺序 S1 → S8 不可反。**
+
+
+## 零、执行原则
+
+1. **判据统一**：emoji 只认「**剥掉注释后的渲染区**」。注释里的 emoji 是文档说明，不计入。
+
+2. **不动清单优先**：主色 `#6E5435`、背景 `#F6F0E5`、卡片面 `#FFFDF8`、状态三色 —— 一律不改。
+
+3. **一次一批、批内可回滚**：每批一个提交，跑完回归再进下一批。
+
+4. **豁免需登记**：`#fff` / `#000` 天然豁免；第三方平台品牌色须在 token 内集中登记后才豁免。
+
+5. **禁止手写数字**：任何「约 N 处」不得进本清单，必须脚本产出。本轮已因违反此条返工一次（菜单入口数曾手写成 36，实为 39）—— 见 §十。
+
+
+## 一、改动面总览（机械扫描）
+
+| 项 | 文件数 | 处数 | 其中真违规 |
+|---|---|---|---|
+| 端上 emoji（渲染区） | 20 | 145 | — |
+| 后台 emoji（渲染区） | 8 | 22 | — |
+| 端上裸色值 | 21 | 139 | **108**（31 处 `#fff`/`#000` 豁免） |
+| 后台裸色值（views 层） | 6 | 14 | **7**（7 处豁免） |
+| 后台菜单入口 | — | 39（8 分组） | **39**（结构里无 `icon` 字段，全需新增） |
+| 死组件 | 端上 3 + 后台 5 | — | 8 |
+
+> 死组件判据**按端别区分**：端上 uses==0 且 imports==0（easycom 自动导入，标签即证据）；后台 imports==0（显式导入；标签判据对普通 HTML 有假阳性）。用同一把尺子量两端会误判（`<table>` 是普通 HTML，不是组件标签）。
+
+
+## 二、S1 · token 真源落地（文件级）
+
+> 真源目录：`_ABox一盒设计token真源v2.1/`。**先落 token，再动页面** —— token 不对齐，后面每一批都在漂。
+
+| 来源（真源） | 目标（仓库） | 动作 |
+|---|---|---|
+| `tokens.user.scss` | `apps/miniprogram/src/styles/tokens.scss` | 覆盖变量块（不动文件结构） |
+| `tokens.admin.scss` | `apps/admin-web/src/styles/tokens.scss` | 覆盖变量块 |
+| `design-tokens.css` | 两端 `:root` 变量 | 新增（H5 与后台用） |
+| `icons-sprite.svg` | `apps/miniprogram/src/static/icons.svg` 等 | 新增（子集，见 `icons-manifest.md`） |
+| `design-tokens.json` | 构建期校验用 | 新增（不上线） |
+
+**门禁**：① token 值全等校验（真源 vs 落地，逐键比对）② `gate.mjs all verify` 20/20。
+
+**图标子集来源**：本设计稿的图标是按 Tabler 风格 **手绘的示范件**，用于验证描边风格；S1 落地时以 Tabler 官方 SVG 替换同形语义名，不改变样式类与尺寸。
+
+
+## 三、S2 · 字体分层
+
+| 变量 | 字体 | 用途 |
+|---|---|---|
+| `--font-display` | 楷体子集（现有 `ab-kaiti`） | 标题、品牌字、金额大字 |
+| `--font-body` | **无衬线系统栈** | 正文、表单、表格、数字 |
+
+**门禁**：字体文件体积**零新增**（系统栈不加载外部字体）；标题类与正文类在两端页面稿中逐屏对照无回退。
+
+**待决**：小程序原生（非 H5）下楷体子集的加载方式 —— 见《悬而未决登记册》O-1。
+
+
+## 四、S3 · emoji 清退（端上 145 处 / 后台 22 处）
+
+> 每处需人工判定归属：**功能图标 → 换描边图标**；分享/通知文案（UGC 例外）→ 可保留；纯装饰 → 换图标或删。
+
+### 4.1 端上（按处数降序）
+
+| 文件 | 处数 | 备注 |
+|---|---|---|
+| `pages/leader/profile.vue` | 20 |  |
+| `pages/leader/workbench.vue` | 17 |  |
+| `pages/leader/commission.vue` | 12 |  |
+| `pages/leader/refund.vue` | 12 |  |
+| `pages/mine/mine.vue` | 11 |  |
+| `pages/leader/building.vue` | 9 |  |
+| `pages/order-detail/order-detail.vue` | 9 |  |
+| `pages/leader/share.vue` | 8 |  |
+| `pages/leader-invite/leader-invite.vue` | 8 |  |
+| `pages/leader/pickup.vue` | 7 |  |
+| `utils/format.ts` | 6 |  |
+| `pages/index/index.vue` | 5 |  |
+| `pages/balance-detail/balance-detail.vue` | 4 |  |
+| `pages/leader/orders.vue` | 4 |  |
+| `pages/order-create/order-create.vue` | 4 |  |
+| `pages/leader/balance-log.vue` | 3 |  |
+| `pages/pay-result/pay-result.vue` | 2 |  |
+| `pages/traceability/traceability.vue` | 2 |  |
+| `pages/leader/withdraw.vue` | 1 |  |
+| `pages/leader-apply/leader-apply.vue` | 1 |  |
+
+### 4.2 后台（22 处 / 8 文件）
+
+> **全部是 `U+26A0` 同一符号**，且都在渲染区（不是注释）：`<div class="hint">` / `<p class="footnote">` / `<p class="dialog-hint">` 里。
+
+| 文件 | 处数 | 出现位置 |
+|---|---|---|
+| `views/supplier/form.vue` | 6 |  |
+| `views/dashboard/index.vue` | 4 |  |
+| `views/building/list.vue` | 2 |  |
+| `views/leader/detail.vue` | 2 |  |
+| `views/supplier/dishes.vue` | 2 |  |
+| `views/supplier/edit.vue` | 2 |  |
+| `views/supplier/list.vue` | 2 |  |
+| `views/supplier/takeout-links.vue` | 2 |  |
+
+**处置**：这几处语义是「注意」，改为信息提示组件（描边 `info` / `warn-tri` 图标 + 文字），**不要**直接删符号 —— 删掉会丢掉「这是警告」的语气。
+
+**门禁**：emoji 完整正则（含 `U+2600–27BF`）在**剥注释后**的渲染区 0 命中。
+
+
+## 五、S4 · 裸色值归零（端上 108 处 / 后台 7 处）
+
+### 5.1 端上（真违规 108 处）
+
+| 文件 | 真违规 | 总命中 | 豁免（`#fff`/`#000`） |
+|---|---|---|---|
+| `pages/order-detail/order-detail.vue` | **12** | 14 | 2 |
+| `pages/leader/commission.vue` | **10** | 12 | 2 |
+| `pages/index/index.vue` | **9** | 11 | 2 |
+| `pages/leader/profile.vue` | **7** | 9 | 2 |
+| `pages/leader/share.vue` | **7** | 9 | 2 |
+| `pages/leader/workbench.vue` | **7** | 12 | 5 |
+| `pages/leader/refund.vue` | **6** | 9 | 3 |
+| `pages/leader-apply/leader-apply.vue` | **5** | 5 | 0 |
+| `pages/leader/building.vue` | **5** | 7 | 2 |
+| `pages/leader/pickup.vue` | **5** | 7 | 2 |
+| `pages/leader/withdraw.vue` | **5** | 6 | 1 |
+| `pages/mine/mine.vue` | **5** | 6 | 1 |
+| `pages/balance-detail/balance-detail.vue` | **4** | 6 | 2 |
+| `pages/leader/balance-log.vue` | **4** | 5 | 1 |
+| `pages/order-create/order-create.vue` | **4** | 4 | 0 |
+| `pages/leader-invite/leader-invite.vue` | **3** | 3 | 0 |
+| `pages/order-list/order-list.vue` | **3** | 4 | 1 |
+| `pages/pay-result/pay-result.vue` | **3** | 3 | 0 |
+| `components/ab-supplier-card/index.vue` | **2** | 3 | 1 |
+| `pages/leader/orders.vue` | **2** | 3 | 1 |
+| `pages/traceability/traceability.vue` | **0** | 1 | 1 |
+
+### 5.2 后台 views 层（真违规 7 处）
+
+| 文件 | 真违规 | 总命中 | 豁免 |
+|---|---|---|---|
+| `views/supplier/list.vue` | **4** | 5 | 1 |
+| `views/supplier/dish-library.vue` | **2** | 3 | 1 |
+| `views/supplier/distribution-center.vue` | **1** | 2 | 1 |
+| `views/building/delivery-map.vue` | **0** | 1 | 1 |
+| `views/supplier/form.vue` | **0** | 1 | 1 |
+| `views/supplier/takeout-links.vue` | **0** | 2 | 2 |
+
+> `styles/tokens.scss` / `styles/element-override.scss` 内的色值属 **token 定义**，是合法来源，已从扫描中排除。把 token 文件算进来会得到一个虚高的数。
+
+
+## 六、S5 · 三处真缺陷落地
+
+| # | 缺陷 | 实测 | 处置 |
+|---|---|---|---|
+| 1 | 次文字 `#9A8B72` | 2.93 / 3.27 | 改 **`#796C57`** → 4.52 / 5.04 |
+| 2 | 金棕 `#C9A876` 当文字 | 1.98 / 2.21 | **退出文字位**，只做填充/描边/图标 |
+| 3 | 等级四色当文字 | 见习 4.41 · 正式 2.21 · 金牌 1.75 · 首席 3.10 | 改用「色块 + 文字标签」徽标 |
+
+> 等级加深到 4.5 后：正式 `#936F3A` 与金牌 `#927031` 的 RGB 通道差仅 **11**，**塌的是后三色**。等级色天生只能承载色块，不能承载文字。
+
+**门禁**：`core.check_all()` 全绿（含 5 项作为证据的「如期不达标」反例）。
+
+
+## 七、S6 · 组件规格落地
+
+| 组件 | 规格要点 |
+|---|---|
+| 状态 chip | 底色 + 加强档文字（成功 `#577738` / 警告 `#BE4334` / 信息 `#4A6FA5` / 金棕 `#8A6620`）；状态原色只用于图标与描边 |
+| 等级徽标 | 金棕实底 + 白字，或描边款用金棕加强档；不再用彩色文字 |
+| 时间线节点 | 三态（已过 / 当前 / 未到），节点色与文字色分离 |
+| 空状态插图 | 属**装饰插图**，走装饰通道（68rpx = 34px），不受功能图标三档（16/20/24）约束 |
+| 功能图标 | 一律 16 / 20 / 24 三档，全项目不得出现第四档 |
+
+> ⚠️ 「加强档」数值已按 `tokens.scss` 真源回填。本表 v1.0 原写的 `#597939 / #C24436 / #8D6A38`
+> 是 **S5 之前的旧值**（只按各自色调底调到 4.50，压米色底仅 4.39 / 4.44 / 4.35）——
+> 已升级为「全浅底达标」值。**同一口径写两处必有一处先烂**，故此处只保留真源值。
+
+### 7.1 落点（已实装 · 2026-09-21）
+
+| 项 | 落点 | 形态 |
+|---|---|---|
+| 状态 chip（端上） | `components/ab-status-badge/index.vue` | 色调底 + 加强档；清除手写 `rgba()`（其中两处恰好等于旧次文字色 `#9A8B72`，属缺陷①复发） |
+| 状态 chip（后台） | `styles/element-override.scss` · `.el-tag.el-tag--*` | 底 / 边 / 字三者拉回 token；**选择器必须与 Element 同优先级**（见 7.3） |
+| 等级徽标（端上） | `components/ab-level-badge/index.vue`（新建） | 见习 / 正式 = 描边款（**自带 `$c-surface` 底**）；金牌 / 首席 = 实底 + 白字 |
+| 等级徽标（后台） | `styles/level-badge.scss`（新建）+ 3 视图改造 | 同上；`levelTagType()` 已清零（等级四色当文字是缺陷③本体） |
+| 时间线节点（端上） | `pages/order-detail/order-detail.vue` | 30rpx（15px）三态：已过 = 实心 + 白勾 / 当前 = 空心描边 / 未到 = 装饰灰；连线随已过变金 |
+| 时间线节点（后台） | `styles/element-override.scss` · `.el-step__*` | 未到态文字 `$c-text-weak`、圆环描边 `$c-mut-bd` |
+| 空状态插图 | `components/ab-empty-state/index.vue` + **20 处调用点** | `illustration` 语义名（装饰通道 68rpx）；20/20 已配，语义按页各不相同 |
+
+### 7.2 门禁（两道，均自带自证）
+
+| 层 | 脚本 | 覆盖面 |
+|---|---|---|
+| 源码层 | `_tmp/icons/ui-gate.py` | 6 道扫描闸门（emoji / 裸色 / 状态原色作文字 / 图标三档 / 档位定义 / 主题红线）+ 18 项落点断言 |
+| 产物层 | `_tmp/icons/verify-dist-css.py` | 14 项**层叠核验**：我方覆盖必须在 Element 之后、浅色阶必须被重算（需先 build `admin-web`） |
+
+> ⚠️ 功能图标尺寸判据当前 **N/A（样本 0）**，**不记 OK** —— `<ab-icon>` 在本仓库实际 0 引用
+> （端上走 `{{ I.x }}` 内联字形，尺寸由容器 font-size 决定）。恒绿等于没有检查；
+> 「档位锁」改由**定义处**闸门兜底（扫 `icons.scss` 恰好三档 32/40/48rpx）。
+
+### 7.3 S6 期间新发现并修复的三处（原清单未列）
+
+| # | 缺陷 | 证据 | 处置 |
+|---|---|---|---|
+| 1 | **Element 按需样式静默覆盖主题**：`importStyle` 未关时，`el-*.css` 复用 chunk（68 个 / 208KB）**运行时晚于**入口 CSS 加载，把主题变量与全部覆盖打回默认 | 产物里 `--el-color-primary:#409eff`、`.el-tag--success{--el-tag-text-color:var(--el-color-success)}` 出现在我方覆盖**之后** | `vite.config.ts` 两处改 `ElementPlusResolver({ importStyle: false })`；CSS 77→48 个、体积 −242KB |
+| 2 | **覆盖写了但优先级不够 ⇒ 实际不生效**：`.el-tag--success`（0,1,0）打不过 Element 的 `.el-tag.el-tag--success`（0,2,0）；`.el-alert` 覆盖漏 `.is-light`（0,2,0 < 0,3,0） | 产物核验：改前 `--el-tag-text-color` 仍是 `var(--el-color-success)`、底色仍是 Element 派生的 `#f0f9eb`（冷绿） | 源码改同优先级选择器；**新增产物层门禁**把这类「静默失效」变可拦 |
+| 3 | **状态色浅色阶未随主题重算**：只覆盖基色、未覆盖 `light-N`，而 `light-N` 是 Element 从**自己的基色**派生的 ⇒ 所有浅底组件跑出米金色系 | `el-alert--success` 正文 **4.43 不达标**；`el-alert--error` 正文 `#f56c6c` 压 `#fef0f0` 仅 **2.61**，且 `--el-color-error` 本主题**从未覆盖** | 补 `--el-color-error` 别名 + 5 族 × `light-3/5/7/8/9` 共 25 条；`el-alert` 正文改加强档（带 `.is-light`） |
+
+### 7.4 遗留（已登记 · 不在 S6 收口）
+
+- 规格 §八 曾承诺时间线「**异常实心叉**」节点，但数据契约 `OrderTimelineNode` 只有 `done: boolean`、
+  **无 error 字段** ⇒ 本轮只实装数据支持的**三态**；异常态待契约补字段后再补（组件内已留注释）。
+
+
+## 八、S7 · 后台菜单补 icon 字段 + 死组件处置
+
+> **状态：✅ 已实装（2026-09-21）** —— 见 8.1 落地清单 / 8.2 处置结果 / 8.3 新发现（未处置，待决策）
+
+### 8.1 菜单补 icon（39 个唯一入口 / 8 分组）· ✅ 已实装
+
+> 扫描结论（本轮复核）：菜单结构 **此前没有任何 `icon` 字段**，即后台是全文字侧边栏 ——
+> 34 个入口 / 8 个分组平铺在 216px 窄栏里，找一页只能逐行读标题。这是「步骤多、来回跳」的真实成因之一，属**必修**项而非美化项。
+
+**落地（真源 = `apps/admin-web/src/constants/index.ts`）**
+
+| 落点 | 内容 |
+|---|---|
+| `ADMIN_NAV` 34 项 + `SUPPLIER_NAV` 6 项 | 共 **40 条目 / 39 唯一 path**（`/dashboard` 两侧各出现一次），每条新增 `icon` 字段 |
+| 图标取值 | 全部取自 `@abox/shared-utils` 的 `ABOX_ICON_NAMES`（**82 名** Tabler 子集），无一悬空 |
+| `stores/permission.ts` | `NavItem` 接口新增 `icon: AboxIconName`（必填）；`filterByMenus` 用 `{...i}` 展开 ⇒ **自动透传**，无需改动 |
+| `layouts/default-layout.vue` | `el-menu-item` 内渲染 `<AbIcon class="ab-layout__ico" :name="it.icon" :size="16" />`（16px 行内档） |
+
+**两处易踩的实现细节**：
+
+1. **菜单项必须改成 flex**：Element 的 `.el-menu-item` 靠 `line-height: 56px` 做垂直居中，
+   行内塞进图标字形（`<i class="abi">`）会比文字高、撑开行盒 ⇒ 文字下坠。`display:flex + align-items:center + gap` 一次性解决。
+2. **未选中图标用 `$c-text-weak` 而非继承文字色**：39 个入口全用同一深色会让侧边栏变成一片同权重噪点，
+   失去视觉锚点的意义。`$c-text-weak #796c57` 在面底上 **5.04:1**（功能性图形需 3:1，余量充足）；
+   选中态 `color: inherit` 跟随 `--el-menu-active-color`。
+3. `AbIcon` 在模板里**无需 import** —— `unplugin-vue-components` 默认 `dirs = src/components` 已自动注册。
+
+**门禁（已实装 · 随 `gate.mjs all` 跑）= `scripts/check-nav-consistency.mjs` 第 ⑥ 条**
+
+- `[图标缺失]`：导航条目没有 `icon` 字段
+- `[图标悬空]`：`icon` 不在 `ABOX_ICON_NAMES` 内 —— **这是本项唯一值得机械化的理由**：
+  字形表里没有该名字时 `ABOX_ICON_CODEPOINTS['typo']` 得 `undefined`，渲染成**空白位**，
+  不报错、不警告、构建通过、截图里只是"那块地方空着"，肉眼极易漏过。
+- `[解析失效]`：解析出的条目为 0 时**自曝**（防"恒绿"—— 空样本的循环一次不跑，门禁会假装通过）
+- 自证 **9/9**（本轮新增 4 例：图标缺失 / 图标悬空 / 真源读空 / 条目读空）
+
+| # | 路径 |
+|---|---|
+| 1 | `/building/delivery-map` |
+| 2 | `/building/groups` |
+| 3 | `/building/leader-binding` |
+| 4 | `/building/list` |
+| 5 | `/building/overview` |
+| 6 | `/dashboard` |
+| 7 | `/finance/balance` |
+| 8 | `/finance/commission` |
+| 9 | `/finance/invoices` |
+| 10 | `/finance/overview` |
+| 11 | `/finance/reconciliation` |
+| 12 | `/finance/refund` |
+| 13 | `/finance/supplier-share` |
+| 14 | `/finance/withdrawal` |
+| 15 | `/leader/list` |
+| 16 | `/meal/edit` |
+| 17 | `/meal/matrix` |
+| 18 | `/meal/template` |
+| 19 | `/order/delivery` |
+| 20 | `/order/detail` |
+| 21 | `/order/list` |
+| 22 | `/stats/building-rank` |
+| 23 | `/stats/core-metrics` |
+| 24 | `/stats/dish-heat` |
+| 25 | `/stats/retention` |
+| 26 | `/supplier/cook-confirm` |
+| 27 | `/supplier/dish-library` |
+| 28 | `/supplier/dishes` |
+| 29 | `/supplier/edit` |
+| 30 | `/supplier/list` |
+| 31 | `/supplier/packing-center` |
+| 32 | `/supplier/settlement` |
+| 33 | `/supplier/workbench` |
+| 34 | `/system/admin-user` |
+| 35 | `/system/config` |
+| 36 | `/system/message-template` |
+| 37 | `/system/operation-log` |
+| 38 | `/system/role` |
+| 39 | `/system/schedule` |
+
+**门禁**：菜单项与路由表同源校验（无孤儿入口、无悬空图标名）。
+
+### 8.2 死组件处置（用或删，不留悬挂）
+
+> 判定口径**按端别区分**：端上走 easycom 自动导入，**模板标签即证据**（需 `uses` 与 `import` 双零）；后台走显式 `import`，**只看 `import`**（标签判据对普通 HTML 有假阳性）。
+
+| 组件 | 端 | uses | import | 处置 |
+|---|---|---|---|---|
+| `ab-loading` | 端上 | 21 | 0 | 保留（按 v2.1 补规格） |
+| `ab-empty-state` | 端上 | 20 | 0 | 保留（按 v2.1 补规格） |
+| `ab-bottom-bar` | 端上 | 5 | 0 | 保留（按 v2.1 补规格） |
+| `ab-status-badge` | 端上 | 2 | 0 | 保留（按 v2.1 补规格） |
+| `ab-supplier-card` | 端上 | 2 | 0 | 保留（按 v2.1 补规格） |
+| `ab-countdown` | 端上 | 0 | 0 | **删除** |
+| `ab-dish-card` | 端上 | 0 | 0 | **删除** |
+| `ab-meal-card` | 端上 | 0 | 0 | **删除** |
+| `components/chart` | 后台 | 0 | **0** | **删除** |
+| `components/editor` | 后台 | 0 | **0** | **删除** |
+| `components/search-form` | 后台 | 0 | **0** | **删除** |
+| `components/table` | 后台 | 1 | **0** | **删除**（`uses 1` 是普通 HTML `<table>` 假命中，不计入） |
+| `components/upload` | 后台 | 0 | **0** | **删除** |
+
+#### 处置结果 · ✅ 已删除（2026-09-21）
+
+删除前**再次机械复核**（不采信本表旧值），按端别口径分别核到**双零**后才动：
+
+| 组件 | 端 | 复核结果 | 状态 |
+|---|---|---|---|
+| `ab-countdown` / `ab-dish-card` / `ab-meal-card` | 端上 | 标签 0 · import 0 | 已删 |
+| `components/{chart,editor,search-form,table,upload}` | 后台 | 标签 0 · import 0 | 已删 |
+
+- 备份留在 `_tmp/icons/removed-components/`（8 个目录全量副本），且均在 git 跟踪内（可 `git checkout` 恢复）
+- **连带清理**：`apps/admin-web/components.d.ts`（`unplugin-vue-components` 自动生成的类型声明）
+  不会因目录消失而失效，仍写着 `Chart: typeof import('./src/components/chart/index.vue')['default']`
+  ⇒ `vue-tsc` 报「找不到模块」。已按「只删指向**已不存在目录**的行」精确清理 5 行（活组件声明一行未动）。
+
+**⚠️ 删除不产生常驻门禁**：加一条「全仓不得存在 0 引用组件」的常驻检查会**误报**（新组件刚建、尚未接线是常态）。
+故本项是一次性清理，判定依据留在本节 + 清单脚本里。
+
+### 8.3 端上「功能图标三档锁」未落地 → **S7.5 收口**（✅ 已处置 · 2026-09-21）
+
+> 与 S6 的三处结构性缺陷同源：都是**规格写了、代码没做，而门禁结构上看不见**。
+
+#### 8.3.1 问题（S7 实测，留作证据）
+
+规格 §五 锁定功能图标 16/20/24px（= 32/40/48rpx），S7 实测：
+
+| 分类 | 处数 | 实际字号 | 结论 |
+|---|---|---|---|
+| **混排型**：`<text class="menu__label">{{ I.phone }} 客服微信号</text>`（图标与文字同 class） | **63** | `$fs-h2` / `$fs-body` / `$fs-caption` / `22rpx` 等**文字字号** | 结构上**不可能**等于三档 |
+| **独立型**：`<text class="apply__icon">{{ I.crown }}</text>`（图标独占元素） | **15** | 120 / 96 / 72 / 60 / 56 / 52 / 44 / 20rpx | 只有 56rpx（=28px 装饰档）命中，其余**不在任何档内** |
+
+**合计 78 处渲染点 / 18 个文件，落在三档内的：0 处。**
+
+根因两条，缺一不可：
+
+1. **端上没有统一的图标承载点**：78 处由各页 `import { ABOX_ICON_CHARS as I }` 直接把 PUA 字符塞进 `<text>`，
+   字号由各页自己写 ⇒ 三档**无从机械校验**（无从校验就无法防复发）。
+2. **`components/ab-icon/index.vue` 组件 0 引用（悬挂）**：它做的正是「`<text class="abi abi-16|20|24">`」这件事，
+   但没有任何页面用它 ⇒ 三档落不了地。
+
+#### 8.3.2 ⚠️ 处置前的**技术前提更正**（这一条决定了方案）
+
+S7 给的「改用 `<ab-icon>` 组件」在**端上行不通**。微信官方文档（text 组件 · Bug & Tip）原文：
+
+> `tip`：text 组件内**只支持 text 嵌套**。
+
+⇒ `<text>` **不能内嵌自定义组件**。而端上图标位绝大多数是「图标 + 中文」混排在同一 `<text>` 里
+（卡片标题 / 菜单行 / 提示条 / 按钮文案）——这些位置写 `<ab-icon>`，组件节点会被渲染层
+**静默丢弃**（不报错、不警告、位置空着）。这正是该组件此前 0 引用的真实原因。
+
+⇒ 唯一能同时覆盖「混排位」与「独立位」的写法是**统一的 class 约定**（嵌套 `<text>`，官方支持）：
+
+```html
+<text class="abi abi-16">{{ I.chart }}</text>        功能图标（行内）
+<text class="abi abi-deco-40">{{ I.rice }}</text>    装饰插图
+```
+
+嵌套层上的 `font-size` 是**直接声明**，能盖住父级继承来的文字字号 —— 这是三档锁在混排语境下成立的前提。
+
+#### 8.3.3 落地（S7.5-1 ~ S7.5-5）
+
+| 批次 | 内容 | 证据 |
+|---|---|---|
+| S7.5-1 | 装饰四档写进**生成器**（非只改产物）+ 两端 `icons.scss` | `gen-assets.py` 预检 ⑥ 断言两族 3+4、不重叠、档名精确 |
+| S7.5-2 | **99 处**渲染点收敛到档位 class（`abi-16/20/24` + `abi-deco-*`） | 18 处页级 `font-size` 删除（否则装饰档被页级覆盖 = 锁只是装饰） |
+| S7.5-3 | 脚本内联图标 6 处改「存名字、模板解析」；真 emoji `⏰` 3 处 → iconfont `clock`；裸档位插值 7 处补档位；独立箭头 5 类 → iconfont `chev` | 28 处编辑逐条断言命中数，全过才写盘 |
+| S7.5-4 | **新增常驻门禁 `icons:lock`**（7 条断言 + 9 项自证），登记进 `gate.mjs` ⇒ 三档锁**从此可机械校验** | `gate:parity` 复跑通过（`all` 20 → 21 道，文档标记同步） |
+| S7.5-5 | 两端构建 + 全套门禁 + 本文档 | 见 §十一 |
+
+**最终实测（端上编译产物）**：档位 class **128 处** —— `abi-16` 93 · `abi-20` 13 · `abi-24` 6 ·
+`abi-deco-28` 6 · `abi-deco-34` 6 · `abi-deco-40` 4；**渲染区 emoji 0 · 独立箭头裸字形 0 · 插值档位覆盖 128/128**。
+
+#### 8.3.4 本批**判定留痕**（可覆写 · 请复核）
+
+| 判定 | 结论 | 依据 |
+|---|---|---|
+| 按钮内图标档位 | 一律 `abi-20` | 与既有约定一致（`war__btn` 28rpx 文字 / `level__btn` 24rpx 文字，两者图标都是 20px）⇒ **与按钮文字字号无关** |
+| 行尾指示箭头（`menu__arrow` / `way__arrow` / `apply__arrow` / `supplier-card__arrow` / `hero__alert-arrow`） | 归**行内**档 `abi-16` | 规格的 20px 档专指「按钮内」、24px 档专指「独立图标」（整屏语义主体）；行尾箭头读作「标题 ›」，属文本行内延伸。原 17/18/20px **归一为 16px** |
+| 句内后缀 `›`（"进入工作台 ›" / "全部流水 ›" 等 **30+ 处**） | **保留** | 这是**排版**不是功能图标；判据 ⑦ 只拦「独立元素里只有字形」的形态，句内后缀不拦 |
+| `⏰`（U+23F0） | 换 iconfont `clock` | 它是**渲染区真 emoji**（不是注释），P0 规则不允许 |
+| `components/ab-icon/`（端上） | **移出仓库** | 0 引用 + 文档已裁定端上走字符；留着会诱导后人使用并踩「静默丢弃」。备份在 `_tmp/icons/removed-components/` |
+| 后台 `AbIcon` 组件 | **保留**（15+ 处在用） | 后台是 Vue 组件渲染，不吃微信 `<text>` 的限制 |
+
+#### 8.3.5 ⚠️ 生成器纪律（本批补上的一条）
+
+`icons.scss` 是**生成物**，而仓库 `format` 门禁（`prettier --check`）覆盖 `**/*.scss`。
+本批实测：生成器直接吐「单行规则 + 未拆行的超长 `url()`」+ Windows `write_text` 默认把 `\n`
+翻成 `\r\n` ⇒ **重新生成必让 format 转红**，而红在生成物上、看起来像改真源的人写坏的。
+已在 `gen-assets.py` 内**固化**：① 写盘前过 prettier（`--stdin-filepath` 指仓库内最终路径）；
+② 五处 `write_text` 显式 `newline="\n"`；③ 返回值归一 LF。
+**验收 = 生成物与仓库文件 `sha256` 字节一致**（实测 18103B / 18065B 一致）。
+
+## 九、S8 · 后台移动端关键路径（仅 2 屏）
+
+| # | 路径 | 页面 | 为什么是它 |
+|---|---|---|---|
+| 1 | 商家端 | 供应商配外卖链接 | 供应商日常最高频、且原界面在手机上完全不可用 |
+| 2 | 运营端 | 团长看佣金 / 结算 | 运营在楼下现场最需要随手查的数 |
+
+**明确不做**：全站响应式。只做这两条关键路径，其余视图在移动端保持现状。
+
+
+## 十、判据更正记录（必须随代码一起留痕）
+
+| 判据 | 上一轮 | 本轮（已验证） | 根因 |
+|---|---|---|---|
+| 端上 emoji | 86 | **145** | ① 正则缺 `U+2600–27BF` 区段 → 少算 48 处；② 未计 script 字面量 11 处 |
+| 后台 emoji | 「0，已达标」 | **22 处 / 8 文件** | 后台全部 emoji 是 `U+26A0` 同一符号，正好落在漏掉的区段里 |
+| 后台菜单入口 | 手写「36」 | **39**（脚本产出） | 未经脚本核验就写进文档，违反本清单 §零-5 |
+| 死组件（端上） | 3 个 0 引用 | **确认 3 个** | — |
+| 死组件（后台） | 「5 个通用组件在用」 | **5 个全死（0 import）** | 按名称 grep 的 718 次是 `el-table` 子串误命中；`table` 的 `uses 1` 是普通 HTML 表格 |
+
+| 端上 emoji（本轮复查） | 145 | **0（渲染区）** | 旧判据把 HTML 注释 / JSDoc 里的告警符号记成渲染区 emoji —— 报出的 38 处**全是假报**；根因：剥注释漏 `<!-- -->`，且用「删除」而非「等长空格」导致**行号整体错位** |
+| 图标尺寸闸门（`<ab-icon>`） | 「0 命中 = OK」 | **N/A（样本 0，不计入通过）** | 该组件在本仓库实际 0 引用 ⇒ 判据恒绿 = 没有检查；改由「定义处」闸门兜底 |
+| 「状态原色作文字」 | 按**名字**判 | 按**取值**判 | `$c-info` 与 `$c-info-fg` 同为 `#4a6fa5` ⇒ 按名字硬报是**噪音**（改不改渲染一样），噪音会让人开始无视门禁 |
+| el-tag / el-alert 覆盖 | 「写了就算」 | 源码层查写法 + **产物层查位置** | 两次实测「源码层全绿、浏览器里全是旧样式」（0,1,0 < 0,2,0；漏 `.is-light` 则 0,2,0 < 0,3,0） |
+| 后台菜单图标 | 「菜单已 39 入口，结构完整」 | **0 个 `icon` 字段**（全文字侧边栏） | 只数了「入口数」，没数「每条有什么字段」—— 结构完整性 ≠ 字段完整性 |
+| 端上图标三档 | `<ab-icon size>` 闸门报 N/A 即收工 | **78 处渲染点，0 处在三档内** | N/A 被当成"无害"读过了。**0 样本 = 判据未生效 = 该查的地方完全没查**，必须追到「那真实写法长什么样」 |
+| 端上图标三档（**取模板区**） | 非贪婪 `/<template[^>]*>(.*?)<\/template>/` | **深度配对取最外层** | 非贪婪在**第一个嵌套 `</template>`** 处截断（`<template v-else>` 极常见）：实测 `withdraw.vue` 只截到 **1128 / 12145** 字符 ⇒ 截断区内 **7 处未加档位的插值全部漏扫**，而门禁当时报「③ 99/99 全绿」。**假阴性比假阳性贵得多**——它伪装成通过 |
+| 端上 emoji（**区段**） | 只扫 `U+1F300–1FAFF` + `U+2600–27BF` | **补 `U+2300–23FF`** | `⏰ (U+23F0)` 落在该区块。实测 `pickup.vue:163` 是**渲染区真 emoji**（不是注释），漏了整整一轮 ⇒ 范围必须按区块逐个列出，不能凭印象 |
+| 「独立箭头字形」 | 只判 emoji 区段 | **新增判据 ⑦**：独立箭头元素（class 含 `arrow/chev/caret`）内不得是裸字形，必须是 `.abi` 图标 | `› (U+203A)` / `⌄ (U+2304)` 是「**排版上合法、独立承载位上是功能图标**」。全站 `›` 30+ 处（多为句内后缀 ⇒ 保留），而 `.menu__arrow` / `.way__arrow` / `.apply__arrow` / `.supplier-card__arrow` / `.hero__alert-arrow` 这些**独立元素**里的必须换 iconfont。判据只认独立元素，**句内后缀不拦**（误报比漏报更快把人训练成忽略告警） |
+| 校验类脚本的「语法预检」 | 用 Python `ast.parse` 解析 `.vue` 的 `<script>` | **不得**：TS 不是 Python | 本轮踩过：`ast.parse` 对 `<script setup lang="ts">` 必然报「invalid character」⇒ **9 个文件全假红**。脚本类 `.mjs` 用 `node --check`；`.vue` 的 TS 语法交给真实构建（vite / vue-tsc） |
+
+**教训（写进纪律，供后续批次复用）**：
+
+1. 数 emoji 必须**先剥注释**，再用**完整正则**（含 `U+2600–27BF`），并**分区统计**（模板 / 脚本 / 样式）。
+
+2. 数组件引用**必须按 import 路径**，不能按名称 grep —— `table` / `chart` 这类通用词会误命中，`<table>` 还会被当成组件标签。
+
+3. 统计类正则必须先剥掉 `<code>` / `<pre>` 里的**转义代码样例**，否则 `&lt;div class="hint"&gt;` 会被当成真实元素（本轮踩过一次）。
+
+4. 组件目录可能是**目录形式**（`components/xxx/index.vue`），`glob("*.vue")` 会扫出空集（本轮踩过一次）。
+
+5. 任何「约 N 处」的口径**不得进执行清单**，必须是脚本产出。
+
+6. **「写了」≠「生效」**：任何覆盖第三方库默认样式的改动，**必须验产物**里的层叠顺序与优先级 ——
+   源码层门禁**结构上看不见**这类缺陷。判据 = **同优先级 + 位置靠后**；只写其中一条都可能是静默失效。
+
+7. **反例断言（「不该报的不能报」）极易自伤**，本轮连踩两次：
+   ① 用 `count(old)` 判「旧写法已清除」，而**新写法里本就包含旧串作为子串** ⇒ 恒报残留；
+   ② 注释里为说明问题而写的**反例样本**被当成真命中 ⇒ 恒报失败。
+   ⇒ 反例断言必须**先剥注释**，并用**负向后视**而非子串计数。
+
+8. **0 样本的判据必须显式记 `N/A`，不得记 OK** —— 恒绿的检查等于没有检查。
+
+9. **剥注释必须「等长替换为空格」**（保留换行）：否则用「剥后下标」去数「原文行号」，
+   会把每一条命中的行号都报错 —— 而审查者会按错行号去定位，白耗一整轮。
+   另：.vue 还要剥 `<!-- -->`，且必须是**有序状态机**（进了块注释，反引号就不再是字符串起点）。
+
+10. **口号的数值也会自己烂**：本清单 §七 的「加强档」三个色值写在 S5 之前，S5 升级后没跟着改。
+    ⇒ 凡是与 token 真源同义的数值，文档里**只留指针或由脚本回填**。
+
+11. **`N/A`（0 样本）不是"没问题"，是"这里完全没查"** —— 本轮最贵的一条：
+    `ui-gate.py` 第 4 闸门（`<ab-icon size>` 三档）一直报 `N/A`，被当成"无害"读过了两轮；
+    直到把它当**线索**追下去，才发现端上 **78 处图标渲染点、0 处在三档内**、且承载组件 `ab-icon` **0 引用**。
+    ⇒ 凡出现 `N/A`，必须追加一步「那真实写法是什么？用哪个判据能覆盖它？」——
+    **没有承载点就没有判据，没有判据就没有落地**（规格——载体——门禁，三者缺一即空转）。
+
+12. **管道会吞掉退出码** —— `cmd | tail -3 && echo OK` 里 `$?` 是 **`tail` 的**，不是 `cmd` 的。
+    本轮实测：后台 build 因 dist 残留 `EPERM` 真失败，而管道让整串返回 0、打出 `ADMIN BUILD OK`；
+    靠**核对 dist 时间戳**才发现（产物停在上一轮的 17:08，而 build 是 17:19 跑的）。
+    ⇒ 长命令一律 `cmd > log 2>&1; echo $?`，并**用产物时间戳/内容二次验证**，不信 echo。
+
+
+## 十一、验收门禁（每批必须全绿）
+
+```bash
+# 1) 主题红线
+#    emoji（剥注释后·完整正则）必须为 0；紫粉渐变 / 弹跳缓动 / 空洞文案 必须为 0
+# 2) 裸色值
+#    端上与后台 views 层裸 hex 必须为 0（#fff/#000 豁免）
+# 3) 设计门禁（S6/S7/S7.5 新增 · 均自带自证，判据坏了会自己报出来）
+#    python _tmp/icons/ui-gate.py          -> 源码层：6 道扫描闸门 + 22 项落点断言
+#                                             （0 样本记 N/A，**不记 OK**；
+#                                              N/A 必须当线索追，见 §十-11）
+#    python _tmp/icons/verify-dist-css.py  -> 产物层：14 项层叠核验
+#                                             （**需先 build admin-web**；专治「覆盖写了但没生效」）
+#    node scripts/gate.mjs nav:consistency -> 菜单「授权↔入口」双向对账 + **图标同源**（40 条/82 名）
+#                                             （S7 新增第 ⑥ 条；自证 9/9，含空样本自曝）
+#    node scripts/gate.mjs icons:lock      -> 端上图标**承载位**门禁（S7.5 新增 · 7 条断言 + 9 项自证）
+#                                             ① 渲染区真 emoji == 0  ② 非承载位上的 I.xxx == 0
+#                                             ③ 插值必须被档位包裹  ④ 档位取值合法
+#                                             ⑤ 两端档位定义与真源一致（各 7 档）
+#                                             ⑥ ab-icon「存在性×引用数」四态
+#                                             ⑦ 独立箭头元素内不得是裸字形（› ⌄ ▾ …）
+#                                             ⚠️ 取模板区必须**深度配对** —— 非贪婪会在第一个
+#                                             嵌套 </template> 处截断，导致整段漏扫（§十 已留痕）
+# 4) 结构与回归（原有门禁，不得退化 · 以下为 2026-09-21 实跑值）
+#    node scripts/gate.mjs all verify  ->  25/25（`all` 21 + `verify` 4 · 2026-09-21 实跑）
+#                                          条数**唯一真源** = `node scripts/gate.mjs --json`
+#                                          ⚠️ 新增 icons:lock 后 `all` 由 20 → 21；
+#                                             文档侧条数声明点只有《本地开发手册》§6.1 的
+#                                             `<!-- gate-count -->` 标记（由 gate:parity 校验）
+#    e2e 先 seed：m1 64 / m2 128 / m3 1066
+#    基线清单 verify-manifest：316 行（现 39 + 废 7 + 骨架 261 + 验证工具 9）
+#      ⚠️ 当前 **24 项不符**（全部落在「工程骨架」）—— 系设计替换批次改了冻结文件所致，
+#         属**预期内**。须在 **S8 收口时统一重跑生成器重冻**，不要在批次中途反复重冻。
+```
+
+> 本项目的 e2e 计数须**复刻 env 直跑**（`E2E_PORT=3103` + `ABOX_SHIFT_TO_HOUR=20` + `QUEUE_DRIVER=memory` + `QUEUE_BACKOFF_BASE_MS=20`，且先跑 `seed`）——`gate.mjs` 成功时会吞掉子进程 stdout。
+
+
+## 十二、回滚
+
+- 每批一个提交；S1（token）与 S2（字体）相互独立，可单独回退。
+
+- S3 / S4 / S5 改动大量页面样式类，**建议合并为一个提交一次跑完回归**，避免中间态（半旧半新比全旧更危险）。
+
+- 端上圆角 4/10/16rpx → 8/20/32rpx 是本轮**唯一非缺陷类视觉调整**，改回 token 值即可整体回退，不涉及页面代码。
+
+- 图标子集为独立产物，回退只需换回旧字体文件与类名字典。
+

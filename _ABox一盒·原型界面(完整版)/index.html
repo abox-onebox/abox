@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ABox 一盒 · 完整原型讨论稿</title>
+<style>
+@font-face{font-family:'Kaiti';src:url('ab-kaiti.woff2') format('woff2');font-display:swap;}
+:root{
+  --bg:#F6F0E5; --ink:#6E5435; --ink2:#796C57; --weak:#9B8C76;
+  --gold:#C9A063; --gold-deep:#9A7B47; --gold-fg:#EBD7AE;
+  --surface2:#ECE3D2; --line:#D8CCB6; --white:#FCF8F0;
+  --warn-bg:#F1E4CE; --warn-bd:#C9A063;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Kaiti',"STKaiti","KaiTi",serif;background:#E7DFCF;color:var(--ink);padding:30px 18px 70px;line-height:1.65;}
+.wrap{max-width:1180px;margin:0 auto;}
+h1{font-size:27px;letter-spacing:2px;color:var(--ink);text-align:center;font-weight:700;}
+h2{font-size:21px;color:var(--ink);margin:42px 0 8px;padding-left:13px;border-left:5px solid var(--gold);letter-spacing:1px;}
+h3{font-size:16.5px;color:var(--gold-deep);margin:20px 0 8px;letter-spacing:.5px;}
+.sub{text-align:center;color:var(--weak);font-size:13.5px;margin:7px 0 4px;}
+.note{font-size:13px;color:var(--weak);line-height:1.95;background:var(--white);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:14px 0;}
+.note b{color:var(--ink);}
+.fix{display:inline-block;background:var(--warn-bg);border:1px solid var(--warn-bd);color:var(--gold-deep);border-radius:6px;padding:1px 9px;font-size:12.5px;margin-right:6px;}
+
+/* ---------- 手机原型 ---------- */
+.row{display:flex;flex-wrap:wrap;gap:26px;justify-content:center;margin:22px 0;}
+.phone{width:338px;flex:0 0 auto;background:#1d1a15;border-radius:34px;padding:11px;box-shadow:0 14px 36px rgba(60,45,25,.35);}
+.phone__notch{height:22px;display:flex;align-items:center;justify-content:center;}
+.phone__notch i{display:block;width:118px;height:7px;border-radius:5px;background:#3a342b;}
+.screen{width:100%;height:724px;background:var(--bg);border-radius:26px;overflow-y:auto;overflow-x:hidden;position:relative;}
+.screen::-webkit-scrollbar{width:4px;}
+.screen::-webkit-scrollbar-thumb{background:rgba(110,84,53,.3);border-radius:3px;}
+.label{text-align:center;font-size:13.5px;color:var(--ink2);margin:14px 0 4px;font-weight:700;letter-spacing:.5px;}
+.label small{display:block;color:var(--weak);font-weight:400;font-size:11.5px;margin-top:2px;}
+
+/* 倒计时 */
+.cd{background:var(--ink);color:var(--bg);border-radius:0 0 18px 18px;padding:14px 16px 15px;text-align:center;}
+.cd__l{font-size:12px;opacity:.82;letter-spacing:1px;}
+.cd__n{font-family:"Courier New",monospace;font-size:30px;color:var(--gold-fg);font-weight:700;letter-spacing:1px;margin:3px 0;}
+.cd__s{font-size:11px;opacity:.78;}
+.cd--cut{background:#8a7a5e;}
+.cd--cut .cd__n{color:#f3e6c8;font-size:18px;font-family:'Kaiti',serif;}
+
+/* 天盖 */
+.lid{margin:11px;background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:var(--white);border-radius:18px 18px 6px 6px;padding:18px 18px 14px;position:relative;box-shadow:inset 0 -6px 12px rgba(120,90,40,.28);}
+.lid__date{font-size:18px;font-weight:700;letter-spacing:1px;}
+.lid__pills{margin-top:10px;display:flex;flex-direction:column;gap:7px;}
+.lid__pill{background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.4);border-radius:20px;font-size:13px;padding:5px 14px;align-self:flex-start;}
+.seam{height:3px;margin:0 11px;background:linear-gradient(90deg,transparent,var(--line),transparent);}
+
+/* 盒身 */
+.box{margin:0 11px 11px;background:var(--surface2);border-radius:0 0 16px 16px;padding:11px;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.cell{background:var(--white);border-radius:12px;padding:6px;box-shadow:0 1px 3px rgba(110,84,53,.12);}
+.cell__img{height:128px;background:linear-gradient(135deg,#efe7d6,#e0d4bd);border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--weak);font-size:11px;position:relative;overflow:hidden;}
+.cell__img b{font-size:14px;color:var(--ink2);}
+.cell__name{font-size:14px;color:var(--ink);margin-top:7px;font-weight:700;padding-left:2px;}
+.cell__from{font-size:12px;color:var(--ink2);margin-top:2px;padding-left:2px;}
+.cell__from em{font-style:normal;color:var(--gold-deep);}
+.cell__from .ar{color:var(--gold);}
+.rice{margin-top:8px;background:var(--white);border-radius:12px;padding:11px 13px 12px;box-shadow:0 1px 3px rgba(110,84,53,.12);border-top:2px solid var(--line);}
+.rice__top{display:flex;align-items:center;gap:9px;}
+.rice__ic{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;flex:0 0 auto;}
+.rice__t{font-size:15px;font-weight:700;color:var(--ink);}
+.rice__mk{font-size:11.5px;color:var(--weak);margin-top:1px;}
+.rice__opt{font-size:12px;color:var(--ink2);margin-top:4px;}
+
+/* 引导 / 横幅 */
+.guide{margin:11px;background:var(--warn-bg);border-left:4px solid var(--gold);border-radius:8px;padding:11px 13px;font-size:12.5px;color:var(--ink2);}
+.guide b{color:var(--gold-deep);}
+.lb{margin:11px;background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:var(--white);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;font-size:13.5px;font-weight:700;}
+.lb span{font-size:12px;opacity:.9;font-weight:400;}
+.lrow{margin:11px;background:var(--white);border-left:4px solid var(--gold);border-radius:8px;padding:11px 13px;}
+.lrow__k{font-size:11px;color:var(--gold-deep);letter-spacing:1px;}
+.lrow__t{font-size:13px;color:var(--ink);margin-top:3px;}
+
+/* 决策条 */
+.buy{margin:11px;background:var(--white);border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(110,84,53,.1);}
+.buy__line{display:flex;justify-content:space-between;align-items:center;}
+.buy__k{font-size:13.5px;color:var(--ink2);font-weight:700;}
+.qty{display:flex;align-items:center;gap:0;}
+.qty button{width:30px;height:30px;border:none;border-radius:8px;background:var(--surface2);color:var(--ink);font-size:18px;font-family:'Kaiti',serif;}
+.qty i{width:38px;text-align:center;font-style:normal;font-size:17px;color:var(--ink);font-weight:700;}
+.buy__money{font-size:22px;color:var(--ink);font-weight:700;}
+.buy__money small{font-size:12px;color:var(--weak);font-weight:400;}
+.buy__meta{margin-top:6px;font-size:11.5px;color:var(--weak);text-align:right;}
+
+/* 主按钮 */
+.cta{margin:11px;background:var(--ink);color:var(--bg);border-radius:14px;padding:15px;text-align:center;font-size:16px;font-weight:700;letter-spacing:1px;}
+.cta small{display:block;font-size:12px;opacity:.8;font-weight:400;margin-top:2px;}
+.cta--off{background:#b9ac95;color:#f3ece0;}
+
+/* 已订概览 */
+.ordered{margin:11px;background:var(--surface2);border-radius:10px;padding:10px 13px;font-size:12.5px;color:var(--ink2);}
+.ordered b{color:var(--ink);}
+
+/* 底部栏 */
+.bar{position:sticky;bottom:0;display:flex;background:var(--white);border-top:1px solid var(--line);}
+.bar a{flex:1;text-align:center;padding:9px 0 10px;font-size:11.5px;color:var(--weak);text-decoration:none;}
+.bar a.on{color:var(--gold-deep);font-weight:700;}
+.bar a i{display:block;font-size:18px;font-style:normal;margin-bottom:1px;}
+
+/* 供应商页 */
+.sup{margin:11px;background:var(--white);border-radius:14px;padding:14px;box-shadow:0 1px 3px rgba(110,84,53,.1);}
+.sup__h{font-size:16px;font-weight:700;color:var(--ink);}
+.sup__sub{font-size:12px;color:var(--weak);margin-top:2px;}
+.kitchen{display:flex;gap:12px;margin-top:12px;align-items:center;}
+.avatar{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;flex:0 0 auto;}
+.kitchen__n{font-size:15px;font-weight:700;color:var(--ink);}
+.kitchen__r{font-size:12px;color:var(--ink2);margin-top:3px;}
+.badge{display:inline-block;background:var(--surface2);border-radius:14px;font-size:11px;color:var(--gold-deep);padding:2px 9px;margin:3px 4px 0 0;}
+.list{margin-top:12px;}
+.list__it{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--line);font-size:13px;color:var(--ink2);}
+.list__it:last-child{border-bottom:none;}
+.list__it b{color:var(--ink);}
+.lic{margin-top:10px;background:var(--surface2);border-radius:10px;padding:11px 13px;font-size:12px;color:var(--ink2);}
+.lic b{color:var(--ink);}
+.lic small{color:var(--weak);}
+.vouch{margin:11px;background:linear-gradient(135deg,#efe3cb,#e6d6b6);border:1px solid var(--warn-bd);border-radius:14px;padding:14px;}
+.vouch__h{font-size:15px;font-weight:700;color:var(--gold-deep);}
+.code{margin-top:10px;background:var(--ink);color:var(--gold-fg);font-family:"Courier New",monospace;font-size:18px;letter-spacing:2px;border-radius:9px;padding:10px;text-align:center;}
+
+/* 总览表 */
+.tbl{width:100%;border-collapse:collapse;margin:16px 0;font-size:12.5px;background:var(--white);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(110,84,53,.1);}
+.tbl th{background:var(--ink);color:var(--bg);padding:9px 8px;text-align:left;font-weight:700;font-size:12px;letter-spacing:.5px;}
+.tbl td{padding:8px 9px;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl .fam{background:var(--surface2);color:var(--gold-deep);font-weight:700;white-space:nowrap;}
+.tag{display:inline-block;border-radius:5px;padding:1px 7px;font-size:11px;font-weight:700;white-space:nowrap;}
+.t-p0{background:#2f7d4f;color:#fff;}
+.t-p1{background:#3b6ea5;color:#fff;}
+.t-p2{background:#c08a2e;color:#fff;}
+.t-x{background:#b04a3a;color:#fff;}
+.t-r0{background:#d8ecd9;color:#2f7d4f;}
+.t-rl{background:#e4eef7;color:#3b6ea5;}
+.t-rm{background:#f6e6c8;color:#9a6b1f;}
+.t-rh{background:#f3d4cd;color:#a83c2c;}
+.t-y{background:#e8e0d0;color:#6E5435;}
+.t-n{background:#f0ece2;color:#9b8c76;}
+.legend{font-size:12px;color:var(--weak);margin:8px 2px 0;line-height:1.9;}
+.legend b{color:var(--ink2);}
+.cau{display:inline-block;background:var(--gold-deep);color:#fff;border-radius:5px;padding:1px 7px;font-size:11px;font-weight:700;margin-right:4px;vertical-align:1px;}
+.foot{text-align:center;color:var(--weak);font-size:12px;margin-top:46px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>ABox 一盒 · 完整原型讨论稿</h1>
+<div class="sub">基于现有 index.vue 真身重构 · 天地盖布局 · 品牌楷体 · 零 emoji</div>
+
+<div class="note">
+  <span class="fix">本次修正</span>上一版只画了"天地盖那一段"，漏掉了整页其余模块——<b>跟随团长、份数选择、下单按钮、底部栏、团长身份横幅、无团长引导、已订概览</b>全部补齐，并按三种身份态分别出稿。供应商页此前收敛成 3 个方向，已按你的要求展开为 <b>8 族 29 个方向</b>，逐条标注合规风险与优先级，再附 6 张代表原型。
+  <br><span class="fix">纪律</span>所有模块、文案、取值纪律均对照 <code>index.vue</code> 真身，未新增任何后端契约（<code>imageUrl</code> 已在 U1 下发，四张实拍图是硬前置但无需改后端）。
+</div>
+
+<!-- ===================== 第一部分：首页完整原型 ===================== -->
+<h2>一、首页完整原型（天地盖布局 · 全模块）</h2>
+<div class="sub">三屏对应三种真实身份态 · 每屏均可滚动查看完整首页</div>
+
+<div class="row">
+
+  <!-- 屏 A：普通用户 · 无团长 -->
+  <div>
+    <div class="label">屏 A · 普通用户（无团长）· 可下单<small>大多数用户看到的样子</small></div>
+    <div class="phone"><div class="phone__notch"><i></i></div>
+      <div class="screen">
+        <div class="cd"><div class="cd__l">距离截单还剩</div><div class="cd__n">06:42:18</div><div class="cd__s">明日 09:30 后将无法下单</div></div>
+        <div class="lid"><div class="lid__date">10 月 12 日 周一 · 11:30 到楼</div><div class="lid__pills"><span class="lid__pill">四方好味汇一盒</span><span class="lid__pill">每家只出一道拿手菜</span></div></div>
+        <div class="seam"></div>
+        <div class="guide">你尚未绑定团长，本单将<b>自动挂靠本楼团长</b>，可随时在「我的」切换 ›</div>
+        <div class="box">
+          <div class="grid">
+            <div class="cell"><div class="cell__img"><b>实拍图</b></div><div class="cell__name">蒜蓉菠菜</div><div class="cell__from">来自：<em>四季鲜蔬</em> ›</div></div>
+            <div class="cell"><div class="cell__img"><b>实拍图</b></div><div class="cell__name">小炒黄牛肉</div><div class="cell__from">来自：<em>三味屋</em> ›</div></div>
+            <div class="cell"><div class="cell__img"><b>实拍图</b></div><div class="cell__name">红烧排骨</div><div class="cell__from">来自：<em>老饭盒</em> ›</div></div>
+            <div class="cell"><div class="cell__img"><b>实拍图</b></div><div class="cell__name">韭菜炒蛋</div><div class="cell__from">来自：<em>三味屋</em> ›</div></div>
+          </div>
+          <div class="rice"><div class="rice__top"><div class="rice__ic">饭</div><div><div class="rice__t">东北珍珠米 · 一整盒底座</div><div class="rice__mk">主食随盒配好，不单独计份</div></div></div><div class="rice__opt">可备注：少饭 / 免饭</div></div>
+        </div>
+        <div class="buy">
+          <div class="buy__line"><span class="buy__k">份数</span>
+            <div class="qty"><button>−</button><i>1</i><button>+</button></div>
+            <span class="buy__money">¥25.80</span></div>
+          <div class="buy__meta">¥25.80/份 · 单笔最多 10 份</div>
+        </div>
+        <div class="cta">预订明天的这一盒<small>¥25.80 · 明日 11:30 到楼</small></div>
+        <div class="bar"><a class="on"><i>盒</i>首页</a><a><i>单</i>订单</a><a><i>我</i>我的</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 屏 B：已跟随团长 -->
+  <div>
+    <div class="label">屏 B · 已跟随团长用户 · 可下单<small>你点名要看的「跟随团长」</small></div>
+    <div class="phone"><div class="phone__notch"><i></i></div>
+      <div class="screen">
+        <div class="cd"><div class="cd__l">距离截单还剩</div><div class="cd__n">06:42:18</div><div class="cd__s">明日 09:30 后将无法下单</div></div>
+        <div class="lid"><div class="lid__date">10 月 12 日 周一 · 11:30 到楼</div><div class="lid__pills"><span class="lid__pill">四方好味汇一盒</span><span class="lid__pill">每家只出一道拿手菜</span></div></div>
+        <div class="seam"></div>
+        <div class="lrow"><div class="lrow__k">佣金归属</div><div class="lrow__t">你通过 TA 的邀请链接进入 · 本单佣金归 TA</div></div>
+        <div class="box">
+          <div class="grid">
+            <div class="cell"><div class="cell__img"><b>实拍图</b></div><div class="cell__name">蒜蓉菠菜</div><div class="cell__from">来自：<em>四季鲜蔬</em> ›</div></div>
+            <div class="cell"><div class="cell__img"><b>实拍图</b></div><div class="cell__name">小炒黄牛肉</div><div class="cell__from">来自：<em>三味屋</em> ›</div></div>
+            <div class="cell"><div class="cell__img"><b>实拍图</b></div><div class="cell__name">红烧排骨</div><div class="cell__from">来自：<em>老饭盒</em> ›</div></div>
+            <div class="cell"><div class="cell__img"><b>实拍图</b></div><div class="cell__name">韭菜炒蛋</div><div class="cell__from">来自：<em>三味屋</em> ›</div></div>
+          </div>
+          <div class="rice"><div class="rice__top"><div class="rice__ic">饭</div><div><div class="rice__t">东北珍珠米 · 一整盒底座</div><div class="rice__mk">主食随盒配好，不单独计份</div></div></div><div class="rice__opt">可备注：少饭 / 免饭</div></div>
+        </div>
+        <div class="ordered">今日已订 <b>2 盒</b> · 预计明日 <b>11:30</b> 到楼 · 仍可加订</div>
+        <div class="buy">
+          <div class="buy__line"><span class="buy__k">份数</span>
+            <div class="qty"><button>−</button><i>1</i><button>+</button></div>
+            <span class="buy__money">¥25.80</span></div>
+          <div class="buy__meta">¥25.80/份 · 单笔最多 10 份</div>
+        </div>
+        <div class="cta">预订明天的这一盒<small>¥25.80 · 明日 11:30 到楼</small></div>
+        <div class="bar"><a class="on"><i>盒</i>首页</a><a><i>单</i>订单</a><a><i>我</i>我的</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 屏 C：团长本人 + 截单态 -->
+  <div>
+    <div class="label">屏 C · 团长身份 + 已截单<small>团长横幅 + 下单按钮禁用态</small></div>
+    <div class="phone"><div class="phone__notch"><i></i></div>
+      <div class="screen">
+        <div class="cd cd--cut"><div class="cd__l">本场已截单</div><div class="cd__n">截单时间 今日 09:30</div><div class="cd__s">明日场次已开启，可预订</div></div>
+        <div class="lb">你是本楼团长 · 进入工作台 <span>›</span></div>
+        <div class="lid"><div class="lid__date">10 月 12 日 周一 · 11:30 到楼</div><div class="lid__pills"><span class="lid__pill">四方好味汇一盒</span><span class="lid__pill">每家只出一道拿手菜</span></div></div>
+        <div class="seam"></div>
+        <div class="lrow"><div class="lrow__k">佣金归属</div><div class="lrow__t">本单佣金归你（本楼团长）</div></div>
+        <div class="box">
+          <div class="grid">
+            <div class="cell"><div class="cell__img"><b>实拍图</b></div><div class="cell__name">蒜蓉菠菜</div><div class="cell__from">来自：<em>四季鲜蔬</em> ›</div></div>
+            <div class="cell"><div class="cell__img"><b>实拍图</b></div><div class="cell__name">小炒黄牛肉</div><div class="cell__from">来自：<em>三味屋</em> ›</div></div>
+            <div class="cell"><div class="cell__img"><b>实拍图</b></div><div class="cell__name">红烧排骨</div><div class="cell__from">来自：<em>老饭盒</em> ›</div></div>
+            <div class="cell"><div class="cell__img"><b>实拍图</b></div><div class="cell__name">韭菜炒蛋</div><div class="cell__from">来自：<em>三味屋</em> ›</div></div>
+          </div>
+          <div class="rice"><div class="rice__top"><div class="rice__ic">饭</div><div><div class="rice__t">东北珍珠米 · 一整盒底座</div><div class="rice__mk">主食随盒配好，不单独计份</div></div></div><div class="rice__opt">可备注：少饭 / 免饭</div></div>
+        </div>
+        <div class="buy">
+          <div class="buy__line"><span class="buy__k">份数</span>
+            <div class="qty"><button>−</button><i>1</i><button>+</button></div>
+            <span class="buy__money">¥25.80</span></div>
+          <div class="buy__meta">¥25.80/份 · 单笔最多 10 份</div>
+        </div>
+        <div class="cta cta--off">本场已截单</div>
+        <div class="bar"><a class="on"><i>盒</i>首页</a><a><i>单</i>订单</a><a><i>我</i>我的</a></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<h3>首页全模块清单（对照 index.vue）</h3>
+<div class="note">
+  <b>① 倒计时横幅</b>（深棕底金字，保留；取值纪律：取不到时刻整行不显示、不回落写死值） ·
+  <b>② 天盖</b>（由概念大卡合并而来，日期+两行 pill 一字未删） ·
+  <b>③ 无团长引导</b>（屏 A 金边提示） ·
+  <b>④ 团长身份横幅</b>（屏 C，金→棕渐变，进工作台） ·
+  <b>⑤ 跟随团长卡 + 佣金归属</b>（屏 B/C，明示"本单佣金归 TA/你"） ·
+  <b>⑥ 天地盖地盒</b>（2×2 菜格 + 通栏米饭） ·
+  <b>⑦ 已订概览</b>（屏 B，多单放开后的告知，不拦截） ·
+  <b>⑧ 决策条</b>（份数 [− 1 +] + 应付 + 单价/上限小字——你点名的"份数选择"在此） ·
+  <b>⑨ 下单按钮</b>（预订明天的这一盒 ¥25.80；截单态变禁用"本场已截单"） ·
+  <b>⑩ 底部栏</b>（首页/订单/我的，首页高亮）。
+  <br><b>层级纪律</b>：份数属于"整盒决策层"，绝不贴在某道菜旁（实物里没有任何一格能单独加量），所以放在独立决策条而非米饭位。
+</div>
+
+<!-- ===================== 第二部分：供应商页全部可能性 ===================== -->
+<h2>二、供应商页 · 全部可能性（8 族 29 方向）</h2>
+<div class="sub">原"展示资质"功能若并入首页则页面冗余，以下为重新定位的全部候选；逐条带合规风险与优先级，供你选</div>
+
+<div class="legend">
+  <b>优先级：</b><span class="tag t-p0">P0 首选</span> 立刻可做 · <span class="tag t-p1">P1 值得做</span> 排期 · <span class="tag t-p2">P2 探索</span> 需定性/试点 · <span class="tag t-x">禁 不推荐</span> 合规雷
+  &nbsp;&nbsp;<b>合规风险：</b><span class="tag t-r0">无</span><span class="tag t-rl">低</span><span class="tag t-rm">中</span><span class="tag t-rh">高</span>
+  &nbsp;&nbsp;<b>后端：</b><span class="tag t-y">否</span><span class="tag t-n">是</span>
+  &nbsp;&nbsp;<b>与首页重叠：</b><span class="tag t-r0">无</span><span class="tag t-rl">部分</span><span class="tag t-rm">高</span>
+</div>
+
+<table class="tbl">
+  <tr><th>族</th><th>方向</th><th>功能要点 / 页面定位</th><th>优先</th><th>合规</th><th>后端</th><th>重叠</th></tr>
+
+  <tr><td class="fam" rowspan="6">1<br>内容<br>预览</td>
+    <td>1.1 明日出餐阵容</td><td>厨房人物 + 明日出哪四道 + 行为信任凭证（这栋楼吃过 X 次 / 在供 Y 天）。定位：内容页，直接解"单薄"</td><td><span class="tag t-p0">P0</span></td><td><span class="tag t-r0">无</span></td><td><span class="tag t-n">否</span></td><td><span class="tag t-r0">无</span></td></tr>
+  <tr><td>1.2 本周菜单日历</td><td>未来 5–7 天"哪家出哪道"。定位：规划页。注意单一套餐，只是排期预览</td><td><span class="tag t-p1">P1</span></td><td><span class="tag t-r0">无</span></td><td><span class="tag t-n">否</span></td><td><span class="tag t-rl">部分</span></td></tr>
+  <tr><td>1.3 供应商人物志</td><td>李师傅是谁、为什么做这行，专访式。定位：品牌页</td><td><span class="tag t-p1">P1</span></td><td><span class="tag t-r0">无</span></td><td><span class="tag t-n">否</span></td><td><span class="tag t-r0">无</span></td></tr>
+  <tr><td>1.4 食材溯源故事</td><td>米/肉/菜的来路图文旅程。定位：信任页（区别于冷资质）</td><td><span class="tag t-p1">P1</span></td><td><span class="tag t-rl">低</span></td><td><span class="tag t-n">否</span></td><td><span class="tag t-rl">部分</span></td></tr>
+  <tr><td>1.5 手艺/现做工艺</td><td>出餐过程短视频/图集。定位：内容页</td><td><span class="tag t-p2">P2</span></td><td><span class="tag t-r0">无</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-r0">无</span></td></tr>
+  <tr><td>1.6 时令专题</td><td>秋天贴秋膘菜单等。定位：内容页</td><td><span class="tag t-p2">P2</span></td><td><span class="tag t-r0">无</span></td><td><span class="tag t-n">否</span></td><td><span class="tag t-r0">无</span></td></tr>
+
+  <tr><td class="fam" rowspan="4">2<br>信任<br>透明</td>
+    <td>2.1 食安透明台（活证件）</td><td>许可证/健康证/抽检记录带时间轴（"最近一次抽检 2026-09"）。定位：替代现资质页</td><td><span class="tag t-p0">P0</span></td><td><span class="tag t-r0">无</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-rm">高</span></td></tr>
+  <tr><td>2.2 本楼真实数据墙</td><td>这栋楼吃过 X 次 / 在供 Y 天 / 零事故。定位：信任页</td><td><span class="tag t-p1">P1</span></td><td><span class="tag t-rl">低</span></td><td><span class="tag t-n">否</span></td><td><span class="tag t-r0">无</span></td></tr>
+  <tr><td>2.3 用户评价聚合（脱敏）</td><td>本楼真实反馈聚合。定位：信任页。需审核+脱敏，不可出售可识别个人</td><td><span class="tag t-p1">P1</span></td><td><span class="tag t-rm">中</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-r0">无</span></td></tr>
+  <tr><td>2.4 明厨亮灶</td><td>后厨实时监控截图/直播。定位：信任页。涉及隐私 consent</td><td><span class="tag t-p2">P2</span></td><td><span class="tag t-rm">中</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-r0">无</span></td></tr>
+
+  <tr><td class="fam" rowspan="5">3<br>营收<br>交易</td>
+    <td>3.1 合作商家到店券+核销</td><td>ABox 自营发券，门店核销，全页不出现第三方名。定位：营收页（你原创意）</td><td><span class="tag t-p2">P2</span></td><td><span class="tag t-rh">高</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-r0">无</span></td></tr>
+  <tr><td>3.2 异业联名互推</td><td>与办公楼周边（打印店/水果店）互推。但五项禁令→不能出现第三方名/链接/口令</td><td><span class="tag t-x">禁</span></td><td><span class="tag t-rh">高</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-r0">无</span></td></tr>
+  <tr><td>3.3 供应商自有产品零售</td><td>卖调味品/预制菜。代销=平台定性+食品许可范围 → 雷</td><td><span class="tag t-x">禁</span></td><td><span class="tag t-rh">高</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-r0">无</span></td></tr>
+  <tr><td>3.4 企业团餐/B 端大宗</td><td>楼内企业订 50 份。非 C 端。需营业执照范围</td><td><span class="tag t-p1">P1</span></td><td><span class="tag t-rm">中</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-r0">无</span></td></tr>
+  <tr><td>3.5 预付储值卡</td><td><span class="cau">注意</span>央行预付卡监管，除非持牌</td><td><span class="tag t-x">禁</span></td><td><span class="tag t-rh">高</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-r0">无</span></td></tr>
+
+  <tr><td class="fam" rowspan="3">4<br>B2B<br>协同</td>
+    <td>4.1 供应商工作台</td><td>出餐数据/结算/评价。注：这是 admin-web 后台，非小程序 C 端页</td><td><span class="tag t-p1">P1</span></td><td><span class="tag t-r0">无</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-r0">无</span></td></tr>
+  <tr><td>4.2 团长协同页</td><td>团长看供应商出餐准备状态。团长专属端</td><td><span class="tag t-p1">P1</span></td><td><span class="tag t-r0">无</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-r0">无</span></td></tr>
+  <tr><td>4.3 招商/招募供应商</td><td>供给侧入驻入口。入驻=平台定性 → 中风险</td><td><span class="tag t-p2">P2</span></td><td><span class="tag t-rm">中</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-r0">无</span></td></tr>
+
+  <tr><td class="fam" rowspan="4">5<br>用户<br>权益</td>
+    <td>5.1 积分/勋章</td><td>吃满 X 盒得"常客勋章"。需积分表（零 DDL 纪律→谨慎）</td><td><span class="tag t-p1">P1</span></td><td><span class="tag t-r0">无</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-rl">部分</span></td></tr>
+  <tr><td>5.2 连续订餐周卡/月卡</td><td>预付套餐。涉及预付合规</td><td><span class="tag t-p1">P1</span></td><td><span class="tag t-rm">中</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-r0">无</span></td></tr>
+  <tr><td>5.3 好友拼团/邀请</td><td><span class="cau">注意</span>诱导分享/二级分销红线。除非严格一级+不涉收益诱导</td><td><span class="tag t-x">禁</span></td><td><span class="tag t-rh">高</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-r0">无</span></td></tr>
+  <tr><td>5.4 评价返券</td><td>写完评价得券。与评价聚合结合</td><td><span class="tag t-p1">P1</span></td><td><span class="tag t-rl">低</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-rl">部分</span></td></tr>
+
+  <tr><td class="fam" rowspan="3">6<br>内容<br>社区</td>
+    <td>6.1 吃法/食谱内容</td><td>这盒怎么吃更好。内容页</td><td><span class="tag t-p2">P2</span></td><td><span class="tag t-r0">无</span></td><td><span class="tag t-n">否</span></td><td><span class="tag t-r0">无</span></td></tr>
+  <tr><td>6.2 办公楼午餐社区</td><td>UGC 话题。<span class="cau">注意</span>内容审核责任</td><td><span class="tag t-p2">P2</span></td><td><span class="tag t-rm">中</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-r0">无</span></td></tr>
+  <tr><td>6.3 打卡晒图</td><td>用户晒自己盒饭。图片审核</td><td><span class="tag t-p2">P2</span></td><td><span class="tag t-rm">中</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-r0">无</span></td></tr>
+
+  <tr><td class="fam" rowspan="2">7<br>公益<br>品牌</td>
+    <td>7.1 光盘/少饭公益</td><td>选免饭 ABox 捐对应米。品牌页。需对接公益机构</td><td><span class="tag t-p1">P1</span></td><td><span class="tag t-r0">无</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-rl">部分</span></td></tr>
+  <tr><td>7.2 供应商助农故事</td><td>助农溯源。品牌页</td><td><span class="tag t-p2">P2</span></td><td><span class="tag t-r0">无</span></td><td><span class="tag t-n">否</span></td><td><span class="tag t-r0">无</span></td></tr>
+
+  <tr><td class="fam" rowspan="2">8<br>数据<br>洞察</td>
+    <td>8.1 本楼口味洞察</td><td>脱敏聚合给供应商优化菜单。聚合不可识别个人</td><td><span class="tag t-p2">P2</span></td><td><span class="tag t-rm">中</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-r0">无</span></td></tr>
+  <tr><td>8.2 复购/流失预警</td><td>给供应商的经营预警。B2B</td><td><span class="tag t-p2">P2</span></td><td><span class="tag t-rm">中</span></td><td><span class="tag t-y">是</span></td><td><span class="tag t-r0">无</span></td></tr>
+</table>
+
+<div class="note">
+  <b>专业判断（替代"创意发散 129 条"式无差别堆砌）：</b>以上 29 个方向里，<b>真正零风险、且与首页不重叠、能立刻做的只有 1.1 / 2.1 / 2.2</b>——其中 2.1 正是"活化的资质页"本身，若首页 B 稿吸收资质则它该并入首页而非独立页。
+  营收族（3.x）想象空间最大，但 <b>3.1 自营/平台定性</b> 决定整套创意的生死：自营买断券＝安全营销；开放商家入驻代销分账＝被认定为网络食品交易第三方平台 → <b>EDI 证 + 平台备案 + 二清</b>，这是原创意专家完全没提的最大雷。
+  标 <span class="tag t-x">禁</span> 的 5 个方向（异业联名/自有零售/储值卡/拼团/诱导分享）在当前小程序规范下基本必踩红线，列出来是让你看清"为什么不能做"，而非建议做。
+</div>
+
+<!-- ===================== 供应商页代表原型 ===================== -->
+<h2>三、供应商页代表原型（6 张）</h2>
+<div class="sub">从 29 方向里挑 6 个最具代表性 / 最该拍板的出图</div>
+
+<div class="row">
+
+  <!-- S1 明日出餐阵容 -->
+  <div>
+    <div class="label">S1 · 明日出餐阵容（1.1 · P0）<small>替代"单薄"的首选</small></div>
+    <div class="phone"><div class="phone__notch"><i></i></div>
+      <div class="screen">
+        <div class="sup"><div class="sup__h">明日出餐阵容</div><div class="sup__sub">10 月 12 日 周一 · 11:30 到楼</div></div>
+        <div class="sup"><div class="kitchen"><div class="avatar">李</div><div><div class="kitchen__n">三味屋 · 小炒黄牛肉</div><div class="kitchen__r">这栋楼吃过 1,240 次 · 在供 268 天</div></div></div>
+          <div><span class="badge">主荤</span><span class="badge">现炒</span></div></div>
+        <div class="sup"><div class="kitchen"><div class="avatar">王</div><div><div class="kitchen__n">老饭盒 · 红烧排骨</div><div class="kitchen__r">这栋楼吃过 1,102 次 · 在供 251 天</div></div></div>
+          <div><span class="badge">半荤</span><span class="badge">炖煮</span></div></div>
+        <div class="sup"><div class="kitchen"><div class="avatar">陈</div><div><div class="kitchen__n">四季鲜蔬 · 蒜蓉菠菜</div><div class="kitchen__r">这栋楼吃过 860 次 · 在供 240 天</div></div></div>
+          <div><span class="badge">素菜</span><span class="badge">时令</span></div></div>
+        <div class="sup"><div class="kitchen"><div class="avatar">李</div><div><div class="kitchen__n">三味屋 · 韭菜炒蛋</div><div class="kitchen__r">这栋楼吃过 1,240 次 · 在供 268 天</div></div></div>
+          <div><span class="badge">蛋类</span></div></div>
+        <div class="bar"><a><i>商</i>商家</a><a class="on"><i>阵</i>阵容</a><a><i>我</i>我的</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S2 食安透明台（活证件） -->
+  <div>
+    <div class="label">S2 · 食安透明台（2.1 · P0）<small>活化后的"资质页"本身</small></div>
+    <div class="phone"><div class="phone__notch"><i></i></div>
+      <div class="screen">
+        <div class="sup"><div class="sup__h">食安透明台</div><div class="sup__sub">这盒菜的每一张证，都在有效期内</div></div>
+        <div class="sup"><div class="lic"><b>食品经营许可证</b><br>许可证号 JY2110×××××× · 有效期至 2027-03<br><small>编号可至国家企业信用信息公示系统核对</small></div></div>
+        <div class="sup"><div class="lic"><b>从业人员健康证 ×4</b><br>最近一次体检 2026-08 · 全员在效</div></div>
+        <div class="sup"><div class="list">
+          <div class="list__it"><span>最近一次抽检</span><b>2026-09 合格</b></div>
+          <div class="list__it"><span>食材溯源覆盖率</span><b>100%</b></div>
+          <div class="list__it"><span>本楼累计出餐</span><b>3,202 盒 · 零事故</b></div>
+        </div></div>
+        <div class="bar"><a class="on"><i>证</i>食安</a><a><i>阵</i>阵容</a><a><i>我</i>我的</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S3 到店券核销 -->
+  <div>
+    <div class="label">S3 · 到店券核销（3.1 · P2）<small>你的原创意 · 需先定性</small></div>
+    <div class="phone"><div class="phone__notch"><i></i></div>
+      <div class="screen">
+        <div class="sup"><div class="sup__h">合作商家 · 到店礼</div><div class="sup__sub">订盒饭攒的福利，到店出示核销</div></div>
+        <div class="vouch"><div class="vouch__h">满 30 减 8 · 到店券</div>
+          <div style="font-size:12.5px;color:var(--ink2);margin-top:6px;">ABox 自营发放 · 合作商家门店核销<br>到店消费时向店员出示下方核销码</div>
+          <div class="code">AB-7F3K</div>
+          <div style="font-size:11px;color:var(--weak);margin-top:8px;">本券由 ABox 一盒发放，合作商家提供核销服务</div>
+        </div>
+        <div class="note" style="margin:11px;">合规要点：全页不出现任何具体合作商家平台名 / 链接 / 可复制口令；券由 ABox 自营发放，交易在门店完成，避免被认定为"网络食品交易第三方平台"。</div>
+        <div class="bar"><a class="on"><i>券</i>到店</a><a><i>阵</i>阵容</a><a><i>我</i>我的</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S4 供应商人物志 -->
+  <div>
+    <div class="label">S4 · 供应商人物志（1.3 · P1）<small>"李师傅是谁"品牌页</small></div>
+    <div class="phone"><div class="phone__notch"><i></i></div>
+      <div class="screen">
+        <div class="sup"><div class="kitchen" style="margin-top:4px;"><div class="avatar" style="width:72px;height:72px;font-size:28px;">李</div><div><div class="kitchen__n" style="font-size:17px;">李师傅 · 三味屋</div><div class="kitchen__r">川菜掌勺 22 年 · 本楼在供 268 天</div></div></div></div>
+        <div class="sup"><div class="sup__sub">"盒饭不是将就，是每天中午那一顿要认真吃。"</div>
+          <div style="font-size:13px;color:var(--ink2);margin-top:10px;line-height:1.85;">李师傅原在成都老巷开小馆，2024 年带着两道拿手菜进了 ABox 的厨房。他坚持每天清晨现采、现炒，牛肉只选吊龙部位……</div></div>
+        <div class="sup"><div class="list">
+          <div class="list__it"><span>本楼吃过这道</span><b>1,240 次</b></div>
+          <div class="list__it"><span>徒弟 / 后厨</span><b>3 人</b></div>
+          <div class="list__it"><span>拿手标签</span><b>现炒 · 不勾芡</b></div>
+        </div></div>
+        <div class="bar"><a class="on"><i>人</i>人物</a><a><i>阵</i>阵容</a><a><i>我</i>我的</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S5 用户评价聚合 -->
+  <div>
+    <div class="label">S5 · 用户评价聚合（2.3 · P1）<small>本楼真实反馈 · 脱敏</small></div>
+    <div class="phone"><div class="phone__notch"><i></i></div>
+      <div class="screen">
+        <div class="sup"><div class="sup__h">本楼都在怎么说</div><div class="sup__sub">来自本楼真实订单的评价 · 已脱敏</div></div>
+        <div class="sup"><div class="list">
+          <div class="list__it"><span>"排骨炖得烂，老人也咬得动"</span><b>9.2 分</b></div>
+          <div class="list__it"><span>"菠菜新鲜，不涩"</span><b>9.0 分</b></div>
+          <div class="list__it"><span>"米饭够糯，份量实在"</span><b>9.4 分</b></div>
+          <div class="list__it"><span>"辣度对上班族刚好"</span><b>8.8 分</b></div>
+        </div></div>
+        <div class="sup"><div class="sup__sub">本楼近 30 天</div>
+          <div style="display:flex;gap:8px;margin-top:8px;"><span class="badge">均分 9.1</span><span class="badge">评价 412 条</span><span class="badge">差评 3 条已处理</span></div></div>
+        <div class="bar"><a class="on"><i>评</i>评价</a><a><i>阵</i>阵容</a><a><i>我</i>我的</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S6 本楼数据墙 -->
+  <div>
+    <div class="label">S6 · 本楼真实数据墙（2.2 · P1）<small>行为数据替代冷证件</small></div>
+    <div class="phone"><div class="phone__notch"><i></i></div>
+      <div class="screen">
+        <div class="sup"><div class="sup__h">这一盒，本楼用脚投了票</div></div>
+        <div class="sup"><div class="list">
+          <div class="list__it"><span>本楼累计出餐</span><b>3,202 盒</b></div>
+          <div class="list__it"><span>连续在供</span><b>268 天</b></div>
+          <div class="list__it"><span>复购率</span><b>71%</b></div>
+          <div class="list__it"><span>食安事故</span><b>0 起</b></div>
+          <div class="list__it"><span>准时达率</span><b>99.3%</b></div>
+        </div></div>
+        <div class="sup"><div class="sup__sub">不是我们说了算，是这栋楼每天中午的选择。</div></div>
+        <div class="bar"><a class="on"><i>数</i>数据</a><a><i>阵</i>阵容</a><a><i>我</i>我的</a></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="foot">ABox 一盒 · 原型讨论稿 · 仅用于界面方向讨论，不涉及开发落码</div>
+
+</div>
+</body>
+</html>

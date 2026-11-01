@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ABox 上线前测试报告 · 2026-10-27</title>
+  <style>
+    :root {
+      --paper: #F6F0E5;
+      --ink: #6E5435;
+      --ink-soft: #8C7350;
+      --line: #DECBA8;
+      --white: #FCFAF5;
+      --pass: #2F7A4E;
+      --fail: #B03A2E;
+      --warn: #B7791F;
+      --info: #4A6B8A;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px 20px;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "KaiTi", "STKaiti", simkai, serif;
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      background: var(--white);
+      border: 1px solid var(--line);
+      padding: 44px 48px;
+    }
+
+    h1 {
+      font-size: 30px;
+      margin: 0 0 6px;
+      letter-spacing: 2px;
+      font-weight: normal;
+    }
+
+    .sub {
+      color: var(--ink-soft);
+      font-size: 14px;
+      margin-bottom: 26px;
+    }
+
+    h2 {
+      font-size: 21px;
+      margin: 40px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--line);
+      font-weight: normal;
+      letter-spacing: 1px;
+    }
+
+    h3 {
+      font-size: 17px;
+      margin: 26px 0 10px;
+      font-weight: normal;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 18px;
+      font-size: 14.5px;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 9px 11px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #EFE6D3;
+      font-weight: normal;
+      color: var(--ink);
+    }
+
+    td code,
+    p code,
+    li code {
+      background: #EFE6D3;
+      padding: 1px 5px;
+      font-family: Consolas, monospace;
+      font-size: 13.5px;
+    }
+
+    .pass {
+      color: var(--pass);
+      font-weight: bold;
+    }
+
+    .fail {
+      color: var(--fail);
+      font-weight: bold;
+    }
+
+    .warn {
+      color: var(--warn);
+      font-weight: bold;
+    }
+
+    .info {
+      color: var(--info);
+      font-weight: bold;
+    }
+
+    .box {
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--ink);
+      background: #FBF7EE;
+      padding: 14px 18px;
+      margin: 18px 0;
+    }
+
+    .box-fail {
+      border-left-color: var(--fail);
+      background: #FBF2F0;
+    }
+
+    .box-warn {
+      border-left-color: var(--warn);
+      background: #FDF7EA;
+    }
+
+    .box b {
+      color: var(--ink);
+    }
+
+    pre {
+      background: #F1E9D7;
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+      overflow-x: auto;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .foot {
+      margin-top: 40px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      color: var(--ink-soft);
+      font-size: 13px;
+    }
+
+    ul {
+      padding-left: 22px;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>ABox · 上线前测试报告</h1>
+    <div class="sub">测试日期 2026-10-27 · 目标服务器 154.8.164.180（8081 h5 ／ 8080 admin）· 前端随机 Vista 不算验证</div>
+
+    <h2>零、一句话结论</h2>
+    <div class="box">
+      <p style="margin:0 0 8px"><b>代码层可以上线</b>：静态门禁 31/31 全绿、类型检查 0 错误、全量单测 <b>137/137 通过</b>、依赖注入 202 处无遗漏。</p>
+      <p style="margin:0 0 8px"><b>核心链路实测可用</b>：下单、幂等、并发防重、越权隔离、取消、盲盒遮蔽，全部带真实响应为证。</p>
+      <p style="margin:0"><b>但有两件事必须在上线前处置</b>：① 服务器存在<b>随机性接口故障</b>（订单相关查询会返回异常，时好时坏，疑似某个后端实例状态异常）；② <b>nginx 对 mock 支付接口的封锁可被大小写绕过</b>。详见第四节。</p>
+    </div>
+
+    <h2>一、本次验证的边界（先说清我验不到什么）</h2>
+    <p>为避免遗漏，这里明确划分：</p>
+    <table>
+      <tr>
+        <th style="width:26%">范围</th>
+        <th style="width:16%">是否验证</th>
+        <th>说明</th>
+      </tr>
+      <tr>
+        <td>代码层（类型/门禁/单测/依赖）</td>
+        <td class="pass">已验证</td>
+        <td>本机实跑，取得每项退出码与计数</td>
+      </tr>
+      <tr>
+        <td>用户端 HTTP 接口链路</td>
+        <td class="pass">已验证</td>
+        <td>直连测试服务器，真实请求与响应留证</td>
+      </tr>
+      <tr>
+        <td>后台管理端（停售／停用／提现审核）</td>
+        <td class="warn">未验证</td>
+        <td>无管理员账号。<b>刻意未做密码尝试</b>——后台有「5 次失败锁定 900 秒」机制，贸然试会把测试队伍正在用的账号锁住</td>
+      </tr>
+      <tr>
+        <td>小程序／H5 界面手点</td>
+        <td class="warn">未验证</td>
+        <td>我无法操作 GUI，只能到接口层</td>
+      </tr>
+      <tr>
+        <td>已支付 → 送达 → 退款全链路</td>
+        <td class="warn">部分</td>
+        <td>原因见第四节：模拟支付接口被 nginx 封锁，订单无法推进到「已支付」</td>
+      </tr>
+    </table>
+
+    <h2>二、静态基线（本机实跑）</h2>
+    <table>
+      <tr>
+        <th style="width:28%">项目</th>
+        <th style="width:14%">结果</th>
+        <th>明细</th>
+      </tr>
+      <tr>
+        <td>全量门禁 <code>gate.mjs all</code></td>
+        <td class="pass">31/31 通过</td>
+        <td>日志统计行显示 35/35 全通过，无 FAIL</td>
+      </tr>
+      <tr>
+        <td>TypeScript 类型检查</td>
+        <td class="pass">0 错误</td>
+        <td>在 <code>apps/api-server</code> 下执行（根 <code>tsconfig.json</code> 不存在，路径需注意）</td>
+      </tr>
+      <tr>
+        <td>全量单元测试</td>
+        <td class="pass">137/137</td>
+        <td>16 个测试套件全绿，耗时 23 秒，EXIT=0</td>
+      </tr>
+      <tr>
+        <td>依赖注入登记检查</td>
+        <td class="pass">202 处无遗漏</td>
+        <td>线上此前崩溃的正是这一型，<code>tsc</code> 与单测都拦不住，只能靠此脚本</td>
+      </tr>
+      <tr>
+        <td>安全扫描</td>
+        <td class="warn">0 FAIL ／ 2 WARN</td>
+        <td>2 项 WARN 均在 <code>mock-wx-mini.provider.ts</code> 的 debug 日志（打印 openid 与示例手机号 <code>13800138000</code>），属 mock 提供方专属代码，非生产路径</td>
+      </tr>
+    </table>
+
+    <h3>需要解释的一处「豁免」</h3>
+    <p>安全扫描的 4 项显式豁免里，含 <code>JWT_SECRET</code> 的内置默认值 <code>change_me_before_go_live</code>。注释声称「生产缺失即启动失败」，我回源码核实了兜底逻辑确在 <code>main.ts:48-68</code>（<code>NODE_ENV=production</code> 时缺 <code>JWT_SECRET</code> 或 <code>PROVIDER_MODE</code> 即 <code>process.exit(1)</code>）。<b>但这条只在 production 生效，且不看配的是什么值。</b>所以我用实打方式验证（见下节 S3）。</p>
+
+    <h2>三、真实接口验证（测试服务器实测）</h2>
+    <p>使用专属身份 <code>dev:qa*</code> 系列，不占用测试队伍账号。每项均有真实请求与响应。</p>
+    <table>
+      <tr>
+        <th style="width:6%">编号</th>
+        <th style="width:30%">用例</th>
+        <th style="width:10%">结果</th>
+        <th>实测证据</th>
+      </tr>
+      <tr>
+        <td>S1</td>
+        <td>健康检查</td>
+        <td class="pass">通过</td>
+        <td><code>status=ready</code>，db 延迟 1ms，队列 driver=redis、consumers 3/3</td>
+      </tr>
+      <tr>
+        <td>S2</td>
+        <td>伪造 token 访问受保护接口</td>
+        <td class="pass">通过</td>
+        <td>返回 <code>10002 未登录或登录已过期</code>，鉴权 fail-closed 有效</td>
+      </tr>
+      <tr>
+        <td>S3</td>
+        <td><b>JWT 弱密钥伪造</b></td>
+        <td class="pass">未被攻破</td>
+        <td>用代码内置默认密钥 <code>change_me_before_go_live</code>／<code>secret</code>／<code>abox123456</code> 各签一个 token，全部被拒 <code>10002</code>；对照组「真实 token 访问同一接口」返回 <code>code=0</code>，证明探针有效</td>
+      </tr>
+      <tr>
+        <td>S4</td>
+        <td>下单缺少幂等键</td>
+        <td class="pass">通过</td>
+        <td><code>10001 缺少请求头 Idempotency-Key</code></td>
+      </tr>
+      <tr>
+        <td>S5</td>
+        <td>正常下单</td>
+        <td class="pass">通过</td>
+        <td><code>AB2026102711990904</code>，应付 2580 分（¥25.80），状态 <code>pending_pay</code>，出餐日 2026-10-28</td>
+      </tr>
+      <tr>
+        <td>S6</td>
+        <td>幂等重放（同键再下一次）</td>
+        <td class="pass">通过</td>
+        <td>返回 <code>10006</code> 且 data 中回填首次单号，未生成第二笔</td>
+      </tr>
+      <tr>
+        <td>S7</td>
+        <td>同幂等键改用不同参数</td>
+        <td class="pass">通过</td>
+        <td>返回 <code>10006 请勿重复提交</code>，未按新参数再次下单</td>
+      </tr>
+      <tr>
+        <td>S8</td>
+        <td><b>C9 同一幂等键并发下单 ×6</b></td>
+        <td class="pass">只落 1 笔</td>
+        <td>响应分布：<code>0</code> 一次、<code>10006</code> 五次，耗时 46ms，仅 1 个 orderNo。<b>这条此前从未核实且可能造成资损，现已闭掉</b></td>
+      </tr>
+      <tr>
+        <td>S9</td>
+        <td>越权读取他人订单详情</td>
+        <td class="pass">通过</td>
+        <td>另一账号访问返回 <code>30010 订单不存在</code>，未泄漏</td>
+      </tr>
+      <tr>
+        <td>S10</td>
+        <td>重复取消同一订单</td>
+        <td class="pass">通过</td>
+        <td>第二次返回 <code>30003 当前状态「已取消」不支持自助取消</code>，非崩溃</td>
+      </tr>
+      <tr>
+        <td>S11</td>
+        <td>非法取消原因</td>
+        <td class="pass">通过</td>
+        <td>DTO 校验拦截，<code>10001</code> 并列出合法取值</td>
+      </tr>
+      <tr>
+        <td>S12</td>
+        <td><b>盲盒服务端遮蔽（本次变更）</b></td>
+        <td class="pass">通过</td>
+        <td>未送达时出参 <code>blindBoxName=null</code>、<code>blindBoxPending=true</code>。服务端确实不透出内容，非仅前端隐藏</td>
+      </tr>
+      <tr>
+        <td>S13</td>
+        <td><b>取消后盲盒占位行消失（本次变更）</b></td>
+        <td class="pass">通过</td>
+        <td>订单取消后实测 <code>status=cancelled</code>、<code>blindBoxPending=false</code>，与 v1.4 的修复目标一致</td>
+      </tr>
+      <tr>
+        <td>S14</td>
+        <td>无在职团长的楼下单</td>
+        <td class="pass">正确拦截</td>
+        <td>华贸 1 号楼无团长，下单返回 <code>30007 LEADER_NOT_FOUND</code>，符合设计</td>
+      </tr>
+      <tr>
+        <td>S15</td>
+        <td>已支付订单自助取消的资金处置</td>
+        <td class="pass">有处置</td>
+        <td>读源码确认 <code>order.service.ts:663-670</code> 在事务内「订单原子占位 → 余额退回 → 建退款单」，<code>refundInitiated</code> 有标记，不会丢钱</td>
+      </tr>
+    </table>
+
+    <h2>四、发现的问题（按处置优先级）</h2>
+
+    <h3>P0 · 服务器出现随机性接口故障</h3>
+    <div class="box box-fail">
+      <p><b>现象</b>：订单相关 GET 接口（订单详情、支付结果、订单列表）随机返回异常：</p>
+      <pre>{"code":10001,"message":"Unexpected token '\"', \"\"eyJhbGciO\"... is not valid JSON"}</pre>
+      <p>服务端在尝试把一段 JWT 字符串当作 JSON 解析。</p>
+      <p><b>实测经过</b>：</p>
+      <ul>
+        <li>15:41 起，同一订单连调 10 次 <code>pay-result</code>，<b>10/10 全部异常</b>；订单详情同为 10/10 异常</li>
+        <li><b>全新注册用户、从未调用过任何异常接口的干净订单，同样异常</b> —— 排除「我的账号被污染」</li>
+        <li>同一时段内用 curl 请求全新用户，结果<b>完全正常</b>（code=0）</li>
+        <li>15:48 起连续采样 16 次（46 秒），<b>0 次异常</b>，已自愈</li>
+        <li>期间健康检查始终正常（db 1ms、queue ok），服务<b>未重启</b>（uptime 持续增长）</li>
+      </ul>
+      <p><b>最可能的解释</b>：后端有多个容器实例，其中某一个进入了坏状态，请求负载均衡到谁就决定成败。这也能解释「同一时刻有人正常、有人异常」。</p>
+      <p><b>为什么这条最严重</b>：它<b>不可预测、能自愈、健康检查发现不了</b>。若明天上线期间某个实例再次进入此状态，用户会随机遇到「订单打不开」，而监控上看一切正常。</p>
+      <p><b>建议交给技术的动作</b>：拉取 15:33–15:48 期间各实例日志，检索错误关键词 <code>JSON</code>／<code>eyJhbGci</code>；确认 <code>docker-compose</code> 中 api 服务副本数；将 <code>GET /orders/:orderNo</code> 与 <code>pay-result</code> 纳入拨测，按每分钟粒度监控。</p>
+    </div>
+
+    <h3>P1 · nginx 对模拟支付接口的封锁可被大小写绕过</h3>
+    <div class="box box-warn">
+      <p>测试服务器上 nginx 精确封锁了小写 <code>/api/v1/pay/mock/paid</code>（返回 nginx 404 HTML，非应用错误）。这本是安全加固，方向正确。</p>
+      <p>但我实测发现：<b>NestJS 路由大小写不敏感</b>，仅仅改变大小写即可绕过并真实执行：</p>
+      <pre>POST /api/v1/pay/mock/paid     ->  HTTP 404（nginx 拦截）
+POST /api/v1/pay/MOCK/paid     ->  HTTP 201，body: {"code":0,"message":"ok"}   ← 真实执行成功</pre>
+      <p>补充边界实测：<code>pay/mock/paid/</code>（尾斜杠）<b>也能绕过</b>返回 200；<code>pay/mock/paidd</code>、<code>pay/mock/notify</code> 正常。</p>
+      <p><b>影响</b>：本环境 <code>PROVIDER_MODE=mock</code>、<code>mockEscaped=true</code>，该接口的作用是「免鉴权把订单改成已支付」。若上线环境沿用同形态，这道封锁等于没有。</p>
+      <p><b>建议</b>：① nginx 规则改为不区分大小写（正则加 <code>(?i)</code>）或同时匹配尾斜杠；② 更彻底的做法是在应用层由 <code>prod-mock-gate</code> 关闭该路由（现已有该机制，建议线上彻底关闭 <code>ALLOW_MOCK_IN_PROD</code>）。</p>
+    </div>
+
+    <h3>P2 · 并发下可生成多笔待支付订单（需业务确认）</h3>
+    <div class="box">
+      <p>实测：同一用户用<b>不同</b>幂等键并发下单 5 次，<b>成功生成 5 笔</b>订单（<code>AB20261027...</code> 五笔）。</p>
+      <p>这与 S8 不同——S8 是「同一意图被重复执行」，已被幂等拦住；这里是「五个独立意图」，接口按正常业务处理。</p>
+      <p>但存在业务风险：目前只有<b>单笔份数上限</b>（<code>order.max_quantity=20</code>），<b>未见同一用户同一出餐日的订单笔数上限</b>。若用户连点或网络重试产生多笔待支付订单，会造成履约混乱与重复配送。</p>
+      <p><b>建议</b>：确认是否需要「同一用户同一出餐日未支付订单上限」，或由端上做「有待支付订单时禁止再下」。请先确认业务口径，再决定是否落码。</p>
+    </div>
+
+    <h3>P2 · 两项安全扫描 WARN（可顺手处理）</h3>
+    <p><code>mock-wx-mini.provider.ts:32/42</code> 的 debug 日志打印了 openid 与示例手机号。仅在 mock 路径，非生产，建议把 openid 截断后再打印，消除扫描噪音。</p>
+
+    <h2>五、本次四项变更的验证状态</h2>
+    <table>
+      <tr>
+        <th style="width:24%">变更项</th>
+        <th style="width:14%">状态</th>
+        <th>说明</th>
+      </tr>
+      <tr>
+        <td>盲盒服务端遮蔽</td>
+        <td class="pass">实测通过</td>
+        <td>未送达不出内容；服务器监委即时生效</td>
+      </tr>
+      <tr>
+        <td>终态不再挂占位行</td>
+        <td class="pass">实测通过</td>
+        <td>取消后 <code>blindBoxPending=false</code></td>
+      </tr>
+      <tr>
+        <td>取餐点口径</td>
+        <td class="info">待补测</td>
+        <td>源码 <code>order.service.ts:607</code> 已改为「由团长送到工位」，但采样期间接口异常未能取到出参，需在健康时段补测一次</td>
+      </tr>
+      <tr>
+        <td>停用楼宇拦单</td>
+        <td class="warn">需后台权限</td>
+        <td>需管理员把某楼置为停用后验证 60006/60007/60012/60013，我没有管理员账号</td>
+      </tr>
+    </table>
+
+    <h2>六、交给技术前建议你先确认的三件事</h2>
+    <ol>
+      <li><b>本次是否按计划上线</b>：第四节 P0 的随机性故障如果能自愈，多数情况下会被忽略；但它若出现在上线当天，影响面不可控。建议至少确认技术已看过那段时间日志。</li>
+      <li><b>线上形态</b>：健康检查实读 <code>providerMode: "mock"</code>、<code>mockEscaped: true</code>。这是「任意 code 免密登录任意身份 + 免鉴权改支付状态」的形态。测试环境可接受，<b>正式环境必须为 real</b>。这是 <code>main.ts</code> 注释里自己写明的后果。</li>
+      <li><b>后台账号</b>：我刻意没有尝试管理员密码（5 次失败锁 900 秒）。若要我把停售／停用／提现这三项也实测掉，请提供一组专用管理员账号。</li>
+    </ol>
+
+    <h2>七、必须人手 Tester 完成的清单（我验不了）</h2>
+    <table>
+      <tr>
+        <th style="width:30%">项目</th>
+        <th>怎么验</th>
+      </tr>
+      <tr>
+        <td>一键停售拦单</td>
+        <td>后台创建停售区间（注意是<b>按出餐日</b>的区间，含首尾）→ 用户端对停售日出餐日的下单应被拒</td>
+      </tr>
+      <tr>
+        <td>楼宇停用四个错误码</td>
+        <td>需先把 <code>building.suspend_force_max_count</code> 调小（默认 20）才能造出 60012；注意 A 组订单存在时会优先给 60013</td>
+      </tr>
+      <tr>
+        <td>提现五项规则</td>
+        <td>代码已落码（<code>40024</code>／<code>40025</code>、<code>withdraw_daily_limit=2000</code>、<code>withdraw_daily_count=1</code>，且已在后台配置页登记 <code>wiring: 'live'</code>），但需团长账号实测</td>
+      </tr>
+      <tr>
+        <td>支付到退款全链路</td>
+        <td>模拟支付被 nginx 封锁，需走<b>真实微信支付</b>或由技术临时放行</td>
+      </tr>
+      <tr>
+        <td>界面与小程序手点</td>
+        <td>含键盘适配、图片加载、页面跳转，我只到接口层</td>
+      </tr>
+    </table>
+
+    <div class="foot">
+      ABox 上线前测试报告 · 生成于 2026-10-27<br />
+      数据来源：本机静态实跑（门禁／tsc／单测／依赖检查）＋ 测试服务器真实 HTTP 请求留证。所有结论均可用文中单号与响应复现。
+    </div>
+  </div>
+</body>
+
+</html>

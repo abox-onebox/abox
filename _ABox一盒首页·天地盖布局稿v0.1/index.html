@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 首页天地盖布局稿 v0.1</title>
+<style>
+@font-face {
+  font-family: 'ABoxKai';
+  src: url('ab-kaiti.woff2') format('woff2');
+  font-weight: normal; font-style: normal; font-display: swap;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'ABoxKai', 'STKaiti', 'KaiTi', 'SimSun', serif;
+  background: #E8DFCF; color: #3A322A; padding: 30px 16px 60px;
+  line-height: 1.8; -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1160px; margin: 0 auto; }
+h1 { font-size: 21px; font-weight: normal; letter-spacing: 0.5px; }
+.lead { margin-top: 8px; font-size: 13px; color: #5F5445; max-width: 880px; }
+.lead b { color: #6E5435; font-weight: normal; }
+
+.two { display: flex; gap: 28px; flex-wrap: wrap; margin-top: 26px; align-items: flex-start; }
+.col { flex: 1; min-width: 340px; }
+.col h2 { font-size: 15px; font-weight: normal; color: #6E5435; letter-spacing: 0.5px; }
+.col .who { font-size: 12px; color: #9A8C79; margin: 3px 0 12px; }
+
+/* 手机稿 */
+.phone {
+  width: 375px; max-width: 100%; background: #F6F0E5; border-radius: 20px;
+  box-shadow: 0 2px 20px rgba(58,50,42,0.13); padding: 16px 14px 20px;
+}
+.ph__hd { display: flex; align-items: baseline; padding: 2px 4px 0; }
+.ph__brand { font-size: 16px; letter-spacing: 1px; color: #6E5435; }
+.ph__date { margin-left: auto; font-size: 11px; color: #9A8C79; }
+.ph__line { margin: 12px 4px 10px; display: flex; align-items: baseline; }
+.ph__t { font-size: 14px; color: #3A322A; letter-spacing: 0.5px; }
+.ph__s { margin-left: auto; font-size: 11px; color: #5B7C3A; }
+
+/* 2×2 菜盒 */
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.cell {
+  background: #FFFDF8; border: 1px solid rgba(110,84,53,0.22);
+  border-radius: 11px; padding: 7px; cursor: pointer;
+}
+.ph__img {
+  height: 118px; border-radius: 7px; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: rgba(255,253,248,0.9); letter-spacing: 1px;
+}
+.im1 { background: #6B7A4E; }
+.im2 { background: #8A6B4F; }
+.im3 { background: #7A4E42; }
+.im4 { background: #5E6E52; }
+.cell__n { margin-top: 7px; font-size: 14px; color: #3A322A; padding: 0 2px; }
+.cell__s { font-size: 11px; color: #9A8C79; padding: 0 2px; }
+.cell__s em { font-style: normal; color: #6E5435; }
+
+/* 点开弹层（变体 B） */
+.pop {
+  margin: 9px 0 2px; background: #FFFDF8; border: 1px solid rgba(110,84,53,0.2);
+  border-radius: 11px; padding: 12px 14px; display: none;
+}
+.pop--on { display: block; }
+.pop__n { font-size: 14px; }
+.pop__c { margin-left: 7px; font-size: 11px; color: #FFFFFF; background: #6E5435; padding: 2px 7px; border-radius: 4px; }
+.pop__b { margin-top: 6px; font-size: 12px; color: #796C57; }
+.pop__lic { margin-top: 6px; font-size: 11px; color: #9A8C79; }
+.pop__close { margin-top: 7px; font-size: 11px; color: #9A8C79; text-align: center; }
+
+/* 通栏米饭 */
+.rice {
+  margin-top: 9px; background: #FFFDF8; border: 1px solid rgba(110,84,53,0.22);
+  border-radius: 11px; padding: 10px 13px; display: flex; align-items: center;
+}
+.rice__ic {
+  width: 34px; height: 24px; flex: none; border-radius: 12px;
+  background: #FFFFFF; border: 1px solid rgba(110,84,53,0.3);
+  position: relative; overflow: hidden;
+}
+.rice__ic i {
+  position: absolute; width: 4px; height: 2.5px; background: #E9D98A;
+  border-radius: 2px; transform: rotate(24deg);
+}
+.rice__t { margin-left: 10px; font-size: 13px; color: #3A322A; }
+.rice__s { font-size: 11px; color: #9A8C79; }
+.rice__p { margin-left: auto; font-size: 16px; color: #6E5435; font-family: 'SFMono-Regular', Consolas, monospace; }
+
+.cta {
+  margin-top: 11px; height: 44px; line-height: 44px; text-align: center;
+  background: #6E5435; color: #FFFDF8; border-radius: 22px;
+  font-size: 15px; letter-spacing: 1.5px;
+}
+.cta__note { margin-top: 7px; font-size: 11px; color: #9A8C79; text-align: center; }
+
+.note { margin-top: 14px; font-size: 12px; color: #796C57; line-height: 1.95; }
+.note b { color: #6E5435; font-weight: normal; }
+
+/* 对照 */
+.ref { margin-top: 30px; background: #FFFDF8; border-radius: 13px; padding: 16px 20px; border: 1px solid rgba(110,84,53,0.18); }
+.ref h2 { font-size: 15px; font-weight: normal; color: #6E5435; letter-spacing: 0.5px; }
+.ref__f { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 10px; align-items: flex-start; }
+.ref img { width: 240px; border-radius: 10px; border: 1px solid rgba(110,84,53,0.25); }
+.ref__why { flex: 1; min-width: 260px; }
+.ref__why li { font-size: 13px; color: #3A322A; padding: 4px 0; }
+.ref__why { margin-left: 19px; }
+.ref__why b { color: #6E5435; font-weight: normal; }
+
+.tail { margin-top: 26px; background: #F6F0E5; border: 1px dashed rgba(110,84,53,0.4); border-radius: 13px; padding: 15px 20px; }
+.tail h2 { font-size: 15px; font-weight: normal; color: #8A5A2B; }
+.tail ol { margin-left: 19px; margin-top: 7px; }
+.tail li { font-size: 13px; color: #3A322A; padding: 4px 0; }
+.tail li b { color: #8A5A2B; font-weight: normal; }
+.tail .warn { margin-top: 10px; font-size: 12px; color: #8A5A2B; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>首页 · 天地盖布局稿 v0.1</h1>
+  <div class="lead">
+    思路：<b>首页的排版 = 产品实物的排版</b>。用户在屏幕上看到的格子顺序，就是打开盒盖后看到的格子顺序——
+    <b>还没吃，先"开"了一次盖</b>。菜占四格，饭占通栏，价格和预订按钮落在"饭"的位置：
+    饭是最后一口，也是下单这个动作的落点。
+    下面 A 是纯布局稿，B 在 A 的基础上把「来自：谁」做成原地展开（承接之前供应商页的合规义务）。
+  </div>
+
+  <div class="two">
+
+    <!-- A -->
+    <div class="col">
+      <h2>A · 纯布局稿</h2>
+      <div class="who">四格菜 + 通栏饭 + 饭位落价格与按钮</div>
+      <div class="phone">
+        <div class="ph__hd"><span class="ph__brand">ABox 一盒</span><span class="ph__date">下一个工作日 · 11:30 到楼</span></div>
+        <div class="ph__line"><span class="ph__t">天地盖 · 一饭四菜</span><span class="ph__s">明天的菜单已出</span></div>
+        <div class="grid">
+          <div class="cell">
+            <div class="ph__img im1">实拍图位</div>
+            <div class="cell__n">蒜蓉菠菜</div>
+            <div class="cell__s">来自：<em>四季鲜蔬</em></div>
+          </div>
+          <div class="cell">
+            <div class="ph__img im2">实拍图位</div>
+            <div class="cell__n">小炒黄牛肉</div>
+            <div class="cell__s">来自：<em>三味屋</em></div>
+          </div>
+          <div class="cell">
+            <div class="ph__img im3">实拍图位</div>
+            <div class="cell__n">红烧排骨</div>
+            <div class="cell__s">来自：<em>老饭盒</em></div>
+          </div>
+          <div class="cell">
+            <div class="ph__img im4">实拍图位</div>
+            <div class="cell__n">韭菜炒蛋</div>
+            <div class="cell__s">来自：<em>三味屋</em></div>
+          </div>
+        </div>
+        <div class="rice">
+          <div class="rice__ic">
+            <i style="left:7px; top:6px;"></i><i style="left:16px; top:10px;"></i>
+            <i style="left:24px; top:5px;"></i><i style="left:11px; top:14px;"></i>
+          </div>
+          <div class="rice__t">米饭<span class="rice__s">　·　可备注少饭 / 免饭</span></div>
+          <div class="rice__p">¥25.80</div>
+        </div>
+        <div class="cta">预订明天的这一盒</div>
+        <div class="cta__note">截单与送达时刻以下单页实时展示为准</div>
+      </div>
+      <div class="note">
+        <b>布局对齐实物：</b>上排两格 + 中排两格 + 底部通栏，与天地盖开盖视角完全一致。
+        <b>价格放在"饭"上</b>而不是标题旁——一饭四菜是一个整体商品，价格落在整盒的底座上，暗示"这是一份，不是四份"。
+      </div>
+    </div>
+
+    <!-- B -->
+    <div class="col">
+      <h2>B · 布局稿 + 来源可点（点菜格试试）</h2>
+      <div class="who">合规义务在首页原地完成，不跳供应商页</div>
+      <div class="phone">
+        <div class="ph__hd"><span class="ph__brand">ABox 一盒</span><span class="ph__date">下一个工作日 · 11:30 到楼</span></div>
+        <div class="ph__line"><span class="ph__t">天地盖 · 一饭四菜</span><span class="ph__s">明天的菜单已出</span></div>
+        <div class="grid" id="grid">
+          <div class="cell" data-k="0">
+            <div class="ph__img im1">实拍图位</div>
+            <div class="cell__n">蒜蓉菠菜</div>
+            <div class="cell__s">来自：<em>四季鲜蔬</em> ⌄</div>
+          </div>
+          <div class="cell" data-k="1">
+            <div class="ph__img im2">实拍图位</div>
+            <div class="cell__n">小炒黄牛肉</div>
+            <div class="cell__s">来自：<em>三味屋</em> ⌄</div>
+          </div>
+          <div class="cell" data-k="2">
+            <div class="ph__img im3">实拍图位</div>
+            <div class="cell__n">红烧排骨</div>
+            <div class="cell__s">来自：<em>老饭盒</em> ⌄</div>
+          </div>
+          <div class="cell" data-k="3">
+            <div class="ph__img im4">实拍图位</div>
+            <div class="cell__n">韭菜炒蛋</div>
+            <div class="cell__s">来自：<em>三味屋</em> ⌄</div>
+          </div>
+        </div>
+        <div class="pop" id="pop">
+          <div class="pop__n" id="pN">三味屋</div><span class="pop__c" id="pC" style="margin-left:7px;">川菜</span>
+          <div class="pop__b" id="pB">这栋楼吃过 1,240 次 · 在供 268 天</div>
+          <div class="pop__lic">食品经营许可证 JY11105… 有效期至 2027-04-18 · 编号可至国家企业信用信息公示系统核对</div>
+          <div class="pop__close">— 收起 ⌃ —</div>
+        </div>
+        <div class="rice">
+          <div class="rice__ic">
+            <i style="left:7px; top:6px;"></i><i style="left:16px; top:10px;"></i>
+            <i style="left:24px; top:5px;"></i><i style="left:11px; top:14px;"></i>
+          </div>
+          <div class="rice__t">米饭<span class="rice__s">　·　可备注少饭 / 免饭</span></div>
+          <div class="rice__p">¥25.80</div>
+        </div>
+        <div class="cta">预订明天的这一盒</div>
+        <div class="cta__note">截单与送达时刻以下单页实时展示为准</div>
+      </div>
+      <div class="note">
+        点任意菜格，<b>来源厨房的证照信息在格子下方原地展开</b>，菜单不消失、不打断下单。
+        这是之前供应商页讨论里"最好的合规页是没有页面"那个结论，
+        正好借着首页改版一起落掉——<b>原独立供应商页可以降级或移除</b>。
+      </div>
+    </div>
+
+  </div>
+
+  <div class="ref">
+    <h2>布局对照：实物 → 屏幕</h2>
+    <div class="ref__f">
+      <img src="_产品实拍参考.png" alt="产品实拍：天地盖一饭四菜，上两排四格菜、底部通栏米饭">
+      <ul class="ref__why">
+        <li><b>上排两格 = 荤素对角。</b>实拍里左上是素菜、右上是荤菜，屏幕上保持对角摆放，视觉重心平衡。</li>
+        <li><b>中排两格 = 主荤靠左。</b>实拍的红烧肉在中排左侧，屏幕上把最硬的菜放同一位置，用户肌肉记忆一致。</li>
+        <li><b>通栏 = 米饭。</b>实物里饭盒最长、最靠底；屏幕上通栏放米饭 + 价格 + 按钮，<b>底座 = 决策位</b>。</li>
+        <li><b>盒色不搬。</b>实物的青绿是耗材色，屏幕上仍走品牌米色 + 暖棕，格子用白底描边代替塑料盒边。</li>
+        <li><b>图位要求：</b>四张菜照统一<b>俯拍、1:1 裁切</b>，与实物俯视角度一致，整屏看才像"俯视一盒"。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tail">
+    <h2>落地时要说的三句话</h2>
+    <ol>
+      <li><b>菜名与"来自：谁"全部取接口，页面不写死</b>；取不到的菜整格不显示，不留占位兜底。</li>
+      <li><b>时刻不写死</b>：「下一个工作日 / 11:30 到楼 / 截单」都从接口取（daily.cutoffAt / deliverAt），取不到就不显示。</li>
+      <li><b>图片是硬前置：</b>这个布局成立的前提是<b>四张 1:1 俯拍实拍图</b>。没有图，格子只剩文字，"开盖感"就没了——建议按实拍同角度补拍。</li>
+    </ol>
+    <div class="warn">
+      附带一个待你拍板的事：如果 B 方向成立（首页原地展示证照），<b>独立供应商页的入口就可以删</b>，
+      之前供应商页的所有讨论就此收口——首页 + 原地弹层 = 更完整的答案。
+    </div>
+  </div>
+
+</div>
+
+<script>
+var data = [
+  { n: '四季鲜蔬', c: '素菜 · 叶菜', b: '这栋楼吃过 860 次 · 在供 240 天', lic: '食品经营许可证 JY11201… 有效期至 2027-06-02 · 编号可至国家企业信用信息公示系统核对' },
+  { n: '三味屋',   c: '川菜 · 主荤', b: '这栋楼吃过 1,240 次 · 在供 268 天', lic: '食品经营许可证 JY11105… 有效期至 2027-04-18 · 编号可至国家企业信用信息公示系统核对' },
+  { n: '老饭盒',   c: '家常 · 半荤', b: '这栋楼吃过 1,102 次 · 在供 251 天', lic: '食品经营许可证 JY11333… 有效期至 2027-09-15 · 编号可至国家企业信用信息公示系统核对' },
+  { n: '三味屋',   c: '川菜 · 蛋类', b: '这栋楼吃过 1,240 次 · 在供 268 天', lic: '食品经营许可证 JY11105… 有效期至 2027-04-18 · 编号可至国家企业信用信息公示系统核对' }
+];
+var pop = document.getElementById('pop');
+var pN = document.getElementById('pN'), pC = document.getElementById('pC'),
+    pB = document.getElementById('pB'), pLic = document.querySelector('#pop .pop__lic');
+var cur = -1;
+document.querySelectorAll('#grid .cell').forEach(function (cell) {
+  cell.onclick = function () {
+    var k = parseInt(this.getAttribute('data-k'), 10);
+    if (cur === k) { pop.classList.remove('pop--on'); cur = -1; return; }
+    cur = k;
+    pN.textContent = data[k].n;
+    pC.textContent = data[k].c;
+    pB.textContent = data[k].b;
+    pLic.textContent = data[k].lic;
+    pop.classList.add('pop--on');
+  };
+});
+document.querySelector('#pop .pop__close').onclick = function () {
+  pop.classList.remove('pop--on'); cur = -1;
+};
+</script>
+
+</body>
+</html>

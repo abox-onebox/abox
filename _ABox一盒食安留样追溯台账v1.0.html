@@ -1,0 +1,1851 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ABox 一盒 · 食安留样与全链追溯</title>
+<style>
+/* ── token 真源（生成注入，禁手改）── */
+:root{
+  --bg: #F6F0E5;
+  --surface: #FFFDF8;
+  --surface2: #F7F1E4;
+  --surface3: #FBF6EC;
+  --text: #6E5435;
+  --text2: #796C57;
+  --text-disabled: #A79A85;
+  --gold: #C9A876;
+  --gold-deep: #936F3A;
+  --gold-deepest: #8A6620;
+  --border: #E4D8C3;
+  --border-strong: #D6CBB8;
+  --ok: #5B7C3A;
+  --warn: #C44536;
+  --info: #4A6FA5;
+  --ok-bg: #F1F5EA;
+  --ok-bd: #BBCBA6;
+  --warn-bg: #FBF0EE;
+  --warn-bd: #E3BFB8;
+  --info-bg: #EDF1F8;
+  --info-bd: #B4C4DA;
+  --mut-bg: #F7F2E8;
+  --mut-bd: #E4D8C3;
+  --gold-bg: #FBF4E6;
+  --gold-bd: #DCC79C;
+  --ok-fg: #597939;
+  --warn-fg: #C24436;
+  --info-fg: #4A6FA5;
+  --gold-fg: #8D6A38;
+  --from: #FFF6E0;
+  --to: #FFEED5;
+  --brand-meituan: #FFD400;
+  --brand-meituan-text: #000000;
+  --brand-taobao: #FF6A00;
+  --brand-taobao-text: #000000;
+  --brand-jd: #E1251B;
+  --brand-jd-text: #FFFFFF;
+  --font-display: 'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif;
+  --font-body: -apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif;
+  --font-num: 'SF Mono','Roboto Mono',Consolas,monospace;
+  --r-sm: 4px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --sp-1: 6px;
+  --sp-2: 10px;
+  --sp-3: 14px;
+  --sp-4: 20px;
+  --sp-5: 28px;
+}
+/* ── 共享外壳 ── */
+/* ─────────────────────────────────────────────────────────────
+   P0 工具集 · 共享页面外壳
+   ⚠️ 本文件**零颜色字面量**：一切颜色只能来自 `:root` token（由生成器注入）。
+      构建期断言这一条（搜不到 # / rgb( / hsl( ），否则品牌必然各写各的。
+   ⚠️ 字体分层：楷体只用于**标题 / 品牌字 / 金额大字**，正文与表格用无衬线栈。
+   ───────────────────────────────────────────────────────────── */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--gold-deep); }
+
+/* ── 顶栏 ── */
+.top {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 20;
+}
+.top .logo {
+  font-family: var(--font-display);
+  font-size: 19px; letter-spacing: .04em; color: var(--text);
+}
+.top .sub { font-size: 12px; color: var(--text2); }
+.top .spacer { flex: 1; }
+.top .ver { font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); }
+
+/* ── 页头 ── */
+.hero { padding: var(--sp-4) var(--sp-4) 0; }
+.hero h1 {
+  font-family: var(--font-display); font-size: 25px; font-weight: 400;
+  margin: 0 0 4px; letter-spacing: .02em;
+}
+.hero p { margin: 0; color: var(--text2); font-size: 13px; max-width: 78ch; }
+
+/* ── 布局 ── */
+.wrap {
+  display: flex; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4) var(--sp-5);
+  align-items: flex-start;
+}
+/* ⚠️ 侧栏必须**自己能滚**（`max-height` + `overflow-y: auto`），这不是装饰：
+   `position: sticky` 的元素一旦高于视口可用高度，底部会被**钉住不动** ——
+   滚动页面也带不上来（必须滚到**整页最底**才够得到，因为那时 sticky 才脱离钉住）。
+   实测（1440×900 笔记本，最常见的办公尺寸）：6 个带侧栏的工具里有 5 个的
+   「筛选 / 操作（导出 · 导入 · 重置）」整组够不到；G1/G2/F3 在 1080 下也够不到。
+   附带好处：对 sticky 元素 `scrollIntoView` 是无效的（滚动页面它不动），
+   给侧栏自己的滚动区之后，控件才可能被自动带进视野（自动化探针同理）。
+   62px = `.top` 的实际高度（与 `top` 一致，改一处要一起改）。 */
+.side {
+  width: 310px; flex: 0 0 310px; position: sticky; top: 62px;
+  max-height: calc(100vh - 62px - var(--sp-3));
+  overflow-y: auto; overscroll-behavior: contain;
+}
+.main { flex: 1; min-width: 0; }
+
+/* ── 卡片 ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-3);
+}
+.card > h2 {
+  font-family: var(--font-display); font-size: 16px; font-weight: 400;
+  margin: 0 0 var(--sp-2); letter-spacing: .02em;
+  display: flex; align-items: center; gap: 8px;
+}
+.card > h2 .n { font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); }
+.hint { font-size: 12px; color: var(--text2); margin: 0 0 var(--sp-2); }
+
+/* ── 表格 ── */
+.tw { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left; font-weight: 500; color: var(--text2);
+  font-size: 11.5px; letter-spacing: .04em;
+  padding: 7px 9px; border-bottom: 1px solid var(--border-strong);
+  white-space: nowrap; background: var(--surface2);
+}
+td { padding: 8px 9px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: var(--surface3); }
+td.num, th.num { text-align: right; font-family: var(--font-num); }
+td.mono { font-family: var(--font-num); font-size: 12px; }
+.big {
+  font-family: var(--font-display); font-size: 22px; line-height: 1.2;
+}
+
+/* ── 徽标 ── */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 8px; border-radius: 999px;
+  font-size: 11.5px; white-space: nowrap;
+  border: 1px solid var(--mut-bd); background: var(--mut-bg); color: var(--text2);
+}
+.pill.ok { border-color: var(--ok-bd); background: var(--ok-bg); color: var(--ok-fg); }
+.pill.warn { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.pill.info { border-color: var(--info-bd); background: var(--info-bg); color: var(--info-fg); }
+.pill.gold { border-color: var(--gold-bd); background: var(--gold-bg); color: var(--gold-fg); }
+.pill.dim { color: var(--text-disabled); }
+
+/* ── 表单 ── */
+label.f { display: block; margin-bottom: var(--sp-2); }
+label.f > span {
+  display: block; font-size: 11.5px; color: var(--text2);
+  letter-spacing: .04em; margin-bottom: 3px;
+}
+input, select, textarea {
+  width: 100%; padding: 6px 9px;
+  background: var(--surface3); color: var(--text);
+  border: 1px solid var(--border-strong); border-radius: var(--r-md);
+  font-family: var(--font-body); font-size: 13px;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--gold); background: var(--surface);
+}
+input[type=number] { font-family: var(--font-num); }
+.row2 { display: flex; gap: var(--sp-2); }
+.row2 > * { flex: 1; min-width: 0; }
+
+/* ── 按钮 ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 13px; border-radius: var(--r-md);
+  border: 1px solid var(--border-strong); background: var(--surface);
+  color: var(--text); font-size: 13px; cursor: pointer;
+}
+.btn:hover { background: var(--surface2); border-color: var(--gold); }
+.btn.primary {
+  background: var(--text); border-color: var(--text); color: var(--surface);
+  font-weight: 500;
+}
+.btn.primary:hover { background: var(--gold-deep); border-color: var(--gold-deep); }
+.btn.sm { padding: 3px 9px; font-size: 12px; }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--text2); }
+.btn.ghost:hover { background: var(--surface2); }
+.btnbar { display: flex; flex-wrap: wrap; gap: var(--sp-1); margin-bottom: var(--sp-2); }
+
+/* ── 指标格 ── */
+/* ⚠️ 阈值要按**实际可用宽度**定：侧栏 310px − 卡片左右 padding 40px = 270px，
+       minmax 定 132px 时 2×132+10(gap)=274 > 270 ⇒ 永远只排 1 列（看着像没生效）。 */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(116px, 1fr)); gap: var(--sp-1); }
+.kpi {
+  background: var(--surface3); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 9px 11px;
+}
+.kpi .k { font-size: 11.5px; color: var(--text2); letter-spacing: .04em; }
+.kpi .v { font-family: var(--font-display); font-size: 21px; line-height: 1.3; }
+.kpi .u { font-size: 12px; color: var(--text2); font-family: var(--font-body); }
+.kpi.warn { border-color: var(--warn-bd); background: var(--warn-bg); }
+.kpi.ok { border-color: var(--ok-bd); background: var(--ok-bg); }
+
+/* ── 提示条 ──
+   ⚠️ 必须是**块级正常流**，绝不能写 `display: flex`：
+      提示条文案里普遍有行内 <b> / <br> / <span class="mono">。容器一旦是 flex，
+      这些行内片段就各自变成**独立的 flex 子项**，被挤成一条条窄列、每个子项还自己
+      内部换行 —— 长文案整段会散开（G2 概览那两条实测就是 9 个子项排一行，字距被拉满、
+      末行也被撑开）。**副作用迟发**：文案短、能挤进一行时看着完全正常（G1/M1 就是这样
+      过关的），所以这个坑很晚才露头。
+      原来是 flex + `gap: 8px`；块级子元素之间的留白改由下面两条规则承担。 */
+.note {
+  display: block;
+  padding: 8px 11px; border-radius: var(--r-md);
+  border: 1px solid var(--mut-bd); background: var(--mut-bg);
+  font-size: 12.5px; color: var(--text2); margin-bottom: var(--sp-3);
+}
+.note.warn { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.note.ok { border-color: var(--ok-bd); background: var(--ok-bg); color: var(--ok-fg); }
+.note.info { border-color: var(--info-bd); background: var(--info-bg); color: var(--info-fg); }
+.note b { color: inherit; }
+/* 块级子元素之间留白（替代原来的 flex gap: 8px）—— 行内元素不受影响 */
+.note > div + div { margin-top: 6px; }
+/* 药丸横排（原来靠 flex 的 gap 撑开，块级流下要自己给左边距） */
+.note > .pill + .pill { margin-left: 4px; }
+
+/* ── 分段控件（tab）── */
+.seg { display: flex; gap: 2px; padding: 3px; background: var(--surface2); border-radius: var(--r-md); border: 1px solid var(--border); }
+.seg button {
+  border: 0; background: transparent; color: var(--text2);
+  padding: 5px 13px; border-radius: var(--r-sm); cursor: pointer; font: inherit; font-size: 13px;
+}
+.seg button.on { background: var(--surface); color: var(--text); font-weight: 500; }
+
+/* ── 条形图 ── */
+.bar { height: 8px; border-radius: 999px; background: var(--surface2); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--gold); }
+.bar.warn > i { background: var(--warn); }
+.bar.ok > i { background: var(--ok); }
+
+/* ── 自检条 ── */
+.gate {
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--surface3); padding: 8px 11px; font-size: 12.5px;
+}
+.gate .g { display: flex; gap: 7px; align-items: baseline; padding: 1px 0; }
+.gate .g i { font-style: normal; font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); flex: 0 0 auto; }
+.gate .g .t { color: var(--text2); }
+.gate .g.bad .t { color: var(--warn-fg); }
+
+/* ── 页脚 ── */
+.foot {
+  padding: var(--sp-4); color: var(--text-disabled); font-size: 11.5px;
+  border-top: 1px solid var(--border); margin-top: var(--sp-5);
+}
+
+/* ── 窄屏：单列堆叠（断点与项目后台一致，避免出现第二份断点表述）── */
+@media (max-width: 768px) {
+  .wrap { flex-direction: column; padding: var(--sp-2); }
+  /* ⚠️ 落到单列后必须**解除**侧栏的自身滚动区：否则手机上会出现一个 1/4 屏高的小滚动盒，
+        里面的卡片被裁掉一半 —— 那是「为修一个坑造一个新坑」。 */
+  .side { width: 100%; flex: auto; position: static; max-height: none; overflow-y: visible; }
+  .hero { padding: var(--sp-3) var(--sp-2) 0; }
+  table { font-size: 12px; }
+}
+
+/* ── 本系统 ── */
+/* ─────────────────────────────────────────────────────────────
+   F3 食安留样与全链追溯 · 本系统专属样式
+   ⚠️ 零颜色字面量：颜色一律走 var(--token)。构建期会扫这一条。
+   ⚠️ 选择器里也不许出现「井号 + 十六进制」形状的东西 —— 判据是正则扫字符形状，
+      不认语义。本文件里所有井号只用于 id 选择器（如 #main），其后第一个字符不是
+      十六进制数字，故不会被误判。
+   ───────────────────────────────────────────────────────────── */
+
+.nowrap { white-space: nowrap; }
+.tiny { font-size: 11px; color: var(--text-disabled); }
+
+/* 表格内控件紧凑，但仍保留可点面积 */
+#main table input, #main table select {
+  padding: 3px 6px;
+  font-size: 12.5px;
+  border-radius: var(--r-sm);
+}
+#main table td { padding: 5px 6px; vertical-align: middle; }
+
+/* ── 留样参数条（侧栏）── */
+.thbar { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: var(--sp-2); }
+.thbar label { display: block; }
+.thbar label > span {
+  display: block; font-size: 11px; color: var(--text2);
+  letter-spacing: .04em; margin-bottom: 2px;
+}
+.thbar .b { font-size: 10.5px; color: var(--text-disabled); line-height: 1.45; margin-top: 2px; }
+
+/* ── 追溯链（九环）── */
+.chain { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin: 0 0 var(--sp-2); }
+.chain .st {
+  font-size: 11.5px; color: var(--text2); background: var(--surface3);
+  border: 1px solid var(--border); border-radius: 999px; padding: 1px 9px;
+}
+.chain .ar { color: var(--text-disabled); font-size: 11px; }
+
+/* ── 留样照片格 ── */
+.photo {
+  width: 46px; height: 46px; border-radius: var(--r-sm);
+  border: 1px dashed var(--border-strong); background: var(--surface3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: var(--text-disabled); text-align: center; line-height: 1.25;
+}
+.photo.has { border-style: solid; border-color: var(--ok-bd); background: var(--ok-bg); color: var(--ok-fg); }
+.photo.demo { border-style: solid; border-color: var(--gold-bd); background: var(--gold-bg); color: var(--gold-fg); }
+.photo.none { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+
+/* ── 出餐环境自检 ── */
+.ck { display: block; }
+.ck label { display: flex; align-items: flex-start; gap: 6px; font-size: 12.5px; line-height: 1.5; }
+.ck label input { width: auto; flex: 0 0 auto; margin: 4px 0 0; }
+.ck .b { font-size: 10.5px; color: var(--text-disabled); }
+
+/* ── 待办 / 自检说明 ── */
+.todo { font-size: 12.5px; line-height: 1.7; }
+
+/* ── 追溯卡顶部工具条 ── */
+.tools { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: flex-end; margin-bottom: var(--sp-2); }
+.tools > label { display: block; flex: 1 1 320px; min-width: 0; }
+.tools > label > span {
+  display: block; font-size: 11.5px; color: var(--text2);
+  letter-spacing: .04em; margin-bottom: 3px;
+}
+
+</style></head><body>
+<header class="top"><div class="logo">ABox 一盒</div><div class="sub">食安留样与全链追溯 · 内部合规底账</div><div class="spacer"></div><div class="ver">版本 <span id="ver"></span> · 基准日 <span id="date"></span></div></header>
+<div class="hero"><h1>食安留样与全链追溯</h1><p>回答两句话：任取一份餐，能不能查到它的留样照片与批次？今天该留的样，留齐了吗？数据只存在本机浏览器，不上传。</p></div>
+<div class="wrap"><aside class="side" id="side"></aside><main class="main" id="main"></main></div>
+<footer class="foot" id="foot">ABox 一盒 · F3 食安留样与全链追溯 v1.0 · 套餐 / BOM / 场所 / 供应商 / 追溯链由生成器从代码真源注入（禁手改）· 留样参数属外部规范口径（非代码真源），首次使用前须运营与合规确认 · 工具只做登记 / 提醒 / 自证，不替代法规；样例证照号与照片为演示占位值</footer>
+<script>
+window.TOOL_VERSION = "v1.0";
+window.SPEC = {"_generated_by":"_tmp/p1/f3/extract.py","_doctrine":"同一口径只许有一处表述：套餐 / BOM / 场所 / 菜品 / 供应商 / 时间线 / 档位 全部复用共享库（`_tmp/p0/_shared/extract_lib.py`），本文件不复制任何口径。","brand":{"name":"ABox 一盒","tool":"F3 食安留样与全链追溯"},"tokens":{"value":{"bg":"#F6F0E5","surface":"#FFFDF8","surface2":"#F7F1E4","surface3":"#FBF6EC","text":"#6E5435","text2":"#796C57","text-disabled":"#A79A85","gold":"#C9A876","gold-deep":"#936F3A","gold-deepest":"#8A6620","border":"#E4D8C3","border-strong":"#D6CBB8","ok":"#5B7C3A","warn":"#C44536","info":"#4A6FA5","ok-bg":"#F1F5EA","ok-bd":"#BBCBA6","warn-bg":"#FBF0EE","warn-bd":"#E3BFB8","info-bg":"#EDF1F8","info-bd":"#B4C4DA","mut-bg":"#F7F2E8","mut-bd":"#E4D8C3","gold-bg":"#FBF4E6","gold-bd":"#DCC79C","ok-fg":"#597939","warn-fg":"#C24436","info-fg":"#4A6FA5","gold-fg":"#8D6A38","from":"#FFF6E0","to":"#FFEED5","brand-meituan":"#FFD400","brand-meituan-text":"#000000","brand-taobao":"#FF6A00","brand-taobao-text":"#000000","brand-jd":"#E1251B","brand-jd-text":"#FFFFFF","font-display":"'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif","font-body":"-apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif","font-num":"'SF Mono','Roboto Mono',Consolas,monospace","r-sm":"4px","r-md":"10px","r-lg":"16px","sp-1":"6px","sp-2":"10px","sp-3":"14px","sp-4":"20px","sp-5":"28px"},"_src":"_ABox一盒设计token真源v2.1/design-tokens.css"},"env":{"unitPrice":25.8,"supplierTotal":14.0,"distributionCenter":5.0,"cutoffHour":24,"commission":{"trainee":0.08,"formal":0.09,"gold":0.1,"chief":0.12},"_src":"abox-onebox/.env.example"},"timeline":{"value":{"publish":"14:00","cutoff":"24:00","arrival":"11:30","autoConfirm":"14:00","deliveryGenerate":"00:30"},"_src":"abox-onebox/apps/api-server/src/common/utils/order-timeline.ts","_note":"截单 24:00 是合法值（= 次日 0 点），不是笔误"},"slots":{"label":{"1":"主荤","2":"半荤","3":"素菜","4":"汤","5":"主食"},"requiredSlots":[1,2,3,4],"stapleSlot":5,"_src":"abox-onebox/packages/shared-utils/src/biz.ts"},"categories":{"label":{"main":"主荤","half":"半荤","veg":"素菜","soup":"汤品","staple":"主食"},"_src":"abox-onebox/packages/shared-types/src/enums/supplier-admin.ts","_note":"档位写「汤」、品类写「汤品」—— 两轴并存，勿强行统一"},"dishes":{"list":[{"id":1,"supplierId":1,"name":"红烧肉","category":"main","cost":7.5},{"id":2,"supplierId":1,"name":"东坡肉","category":"main","cost":8.5},{"id":3,"supplierId":1,"name":"啤酒鸭","category":"main","cost":8.0},{"id":4,"supplierId":2,"name":"清炒时蔬","category":"veg","cost":3.0},{"id":5,"supplierId":2,"name":"凉拌黄瓜","category":"veg","cost":2.2},{"id":6,"supplierId":3,"name":"卤蛋","category":"half","cost":1.5},{"id":7,"supplierId":4,"name":"酸辣汤","category":"soup","cost":2.0},{"id":8,"supplierId":4,"name":"番茄蛋汤","category":"soup","cost":2.0},{"id":9,"supplierId":1,"name":"宫保鸡丁","category":"main","cost":6.5},{"id":10,"supplierId":1,"name":"清真牛肉","category":"main","cost":8.5},{"id":11,"supplierId":1,"name":"番茄鱼","category":"main","cost":8.0},{"id":12,"supplierId":1,"name":"咖喱鸡","category":"main","cost":6.0}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts"},"setMeals":{"list":[{"id":1,"name":"红烧肉套餐","price":25.8,"oneLiner":"招牌红烧肉 · 一饭四菜","status":1},{"id":2,"name":"东坡肉套餐","price":29.8,"oneLiner":"慢炖东坡肉 · 一饭四菜","status":1},{"id":3,"name":"宫保鸡丁套餐","price":25.8,"oneLiner":"川味宫保鸡丁 · 一饭四菜","status":1},{"id":4,"name":"清真牛肉套餐","price":28.8,"oneLiner":"清真牛肉 · 一饭四菜","status":1},{"id":5,"name":"番茄鱼套餐","price":28.8,"oneLiner":"番茄鱼片 · 一饭四菜","status":1},{"id":6,"name":"啤酒鸭套餐","price":27.8,"oneLiner":"啤酒鸭 · 一饭四菜","status":1},{"id":7,"name":"咖喱鸡套餐","price":25.8,"oneLiner":"台式咖喱鸡 · 一饭四菜","status":1}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts","_note":"售价是真源值；供价（costPrice）故意不抽 —— 套餐 1 写的是常量名，真实供价以「与各供应商逐菜协商价」为准（见 §4 菜品库注释 C9）"},"bom":{"list":[{"setMealId":1,"dishId":1,"supplierId":1,"slot":1,"shareAmount":7.5},{"setMealId":1,"dishId":6,"supplierId":3,"slot":2,"shareAmount":1.5},{"setMealId":1,"dishId":4,"supplierId":2,"slot":3,"shareAmount":3.0},{"setMealId":1,"dishId":7,"supplierId":4,"slot":4,"shareAmount":2.0},{"setMealId":2,"dishId":2,"supplierId":1,"slot":1,"shareAmount":8.5},{"setMealId":2,"dishId":6,"supplierId":3,"slot":2,"shareAmount":1.5},{"setMealId":2,"dishId":4,"supplierId":2,"slot":3,"shareAmount":3.0},{"setMealId":2,"dishId":7,"supplierId":4,"slot":4,"shareAmount":2.0},{"setMealId":3,"dishId":9,"supplierId":1,"slot":1,"shareAmount":6.5},{"setMealId":3,"dishId":6,"supplierId":3,"slot":2,"shareAmount":1.5},{"setMealId":3,"dishId":4,"supplierId":2,"slot":3,"shareAmount":3.0},{"setMealId":3,"dishId":8,"supplierId":4,"slot":4,"shareAmount":2.0},{"setMealId":4,"dishId":10,"supplierId":1,"slot":1,"shareAmount":8.5},{"setMealId":4,"dishId":4,"supplierId":2,"slot":3,"shareAmount":3.0},{"setMealId":4,"dishId":8,"supplierId":4,"slot":4,"shareAmount":2.0},{"setMealId":5,"dishId":11,"supplierId":1,"slot":1,"shareAmount":8.0},{"setMealId":5,"dishId":6,"supplierId":3,"slot":2,"shareAmount":1.5},{"setMealId":5,"dishId":4,"supplierId":2,"slot":3,"shareAmount":3.0},{"setMealId":5,"dishId":7,"supplierId":4,"slot":4,"shareAmount":2.0},{"setMealId":6,"dishId":3,"supplierId":1,"slot":1,"shareAmount":8.0},{"setMealId":6,"dishId":6,"supplierId":3,"slot":2,"shareAmount":1.5},{"setMealId":6,"dishId":4,"supplierId":2,"slot":3,"shareAmount":3.0},{"setMealId":6,"dishId":7,"supplierId":4,"slot":4,"shareAmount":2.0},{"setMealId":7,"dishId":12,"supplierId":1,"slot":1,"shareAmount":6.0},{"setMealId":7,"dishId":6,"supplierId":3,"slot":2,"shareAmount":1.5},{"setMealId":7,"dishId":4,"supplierId":2,"slot":3,"shareAmount":3.0},{"setMealId":7,"dishId":8,"supplierId":4,"slot":4,"shareAmount":2.0}],"perSetMeal":{"1":4,"2":4,"3":4,"4":3,"5":4,"6":4,"7":4},"threeItemSetMeals":[4],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts","_note":"主食（米）由集散中心统一供、不计入供应商菜品成本，故本表无 slot 5 行 —— 留样时「米」另按场所统一留样，不逐套餐派生"},"sites":{"list":[{"id":1,"name":"集散中心 1（国贸/建外）","address":"朝阳区建国路 88 号","contactName":"王师傅","contactPhone":"13800000001","riceFee":0.0,"packFee":0.0,"serviceGroups":[1,2],"status":1},{"id":2,"name":"集散中心 2（银泰/建外）","address":"朝阳区光华路 21 号","contactName":"刘师傅","contactPhone":"13800000002","riceFee":0.0,"packFee":0.0,"serviceGroups":[3,2],"status":1},{"id":3,"name":"集散中心 3（国贸/远洋）","address":"朝阳区东三环中路 65 号","contactName":"赵师傅","contactPhone":"13800000003","riceFee":0.0,"packFee":0.0,"serviceGroups":[1,5],"status":1},{"id":4,"name":"集散中心 4（华贸组）","address":"朝阳区四惠东","contactName":"钱师傅","contactPhone":"13800000004","riceFee":0.0,"packFee":0.0,"serviceGroups":[4],"status":1}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts","_note":"⭐ 集散中心 = ABox **自有持证场所**（非供应商、不是应付对象）；riceFee / packFee 默认 0.00 的含义是「**未登记**」而不是「免费」"},"suppliers":{"list":[{"id":1,"name":"三味屋","contactName":"王经理","contactPhone":"13900000001","category":"本帮菜","licenseExpireAt":"2027-12-31","businessLicense":"91110105DEMO000001","foodLicense":"JY1110105DEMO000001"},{"id":2,"name":"四季鲜蔬","contactName":"李经理","contactPhone":"13900000002","category":"时蔬","licenseExpireAt":"2027-12-31","businessLicense":"91110105DEMO000002","foodLicense":"JY1110105DEMO000002"},{"id":3,"name":"京味小馆","contactName":"赵经理","contactPhone":"13900000003","category":"京味","licenseExpireAt":"2027-12-31","businessLicense":"91110105DEMO000003","foodLicense":"JY1110105DEMO000003"},{"id":4,"name":"老李家","contactName":"孙经理","contactPhone":"13900000004","category":"汤品","licenseExpireAt":"2027-12-31","businessLicense":"91110105DEMO000004","foodLicense":"JY1110105DEMO000004"}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts","_demo":true,"_note":"证照号与到期日为**演示占位值**（真源注释明示），台账首次使用须替换为真实值后再用于监管应对"},"keepPolicy":{"weightMinG":125,"tempMinC":0,"tempMaxC":8,"keepHours":48,"sampleWindowMin":120,"labels":{"weightMinG":"每样留样量下限（克）","tempMinC":"冷藏温度下限（℃）","tempMaxC":"冷藏温度上限（℃）","keepHours":"留样保存时长下限（小时）","sampleWindowMin":"出餐后留样时限（分钟）"},"basis":{"weightMinG":"外部规范通用口径（≥125g）","tempMinC":"外部规范通用口径（冷藏 0–8℃）","tempMaxC":"外部规范通用口径（冷藏 0–8℃）","keepHours":"外部规范通用口径（≥48 小时）","sampleWindowMin":"**本项目运营默认值**（法规未给具体分钟数，取 2 小时）"},"_src":"**外部规范口径（非代码真源）**","_demo":true,"_note":"仓库里没有留样数值常量（全量 grep 已确认）。上列默认值取自餐饮留样的通用口径，**不代表属地监管的全部要求**；首次投入使用前须由运营/合规确认并在此改正。工具只做「登记 + 提醒 + 自证」，**不替代法规**。"},"siteChecks":{"list":[{"key":"heat","label":"加热 / 复温设备可用","basis":"代码注释（finance.entity.ts：要有加热设备）"},{"key":"tempLog","label":"出餐温度记录已填（复温达标）","basis":"代码注释（finance.entity.ts：要有温度记录）"},{"key":"sampling","label":"本餐次留样已执行","basis":"代码注释（finance.entity.ts：要有留样）"},{"key":"health","label":"从业人员健康证在有效期","basis":"运营默认项（与 R1 台账同源，此处只做当日校验）"},{"key":"sanitize","label":"操作区与留样容器已消毒","basis":"运营默认项"},{"key":"waste","label":"临期 / 废弃物处置有痕迹","basis":"运营默认项（与后续 S5 损耗处置衔接）"}]},"traceChain":{"list":["一份餐（套餐 × 份数）","批次（场所 × 出餐日 × 套餐）","套餐 BOM（逐菜）","菜品","供应商（含证照与核验状态）","加工场所（自有持证）","留样样本（照片 · 重量 · 温度 · 时间 · 留样人）","出餐人","配送"],"_src":"abox-onebox/apps/api-server/src/modules/traceability/traceability.service.ts","_note":"端上 traceability 是「给用户看的溯源页」；F3 是「给自己用的合规底账」——两者共用同一批真源，**不共用页面**（真源原话：把它从给用户看的溯源页扩展成给自己用的合规底账）"},"batches":{"list":[{"batchNo":"B-00-1-1","dayOffset":0,"siteId":1,"setMealId":1,"cook":"王师傅","cookClock":"10:40","dispatchClock":"11:05"},{"batchNo":"B-00-2-3","dayOffset":0,"siteId":2,"setMealId":3,"cook":"刘师傅","cookClock":"10:45","dispatchClock":"11:10"},{"batchNo":"B-01-1-2","dayOffset":-1,"siteId":1,"setMealId":2,"cook":"王师傅","cookClock":"10:35","dispatchClock":"11:00"},{"batchNo":"B-01-4-4","dayOffset":-1,"siteId":4,"setMealId":4,"cook":"钱师傅","cookClock":"10:50","dispatchClock":"11:15"},{"batchNo":"B-02-3-5","dayOffset":-2,"siteId":3,"setMealId":5,"cook":"赵师傅","cookClock":"10:30","dispatchClock":"10:55"},{"batchNo":"B-02-1-7","dayOffset":-2,"siteId":1,"setMealId":7,"cook":"王师傅","cookClock":"10:35","dispatchClock":"11:00"}],"_note":"dayOffset 一律 ≤ 0（今天 / 昨天 / 前天）；批次号形如 B-<日序>-<场所>-<套餐>"},"sampleDefaults":{"weightG":150,"tempC":4.0,"sampleLagMin":8,"_note":"演示值。sampleLagMin = 留样时刻相对「出餐完成时刻」的分钟数（须落在 sampleWindowMin 内）"},"sites_note":"集散中心 = ABox 自有加工/出餐场所（自营口径）；「要有加热设备、温度记录、留样，否则会被认定为经营外购即食食品而非自制」—— 出处：finance.entity.ts 集散中心实体注释","today":null,"_srcs":{"seed":"abox-onebox/apps/api-server/src/database/seeds/seed.ts","biz":"abox-onebox/packages/shared-utils/src/biz.ts","tokens":"_ABox一盒设计token真源v2.1/design-tokens.css","traceability":"abox-onebox/apps/api-server/src/modules/traceability/traceability.service.ts","distributionCenter":"abox-onebox/apps/api-server/src/database/entities/finance.entity.ts（集散中心实体注释）","keepPolicy":"**外部规范口径（非代码真源）** —— 须运营/合规确认"}};
+/* ─────────────────────────────────────────────────────────────
+   P0 工具集 · 共享工具函数（纯函数为主，不碰业务）
+   ⚠️ 必须以「普通脚本」形式可被 eval（构建期启动冒烟要用），
+      故不使用 ESM 语法，只挂 `window.U`。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var U = {};
+
+  /* ── DOM ── */
+  U.$ = function (sel, root) { return (root || document).querySelector(sel); };
+  U.$$ = function (sel, root) {
+    return Array.prototype.slice.call((root || document).querySelectorAll(sel));
+  };
+  /** 绑定事件：一律挂到 document，用 closest 分发（兄弟节点挂错容器是本项目踩过的坑） */
+  U.on = function (evt, sel, fn) {
+    document.addEventListener(evt, function (e) {
+      var t = e.target && e.target.closest ? e.target.closest(sel) : null;
+      if (t) fn(e, t);
+    });
+  };
+
+  /* ── 文本 ── */
+  U.esc = function (s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  };
+  /** 数值格式化；null/undefined/NaN 一律回显 '—'（不要显示 NaN） */
+  U.num = function (v, d) {
+    if (v == null || v === '' || !isFinite(Number(v))) return '—';
+    return Number(v).toFixed(d == null ? 2 : d);
+  };
+  /** 金额：¥ + 两位小数 */
+  U.y = function (v, d) {
+    if (v == null || v === '' || !isFinite(Number(v))) return '—';
+    return '¥' + Number(v).toFixed(d == null ? 2 : d);
+  };
+  /** 分 → 元（项目内金额一律「存分、显示元」，避免浮点） */
+  U.fen2y = function (fen, d) {
+    if (fen == null || !isFinite(Number(fen))) return '—';
+    return '¥' + (Number(fen) / 100).toFixed(d == null ? 2 : d);
+  };
+  U.y2fen = function (y) { return Math.round(Number(y || 0) * 100); };
+  /** 归一两位小数（复刻 biz.ts 的 round2 语义：先乘后再四舍五入） */
+  U.round2 = function (n) { return Math.round((Number(n) + Number.EPSILON) * 100) / 100; };
+
+  /* ── 日期（一律 YYYY-MM-DD 字符串 · 本地时区 · 不碰 UTC）── */
+  U.pad2 = function (n) { return (n < 10 ? '0' : '') + n; };
+  U.today = function (d) {
+    d = d || new Date();
+    return d.getFullYear() + '-' + U.pad2(d.getMonth() + 1) + '-' + U.pad2(d.getDate());
+  };
+  /** 字符串 → Date（本地零点）；非法返回 null —— 绝不返回 Invalid Date 让它往下跑 */
+  U.dt = function (s) {
+    if (!s) return null;
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s).trim());
+    if (!m) return null;
+    var d = new Date(+m[1], +m[2] - 1, +m[3]);
+    return isNaN(d.getTime()) ? null : d;
+  };
+  U.addDays = function (s, n) {
+    var d = U.dt(s); if (!d) return null;
+    d.setDate(d.getDate() + n);
+    return U.today(d);
+  };
+  /** b − a 的天数（两个 YYYY-MM-DD）；任一非法返回 null */
+  U.diffDays = function (a, b) {
+    var x = U.dt(a), y2 = U.dt(b);
+    if (!x || !y2) return null;
+    return Math.round((y2.getTime() - x.getTime()) / 86400000);
+  };
+  /** 校验：是不是合法的 YYYY-MM-DD（且日期真实存在，如 2026-02-30 判非法） */
+  U.isDate = function (s) {
+    var d = U.dt(s);
+    return !!d && U.today(d) === String(s).trim();
+  };
+
+  /* ── 本地存储（file:// 下 localStorage 可能直接抛异常，必须容错）── */
+  U.store = {
+    get: function (k, dflt) {
+      try {
+        var v = g.localStorage.getItem(k);
+        return v == null ? dflt : JSON.parse(v);
+      } catch (e) { return dflt; }
+    },
+    set: function (k, v) {
+      try { g.localStorage.setItem(k, JSON.stringify(v)); return true; }
+      catch (e) { return false; }
+    },
+    del: function (k) {
+      try { g.localStorage.removeItem(k); return true; } catch (e) { return false; }
+    },
+    /** 存储是否可用（不可用时页面要提示「本次改动不会保存」） */
+    ok: function () {
+      try {
+        g.localStorage.setItem('__t', '1'); g.localStorage.removeItem('__t');
+        return true;
+      } catch (e) { return false; }
+    },
+  };
+
+  /* ── 导出 / 导入 ── */
+  U.download = function (name, text, mime) {
+    var blob = new Blob([text], { type: (mime || 'text/plain') + ';charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 0);
+  };
+  U.pickFile = function (accept, fn) {
+    var i = document.createElement('input');
+    i.type = 'file'; i.accept = accept || '.json';
+    i.onchange = function () {
+      var f = i.files && i.files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function () { fn(String(r.result), f); };
+      r.readAsText(f, 'utf-8');
+    };
+    i.click();
+  };
+  /** CSV：单元格内的引号/逗号/换行都要转义，否则 Excel 打开就串列 */
+  U.toCSV = function (rows) {
+    return rows.map(function (r) {
+      return r.map(function (c) {
+        var s = c == null ? '' : String(c);
+        return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      }).join(',');
+    }).join('\r\n');
+  };
+
+  /* ── 数组 ── */
+  U.groupBy = function (arr, keyFn) {
+    var out = {};
+    (arr || []).forEach(function (x) {
+      var k = keyFn(x);
+      (out[k] = out[k] || []).push(x);
+    });
+    return out;
+  };
+  U.sum = function (arr, fn) {
+    return (arr || []).reduce(function (s, x) { return s + (Number(fn ? fn(x) : x) || 0); }, 0);
+  };
+  U.sortBy = function (arr, fn, dir) {
+    var d = dir === 'desc' ? -1 : 1;
+    return (arr || []).slice().sort(function (a, b) {
+      var x = fn(a), y2 = fn(b);
+      if (x == null && y2 == null) return 0;
+      if (x == null) return 1;        /* 空值恒排末尾，不参与方向翻转 */
+      if (y2 == null) return -1;
+      return x < y2 ? -d : x > y2 ? d : 0;
+    });
+  };
+
+  g.U = U;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ─────────────────────────────────────────────────────────────
+   F3 食安留样与全链追溯 · 纯逻辑层（不碰 DOM，可被 node 直接 eval）
+
+   ⚠️ 本系统要回答的唯一一句话：**「任取一份餐，能不能查到它的留样照片与批次？」**
+      以及第二句：**「今天该留的样，留齐了吗？」**
+
+   ⚠️ 三条会「静默自欺」的分界，必须分清：
+      · `sampleClock`（登记的留样时刻） vs `keepUntil`（**算出来**的保存到期）
+        —— 把算出来的当登记的存，就会出现「人工写着保存中、其实早该处置」。
+      · `disposed`（**登记的**处置事实） vs `due`（**算出来**的可处置档位）
+        —— 未到期却写了处置记录 ⇒ 必须报（提前处置 = 留样链断掉）。
+      · 留样清单**必须从套餐 BOM 派生**，不能按「一饭四菜」硬写 4 样 ——
+        真源里套餐 4「清真牛肉套餐」只有 3 行 BOM（缺 slot 2 半荤），
+        而 `biz.ts` 的 `requiredSlots` 写的是 [1,2,3,4] ⇒ **两份真源自相矛盾**。
+        硬写就会让该批次天天报红（恒红与恒绿同罪）；正确做法是
+        「按 BOM 实际行数 + 米饭派生」，并把这条矛盾**显式登记出来**。
+
+   ⚠️ 所有日期一律存**相对偏移**（`dayOffset`），绝不存绝对日期
+      —— 否则产物第二天整体过期（本项目 G1/G2 都踩过）。
+
+   ⚠️ 留样参数（重量 / 温度 / 时长 / 窗口）**不在代码真源里**（全量 grep 已确认），
+      它们来自外部规范口径 + 本项目运营默认值 ⇒ 只能经 `setThresholds()` 改，
+      且判据读 `thresholds()`（模块闭包真值），不读 `spec.keepPolicy` 快照，
+      否则「页面上改了参数、判据还按旧值算」会假红。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var U = g.U;
+
+  /* ── 留样参数（唯一真值 = 模块闭包；改值只能走 setThresholds）── */
+  var TH = { weightMinG: 125, tempMinC: 0, tempMaxC: 8, keepHours: 48, sampleWindowMin: 120 };
+  var TH_KEYS = ['weightMinG', 'tempMinC', 'tempMaxC', 'keepHours', 'sampleWindowMin'];
+
+  function thresholds() {
+    return { weightMinG: TH.weightMinG, tempMinC: TH.tempMinC, tempMaxC: TH.tempMaxC,
+             keepHours: TH.keepHours, sampleWindowMin: TH.sampleWindowMin };
+  }
+  /** ⚠️ 唯一合法的改参入口。
+      直接写 `M.TH.weightMinG = n` 只会改导出对象属性，而判据读的是**模块闭包变量**
+      ⇒ 症状是「输入框能改、判据一点不变、且不报错」（G2 真踩过）。 */
+  function setThresholds(o) {
+    if (!o) return thresholds();
+    TH_KEYS.forEach(function (k) {
+      if (o[k] == null) return;
+      var v = Number(o[k]);
+      if (!isFinite(v)) return;
+      TH[k] = v;
+    });
+    if (TH.tempMaxC < TH.tempMinC) { var t = TH.tempMinC; TH.tempMinC = TH.tempMaxC; TH.tempMaxC = t; }
+    if (!(TH.keepHours > 0)) TH.keepHours = 48;
+    if (!(TH.weightMinG > 0)) TH.weightMinG = 125;
+    if (!(TH.sampleWindowMin >= 0)) TH.sampleWindowMin = 120;
+    return thresholds();
+  }
+
+  /* ── 样本档位（保存中 / 可处置 / 已处置）── */
+  var SAMPLE_STATE = {
+    holding: { key: 'holding', label: '保存中', rank: 0, tone: 'ok' },
+    due: { key: 'due', label: '可处置', rank: 1, tone: 'gold' },
+    disposed: { key: 'disposed', label: '已处置', rank: 2, tone: 'dim' },
+  };
+  var SAMPLE_STATE_ORDER = ['holding', 'due', 'disposed'];
+
+  /* ── 时刻工具（一律「日期串 + 当日分钟」，比较走 dtCmp）────────── */
+  /* ⚠️ 2026-09-26 修复：原正则只要求「1–2 位数字 : 2 位数字」，**没校验分钟 < 60**，
+     于是 `10:70` 被当作 11:10、`12:99` 被当作 13:39 —— 一个写错的时间被静默改写成
+     另一个「看起来合法」的时间，并改变留样时限与 48 小时判定（下游 lagMin / keepUntil 都用它）。
+     小时段靠 `v < 1440` 拦着，分钟段原本完全没拦。 */
+  function clockMin(c) {
+    var m = /^(\d{1,2}):(\d{2})$/.exec(String(c == null ? '' : c).trim());
+    if (!m) return null;
+    if (+m[2] > 59) return null;                  /* 分钟段必须 < 60 */
+    var v = +m[1] * 60 + +m[2];
+    return (v >= 0 && v < 1440) ? v : null;
+  }
+  function min2clock(v) {
+    v = ((Math.round(v) % 1440) + 1440) % 1440;
+    return U.pad2(Math.floor(v / 60)) + ':' + U.pad2(v % 60);
+  }
+  function dt(dateStr, clock) { return { d: dateStr, m: clockMin(clock) }; }
+  function dtCmp(a, b) {
+    if (a.m == null || b.m == null) return null;
+    if (a.d < b.d) return -1;
+    if (a.d > b.d) return 1;
+    return a.m - b.m;
+  }
+  /** 日期串 + 分钟 → 平移后仍**按日期串归位**（跨天自动进位），不返回时间戳 */
+  function addMin(dateStr, startMin, add) {
+    if (startMin == null) return null;
+    var total = startMin + add;
+    var shift = Math.floor(total / 1440);
+    var m = ((total % 1440) + 1440) % 1440;
+    return { d: U.addDays(dateStr, shift), m: m, clock: min2clock(m) };
+  }
+
+  var seq = 0;
+  function nextUid() { seq += 1; return 'S' + seq; }
+  function syncSeq(samples) {
+    (samples || []).forEach(function (s) {
+      var m = /^S(\d+)$/.exec(s.uid || '');
+      if (m && +m[1] > seq) seq = +m[1];
+    });
+  }
+
+  function dishIndex(spec) {
+    var out = {};
+    (((spec || {}).dishes || {}).list || []).forEach(function (d) { out[d.id] = d; });
+    return out;
+  }
+  function supplierIndex(spec) {
+    var out = {};
+    (((spec || {}).suppliers || {}).list || []).forEach(function (s) { out[s.id] = s; });
+    return out;
+  }
+  function siteById(spec, id) {
+    return ((((spec || {}).sites || {}).list) || []).filter(function (s) { return s.id === id; })[0] || null;
+  }
+  function setMealById(spec, id) {
+    return ((((spec || {}).setMeals || {}).list) || []).filter(function (s) { return s.id === id; })[0] || null;
+  }
+  function slotLabel(spec, slot) {
+    var m = (((spec || {}).slots || {}).label) || {};
+    return m[String(slot)] || ('档位 ' + slot);
+  }
+
+  /* ── 该留哪几样：**从 BOM 派生 + 米饭一项**（绝不用 requiredSlots 硬写）── */
+  function expectedItems(spec, setMealId) {
+    var bom = (((spec || {}).bom || {}).list || []).filter(function (r) { return r.setMealId === setMealId; });
+    var di = dishIndex(spec);
+    var items = U.sortBy(bom, function (r) { return r.slot; }, 'asc').map(function (r) {
+      var d = di[r.dishId] || {};
+      return { dishId: r.dishId, dishName: d.name || ('#' + r.dishId), slot: r.slot,
+               supplierId: r.supplierId, staple: false };
+    });
+    // 米饭：成本口径上不计入 BOM（真源原话），但**留样口径上必须留**（一饭四菜的一部分）
+    items.push({ dishId: null, dishName: '米饭', slot: ((spec.slots || {}).stapleSlot) || 5,
+                 supplierId: null, staple: true });
+    return items;
+  }
+
+  /** 真源矛盾登记：BOM 未覆盖 `slots.requiredSlots` 的套餐（当前 = 套餐 4 缺半荤） */
+  function specConflicts(spec) {
+    var req = ((spec || {}).slots || {}).requiredSlots || [];
+    var out = [];
+    (((spec || {}).setMeals || {}).list || []).forEach(function (sm) {
+      var have = U.sortBy((((spec.bom || {}).list) || []).filter(function (r) { return r.setMealId === sm.id; }),
+        function (r) { return r.slot; }, 'asc').map(function (r) { return r.slot; });
+      var missing = req.filter(function (s) { return have.indexOf(s) < 0; });
+      if (missing.length) {
+        out.push({ setMealId: sm.id, setMealName: sm.name, haveSlots: have, missingSlots: missing,
+                   msg: sm.name + ' 的 BOM 只有 ' + have.length + ' 道（缺 '
+                        + missing.map(function (s) { return slotLabel(spec, s); }).join('、')
+                        + '），而真源 biz.ts 的 requiredSlots 要求 ' + req.length + ' 档齐全' });
+      }
+    });
+    return out;
+  }
+
+  function makeSample(o) {
+    o = o || {};
+    return {
+      uid: o.uid || nextUid(),
+      batchNo: o.batchNo || '',
+      dishId: o.dishId == null ? null : o.dishId,
+      dishName: o.dishName || '',
+      slot: o.slot == null ? null : o.slot,
+      supplierId: o.supplierId == null ? null : o.supplierId,
+      staple: !!o.staple,
+      weightG: Number(o.weightG == null ? 0 : o.weightG),
+      /* ⚠️ 2026-09-26 修复：`'' == null` 为 false ⇒ 空串走 `Number('')` = **0**，
+         而合格区间是 0–8℃，0 度正好在合格区间内 ⇒ 没填温度被判成「合格」（假阴性）。
+         UI 编辑路径已用 `t.value === '' ? null` 绕开，但**导入 JSON** 直接走这里。 */
+      tempC: (o.tempC == null || o.tempC === '') ? null : Number(o.tempC),
+      sampleClock: o.sampleClock || '',
+      sampler: o.sampler || '',
+      photo: o.photo || '',
+      disposedDayOffset: o.disposedDayOffset == null ? null : Number(o.disposedDayOffset),
+      disposedClock: o.disposedClock || '',
+      disposeWay: o.disposeWay || '',
+      note: o.note || '',
+      demo: !!o.demo,
+    };
+  }
+
+  /* ── 演示种子：按批次 × BOM 派生样本，全部合规 ─────────────────── */
+  function seed(spec) {
+    var out = [];
+    var d = (spec || {}).sampleDefaults || {};
+    var lag = Number(d.sampleLagMin == null ? 8 : d.sampleLagMin);
+    (((spec || {}).batches || {}).list || []).forEach(function (b) {
+      var startMin = clockMin(b.cookClock);
+      expectedItems(spec, b.setMealId).forEach(function (it) {
+        var sc = startMin == null ? null : min2clock(startMin + lag);
+        // 前天（≤ -2）的批次：48h 已过 ⇒ 已依规处置（合规示范）
+        var disposed = b.dayOffset <= -2;
+        out.push(makeSample({
+          uid: nextUid(), batchNo: b.batchNo,
+          dishId: it.dishId, dishName: it.dishName, slot: it.slot, supplierId: it.supplierId,
+          staple: it.staple, weightG: d.weightG, tempC: d.tempC,
+          sampleClock: sc || '', sampler: b.cook, photo: 'demo',
+          disposedDayOffset: disposed ? b.dayOffset + 2 : null,
+          disposedClock: disposed ? sc : '',
+          disposeWay: disposed ? '到期后按规定处置（演示）' : '',
+          note: it.staple ? '主食：集散中心统一供米，成本口径不计入 BOM，但留样必须留' : '',
+          demo: true,
+        }));
+      });
+    });
+    syncSeq(out);
+    return out;
+  }
+
+  function batchByNo(spec, batchNo) {
+    return (((spec || {}).batches || {}).list || []).filter(function (b) { return b.batchNo === batchNo; })[0] || null;
+  }
+  function samplesOf(samples, batchNo) {
+    return (samples || []).filter(function (s) { return s.batchNo === batchNo; });
+  }
+
+  /* ── 派生时刻 ─────────────────────────────────────────────────── */
+  function times(spec, batch, sample, today) {
+    if (!batch || !sample) return null;
+    var date = U.addDays(today, batch.dayOffset);
+    var cookM = clockMin(batch.cookClock), sM = clockMin(sample.sampleClock);
+    if (cookM == null || sM == null) return null;
+    var keep = addMin(date, sM, TH.keepHours * 60);
+    var disp = (sample.disposedDayOffset == null || !sample.disposedClock) ? null
+      : { d: U.addDays(today, sample.disposedDayOffset), m: clockMin(sample.disposedClock),
+          clock: sample.disposedClock };
+    return { date: date, cookM: cookM, sampleM: sM, sampleAt: min2clock(sM),
+             lagMin: sM - cookM, keepUntil: keep, disposedAt: disp };
+  }
+
+  /** 档位是**算出来**的：未到期不得算已处置；已登记的处置事实优先（但要另外校验其合法性） */
+  function stateOf(spec, batch, sample, today, nowClock) {
+    var t = times(spec, batch, sample, today);
+    if (!t) return SAMPLE_STATE.holding;
+    if (t.disposedAt) return SAMPLE_STATE.disposed;
+    var now = { d: today, m: clockMin(nowClock || '12:00') };
+    var c = dtCmp(now, { d: t.keepUntil.d, m: t.keepUntil.m });
+    if (c != null && c >= 0) return SAMPLE_STATE.due;
+    return SAMPLE_STATE.holding;
+  }
+
+  /* ── 结构缺陷（rows[].ok=false 的来源；待办不算）────────────────
+     ⚠️ 每条样本级缺陷都带 `uids`（**受影响的全部**留样 uid）——
+        判据只用 `code` + `msg`，但页面要用 `uids` 给**每一行**打问题标记。
+        若只设第一个 offender 的 `ref`，页面上就只有一行变红，
+        看起来像「单行的小毛病」，而实际是全批次共有的同一个问题（会误导演判）。
+     ─────────────────────────────────────────────────────────── */
+  function issues(spec, samples, today, nowClock) {
+    var out = [];
+    var push = function (code, msg, ref, uids) {
+      out.push({ code: code, msg: msg, ref: ref || '', uids: uids || [] });
+    };
+    var uidsOf = function (arr) { return (arr || []).map(function (x) { return x.uid; }); };
+
+    /* ① 批次非空 */
+    var batches = ((spec || {}).batches || {}).list || [];
+    if (!batches.length) push('noBatch', '没有任何批次记录 —— 没有批次就谈不上留样');
+
+    /* ② 批次号唯一 */
+    var seen = {}, dup = [];
+    batches.forEach(function (b) { if (seen[b.batchNo]) dup.push(b.batchNo); else seen[b.batchNo] = 1; });
+    if (dup.length) push('dupBatch', '批次号重复：' + dup.join('、'), dup.join(','));
+
+    /* ③ 留样 uid 唯一 */
+    var su = {}, sdup = [];
+    (samples || []).forEach(function (s) { if (su[s.uid]) sdup.push(s.uid); else su[s.uid] = 1; });
+    if (sdup.length) push('dupUid', '留样 uid 重复：' + sdup.join('、'), sdup[0]);
+
+    /* ④ 孤儿样本：挂在不存在的批次上。
+          ⚠️ 这一类必须单独报 —— 批次级遍历（⑤/⑫）根本「看不见」它，
+             若无此条，它会静默地只影响总数、不触发任何判据（恒绿）。 */
+    var orphan = (samples || []).filter(function (s) { return !batchByNo(spec, s.batchNo); });
+    if (orphan.length) {
+      push('orphanSample', orphan.length + ' 样挂在不存在的批次上（任何追溯视图都查不到它）：'
+        + orphan.slice(0, 4).map(function (s) {
+            return (s.dishName || s.uid) + '→' + (s.batchNo || '（批次号为空）');
+          }).join('、'),
+        orphan[0].uid, uidsOf(orphan));
+    }
+
+    /* ⑤ 每批次样本 = 该套餐 BOM 行数 + 米饭 1 项，且菜品集合与 BOM 一致 */
+    batches.forEach(function (b) {
+      var exp = expectedItems(spec, b.setMealId);
+      var got = samplesOf(samples, b.batchNo);
+      var lack = exp.filter(function (it) { return !inExpected(got, it); });
+      var extra = got.filter(function (s) { return !inExpected(exp, s); });
+      if (lack.length) {
+        push('missingSample', b.batchNo + ' 缺 ' + lack.length + ' 样留样（应留 '
+          + exp.length + ' 样，实留 ' + got.length + ' 样）：'
+          + lack.map(function (x) { return x.dishName; }).join('、'), b.batchNo);
+      }
+      if (extra.length) {
+        push('extraSample', b.batchNo + ' 多出 ' + extra.length + ' 样（不在该套餐 BOM 内）：'
+          + extra.map(function (x) { return x.dishName || x.uid; }).join('、'), b.batchNo,
+          uidsOf(extra));
+      }
+    });
+
+    /* ⑥ 重量下限 */
+    var light = (samples || []).filter(function (s) { return !(s.weightG >= TH.weightMinG); });
+    if (light.length) {
+      push('underWeight', light.length + ' 样留样量不足 ' + TH.weightMinG + 'g：'
+        + light.slice(0, 4).map(function (s) { return (s.dishName || s.uid) + '=' + s.weightG + 'g'; }).join('、'),
+        light[0].uid, uidsOf(light));
+    }
+
+    /* ⑦ 温度区间 */
+    var outT = (samples || []).filter(function (s) {
+      return s.tempC == null || !(s.tempC >= TH.tempMinC && s.tempC <= TH.tempMaxC);
+    });
+    if (outT.length) {
+      push('badTemp', outT.length + ' 样保存温度越界（应 ' + TH.tempMinC + '–' + TH.tempMaxC + '℃）：'
+        + outT.slice(0, 4).map(function (s) { return (s.dishName || s.uid) + '=' + U.num(s.tempC, 1) + '℃'; }).join('、'),
+        outT[0].uid, uidsOf(outT));
+    }
+
+    /* ⑧ 留样时限（出餐后 sampleWindowMin 内）
+          ⚠️ 孤儿样本在此**跳过** —— 已由 ④ orphanSample 单独负责，
+             在这里再报一次会让同一件事被两处点名（判据读起来像两个问题）。 */
+    var late = [];
+    (samples || []).forEach(function (s) {
+      var b = batchByNo(spec, s.batchNo);
+      if (!b) return;
+      var t = times(spec, b, s, today);
+      if (!t) { late.push({ s: s, why: '时刻非法（缺留样时刻 / 批次时刻）' }); return; }
+      if (t.lagMin < 0) late.push({ s: s, why: '留样早于出餐完成（时刻填反）' });
+      else if (t.lagMin > TH.sampleWindowMin) late.push({ s: s, why: '晚于出餐 ' + t.lagMin + ' 分钟' });
+    });
+    if (late.length) {
+      push('lateSample', late.length + ' 样留样时刻不合规（窗口 ' + TH.sampleWindowMin + ' 分钟）：'
+        + late.slice(0, 3).map(function (x) { return (x.s.dishName || x.s.uid) + '：' + x.why; }).join('；'),
+        late[0].s.uid, uidsOf(late.map(function (x) { return x.s; })));
+    }
+
+    /* ⑨ 照片：**官方判据的落点** —— 任取一份餐要能查到留样照片 */
+    var noPhoto = (samples || []).filter(function (s) { return !s.photo; });
+    if (noPhoto.length) {
+      push('noPhoto', noPhoto.length + ' 样缺留样照片（出事时无法自证）：'
+        + noPhoto.slice(0, 4).map(function (s) { return (s.dishName || s.uid); }).join('、'),
+        noPhoto[0].uid, uidsOf(noPhoto));
+    }
+
+    /* ⑩ 未到保存期不得处置（提前处置 = 留样链断掉） */
+    var early = [];
+    (samples || []).forEach(function (s) {
+      var b = batchByNo(spec, s.batchNo);
+      var t = times(spec, b, s, today);
+      if (!t || !t.disposedAt) return;
+      var c = dtCmp(t.disposedAt, { d: t.keepUntil.d, m: t.keepUntil.m });
+      if (c != null && c < 0) {
+        var hours = Math.round((U.diffDays(t.keepUntil.d, t.disposedAt.d) * 1440
+          + (t.disposedAt.m - t.keepUntil.m)) / 60);
+        early.push({ s: s, earlyH: Math.abs(hours) });
+      }
+    });
+    if (early.length) {
+      push('earlyDispose', early.length + ' 样在保存期满前就被处置（应留足 ' + TH.keepHours + ' 小时）：'
+        + early.slice(0, 3).map(function (x) { return (x.s.dishName || x.s.uid) + ' 提前 ' + x.earlyH + ' 小时'; }).join('、'),
+        early[0].s.uid, uidsOf(early.map(function (x) { return x.s; })));
+    }
+
+    /* ⑪ 处置记录完整（有处置就必须有方式） */
+    var noWay = (samples || []).filter(function (s) {
+      return s.disposedDayOffset != null && !s.disposeWay;
+    });
+    if (noWay.length) {
+      push('noDisposeWay', noWay.length + ' 样写了处置但没写处置方式（痕迹不完整）：'
+        + noWay.slice(0, 3).map(function (s) { return s.dishName || s.uid; }).join('、'),
+        noWay[0].uid, uidsOf(noWay));
+    }
+
+    /* ⑫ 追溯链可解析：批次 → 场所 / 套餐 / 菜品 → 供应商（无悬空引用） */
+    var si = supplierIndex(spec);
+    var dangSup = [];
+    batches.forEach(function (b) {
+      if (!siteById(spec, b.siteId)) push('danglingSite', b.batchNo + ' 引用了不存在的场所 #' + b.siteId, b.batchNo);
+      if (!setMealById(spec, b.setMealId)) push('danglingSetMeal', b.batchNo + ' 引用了不存在的套餐 #' + b.setMealId, b.batchNo);
+      samplesOf(samples, b.batchNo).forEach(function (s) {
+        if (s.supplierId != null && !si[s.supplierId]) dangSup.push(s);
+      });
+    });
+    if (dangSup.length) {
+      push('danglingSupplier', dangSup.length + ' 样来自不存在的供应商：'
+        + dangSup.slice(0, 4).map(function (s) {
+            return (s.dishName || s.uid) + '→#' + s.supplierId;
+          }).join('、'),
+        dangSup[0].uid, uidsOf(dangSup));
+    }
+
+    /* ⑬ 该批次涉及供应商的证照未过期 */
+    var expired = [];
+    (samples || []).forEach(function (s) {
+      if (s.supplierId == null) return;
+      var sp = si[s.supplierId];
+      if (!sp || !sp.licenseExpireAt) return;
+      var d = U.diffDays(today, sp.licenseExpireAt);
+      if (d != null && d < 0) expired.push({ s: s, sp: sp, days: -d });
+    });
+    if (expired.length) {
+      push('supplierExpired', expired.length + ' 样来自证照已过期的供应商：'
+        + expired.slice(0, 3).map(function (x) { return x.sp.name + '（已过期 ' + x.days + ' 天）'; }).join('、'),
+        expired[0].s.uid, uidsOf(expired.map(function (x) { return x.s; })));
+    }
+
+    return out;
+  }
+
+  /** 清单 exp 里有没有与样本 s 对应的一项（按「是否主食 + dishId」配对） */
+  function inExpected(exp, s) {
+    return (exp || []).filter(function (it) {
+      return it.staple ? !!s.staple : (!s.staple && String(it.dishId) === String(s.dishId));
+    }).length > 0;
+  }
+
+  /* ── 汇总 ─────────────────────────────────────────────────────── */
+  function summary(spec, samples, today, nowClock) {
+    var s = { total: 0, holding: 0, due: 0, disposed: 0, batches: 0, sites: 0, withPhoto: 0, demoPhoto: 0 };
+    s.batches = (((spec || {}).batches || {}).list || []).length;
+    (samples || []).forEach(function (x) {
+      var b = batchByNo(spec, x.batchNo);
+      s.total += 1;
+      s[stateOf(spec, b, x, today, nowClock).key] += 1;
+      if (x.photo) s.withPhoto += 1;
+      if (x.photo === 'demo') s.demoPhoto += 1;
+    });
+    s.sites = U.groupBy((((spec || {}).batches || {}).list || []), function (b) { return b.siteId; });
+    s.siteCount = Object.keys(s.sites).length;
+    return s;
+  }
+
+  /* ── 追溯链：**官方判据的落点**「任取一份餐 → 查到留样照片与批次」────── */
+  function trace(spec, samples, batchNo, today, nowClock) {
+    var b = batchByNo(spec, batchNo);
+    if (!b) return null;
+    var sm = setMealById(spec, b.setMealId);
+    var site = siteById(spec, b.siteId);
+    var si = supplierIndex(spec);
+    var di = dishIndex(spec);
+    var exp = expectedItems(spec, b.setMealId);
+    var got = samplesOf(samples, batchNo);
+    var rows = exp.map(function (it) {
+      var s = got.filter(function (x) {
+        return it.staple ? x.staple : (!x.staple && String(x.dishId) === String(it.dishId));
+      })[0] || null;
+      var sp = (it.supplierId == null) ? null : (si[it.supplierId] || null);
+      var t = s ? times(spec, b, s, today) : null;
+      return {
+        dishName: it.dishName, slot: it.slot, slotLabel: slotLabel(spec, it.slot), staple: !!it.staple,
+        category: it.staple ? 'staple' : ((di[it.dishId] || {}).category || ''),
+        supplier: sp, supplierId: it.supplierId,
+        /* ⚠️ 2026-09-26 修复：U.diffDays 对非法/缺失日期返回 **null**，而 JS 里
+           `null >= 0` 为 **true** ⇒ 「没有到期日」被判成**证照有效**（无数据＝合格）。
+           台账里证照到期日本来就是演示占位值，替换真实值时极易缺填/填错格式。 */
+        supplierLicenseOk: sp ? (function () {
+          var dd = U.diffDays(today, sp.licenseExpireAt);
+          return dd == null ? null : dd >= 0;
+        })() : null,
+        hasSample: !!s, sample: s, times: t,
+        state: s ? stateOf(spec, b, s, today, nowClock) : null,
+        photo: s ? s.photo : '',
+      };
+    });
+    var missing = rows.filter(function (r) { return !r.hasSample; });
+
+    /* ⚠️ 2026-09-26 修复：complete 原先只判断「BOM 每一行有没有对应样本」，
+       **完全不看照片 / 重量 / 温度 / 留样时刻**，于是出现实测到的自相矛盾画面：
+       追溯卡打绿勾「任取一份餐都能查到：5 样留样记录 · 0 张留样照片」，
+       而同一屏下方的自检正红着 noPhoto / underWeight / badTemp / lateSample。
+       这个工具的全部意义就是**对外自证**，绿勾必须和自检同出一源。
+       ⇒ 直接复用 `issues()`（与自检同一个函数），按本批次的 uid / batchNo 过滤。 */
+    var myUids = {};
+    got.forEach(function (s) { myUids[s.uid] = 1; });
+    var myIssues = issues(spec, samples, today, nowClock).filter(function (it) {
+      if (it.ref && String(it.ref) === String(batchNo)) return true;
+      return (it.uids || []).some(function (u) { return myUids[u]; });
+    });
+
+    return {
+      batch: b, setMeal: sm, site: site, rows: rows,
+      /* 「可自证」= BOM 无缺失 **且** 该批次没有任何自检命中项 */
+      complete: missing.length === 0 && !!site && !!sm && myIssues.length === 0,
+      issueCodes: myIssues.map(function (it) { return it.code; }),
+      mealDate: U.addDays(today, b.dayOffset),
+      cookAt: b.cookClock, dispatchAt: b.dispatchClock,
+      missing: missing.map(function (r) { return r.dishName; }),
+      photoCount: rows.filter(function (r) { return !!r.photo; }).length,
+      demoPhotoCount: rows.filter(function (r) { return r.photo === 'demo'; }).length,
+    };
+  }
+
+  /** 所有批次的可追溯性一览（「任取一份餐」的候选集合） */
+  function traces(spec, samples, today, nowClock) {
+    return (((spec || {}).batches || {}).list || []).map(function (b) {
+      return trace(spec, samples, b.batchNo, today, nowClock);
+    });
+  }
+
+  /* ── 出餐环境自检（场所 × 出餐日）─────────────────────────────── */
+  function checkKey(siteId, dayOffset) { return 'C-' + siteId + '-' + (dayOffset < 0 ? 'm' + (-dayOffset) : 'p' + dayOffset); }
+
+  function makeCheck(o) {
+    o = o || {};
+    var items = {};
+    Object.keys(o.items || {}).forEach(function (k) { items[k] = !!o.items[k]; });
+    return { key: o.key || checkKey(o.siteId, o.dayOffset), siteId: o.siteId,
+             dayOffset: o.dayOffset == null ? 0 : Number(o.dayOffset),
+             items: items, by: o.by || '', note: o.note || '', demo: !!o.demo };
+  }
+
+  /** 自检项键全集（从 spec 读，不在别处再写一份清单） */
+  function checkKeys(spec) {
+    return (((spec || {}).siteChecks || {}).list || []).map(function (x) { return x.key; });
+  }
+
+  /** 种子自检：凡有批次的（场所 × 日）都要有一条，且全部完成（合规示范） */
+  function seedChecks(spec) {
+    var seen = {}, out = [];
+    (((spec || {}).batches || {}).list || []).forEach(function (b) {
+      var k = checkKey(b.siteId, b.dayOffset);
+      if (seen[k]) return;
+      seen[k] = 1;
+      var items = {};
+      checkKeys(spec).forEach(function (x) { items[x] = true; });
+      out.push(makeCheck({ key: k, siteId: b.siteId, dayOffset: b.dayOffset,
+                           items: items, by: b.cook, demo: true,
+                           note: '演示记录：真实使用时逐项打勾并留温度读数' }));
+    });
+    return out;
+  }
+
+  /** 自检缺口：缺记录 / 缺项（返回数组，空 = 齐备） */
+  function checkGaps(spec, checks) {
+    var byKey = {};
+    (checks || []).forEach(function (c) { byKey[c.key] = c; });
+    var seen = {}, out = [];
+    (((spec || {}).batches || {}).list || []).forEach(function (b) {
+      var k = checkKey(b.siteId, b.dayOffset);
+      if (seen[k]) return;
+      seen[k] = 1;
+      var c = byKey[k];
+      if (!c) { out.push({ key: k, why: '缺当日自检记录', siteId: b.siteId, dayOffset: b.dayOffset }); return; }
+      var miss = checkKeys(spec).filter(function (x) { return !c.items[x]; });
+      if (miss.length) out.push({ key: k, why: '自检有 ' + miss.length + ' 项未完成（' + miss.join('、') + '）',
+                                  siteId: b.siteId, dayOffset: b.dayOffset });
+      if (!c.by) out.push({ key: k, why: '自检没写执行人', siteId: b.siteId, dayOffset: b.dayOffset });
+    });
+    return out;
+  }
+
+  g.Model = {
+    SAMPLE_STATE: SAMPLE_STATE, SAMPLE_STATE_ORDER: SAMPLE_STATE_ORDER,
+    thresholds: thresholds, setThresholds: setThresholds, TH_KEYS: TH_KEYS,
+    clockMin: clockMin, min2clock: min2clock, dt: dt, dtCmp: dtCmp, addMin: addMin,
+    makeSample: makeSample, seed: seed, syncSeq: syncSeq,
+    expectedItems: expectedItems, specConflicts: specConflicts,
+    batchByNo: batchByNo, samplesOf: samplesOf, times: times, stateOf: stateOf,
+    issues: issues, summary: summary, trace: trace, traces: traces,
+    checkKey: checkKey, makeCheck: makeCheck, checkKeys: checkKeys,
+    seedChecks: seedChecks, checkGaps: checkGaps,
+    slotLabel: slotLabel, siteById: siteById, setMealById: setMealById,
+    supplierIndex: supplierIndex, dishIndex: dishIndex,
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ─────────────────────────────────────────────────────────────
+   F3 食安留样与全链追溯 · 判据层（纯函数 · 一份实现）—— 共 18 条
+
+   ⚠️ 这一层要同时被**两个地方**调用：页面里给人看、构建期拦住提交。
+      所以它不许碰 DOM，也不许在别处再写一份。
+
+   ⚠️ 严格区分两类（混在一起会让「待办」被读成「缺陷」，或反之）：
+      · rows[].ok === false  ⇒ **结构缺陷**（留样链断了 / 数据坏了）
+      · todos                ⇒ **待办**（到期可处置、演示占位待替换 —— 正常状态，不是 bug）
+
+   ⚠️ 判据**不自己重算**缺陷：一律映射 `Model.issues()` 的 code（一份实现）。
+      否则「页面上报 3 条、构建期报 2 条」这种同源分叉会悄悄发生。
+
+   ⚠️ 阈值一律读 `Model.thresholds()`（模块闭包真值），**不读 spec.keepPolicy 快照** ——
+      否则「页面上把 125g 改成 100g、判据还按 125g 算」会假红。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var U = g.U;
+
+  function run(spec, samples, checks, today, nowClock) {
+    var M = g.Model;
+    var rows = [], todos = [];
+    var add = function (name, ok, detail) { rows.push({ name: name, ok: !!ok, detail: detail || '' }); };
+
+    samples = samples || [];
+    checks = checks || [];
+    today = today || U.today();
+    nowClock = nowClock || '12:00';
+
+    var iss = M.issues(spec, samples, today, nowClock);
+    var pick = function (code) { return iss.filter(function (x) { return x.code === code; }); };
+    /** 一条判据 = 「该类缺陷 0 条」；有则把首条原文当 detail（照抄，不加工） */
+    var judge = function (code, name, okDetail) {
+      var h = pick(code);
+      add(name, h.length === 0, h.length ? h[0].msg : okDetail);
+    };
+    var th = M.thresholds();
+    var nBatch = (((spec || {}).batches || {}).list || []).length;
+
+    /* ── 1–3 基础 ── */
+    add('① 批次与留样非空', nBatch > 0 && samples.length > 0,
+      nBatch + ' 批次 · ' + samples.length + ' 样留样');
+    judge('dupBatch', '② 批次号唯一', nBatch + ' 个唯一批次号');
+    judge('dupUid', '③ 留样 uid 唯一', samples.length + ' 个唯一 uid');
+
+    /* ── 4–5 留样清单必须与套餐 BOM 派生一致（不硬写 4 样）── */
+    judge('missingSample', '④ 每批次留样与套餐 BOM 一一对应', '全部批次齐备（含主食米饭 1 样）');
+    judge('extraSample', '⑤ 无 BOM 之外的杂项留样', '无多余样本');
+
+    /* ── 6–8 三个参数判据（读闭包阈值，页面上改参数立刻跟着变）── */
+    judge('underWeight', '⑥ 留样量达标（≥ ' + th.weightMinG + 'g）', '全部达标');
+    judge('badTemp', '⑦ 保存温度在 ' + th.tempMinC + '–' + th.tempMaxC + '℃', '全部在区间内');
+    judge('lateSample', '⑧ 留样时刻在出餐后 ' + th.sampleWindowMin + ' 分钟内', '全部及时');
+
+    /* ── 9 官方判据的落点：每样都要有留样照片 ── */
+    judge('noPhoto', '⑨ 每样都有留样照片（任取一份餐可自证）',
+      samples.length + ' 样均有照片（'
+      + samples.filter(function (s) { return s.photo === 'demo'; }).length + ' 样为演示占位）');
+
+    /* ── 10–11 处置链 ── */
+    judge('earlyDispose', '⑩ 未到 ' + th.keepHours + ' 小时不得处置（留样链不得提前断）', '无提前处置');
+    judge('noDisposeWay', '⑪ 处置必留方式（痕迹完整）', '处置记录完整');
+
+    /* ── 12–15 追溯链可解析 ── */
+    judge('danglingSite', '⑫ 批次引用的场所都存在', '全部可解析');
+    judge('danglingSetMeal', '⑬ 批次引用的套餐都存在', '全部可解析');
+    judge('danglingSupplier', '⑭ 每道菜的供应商都存在', '全部可解析');
+    judge('supplierExpired', '⑮ 该批次供应商证照未过期', '全部在有效期内');
+
+    /* ── 16 出餐环境自检齐备（真源：要有加热设备、温度记录、留样）── */
+    var gaps = M.checkGaps(spec, checks);
+    add('⑯ 出餐环境自检齐备（场所 × 出餐日）', gaps.length === 0,
+      gaps.length ? gaps.length + ' 处缺口：' + gaps.slice(0, 2).map(function (x) { return x.why; }).join('；')
+                  : Object.keys(U.groupBy(checks, function (c) { return c.key; })).length + ' 条自检记录齐备');
+
+    /* ── 17 总账对得上 ──
+          ⚠️ 这一条**不是** ④ 的重复，它的负控也是分开的：
+             ④ 逐批次点名「缺哪道菜」（看不见孤儿），
+             ⑰ 是另一条独立的恒等式「留样总数 == 各批次应留数之和，且无孤儿样本」——
+             孤儿样本会让总数**偏大**，而 ④ 对它完全无感。
+             （原写法是「各档合计 == 总数」，那是三条状态各加一次 ⇒ **恒真**，
+               属「恒绿 = 等于没有检查」，本轮已替换成可证伪的恒等式。） */
+    var expTotal = 0;
+    (((spec || {}).batches || {}).list || []).forEach(function (b) {
+      expTotal += M.expectedItems(spec, b.setMealId).length;
+    });
+    var s = M.summary(spec, samples, today, nowClock);
+    var nOrphan = pick('orphanSample').length;
+    add('⑰ 总账对得上（留样总数 = 各批次应留数之和 · 无孤儿样本）',
+      s.total === expTotal && nOrphan === 0,
+      s.total + ' 样 / 应留 ' + expTotal + ' 样' + (nOrphan ? ' · 孤儿样本 ' + nOrphan + ' 条' : ''));
+
+    /* ── 18 真源矛盾已**显式登记**（不是隐藏、也不是恒红）──
+          ⚠️ 真源 `biz.ts` 的 requiredSlots 要求 [1,2,3,4] 四档齐全，
+             而 seed 里套餐 4「清真牛肉套餐」的 BOM 只有 3 行（缺 slot 2 半荤）。
+             两份真源互相矛盾 ⇒ 留样清单只能按 **BOM 实际行数** 派生（见 ④），
+             同时把这条矛盾登记出来、并断言「活算结果 == 抽取器记下的那份」。
+             这样一旦有人改了真源却忘了重跑 extract.py，本判据会转红提醒。 */
+    var conflicts = M.specConflicts(spec);
+    var declared = (((spec || {}).bom || {}).threeItemSetMeals) || [];
+    var ids = conflicts.map(function (c) { return c.setMealId; });
+    var sameSet = ids.length === declared.length && ids.every(function (x, i) { return x === declared[i]; });
+    add('⑱ 真源矛盾已显式登记（BOM 覆盖 requiredSlots）', sameSet,
+      conflicts.length
+        ? '已登记 ' + conflicts.length + ' 例：' + conflicts.map(function (c) { return c.msg; }).join('；')
+        : '无矛盾（若真源已补齐，请重跑 extract.py 同步登记值）');
+
+    /* ── 待办（**不是**缺陷）───────────────────────────────────── */
+    samples.forEach(function (x) {
+      var b = M.batchByNo(spec, x.batchNo);
+      var st = M.stateOf(spec, b, x, today, nowClock);
+      var t = M.times(spec, b, x, today);
+      if (st.key === 'due' && t) {
+        todos.push('【可处置】' + x.batchNo + ' · ' + (x.dishName || x.uid) + '：已满 '
+          + th.keepHours + ' 小时（' + t.keepUntil.d + ' ' + t.keepUntil.clock + ' 起），可依规处置');
+      }
+    });
+    var demoPhoto = samples.filter(function (x) { return x.photo === 'demo'; });
+    if (demoPhoto.length) {
+      todos.push('【须替换】' + demoPhoto.length + ' 样留样照片是演示占位 —— '
+        + '首次投入使用时须逐样拍照上传（工具不联网，照片只存本机浏览器）');
+    }
+    var demoCheck = checks.filter(function (c) { return c.demo; });
+    if (demoCheck.length) {
+      todos.push('【须替换】' + demoCheck.length + ' 条出餐环境自检是演示记录 —— 真实使用时逐项打勾并留温度读数');
+    }
+    conflicts.forEach(function (c) {
+      todos.push('【真源待核】' + c.msg + ' —— 留样清单已按 BOM 实际行数派生（不会因此报错），'
+        + '但两份真源不一致这件事须由业务侧确认');
+    });
+
+    var bad = rows.filter(function (r) { return !r.ok; }).length;
+    return {
+      rows: rows, bad: bad, ok: bad === 0, todos: todos,
+      summary: s, issues: iss, conflicts: conflicts,
+      traces: M.traces(spec, samples, today, nowClock),
+      thresholds: th,
+    };
+  }
+
+  g.SelfCheck = { run: run };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ─────────────────────────────────────────────────────────────
+   F3 食安留样与全链追溯 · DOM 壳（只管渲染 / 交互 / 导出，不含业务判据）
+
+   ⚠️ 交互监听一律挂 document，用 closest 分发 —— 挂到某个容器上会漏掉兄弟节点里的控件。
+   ⚠️ 页面文案里**不许写 Markdown 粗体**：浏览器不渲染，屏幕上就是两个星号。
+      要加粗一律用 `<b>`；真源里那些带 `**` 的说明字段（`_src` / `_note` / `basis`）
+      是给抽取器看的记号，渲染前必须过 `md()`。
+   ⚠️ 派生值（可处置档位 / 保存到期 / 处置是否提前）**一律现算**，不落盘；
+      落盘的只有「登记的事实」（留样时刻、重量、温度、照片、处置方式与时刻）。
+   ⚠️ 日期一律存相对偏移（dayOffset），绝不存绝对日期 —— 否则产物第二天整体过期。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var SPEC = g.SPEC, U = g.U, M = g.Model, SC = g.SelfCheck;
+  var KEY = 'abox.f3.keepsample.v1';
+  var VERSION = g.TOOL_VERSION;
+
+  var ST = { samples: [], checks: [], today: '', nowClock: '', traceBatch: '', q: '', fstate: 'all' };
+
+  /* ── 小工具 ─────────────────────────────────────────────── */
+  function esc(s) { return U.esc(s); }
+  /** 真源说明字段里用 `**X**` 标重点（那是给抽取器看的 Markdown 记号）。
+      ⚠️ 顺序不能反：先转义（否则 `<` 会被当 HTML），再把星号换成 <b>。 */
+  function md(s) {
+    return U.esc(s).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+  }
+  function batches() { return ((SPEC || {}).batches || {}).list || []; }
+  function catLabel(c) { return ((SPEC.categories || {}).label || {})[c] || c || '—'; }
+  function siteName(id) { var s = M.siteById(SPEC, id); return s ? s.name : ('场所 #' + id + '（不存在）'); }
+  function setName(id) { var s = M.setMealById(SPEC, id); return s ? s.name : ('套餐 #' + id + '（不存在）'); }
+  function supName(id) {
+    if (id == null) return '';
+    var s = M.supplierIndex(SPEC)[id];
+    return s ? s.name : '';
+  }
+  function nowHM() { var d = new Date(); return U.pad2(d.getHours()) + ':' + U.pad2(d.getMinutes()); }
+  function sampleByUid(uid) { return ST.samples.filter(function (x) { return x.uid === uid; })[0] || null; }
+
+  /** 问题归属：**不自己重算缺陷**，一律读 `Model.issues()` 的 `uids`。
+      ⚠️ 这里刻意不写「码名白名单」—— 凡 `uids` 非空的缺陷自动进标记表，
+         以后 model.js 新增一类缺陷，页面不用改也能标出来（白名单会静默漏掉新码）。 */
+  function flagMap() {
+    var m = {};
+    M.issues(SPEC, ST.samples, ST.today, ST.nowClock).forEach(function (x) {
+      (x.uids || []).forEach(function (u) { (m[u] = m[u] || []).push(x.code); });
+    });
+    return m;
+  }
+
+  /* ── 单元格 ─────────────────────────────────────────────── */
+  function statePill(st) { return '<span class="pill ' + st.tone + '">' + esc(st.label) + '</span>'; }
+  function photoCell(p) {
+    if (!p) return '<div class="photo none">缺照片</div>';
+    if (p === 'demo') return '<div class="photo demo">演示<br>占位</div>';
+    return '<div class="photo has">已留档</div>';
+  }
+  function disposeCell(s, st) {
+    if (st.key !== 'disposed') return '<span class="tiny">—</span>';
+    return '<div class="mono">' + esc(U.addDays(ST.today, s.disposedDayOffset)) + ' '
+      + esc(s.disposedClock) + '</div>';
+  }
+  function actCell(s, st) {
+    if (st.key === 'due') {
+      return '<button class="btn sm" data-act="due" data-uid="' + esc(s.uid) + '">标记处置</button>';
+    }
+    if (st.key === 'disposed') {
+      return '<button class="btn sm ghost" data-act="undispose" data-uid="' + esc(s.uid) + '">清除处置</button>';
+    }
+    return '<button class="btn sm ghost" data-act="del" data-uid="' + esc(s.uid) + '">删除</button>';
+  }
+
+  /* ── 载入 / 保存 ────────────────────────────────────────── */
+  function load() {
+    var saved = U.store.get(KEY, null);
+    M.setThresholds((saved && saved.thresholds) ? saved.thresholds : SPEC.keepPolicy);
+    ST.samples = (saved && saved.samples && saved.samples.length)
+      ? saved.samples.map(M.makeSample) : M.seed(SPEC);
+    ST.checks = (saved && saved.checks && saved.checks.length)
+      ? saved.checks.map(M.makeCheck) : M.seedChecks(SPEC);
+    M.syncSeq(ST.samples);
+    ST.today = U.today();
+    ST.nowClock = nowHM();
+    var bs = batches();
+    if (!ST.traceBatch || !bs.filter(function (b) { return b.batchNo === ST.traceBatch; }).length) {
+      ST.traceBatch = bs.length ? bs[0].batchNo : '';
+    }
+  }
+  function save() {
+    return U.store.set(KEY, { samples: ST.samples, checks: ST.checks,
+                              thresholds: M.thresholds(), savedAt: new Date().toISOString() });
+  }
+
+  /* ── 侧栏 ───────────────────────────────────────────────── */
+  function kpisHTML() {
+    var s = M.summary(SPEC, ST.samples, ST.today, ST.nowClock);
+    var kpi = function (k, v, tone) {
+      return '<div class="kpi' + (tone ? ' ' + tone : '') + '"><div class="k">' + k + '</div>'
+        + '<div class="v">' + v + '</div></div>';
+    };
+    return '<div class="kpis">'
+      + kpi('出餐批次', s.batches)
+      + kpi('留样样本', s.total)
+      + kpi('保存中', s.holding)
+      + kpi('可处置', s.due, s.due ? 'warn' : '')
+      + kpi('已处置', s.disposed)
+      + kpi('有照片', s.withPhoto + '<span class="u">/' + s.total + '</span>',
+            s.withPhoto === s.total ? 'ok' : 'warn')
+      + '</div>'
+      + '<p class="hint" style="margin:10px 0 0">基准日 <b>' + esc(ST.today) + '</b> · 「现在」'
+      + esc(ST.nowClock) + ' · 全部按本地日期算，不留存绝对日期</p>';
+  }
+
+  function sideHTML() {
+    var th = M.thresholds();
+    var storeOk = U.store.ok();
+    return ''
+      + '<div class="card"><h2>留样概览</h2><div id="kpis">' + kpisHTML() + '</div></div>'
+
+      + '<div class="card"><h2>留样参数 <span class="n">可改 · 判据立即跟着变</span></h2>'
+      + '<div class="thbar">'
+      + M.TH_KEYS.map(function (k) {
+          return '<label><span>' + esc(SPEC.keepPolicy.labels[k]) + '</span>'
+            + '<input type="number" step="1" data-th="' + k + '" value="' + th[k] + '">'
+            + '<div class="b">' + md(SPEC.keepPolicy.basis[k]) + '</div></label>';
+        }).join('')
+      + '</div>'
+      + '<label class="f" style="margin-top:10px"><span>「现在」时刻（决定「到不到期 / 是否提前处置」）</span>'
+      + '<input id="nowclock" type="time" value="' + esc(ST.nowClock) + '"></label>'
+      + '<button class="btn sm ghost" data-act="now">按本机时间校准</button>'
+      + '<div class="note" style="margin-top:8px">' + md(SPEC.keepPolicy._note)
+      + ' 出处：' + md(SPEC.keepPolicy._src) + '</div>'
+      + '</div>'
+
+      + '<div class="card"><h2>筛选</h2>'
+      + '<label class="f"><span>关键字（批次 / 菜名 / 留样人 / 供应商）</span>'
+      + '<input id="q" value="' + esc(ST.q) + '" placeholder="如 东坡肉"></label>'
+      + '<label class="f"><span>只看</span><select id="fstate">'
+      + [['all', '全部'], ['holding', '保存中'], ['due', '可处置'],
+         ['disposed', '已处置'], ['problem', '仅有问题']].map(function (o) {
+          return '<option value="' + o[0] + '"' + (ST.fstate === o[0] ? ' selected' : '') + '>'
+            + o[1] + '</option>';
+        }).join('')
+      + '</select></label>'
+      + '<p class="hint">「可处置」是<b>算出来</b>的（满 ' + th.keepHours
+      + ' 小时），不是人工填的状态 —— 人工只填「处置方式」这类事实。</p>'
+      + '</div>'
+
+      + '<div class="card"><h2>操作</h2>'
+      + '<div class="btnbar">'
+      + '<button class="btn" data-act="addsample">＋ 补一项留样</button>'
+      + '<button class="btn" data-act="export-csv">导出留样台账 CSV</button>'
+      + '<button class="btn" data-act="export-trace">导出追溯链 CSV</button>'
+      + '<button class="btn" data-act="export-json">导出 JSON</button>'
+      + '<button class="btn" data-act="import">导入 JSON</button>'
+      + '<button class="btn ghost" data-act="reset">重置为初始台账</button>'
+      + '</div>'
+      + (storeOk ? '' : '<div class="note warn">浏览器禁用了本地存储，本次改动<b>不会保存</b>。'
+        + '请用「导出 JSON」留档。</div>')
+      + '</div>';
+  }
+
+  /* ── 主区 1：追溯卡（官方判据的落点）────────────────────── */
+  function traceHTML() {
+    var bs = batches();
+    if (!bs.length) {
+      return '<div class="card"><h2>追溯卡</h2>'
+        + '<div class="note warn">没有任何批次记录 —— 没有批次就谈不上留样与追溯。</div></div>';
+    }
+    var opts = bs.map(function (b) {
+      return '<option value="' + esc(b.batchNo) + '"'
+        + (b.batchNo === ST.traceBatch ? ' selected' : '') + '>'
+        + esc(b.batchNo + ' · ' + U.addDays(ST.today, b.dayOffset) + ' · '
+              + siteName(b.siteId) + ' · ' + setName(b.setMealId)) + '</option>';
+    }).join('');
+    var t = M.trace(SPEC, ST.samples, ST.traceBatch, ST.today, ST.nowClock);
+    if (!t) {
+      return '<div class="card"><h2>追溯卡</h2><div class="note warn">选中的批次不存在。</div></div>';
+    }
+    var chain = (SPEC.traceChain.list || []).map(function (x) {
+      return '<span class="st">' + esc(x) + '</span>';
+    }).join('<span class="ar">›</span>');
+
+    var ans = t.complete
+      ? '<div class="note ok">✔ 任取一份餐（<b>' + esc(setName(t.batch.setMealId)) + '</b> · 批次 '
+        + esc(t.batch.batchNo) + '）都能查到：<b>' + t.rows.length + '</b> 样留样记录 · <b>'
+        + t.photoCount + '</b> 张留样照片 · 逐菜的供应商与证照到期日。</div>'
+      : '<div class="note warn">✗ 这个批次还查不全：缺 ' + esc(t.missing.join('、'))
+        + ' 的留样 —— 出事时这几道菜拿不出留样照片。</div>';
+    if (t.demoPhotoCount) {
+      ans += '<div class="note">本批次 <b>' + t.demoPhotoCount + '</b> 张照片是<b>演示占位</b> —— '
+        + '首次投入使用时须逐样拍照上传（工具不联网，照片只存本机）。</div>';
+    }
+
+    var rows = t.rows.map(function (r) {
+      return '<tr>'
+        + '<td class="nowrap">' + esc(r.slotLabel)
+        + (r.staple ? ' <span class="pill gold">主食</span>' : '') + '</td>'
+        + '<td><b>' + esc(r.dishName) + '</b></td>'
+        + '<td class="nowrap">' + esc(catLabel(r.category)) + '</td>'
+        + '<td>' + (r.supplier ? esc(r.supplier.name)
+            : '<span class="tiny">集散中心统一供米</span>') + '</td>'
+        + '<td class="nowrap">' + (r.supplier
+            ? '<span class="mono">' + esc(r.supplier.licenseExpireAt || '—') + '</span> '
+              + (r.supplierLicenseOk ? '<span class="pill ok">有效</span>'
+                                     : '<span class="pill warn">已过期</span>')
+            : '<span class="tiny">—</span>') + '</td>'
+        + '<td class="mono">' + (r.sample ? esc(r.sample.uid) : '<span class="tiny">—</span>') + '</td>'
+        + '<td class="num mono">' + (r.sample ? U.num(r.sample.weightG, 0) + 'g' : '—') + '</td>'
+        + '<td class="num mono">' + (r.sample ? U.num(r.sample.tempC, 1) + '℃' : '—') + '</td>'
+        + '<td class="mono nowrap">' + (r.times ? esc(r.times.sampleAt) : '—') + '</td>'
+        + '<td>' + photoCell(r.photo) + '</td>'
+        + '<td class="nowrap">' + (r.state ? statePill(r.state)
+            : '<span class="pill warn">缺留样</span>') + '</td>'
+        + '</tr>';
+    }).join('');
+
+    return '<div class="card"><h2>追溯卡 <span class="n">任取一份餐 → 查到留样照片与批次</span></h2>'
+      + '<div class="tools"><label><span>任取一份餐（选一个批次）</span>'
+      + '<select id="trace-batch">' + opts + '</select></label></div>'
+      + ans
+      + '<div class="chain">' + chain + '</div>'
+      + '<div class="tw"><table><thead><tr>'
+      + '<th style="width:104px">档位</th><th>菜品</th><th style="width:72px">类别</th>'
+      + '<th style="width:112px">供应商</th><th style="width:152px">供应商证照到期</th>'
+      + '<th style="width:58px">留样号</th><th style="width:62px" class="num">重量</th>'
+      + '<th style="width:62px" class="num">温度</th><th style="width:72px">留样时刻</th>'
+      + '<th style="width:64px">照片</th><th style="width:86px">状态</th>'
+      + '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+      + '<p class="hint" style="margin:10px 0 0">出餐 <b>' + esc(t.batch.cookClock) + '</b> · 出餐人 '
+      + esc(t.batch.cook) + ' · 配送发出 <b>' + esc(t.batch.dispatchClock) + '</b> · 场所 '
+      + esc(siteName(t.batch.siteId)) + ' · 链条出处：' + md(SPEC.traceChain._src)
+      + '<br>' + md(SPEC.suppliers._note) + '</p>'
+      + '</div>';
+  }
+
+  /* ── 主区 2：留样台账（内联编辑）────────────────────────── */
+  function ledgerHTML() {
+    var q = (ST.q || '').trim().toLowerCase();
+    var flags = flagMap();
+    var list = ST.samples.filter(function (s) {
+      var st = M.stateOf(SPEC, M.batchByNo(SPEC, s.batchNo), s, ST.today, ST.nowClock);
+      if (ST.fstate === 'problem') { if (!flags[s.uid]) return false; }
+      else if (ST.fstate !== 'all' && st.key !== ST.fstate) return false;
+      if (!q) return true;
+      return (s.batchNo + s.dishName + s.sampler + s.uid + supName(s.supplierId))
+        .toLowerCase().indexOf(q) >= 0;
+    });
+    var rows = list.map(function (s) {
+      var b = M.batchByNo(SPEC, s.batchNo);
+      var st = M.stateOf(SPEC, b, s, ST.today, ST.nowClock);
+      var fl = flags[s.uid] || [];
+      var tag = ' data-uid="' + esc(s.uid) + '" data-field="';
+      return '<tr data-row="' + esc(s.uid) + '">'
+        + '<td class="mono nowrap">' + esc(s.uid) + '</td>'
+        + '<td class="mono nowrap">' + esc(s.batchNo)
+        + (b ? '' : ' <span class="pill warn">批次不存在</span>') + '</td>'
+        + '<td class="nowrap">' + esc(M.slotLabel(SPEC, s.slot))
+        + (s.staple ? ' <span class="pill gold">主食</span>' : '') + '</td>'
+        + '<td><b>' + esc(s.dishName) + '</b>'
+        + '<div class="tiny" data-cell="flags">' + esc(fl.join(' / ')) + '</div></td>'
+        + '<td><input type="number" step="1" min="0"' + tag + 'weightG" value="' + s.weightG + '"></td>'
+        + '<td><input type="number" step="0.5"' + tag + 'tempC" value="'
+        + (s.tempC == null ? '' : s.tempC) + '"></td>'
+        + '<td><input type="time"' + tag + 'sampleClock" value="' + esc(s.sampleClock) + '"></td>'
+        + '<td><input' + tag + 'sampler" value="' + esc(s.sampler) + '"></td>'
+        + '<td>' + photoCell(s.photo) + '</td>'
+        + '<td><input' + tag + 'photo" value="' + esc(s.photo)
+        + '" placeholder="照片文件名 / demo"></td>'
+        + '<td><input' + tag + 'disposeWay" value="' + esc(s.disposeWay)
+        + '" placeholder="有处置必须先填"></td>'
+        + '<td class="nowrap" data-cell="disp">' + disposeCell(s, st) + '</td>'
+        + '<td class="nowrap" data-cell="state">' + statePill(st) + '</td>'
+        + '<td class="nowrap" data-cell="acts">' + actCell(s, st) + '</td>'
+        + '</tr>';
+    }).join('');
+    return '<div class="card"><h2>留样台账 <span class="n">' + ST.samples.length
+      + ' 样 · 可直接编辑</span></h2>'
+      + '<p class="hint">「留样号」是这条记录的唯一标识；<b>重量 / 温度 / 留样时刻 / 留样人 / 照片</b>'
+      + '五项逐样必填 —— 缺任何一项，出事时这一样就自证不了。要处置必须先填处置方式。</p>'
+      + '<div class="tw"><table><thead><tr>'
+      + '<th style="width:50px">留样号</th><th style="width:116px">批次</th>'
+      + '<th style="width:102px">档位</th><th>菜品</th>'
+      + '<th style="width:72px" class="num">重量g</th><th style="width:72px" class="num">温度℃</th>'
+      + '<th style="width:86px">留样时刻</th><th style="width:78px">留样人</th>'
+      + '<th style="width:64px">照片</th><th style="width:126px">照片凭证</th>'
+      + '<th style="width:146px">处置方式</th><th style="width:128px">处置时刻</th>'
+      + '<th style="width:78px">状态</th><th style="width:84px"></th>'
+      + '</tr></thead><tbody>'
+      + (rows || '<tr><td colspan="14" class="hint">没有匹配的留样记录</td></tr>')
+      + '</tbody></table></div></div>';
+  }
+
+  /* ── 主区 3：出餐环境自检 ───────────────────────────────── */
+  function checkGroups() {
+    var all = batches(), seen = {}, out = [];
+    all.forEach(function (b) {
+      var k = M.checkKey(b.siteId, b.dayOffset);
+      if (seen[k]) return;
+      seen[k] = 1;
+      out.push({ key: k, siteId: b.siteId, dayOffset: b.dayOffset,
+                 date: U.addDays(ST.today, b.dayOffset),
+                 batchNos: all.filter(function (x) {
+                   return M.checkKey(x.siteId, x.dayOffset) === k;
+                 }).map(function (x) { return x.batchNo; }) });
+    });
+    return U.sortBy(out, function (x) { return x.dayOffset; }, 'desc');
+  }
+  function ensureCheck(siteId, dayOffset) {
+    var k = M.checkKey(siteId, dayOffset);
+    var c = ST.checks.filter(function (x) { return x.key === k; })[0];
+    if (!c) {
+      c = M.makeCheck({ key: k, siteId: siteId, dayOffset: dayOffset, items: {}, by: '' });
+      ST.checks.push(c);
+    }
+    return c;
+  }
+  function checksHTML() {
+    var keys = M.checkKeys(SPEC);
+    var byKey = {};
+    ST.checks.forEach(function (c) { byKey[c.key] = c; });
+    var gapMap = {};
+    M.checkGaps(SPEC, ST.checks).forEach(function (x) {
+      (gapMap[x.key] = gapMap[x.key] || []).push(x.why);
+    });
+    var defs = ((SPEC.siteChecks || {}).list) || [];
+    var rows = checkGroups().map(function (gp) {
+      var c = byKey[gp.key];
+      var gs = gapMap[gp.key] || [];
+      var items = keys.map(function (k) {
+        var def = defs.filter(function (x) { return x.key === k; })[0] || { label: k, basis: '' };
+        return '<label><input type="checkbox" data-ck="' + esc(gp.key) + '" data-item="' + esc(k) + '"'
+          + ((c && c.items[k]) ? ' checked' : '') + '>'
+          + '<span>' + esc(def.label) + '<div class="b">' + esc(def.basis) + '</div></span></label>';
+      }).join('');
+      return '<tr>'
+        + '<td><b>' + esc(siteName(gp.siteId)) + '</b>'
+        + '<div class="tiny">' + esc(gp.date) + ' · ' + esc(gp.batchNos.join('、')) + '</div></td>'
+        + '<td><div class="ck">' + items + '</div></td>'
+        + '<td><input data-ckby="' + esc(gp.key) + '" value="' + esc(c ? c.by : '')
+        + '" placeholder="执行人"></td>'
+        + '<td class="nowrap">' + (gs.length
+            ? '<span class="pill warn">' + gs.length + ' 处缺口</span>'
+              + '<div class="tiny">' + esc(gs.join('；')) + '</div>'
+            : '<span class="pill ok">齐备</span>'
+              + (c && c.demo ? '<div class="tiny">演示记录</div>' : ''))
+        + '</td></tr>';
+    }).join('');
+    return '<div class="card"><h2>出餐环境自检 <span class="n">场所 × 出餐日 · 逐项打勾</span></h2>'
+      + '<p class="hint">' + md(SPEC.sites_note) + '</p>'
+      + '<div class="tw"><table><thead><tr>'
+      + '<th style="width:216px">出餐场所 × 出餐日</th><th>自检项</th>'
+      + '<th style="width:108px">执行人</th><th style="width:186px">状态</th>'
+      + '</tr></thead><tbody>'
+      + (rows || '<tr><td colspan="4" class="hint">没有批次，无需自检</td></tr>')
+      + '</tbody></table></div></div>';
+  }
+
+  /* ── 主区 4：自检 ───────────────────────────────────────── */
+  function gateHTML() {
+    var r = SC.run(SPEC, ST.samples, ST.checks, ST.today, ST.nowClock);
+    return '<div class="card"><h2>自检 <span class="n">' + (r.ok ? '全绿' : r.bad + ' 项不符')
+      + ' · 待办 ' + r.todos.length + '</span></h2>'
+      + '<div class="gate">'
+      + r.rows.map(function (x, i) {
+          return '<div class="g' + (x.ok ? '' : ' bad') + '"><i>'
+            + String(i + 1).padStart(2, '0') + '</i>'
+            + '<span class="t">' + (x.ok ? '✔ ' : '✗ ') + esc(x.name)
+            + (x.detail ? ' —— ' + esc(x.detail) : '') + '</span></div>';
+        }).join('')
+      + '</div>'
+      + (r.todos.length ? '<div class="note warn" style="margin-top:10px"><div><b>待办 ' + r.todos.length
+          + ' 条</b>（不是缺陷，是该填 / 该换的）：<br>'
+          + r.todos.map(function (x) { return '· ' + esc(x); }).join('<br>') + '</div></div>' : '')
+      + '<p class="hint" style="margin:10px 0 0">这 ' + r.rows.length
+      + ' 条判据与构建期是<b>同一份实现</b>（SelfCheck.run）—— 页面改了参数，判据立即按新参数算。'
+      + '<br>真源：' + md(SPEC._srcs.seed) + ' · ' + md(SPEC._srcs.traceability)
+      + ' · ' + md(SPEC._srcs.distributionCenter) + ' · 留样参数：' + md(SPEC._srcs.keepPolicy) + '</p>'
+      + '</div>';
+  }
+
+  /* ── 渲染 ───────────────────────────────────────────────── */
+  function mainHTML() {
+    return '<div id="trace">' + traceHTML() + '</div>'
+      + '<div id="ledger">' + ledgerHTML() + '</div>'
+      + '<div id="checks">' + checksHTML() + '</div>'
+      + '<div id="gate">' + gateHTML() + '</div>';
+  }
+  function render() {
+    U.$('#side').innerHTML = sideHTML();
+    U.$('#main').innerHTML = mainHTML();
+    var sel = U.$('#fstate'); if (sel) sel.value = ST.fstate;
+  }
+  function R(id, html) { var el = U.$('#' + id); if (el) el.innerHTML = html; }
+  function refreshKpis() { R('kpis', kpisHTML()); }
+  function refreshTrace() { R('trace', traceHTML()); }
+  function refreshLedger() { R('ledger', ledgerHTML()); }
+  function refreshChecks() { R('checks', checksHTML()); }
+  function refreshGate() { R('gate', gateHTML()); }
+  /** 侧栏参数/时刻变了之后的统一刷新。⚠️ **不含侧栏本身**：
+      侧栏里有正在输入的参数框，重渲染会掉焦点。 */
+  function refreshDerived() {
+    refreshKpis(); refreshTrace(); refreshLedger(); refreshChecks(); refreshGate();
+  }
+  /** 只刷新某一行的派生单元格（避免整表重建导致输入框失焦） */
+  function touchSample(uid) {
+    var s = sampleByUid(uid);
+    var tr = U.$('[data-row="' + uid + '"]');
+    if (!s || !tr || typeof tr.querySelector !== 'function') return;
+    var st = M.stateOf(SPEC, M.batchByNo(SPEC, s.batchNo), s, ST.today, ST.nowClock);
+    var fl = flagMap()[uid] || [];
+    var c1 = tr.querySelector('[data-cell="state"]'); if (c1) c1.innerHTML = statePill(st);
+    var c2 = tr.querySelector('[data-cell="disp"]'); if (c2) c2.innerHTML = disposeCell(s, st);
+    var c3 = tr.querySelector('[data-cell="acts"]'); if (c3) c3.innerHTML = actCell(s, st);
+    var c4 = tr.querySelector('[data-cell="flags"]'); if (c4) c4.textContent = fl.join(' / ');
+  }
+
+  /* ── 交互 ───────────────────────────────────────────────── */
+  function addsample() {
+    var b = M.batchByNo(SPEC, ST.traceBatch);
+    if (!b) { g.alert('先在「追溯卡」里选一个批次。'); return; }
+    var got = M.samplesOf(ST.samples, b.batchNo);
+    var miss = M.expectedItems(SPEC, b.setMealId).filter(function (it) {
+      return !got.filter(function (s) {
+        return it.staple ? s.staple : (!s.staple && String(s.dishId) === String(it.dishId));
+      }).length;
+    });
+    if (!miss.length) { g.alert('批次 ' + b.batchNo + ' 的留样已经齐了，没有可补的。'); return; }
+    var it = miss[0];
+    var d = SPEC.sampleDefaults || {};
+    var cookM = M.clockMin(b.cookClock);
+    var lag = Number(d.sampleLagMin == null ? 8 : d.sampleLagMin);
+    ST.samples.push(M.makeSample({
+      batchNo: b.batchNo, dishId: it.dishId, dishName: it.dishName, slot: it.slot,
+      supplierId: it.supplierId, staple: it.staple,
+      weightG: d.weightG, tempC: d.tempC,
+      sampleClock: cookM == null ? '' : M.min2clock(cookM + lag),
+      sampler: b.cook, photo: '',
+      note: '补录：' + (it.staple ? '主食米饭（成本口径不计入 BOM，留样口径必留）' : '按套餐 BOM 派生'),
+    }));
+    save(); refreshDerived();
+  }
+
+  function onClick(e, t) {
+    var act = t.getAttribute('data-act');
+    if (!act) return;
+    var uid = t.getAttribute('data-uid');
+
+    if (act === 'del') {
+      var s0 = sampleByUid(uid);
+      if (s0 && g.confirm('删除留样记录「' + s0.dishName + '（' + s0.uid + '）」？\n'
+        + '该批次会因此缺这一样，自检将报红 —— 除非这一样本来就不该留。')) {
+        ST.samples = ST.samples.filter(function (x) { return x.uid !== uid; });
+        save(); refreshDerived();
+      }
+    } else if (act === 'due') {
+      var s1 = sampleByUid(uid);
+      if (!s1) return;
+      if (!s1.disposeWay) {
+        g.alert('请先在「处置方式」里写清楚怎么处置的，再标记处置 —— 处置痕迹必须完整。');
+        return;
+      }
+      s1.disposedDayOffset = 0;
+      s1.disposedClock = ST.nowClock;
+      save(); refreshDerived();
+    } else if (act === 'undispose') {
+      var s2 = sampleByUid(uid);
+      if (s2 && g.confirm('清除这一样的处置记录？')) {
+        s2.disposedDayOffset = null; s2.disposedClock = ''; s2.disposeWay = '';
+        save(); refreshDerived();
+      }
+    } else if (act === 'addsample') {
+      addsample();
+    } else if (act === 'now') {
+      ST.nowClock = nowHM();
+      var nk = U.$('#nowclock'); if (nk) nk.value = ST.nowClock;
+      refreshDerived();
+    } else if (act === 'export-csv') {
+      var head = ['序号', '留样号', '批次', '出餐日', '场所', '套餐', '档位', '菜品', '主食',
+        '供应商', '供应商证照到期', '重量(g)', '保存温度(℃)', '留样时刻', '留样人', '照片凭证',
+        '状态', '处置日', '处置时刻', '处置方式', '问题'];
+      var flags = flagMap();
+      var out = [head].concat(ST.samples.map(function (s, i) {
+        var b = M.batchByNo(SPEC, s.batchNo);
+        var st = M.stateOf(SPEC, b, s, ST.today, ST.nowClock);
+        var sp = M.supplierIndex(SPEC)[s.supplierId];
+        return [i + 1, s.uid, s.batchNo, b ? U.addDays(ST.today, b.dayOffset) : '',
+          b ? siteName(b.siteId) : '', b ? setName(b.setMealId) : '', M.slotLabel(SPEC, s.slot),
+          s.dishName, s.staple ? '是' : '', supName(s.supplierId),
+          sp ? (sp.licenseExpireAt || '') : '', s.weightG, s.tempC == null ? '' : s.tempC,
+          s.sampleClock, s.sampler, s.photo === 'demo' ? '演示占位' : s.photo, st.label,
+          s.disposedDayOffset == null ? '' : U.addDays(ST.today, s.disposedDayOffset),
+          s.disposedClock, s.disposeWay, (flags[s.uid] || []).join(' / ')];
+      }));
+      U.download('ABox留样台账-' + ST.today + '.csv', '\ufeff' + U.toCSV(out), 'text/csv');
+    } else if (act === 'export-trace') {
+      var head2 = ['批次', '出餐日', '场所', '出餐人', '出餐时刻', '配送发出', '套餐', '档位',
+        '菜品', '供应商', '供应商证照到期', '留样号', '照片凭证', '状态'];
+      var out2 = [head2];
+      M.traces(SPEC, ST.samples, ST.today, ST.nowClock).forEach(function (x) {
+        x.rows.forEach(function (r) {
+          out2.push([x.batch.batchNo, x.mealDate, (x.site || {}).name || '', x.batch.cook,
+            x.cookAt, x.dispatchAt, (x.setMeal || {}).name || '', r.slotLabel, r.dishName,
+            r.supplier ? r.supplier.name : '集散中心统一供米',
+            r.supplier ? (r.supplier.licenseExpireAt || '') : '',
+            r.sample ? r.sample.uid : '',
+            r.photo === 'demo' ? '演示占位' : (r.photo || ''),
+            r.state ? r.state.label : '缺留样']);
+        });
+      });
+      U.download('ABox追溯链-' + ST.today + '.csv', '\ufeff' + U.toCSV(out2), 'text/csv');
+    } else if (act === 'export-json') {
+      U.download('ABox留样与追溯-' + ST.today + '.json', JSON.stringify({
+        product: 'F3 食安留样与全链追溯', version: VERSION,
+        exportedAt: new Date().toISOString(), today: ST.today, nowClock: ST.nowClock,
+        thresholds: M.thresholds(), samples: ST.samples, checks: ST.checks,
+      }, null, 2), 'application/json');
+    } else if (act === 'import') {
+      U.pickFile('.json', function (txt) {
+        try {
+          var o = JSON.parse(txt);
+          if (!o.samples || !o.samples.length) throw new Error('文件里没有 samples');
+          ST.samples = o.samples.map(M.makeSample);
+          ST.checks = (o.checks || []).map(M.makeCheck);
+          if (o.thresholds) M.setThresholds(o.thresholds);
+          M.syncSeq(ST.samples); save(); render();
+          g.alert('已导入 ' + ST.samples.length + ' 条留样 · ' + ST.checks.length + ' 条自检记录');
+        } catch (err) { g.alert('导入失败：' + err.message); }
+      });
+    } else if (act === 'reset') {
+      if (g.confirm('重置为初始台账？当前编辑将丢失。')) {
+        ST.samples = M.seed(SPEC); ST.checks = M.seedChecks(SPEC);
+        M.syncSeq(ST.samples); save(); render();
+      }
+    }
+  }
+
+  function onField(e, t) {
+    var get = function (k) { return (t.getAttribute ? t.getAttribute(k) : null); };
+
+    /* ① 留样参数：唯一合法改参入口是 setter，否则「页面改了、判据没变」且不报错 */
+    var thk = get('data-th');
+    if (thk) {
+      var o = {}; o[thk] = t.value;
+      M.setThresholds(o); save();
+      refreshDerived();
+      if (e.type === 'change') t.value = M.thresholds()[thk];   /* 失焦时把越界/空值拉回真值 */
+      return;
+    }
+    /* ② 「现在」时刻：只改 ST，**不重渲染侧栏**（否则这个输入框每敲一下就掉焦点） */
+    if (t.id === 'nowclock') { ST.nowClock = t.value || ST.nowClock; refreshDerived(); return; }
+    /* ③ 换批次 */
+    if (t.id === 'trace-batch') { ST.traceBatch = t.value; refreshTrace(); refreshGate(); return; }
+    /* ④ 筛选：会重渲染侧栏，手动把焦点接回输入框 */
+    if (t.id === 'q' || t.id === 'fstate') {
+      if (t.id === 'q') ST.q = t.value; else ST.fstate = t.value;
+      render();
+      if (t.id === 'q') {
+        var q = U.$('#q');
+        if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+      }
+      return;
+    }
+    /* ⑤ 出餐环境自检（打勾 / 执行人）—— 记录不存在就**先补一条空记录**再改 */
+    var ck = get('data-ck'), ckby = get('data-ckby');
+    if (ck || ckby) {
+      var key = ck || ckby;
+      var gp = checkGroups().filter(function (x) { return x.key === key; })[0];
+      if (!gp) return;
+      var c = ensureCheck(gp.siteId, gp.dayOffset);
+      if (ck) c.items[get('data-item')] = !!t.checked; else c.by = t.value;
+      save(); refreshChecks(); refreshGate();
+      return;
+    }
+    /* ⑥ 留样台账字段 */
+    var uid = get('data-uid'), f = get('data-field');
+    if (!uid || !f) return;
+    if (['weightG', 'tempC', 'sampleClock', 'sampler', 'photo', 'disposeWay'].indexOf(f) < 0) return;
+    var s = sampleByUid(uid);
+    if (!s) return;
+    if (f === 'weightG') s.weightG = Number(t.value);
+    else if (f === 'tempC') s.tempC = (t.value === '' ? null : Number(t.value));
+    else s[f] = t.value;
+    save();
+    touchSample(uid);
+    refreshKpis(); refreshTrace(); refreshGate();
+  }
+
+  function boot() {
+    load();
+    var v = U.$('#ver'); if (v) v.textContent = VERSION;
+    var d = U.$('#date'); if (d) d.textContent = ST.today;
+    U.on('click', '[data-act]', onClick);
+    U.on('input', 'input, select', onField);
+    U.on('change', 'input, select', onField);
+    render();
+    document.documentElement.setAttribute('data-tool-ready', '1');
+  }
+
+  g.F3 = {
+    state: function () { return ST; },
+    render: render,
+    /* 供构建期与探针取的**真实渲染串**（= 屏上会出现的那一份，不含源码注释） */
+    html: function () { return sideHTML() + mainHTML(); },
+    selfcheck: function () { return SC.run(SPEC, ST.samples, ST.checks, ST.today, ST.nowClock); },
+    seed: function () { return M.seed(SPEC); },
+    seedChecks: function () { return M.seedChecks(SPEC); },
+    summary: function () { return M.summary(SPEC, ST.samples, ST.today, ST.nowClock); },
+    issues: function () { return M.issues(SPEC, ST.samples, ST.today, ST.nowClock); },
+    flags: function () { return flagMap(); },
+    trace: function (b) { return M.trace(SPEC, ST.samples, b || ST.traceBatch, ST.today, ST.nowClock); },
+    traces: function () { return M.traces(SPEC, ST.samples, ST.today, ST.nowClock); },
+    checkGroups: checkGroups,
+    thresholds: function () { return M.thresholds(); },
+    setThresholds: function (o) { M.setThresholds(o); render(); return M.thresholds(); },
+    traceChain: function () { return (SPEC.traceChain || {}).list || []; },
+  };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script></body></html>

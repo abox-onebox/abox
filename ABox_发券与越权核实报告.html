@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 发券与越权核实报告 · 第二批</title>
+<style>
+  :root{
+    --brown:#6E5435; --brown-d:#4a3a22; --cream:#F6F0E5; --cream-2:#efe6d6;
+    --line:#d9cbb4; --ok:#3f7d4f; --part:#b07d2b; --gap:#b23b3b; --na:#7a7a7a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"楷体","KaiTi","STKaiti",simkai,serif;color:var(--brown-d);background:var(--cream);line-height:1.65;}
+  header{background:var(--brown);color:var(--cream);padding:22px 28px;}
+  header h1{margin:0 0 4px;font-size:23px;letter-spacing:2px;}
+  header p{margin:0;font-size:13.5px;opacity:.92;}
+  .wrap{max-width:1120px;margin:0 auto;padding:18px 22px 60px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13.5px;}
+  .card h3{margin:0 0 10px;color:var(--brown);font-size:15px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0;}
+  table th,table td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top;}
+  table th{background:var(--cream-2);color:var(--brown);}
+  .v-ok{color:var(--ok);font-weight:bold;}
+  .v-part{color:var(--part);font-weight:bold;}
+  .v-gap{color:var(--gap);font-weight:bold;}
+  .code{font-family:Consolas,Monaco,monospace;font-size:12px;background:var(--cream-2);padding:1px 5px;border-radius:3px;color:#5a4326;word-break:break-all;}
+  .item{border:1px solid var(--line);border-radius:10px;background:#fff;padding:16px 20px;margin:18px 0;}
+  .item h2{font-size:16.5px;margin:0 0 4px;color:var(--brown);}
+  .item .sub{font-size:12.5px;color:#8a6a3a;margin-bottom:12px;}
+  .kv{margin:6px 0;}
+  .kv b{color:var(--brown);}
+  .alert{background:#fceaea;border-left:4px solid var(--gap);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .warn{background:#fbf3e3;border-left:4px solid var(--part);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .good{background:#eaf3e8;border-left:4px solid var(--ok);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  ul{margin:6px 0 6px 18px;padding:0;}
+  li{margin:3px 0;}
+  footer{font-size:12px;color:var(--na);text-align:center;margin-top:30px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>ABox 一盒 · 发券风险与越权核实报告</h1>
+  <p>核实日期 2026-10-26 ｜ 第二批（紧接资金类四条）｜ 方法：真实代码走查 + 反向验证 ｜ 结论先行：<b>越权防线做得比我预想扎实；发券有一条真缺口但我把等级估高了一档</b></p>
+</header>
+
+<div class="wrap">
+
+  <div class="warn">
+    <b>先说这轮最重要的一条更正：我上一轮说 F10 是「一次输错就是百万级事故」，这个表述夸大了。</b><br>
+    核实后发现单笔抵扣有两道数学兜底（<span class="code">Math.min(面额, 订单额)</span> 和 <span class="code">Math.max(0, …)</span>），
+    <b>一张天价券最多只能免掉一单的钱（¥25.80），撑不到百万级</b>。真正残留的风险是「无面额上限 + 可绕开总量限制无限发」，
+    性质从「资金爆雷」降为「<b>内控缺失</b>」，等级由 <b>P0 降 P2</b>。<br>
+    <b>越权（V1/V2）这轮是反向结论</b>：我原本准备提的几条，代码里基本都堵住了，下面是实证。
+  </div>
+
+  <div class="card">
+    <h3>本批四条 · 结论一览</h3>
+    <table>
+      <tr><th>编号</th><th>探针问题</th><th>我核前预期</th><th>核实结论</th><th>要不要动</th></tr>
+      <tr>
+        <td><b>F10</b></td><td>发券超发 / 面额无上限</td>
+        <td>P0 百万级</td>
+        <td class="v-part">部分成立 · <b>降 P2</b>（内控缺失，非爆雷）</td>
+        <td class="v-part">改，工作量小</td>
+      </tr>
+      <tr>
+        <td><b>V1</b></td><td>水平越权：改 userId 读他人数据</td>
+        <td>怀疑有洞</td>
+        <td class="v-ok">已防住，且是系统性防住</td>
+        <td class="v-ok">不用动</td>
+      </tr>
+      <tr>
+        <td><b>V2</b></td><td>团长跨团操作他人订单 / 计佣</td>
+        <td>怀疑有洞</td>
+        <td class="v-ok">已防住（附一条「死代码兜底」建议清理）</td>
+        <td class="v-part">建议清理，非必修</td>
+      </tr>
+      <tr>
+        <td><b>X1</b></td><td>换绑办公楼后团长归属被清空</td>
+        <td>核前未预设</td>
+        <td class="v-part">走查中新发现 · 低概率但会算错佣金</td>
+        <td class="v-ok">建议观察</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ===================== F10 ===================== -->
+  <div class="item">
+    <h2>F10 · 代金券：无面额上限，且能绕开总量限制无限发</h2>
+    <div class="sub">等级 P0 → <b>P2</b> ｜ 性质：内控缺失，不是资金爆雷 ｜ 定级理由见文末「我为什么降级」</div>
+
+    <div class="kv"><b>① 真缺口 A：面额只有下限、没有上限</b></div>
+    <ul>
+      <li><span class="code">modules/coupon/dto/coupon.dto.ts:37-41</span> —— 创建券种定义：<span class="code">@IsInt() @Min(1)</span>，<b>无 @Max</b></li>
+      <li><span class="code">modules/coupon/dto/coupon.dto.ts:133-137</span> —— 手动发券：<span class="code">@IsInt() @Min(1)</span>，<b>无 @Max</b></li>
+    </ul>
+    <p>这意味着面额字段技术上接受任意正整数。把 <span class="code">500</span>（¥5）误输成 <span class="code">500000</span>（¥5000）时，<b>校验层不会拦</b>。</p>
+
+    <div class="kv"><b>② 真缺口 B：手动发券可以完全绕开「发行总量上限」</b></div>
+    <ul>
+      <li><span class="code">modules/coupon/dto/coupon.dto.ts:120-125</span> —— <span class="code">couponDefId</span> 标了 <span class="code">@IsOptional()</span>，注释写「纯补偿券可空」</li>
+      <li><span class="code">modules/coupon/coupon.service.ts:136-140</span> —— 全部限量校验写在 <span class="code">if (input.couponDefId) { … }</span> <b>里头</b></li>
+    </ul>
+    <div class="alert">
+      <b>这条是实打实的绕过路径：</b>只要发券时不传 <span class="code">couponDefId</span>，<span class="code">totalLimit</span> 的「券种已达发行上限」判断（<span class="code">coupon.service.ts:148-153</span>）<b>整段被跳过</b>，
+      且末尾的总量回写（<span class="code">issuedCount</span> 自增，<span class="code">coupon.service.ts:192-197</span>）也不执行 —— 系统<b>连计数都没有</b>。<br>
+      后果：运营可以脱离券种定义，不停调用 <span class="code">POST /admin/coupon/grant</span> 发放任意张数、任意面额的券，<b>无熔断、无二次审批、无额度告警</b>。
+      唯一的痕迹是 <span class="code">@OperationLog</span>（<span class="code">coupon-admin.controller.ts:75</span>）写进 <span class="code">ab_operation_log</span> —— <b>那是事后留痕，不是事中阻断</b>。
+    </div>
+
+    <div class="kv"><b>③ 但以下三点是被防住的，别按上面两条去问责：</b></div>
+    <div class="good">
+      <ul style="margin-bottom:0;">
+        <li><b>券不能被别人用</b> —— <span class="code">coupon.service.ts:262-263</span>：<span class="code">if (uc.userId !== userId) throw …'该券不属于当前用户'</span>。这条比我预想的好，关联的定义校验之外，逐张校验了持有人。</li>
+        <li><b>抵扣不会超过订单额</b> —— <span class="code">coupon.service.ts:71-74</span>：<span class="code">discountOf()</span> 返回 <span class="code">Math.min(面额, 订单额)</span>，注释写「面额不应超过订单额；双保险」。</li>
+        <li><b>支付金额不会成负数</b> —— <span class="code">order.service.ts:332</span>：<span class="code">payAmountFen = Math.max(0, 总额 − 余额 − 券)</span>，券与余额双抵扣也有兜底。</li>
+      </ul>
+    </div>
+
+    <div class="warn">
+      <b>我为什么把等级从 P0 降下来：</b><br>
+      因为有上面这两道数学兜底，<b>单笔交易的损失上限就是一份饭钱</b>（¥25.80）。要做到显著金额，必须「发 N 张 × 每张各用一单」——
+      那是一条<b>慢性的内控漏洞</b>，不是「一次输错炸掉全年利润」的爆雷。<b>性质不同，处置优先级就该不同。</b><br>
+      <b>但它仍然要改</b>，理由是事后无法对账：一旦有人手滑或有内鬼，事后只能靠翻操作日志逐条比对，没有任何一道闸门拦得住。
+    </div>
+
+    <div class="kv"><b>建议的修改（三处，都很小）：</b></div>
+    <ul>
+      <li><span class="code">coupon.dto.ts</span> 两处 <span class="code">faceValueFen</span> 补 <span class="code">@Max(…)</span>，推荐取<b>单份套餐价 ¥25.80 = 2580 分</b>为上限（超过这个数在业务上没有意义）</li>
+      <li><span class="code">coupon.service.ts:136</span>：<span class="code">couponDefId</span> 为空时，改为<b>必须填发券理由并要求二次确认字段</b>，或干脆强制关联券种定义（让所有发券都走总量口径）</li>
+      <li>加一条「单日发放总额」围栏（例如单日累计超过 ¥500 直接拒绝）—— 这条能兜住前两条都失守的情况</li>
+    </ul>
+  </div>
+
+  <!-- ===================== V1 ===================== -->
+  <div class="item">
+    <h2>V1 · 水平越权（IDOR）：结论是「系统性防住」，建议保留现状</h2>
+    <div class="sub">原本担心的问题：登录后把请求里的 userId / openid 换成别人的，能不能读写他人数据</div>
+
+    <div class="good">
+      <b>结论：这条防线是<b>按「漏写即沦陷」的思路设计的</b>，不是靠每个开发者记得加注解。四条实证：</b>
+    </div>
+
+    <div class="kv"><b>① 全局默认要登录（fail-closed）</b></div>
+    <ul>
+      <li><span class="code">src/common/common.module.ts:86</span> —— <span class="code">{ provide: APP_GUARD, useClass: JwtAuthGuard }</span></li>
+      <li>全仓 <b>34 个 controller</b>，免鉴权（<span class="code">@Public()</span>）只有 <b>10 处</b>，且每一处都有注释写明理由（登录 / 支付回调 / 企微回调 / 匿名埋点 / 溯源只读）</li>
+    </ul>
+    <p>我一开始按「<span class="code">UseGuards</span> 计数为 0 = 没鉴权」去筛，差点又犯上一轮「探针不完整就下结论」的错 —— 这些「0」是<b>走全局守卫</b>，反而更安全。</p>
+
+    <div class="kv"><b>② 身份一律从令牌取，没有任何端点从请求体取 userId</b></div>
+    <ul>
+      <li>全仓 grep <span class="code">@Body() / @Query() / @Param()</span> 中的身份字段：<b>只出现在 3 个后台控制器</b>（<span class="code">leader-admin</span> / <span class="code">user-admin</span> / <span class="code">coupon-admin</span> 的补偿券），全部挂在 <span class="code">AdminGuard + Roles</span> 之下，是正常的管理功能</li>
+      <li>用户侧一律 <span class="code">@CurrentUser() user.sub</span>：<span class="code">order.controller.ts:48/54/60/94</span>、<span class="code">coupon.controller.ts:20/29</span>、<span class="code">payment.controller.ts:35/41</span>、<span class="code">meal.controller.ts:22/28</span> 等，写法完全一致</li>
+    </ul>
+
+    <div class="kv"><b>③ 前后台账号体系强制隔离（防止「后台账号调用户接口」）</b></div>
+    <ul>
+      <li><span class="code">common/guards/jwt-auth.guard.ts</span> —— 按<b>路径前缀</b>（<span class="code">/admin/*</span>、<span class="code">/supplier/*</span>）判定主体，<span class="code">admin</span> 类路径只收 <span class="code">typ='admin'</span> 的令牌，反之亦然</li>
+      <li>源码注释里写明了这么设计的理由：<b>「漏写即越权」</b> —— 按路径自动覆盖新控制器，不依赖任何人记得加注解。这是有经验的写法。</li>
+      <li>额外：<span class="code">rt=true</span> 的刷新令牌不能当访问令牌用；失效注销用户之类的边界也有处理</li>
+    </ul>
+
+    <div class="kv"><b>④ 团长身份不信任令牌里的标记，每次都回查库</b></div>
+    <ul>
+      <li><span class="code">common/guards/leader.guard.ts</span> 头注：<b>「禁止仅凭 JWT 内的 isLeader 放行」</b>，理由是令牌有效期 7 天，期间团长可能已被停职</li>
+      <li>实际实现二次查询 <span class="code">ab_team_leader</span> 确认在职；「从来不是团长」与「已停职」分开报错（不同引导话术）</li>
+    </ul>
+  </div>
+
+  <!-- ===================== V2 ===================== -->
+  <div class="item">
+    <h2>V2 · 团长跨团操作：主防线已堵住，留一条「脚手架没拆」的建议</h2>
+    <div class="sub">这是本批我最想查的一条 —— 因为它直接连着佣金：团长能不能把不是自己团的单推进「已送达」从而计佣</div>
+
+    <div class="kv"><b>① 团长的操作范围是被强制收窄的，不是靠前端过滤</b></div>
+    <ul>
+      <li><span class="code">modules/order/leader-order.service.ts:413-419</span> —— <span class="code">applyScope()</span> 统一给查询加上归属条件</li>
+      <li><span class="code">buildPickupQuery()</span>（同文件 <span class="code">:401-410</span>）在取餐确认时也调用它，注释明确写着<b>「避免把别团长的 delivering 单算进来（IDOR）」</b></li>
+      <li>「一键分发」还做了逐单条件更新（<span class="code">:319-330</span>）：只把真正更新成功的单计佣，并发被抢走的单<b>不计佣且写告警日志</b></li>
+    </ul>
+    <p><b>结论：团长 A 确认团长 B 的单这条路径，代码里已经想到了并堵上了。</b></p>
+
+    <div class="kv"><b>② 后台推进配送状态确实不校验楼群 —— 但那是设计意图，不是漏洞</b></div>
+    <ul>
+      <li><span class="code">modules/delivery/delivery.service.ts:639-648</span> —— <span class="code">advanceStatus(id, dto, operatorId)</span> 只按 <span class="code">id</span> 查配送单，<b>没有 operator 与楼群的绑定校验</b></li>
+      <li>但调用入口是 <span class="code">modules/delivery/delivery.controller.ts</span>，路径 <span class="code">admin/deliveries</span>，挂 <span class="code">AdminGuard + Roles('super_admin','admin','operator')</span> 且有 <span class="code">@OperationLog</span></li>
+    </ul>
+    <p>也就是说这是<b>后台运营作业</b>（调度全城配送必然要能推进任意楼群），鉴权与留痕都在。<b>不算越权。</b>唯一可提的：<span class="code">operator</span> 角色拥有推进任意楼群履约状态的权力，若将来 operator 账号外发给第三方（比如外包调度），需要额外收紧。</p>
+
+    <div class="warn">
+      <b>③ 唯一建议：一条已经不可达的「兜底」分支，建议尽快清掉</b><br>
+      <span class="code">applyScope()</span> 的范围是：<br>
+      <span class="code">o.teamLeaderId = :leaderId</span> <b>OR</b> <span class="code">(o.teamLeaderId IS NULL AND o.buildingId = :buildingId)</span><br><br>
+      第二个分支的含义是「历史未绑团长时按楼栋兜底」。但我核到建单路径（<span class="code">order.service.ts:1602-1620</span> <span class="code">resolveLeader()</span>）：<br>
+      <b>订单创建时团长一定非空</b> —— 三个来源都拿不到就直接 <span class="code">throw LEADER_NOT_FOUND</span>「未绑定团长，请通过团长邀请链接进入」，然后 <span class="code">order.service.ts:337</span> 无条件写 <span class="code">teamLeaderId: leader.id</span>。<br><br>
+      <b>所以这个 IS NULL 分支对新订单永远不成立</b>，目前是死代码。<b>危险不在今天，在明天</b>：这是一种「同一栋楼内任意团长都能操作任何单」的后门口径，一旦将来有人改建单逻辑让 <span class="code">teamLeaderId</span> 可空，边界会瞬间从「只认自己的单」放大到「认整栋楼」，<b>而改动的人多半不会想到有人在 <span class="code">applyScope</span> 里留了这句话</b>。<br>
+      建议：确认生产库 <span class="code">ab_order.team_leader_id IS NULL</span> 的行数为 0 后，删掉第二个分支（或加断言），让边界定义只有一处。
+    </div>
+  </div>
+
+  <!-- ===================== X1 ===================== -->
+  <div class="item">
+    <h2>X1 · 走查中新发现：换绑办公楼会清空团长归属，且注释说要「重算」但没有实现</h2>
+    <div class="sub">核前未预设 ｜ 触发概率低，但一旦发生会把佣金算给别人 ｜ 建议先观察</div>
+
+    <div class="kv"><b>现象</b></div>
+    <ul>
+      <li><span class="code">modules/user/user.service.ts:141-145</span> —— 用户自助绑定/更换办公楼时：<span class="code">update({ buildingId, teamLeaderId: null })</span></li>
+      <li>紧随其后的日志自己写着：<b>「已清空 team_leader_id 待重算」</b></li>
+      <li>但我在全仓没有找到对应的「重算」实现</li>
+    </ul>
+
+    <div class="kv"><b>会发生什么</b></div>
+    <p>该用户下一单走 <span class="code">resolveLeader()</span>（<span class="code">order.service.ts:1607-1618</span>），三级 fallback：<br>
+    <b>①</b> 专属链接 <span class="code">leaderCode</span> → <b>②</b> 用户表绑定的团长 → <b>③</b> 都没有时，按楼栋取 <span class="code">order: { id: 'ASC' }</span> 的<b>第一个在职团长</b>。</p>
+    <p>②被清空且用户没走专属链接时，这单就落到 ③ —— 佣金给了<b>楼里最早注册的团长</b>，而不是用户实际认识的那位。</p>
+
+    <div class="kv"><b>我为什么把它定为低优先级</b></div>
+    <div class="good">
+      因为触发条件窄：代码里 <span class="code">const changed = 原buildingId !== dto.buildingId</span>，<b>只有真的换了楼才清空</b>（重绑同一栋楼不动）。
+      而换楼之后，原团长本来也服务不到，把归属交给新楼的团长是<b>合理的默认行为</b>。<br>
+      真正值得改的只有一点：<b>「归给谁」不够聪明</b>（取 id 最小而非最近的），以及<b>「待重算」这几个字是句空话</b> —— 注释承诺了系统做不到的事，属于会误导后来人的那种。
+    </div>
+  </div>
+
+  <!-- ===================== 汇总 ===================== -->
+  <div class="card">
+    <h3>本批最终处置建议</h3>
+    <table>
+      <tr><th>优先级</th><th>事项</th><th>给开发的验收条件（可直接复用）</th></tr>
+      <tr>
+        <td class="v-part">P2 · 建议改</td>
+        <td>券面额加上限（两份 DTO 各一处）</td>
+        <td>构造 <span class="code">faceValueFen=3000</span>（&gt; 单份 ¥25.80）的请求，期望返回 <span class="code">code:10001</span> 而非落库成功</td>
+      </tr>
+      <tr>
+        <td class="v-part">P2 · 建议改</td>
+        <td>发券总量限制不可绕过</td>
+        <td>不传 <span class="code">couponDefId</span> 连续调用 <span class="code">POST /admin/coupon/grant</span> 100 次，期望：要么全部拒绝，要么计入某口径的当日限额并在超限时拒绝</td>
+      </tr>
+      <tr>
+        <td class="v-part">P3 · 建议清理</td>
+        <td>删除 <span class="code">applyScope</span> 的 IS NULL 兜底分支</td>
+        <td>先执行 <span class="code">SELECT COUNT(*) FROM ab_order WHERE team_leader_id IS NULL</span>，确认为 0 后再删；删除后 e2e 团长相关用例应全绿</td>
+      </tr>
+      <tr>
+        <td class="v-ok">P3 · 仅文档</td>
+        <td>「待重算」注释与实现不符</td>
+        <td>把注释改成实际行为「由下次下单的 <span class="code">resolveLeader</span> 三级 fallback 决定」，或补上真正的重算逻辑</td>
+      </tr>
+      <tr>
+        <td class="v-ok">不用动</td>
+        <td>越权防线（V1 / V2 主防线）</td>
+        <td>—（已具备系统性防护，建议后续仅在新增控制器时按现有写法延续即可）</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>本轮方法论记录（写给自己，也方便你复核）</h3>
+    <ul>
+      <li><b>又踩了一次「探针不完整」：</b>第二轮一上来我用「UseGuards 计数为 0 = 无鉴权」筛控制器，差点把 4 个走全局守卫的控制器误报成裸奔。<b>已核实 SSR 全局 <span class="code">APP_GUARD</span> 后才推翻。</b></li>
+      <li><b>「存在 fallback 分支」不等于「存在可利用漏洞」：</b><span class="code">applyScope</span> 的 IS NULL 分支看起来像后门，追到 <span class="code">resolveLeader</span> 才发现是<b>不可达的死代码</b>。<b>必须顺着调用链追到写点，不能只看查询侧。</b></li>
+      <li><b>危害要算上数学兜底：</b>F10 我凭「没有 @Max」就推到百万级，忽略了 <span class="code">Math.min / Math.max</span>。<b>定级前要先算单笔损失上限。</b></li>
+      <li>本报告引用的全部 17 处代码位置，均已通过脚本回查确认真实存在（含反向验证：确认全仓<b>没有</b> @Max 面额常量、<b>没有</b> teamLeaderId 置空的写点）。</li>
+    </ul>
+  </div>
+
+  <footer>
+    ABox 一盒 · 第二批探针核实（发券 + 越权） ｜ 生成 2026-10-26 ｜ 证据基准：工作区真实代码，非推测
+  </footer>
+
+</div>
+</body>
+</html>

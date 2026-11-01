@@ -1,0 +1,63 @@
+// ABox 一盒 · 设计 token v2.1 · 用户端（单位 rpx，1px = 2rpx @375）
+// 本文件由设计 token 真源生成，请勿手工修改数值；改真源后重新生成。
+
+// ---- brand ----
+$bg: #F6F0E5;
+$surface: #FFFDF8;
+$surface2: #F7F1E4;
+$surface3: #FBF6EC;
+$text: #6E5435;
+$text2: #796C57;
+$text-disabled: #A79A85;
+$gold: #C9A876;
+$gold-deep: #936F3A;
+$gold-deepest: #8A6620;
+$border: #E4D8C3;
+$border-strong: #D6CBB8;
+
+// ---- status ----
+$ok: #5B7C3A;
+$warn: #C44536;
+$info: #4A6FA5;
+$ok-bg: #F1F5EA;
+$ok-bd: #BBCBA6;
+$warn-bg: #FBF0EE;
+$warn-bd: #E3BFB8;
+$info-bg: #EDF1F8;
+$info-bd: #B4C4DA;
+$mut-bg: #F7F2E8;
+$mut-bd: #E4D8C3;
+$gold-bg: #FBF4E6;
+$gold-bd: #DCC79C;
+$ok-fg: #597939;
+$warn-fg: #C24436;
+$info-fg: #4A6FA5;
+$gold-fg: #8D6A38;
+
+// ---- 等级（色块 + 文字标签；颜色只承载档位）----
+$level-trainee-border: #D6CBB8;  // 见习 · outline
+$level-formal-border: #936F3A;  // 正式 · outline
+$level-gold-border: #936F3A;  // 金牌 · solid
+$level-chief-border: #8A6620;  // 首席 · solid
+
+// ---- 字阶（字体分层）----
+$fs-display: 44rpx;  // 22px · 倒计时 / 金额大字
+$fs-h1: 34rpx;  // 17px · 页面主标题
+$fs-h2: 30rpx;  // 15px · 卡片标题（品牌层）
+$fs-body: 28rpx;  // 14px · 正文 / 菜名 / 表格
+$fs-caption: 24rpx;  // 12px · 辅助说明
+$fs-micro: 22rpx;  // 11px · 角标 / 单位 / 极弱说明
+
+// ---- 间距 / 圆角 ----
+$space-1: 6rpx;
+$space-2: 10rpx;
+$space-3: 14rpx;
+$space-4: 20rpx;
+$space-5: 28rpx;
+$radius-sm: 8rpx; $radius-md: 20rpx; $radius-lg: 32rpx; $radius-pill: 999rpx;
+
+// ---- 字体栈 ----
+// 注意：@font-face 只在 H5 条件编译块内生效，见 styles/tokens.scss 原注释。
+$font-display: 'ABoxKai', KaiTi, STKaiti, 楷体, 'Noto Serif SC', serif;
+$font-body: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'HarmonyOS Sans SC', 'Noto Sans CJK SC', 'Microsoft YaHei', Arial, sans-serif;
+$font-num: 'SF Mono', 'Roboto Mono', Consolas, monospace;

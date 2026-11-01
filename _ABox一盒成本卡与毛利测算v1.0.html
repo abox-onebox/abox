@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ABox 一盒 · 成本卡与毛利测算</title>
+<style>
+/* ── token 真源（生成注入，禁手改）── */
+:root{
+  --bg: #F6F0E5;
+  --surface: #FFFDF8;
+  --surface2: #F7F1E4;
+  --surface3: #FBF6EC;
+  --text: #6E5435;
+  --text2: #796C57;
+  --text-disabled: #A79A85;
+  --gold: #C9A876;
+  --gold-deep: #936F3A;
+  --gold-deepest: #8A6620;
+  --border: #E4D8C3;
+  --border-strong: #D6CBB8;
+  --ok: #5B7C3A;
+  --warn: #C44536;
+  --info: #4A6FA5;
+  --ok-bg: #F1F5EA;
+  --ok-bd: #BBCBA6;
+  --warn-bg: #FBF0EE;
+  --warn-bd: #E3BFB8;
+  --info-bg: #EDF1F8;
+  --info-bd: #B4C4DA;
+  --mut-bg: #F7F2E8;
+  --mut-bd: #E4D8C3;
+  --gold-bg: #FBF4E6;
+  --gold-bd: #DCC79C;
+  --ok-fg: #597939;
+  --warn-fg: #C24436;
+  --info-fg: #4A6FA5;
+  --gold-fg: #8D6A38;
+  --from: #FFF6E0;
+  --to: #FFEED5;
+  --brand-meituan: #FFD400;
+  --brand-meituan-text: #000000;
+  --brand-taobao: #FF6A00;
+  --brand-taobao-text: #000000;
+  --brand-jd: #E1251B;
+  --brand-jd-text: #FFFFFF;
+  --font-display: 'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif;
+  --font-body: -apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif;
+  --font-num: 'SF Mono','Roboto Mono',Consolas,monospace;
+  --r-sm: 4px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --sp-1: 6px;
+  --sp-2: 10px;
+  --sp-3: 14px;
+  --sp-4: 20px;
+  --sp-5: 28px;
+}
+/* ── 共享外壳 ── */
+/* ─────────────────────────────────────────────────────────────
+   P0 工具集 · 共享页面外壳
+   ⚠️ 本文件**零颜色字面量**：一切颜色只能来自 `:root` token（由生成器注入）。
+      构建期断言这一条（搜不到 # / rgb( / hsl( ），否则品牌必然各写各的。
+   ⚠️ 字体分层：楷体只用于**标题 / 品牌字 / 金额大字**，正文与表格用无衬线栈。
+   ───────────────────────────────────────────────────────────── */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--gold-deep); }
+
+/* ── 顶栏 ── */
+.top {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 20;
+}
+.top .logo {
+  font-family: var(--font-display);
+  font-size: 19px; letter-spacing: .04em; color: var(--text);
+}
+.top .sub { font-size: 12px; color: var(--text2); }
+.top .spacer { flex: 1; }
+.top .ver { font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); }
+
+/* ── 页头 ── */
+.hero { padding: var(--sp-4) var(--sp-4) 0; }
+.hero h1 {
+  font-family: var(--font-display); font-size: 25px; font-weight: 400;
+  margin: 0 0 4px; letter-spacing: .02em;
+}
+.hero p { margin: 0; color: var(--text2); font-size: 13px; max-width: 78ch; }
+
+/* ── 布局 ── */
+.wrap {
+  display: flex; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4) var(--sp-5);
+  align-items: flex-start;
+}
+/* ⚠️ 侧栏必须**自己能滚**（`max-height` + `overflow-y: auto`），这不是装饰：
+   `position: sticky` 的元素一旦高于视口可用高度，底部会被**钉住不动** ——
+   滚动页面也带不上来（必须滚到**整页最底**才够得到，因为那时 sticky 才脱离钉住）。
+   实测（1440×900 笔记本，最常见的办公尺寸）：6 个带侧栏的工具里有 5 个的
+   「筛选 / 操作（导出 · 导入 · 重置）」整组够不到；G1/G2/F3 在 1080 下也够不到。
+   附带好处：对 sticky 元素 `scrollIntoView` 是无效的（滚动页面它不动），
+   给侧栏自己的滚动区之后，控件才可能被自动带进视野（自动化探针同理）。
+   62px = `.top` 的实际高度（与 `top` 一致，改一处要一起改）。 */
+.side {
+  width: 310px; flex: 0 0 310px; position: sticky; top: 62px;
+  max-height: calc(100vh - 62px - var(--sp-3));
+  overflow-y: auto; overscroll-behavior: contain;
+}
+.main { flex: 1; min-width: 0; }
+
+/* ── 卡片 ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-3);
+}
+.card > h2 {
+  font-family: var(--font-display); font-size: 16px; font-weight: 400;
+  margin: 0 0 var(--sp-2); letter-spacing: .02em;
+  display: flex; align-items: center; gap: 8px;
+}
+.card > h2 .n { font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); }
+.hint { font-size: 12px; color: var(--text2); margin: 0 0 var(--sp-2); }
+
+/* ── 表格 ── */
+.tw { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left; font-weight: 500; color: var(--text2);
+  font-size: 11.5px; letter-spacing: .04em;
+  padding: 7px 9px; border-bottom: 1px solid var(--border-strong);
+  white-space: nowrap; background: var(--surface2);
+}
+td { padding: 8px 9px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: var(--surface3); }
+td.num, th.num { text-align: right; font-family: var(--font-num); }
+td.mono { font-family: var(--font-num); font-size: 12px; }
+.big {
+  font-family: var(--font-display); font-size: 22px; line-height: 1.2;
+}
+
+/* ── 徽标 ── */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 8px; border-radius: 999px;
+  font-size: 11.5px; white-space: nowrap;
+  border: 1px solid var(--mut-bd); background: var(--mut-bg); color: var(--text2);
+}
+.pill.ok { border-color: var(--ok-bd); background: var(--ok-bg); color: var(--ok-fg); }
+.pill.warn { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.pill.info { border-color: var(--info-bd); background: var(--info-bg); color: var(--info-fg); }
+.pill.gold { border-color: var(--gold-bd); background: var(--gold-bg); color: var(--gold-fg); }
+.pill.dim { color: var(--text-disabled); }
+
+/* ── 表单 ── */
+label.f { display: block; margin-bottom: var(--sp-2); }
+label.f > span {
+  display: block; font-size: 11.5px; color: var(--text2);
+  letter-spacing: .04em; margin-bottom: 3px;
+}
+input, select, textarea {
+  width: 100%; padding: 6px 9px;
+  background: var(--surface3); color: var(--text);
+  border: 1px solid var(--border-strong); border-radius: var(--r-md);
+  font-family: var(--font-body); font-size: 13px;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--gold); background: var(--surface);
+}
+input[type=number] { font-family: var(--font-num); }
+.row2 { display: flex; gap: var(--sp-2); }
+.row2 > * { flex: 1; min-width: 0; }
+
+/* ── 按钮 ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 13px; border-radius: var(--r-md);
+  border: 1px solid var(--border-strong); background: var(--surface);
+  color: var(--text); font-size: 13px; cursor: pointer;
+}
+.btn:hover { background: var(--surface2); border-color: var(--gold); }
+.btn.primary {
+  background: var(--text); border-color: var(--text); color: var(--surface);
+  font-weight: 500;
+}
+.btn.primary:hover { background: var(--gold-deep); border-color: var(--gold-deep); }
+.btn.sm { padding: 3px 9px; font-size: 12px; }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--text2); }
+.btn.ghost:hover { background: var(--surface2); }
+.btnbar { display: flex; flex-wrap: wrap; gap: var(--sp-1); margin-bottom: var(--sp-2); }
+
+/* ── 指标格 ── */
+/* ⚠️ 阈值要按**实际可用宽度**定：侧栏 310px − 卡片左右 padding 40px = 270px，
+       minmax 定 132px 时 2×132+10(gap)=274 > 270 ⇒ 永远只排 1 列（看着像没生效）。 */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(116px, 1fr)); gap: var(--sp-1); }
+.kpi {
+  background: var(--surface3); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 9px 11px;
+}
+.kpi .k { font-size: 11.5px; color: var(--text2); letter-spacing: .04em; }
+.kpi .v { font-family: var(--font-display); font-size: 21px; line-height: 1.3; }
+.kpi .u { font-size: 12px; color: var(--text2); font-family: var(--font-body); }
+.kpi.warn { border-color: var(--warn-bd); background: var(--warn-bg); }
+.kpi.ok { border-color: var(--ok-bd); background: var(--ok-bg); }
+
+/* ── 提示条 ──
+   ⚠️ 必须是**块级正常流**，绝不能写 `display: flex`：
+      提示条文案里普遍有行内 <b> / <br> / <span class="mono">。容器一旦是 flex，
+      这些行内片段就各自变成**独立的 flex 子项**，被挤成一条条窄列、每个子项还自己
+      内部换行 —— 长文案整段会散开（G2 概览那两条实测就是 9 个子项排一行，字距被拉满、
+      末行也被撑开）。**副作用迟发**：文案短、能挤进一行时看着完全正常（G1/M1 就是这样
+      过关的），所以这个坑很晚才露头。
+      原来是 flex + `gap: 8px`；块级子元素之间的留白改由下面两条规则承担。 */
+.note {
+  display: block;
+  padding: 8px 11px; border-radius: var(--r-md);
+  border: 1px solid var(--mut-bd); background: var(--mut-bg);
+  font-size: 12.5px; color: var(--text2); margin-bottom: var(--sp-3);
+}
+.note.warn { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.note.ok { border-color: var(--ok-bd); background: var(--ok-bg); color: var(--ok-fg); }
+.note.info { border-color: var(--info-bd); background: var(--info-bg); color: var(--info-fg); }
+.note b { color: inherit; }
+/* 块级子元素之间留白（替代原来的 flex gap: 8px）—— 行内元素不受影响 */
+.note > div + div { margin-top: 6px; }
+/* 药丸横排（原来靠 flex 的 gap 撑开，块级流下要自己给左边距） */
+.note > .pill + .pill { margin-left: 4px; }
+
+/* ── 分段控件（tab）── */
+.seg { display: flex; gap: 2px; padding: 3px; background: var(--surface2); border-radius: var(--r-md); border: 1px solid var(--border); }
+.seg button {
+  border: 0; background: transparent; color: var(--text2);
+  padding: 5px 13px; border-radius: var(--r-sm); cursor: pointer; font: inherit; font-size: 13px;
+}
+.seg button.on { background: var(--surface); color: var(--text); font-weight: 500; }
+
+/* ── 条形图 ── */
+.bar { height: 8px; border-radius: 999px; background: var(--surface2); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--gold); }
+.bar.warn > i { background: var(--warn); }
+.bar.ok > i { background: var(--ok); }
+
+/* ── 自检条 ── */
+.gate {
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--surface3); padding: 8px 11px; font-size: 12.5px;
+}
+.gate .g { display: flex; gap: 7px; align-items: baseline; padding: 1px 0; }
+.gate .g i { font-style: normal; font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); flex: 0 0 auto; }
+.gate .g .t { color: var(--text2); }
+.gate .g.bad .t { color: var(--warn-fg); }
+
+/* ── 页脚 ── */
+.foot {
+  padding: var(--sp-4); color: var(--text-disabled); font-size: 11.5px;
+  border-top: 1px solid var(--border); margin-top: var(--sp-5);
+}
+
+/* ── 窄屏：单列堆叠（断点与项目后台一致，避免出现第二份断点表述）── */
+@media (max-width: 768px) {
+  .wrap { flex-direction: column; padding: var(--sp-2); }
+  /* ⚠️ 落到单列后必须**解除**侧栏的自身滚动区：否则手机上会出现一个 1/4 屏高的小滚动盒，
+        里面的卡片被裁掉一半 —— 那是「为修一个坑造一个新坑」。 */
+  .side { width: 100%; flex: auto; position: static; max-height: none; overflow-y: visible; }
+  .hero { padding: var(--sp-3) var(--sp-2) 0; }
+  table { font-size: 12px; }
+}
+
+/* ── 本系统 ── */
+/* ─────────────────────────────────────────────────────────────
+   S2 成本卡与毛利测算 · 本系统专属样式（零颜色字面量）
+   ───────────────────────────────────────────────────────────── */
+
+/* 成本卡：表内控件紧凑，毛利数字放大给人看 */
+#main table input, #main table select { padding: 3px 6px; font-size: 12.5px; border-radius: var(--r-sm); }
+#main table td { padding: 6px; }
+#main table td .big { font-size: 20px; }
+
+/* 毛利为负时整行给压力（卖一份亏一份必须一眼看到） */
+#main tbody tr td .big[data-cell="gp"] { color: var(--text); }
+
+/* 分段视图按钮 */
+.seg button[data-act="board"] { min-width: 74px; }
+
+/* 看板里的条形图列窄一点 */
+.bar { min-width: 90px; }
+
+</style></head><body>
+<header class="top"><div class="logo">ABox 一盒</div><div class="sub">成本卡与毛利测算 · 内部工具</div><div class="spacer"></div><div class="ver">版本 <span id="ver"></span> · 基准日 <span id="date"></span></div></header>
+<div class="hero"><h1>成本卡与毛利测算</h1><p>25.8 元一份到底赚多少、哪道菜在吃毛利、换料或调价会怎样 —— 公式与系统逐字一致，改参数只改推演，不动线上口径。</p></div>
+<div class="wrap"><aside class="side" id="side"></aside><main class="main" id="main"></main></div>
+<footer class="foot" id="foot">ABox 一盒 · S2 成本卡与毛利测算 v1.0 · 菜品供价 / 售价 / 佣金率 / 履约成本键名均由生成器从代码真源注入（禁手改） · 全部计算在本机完成，不联网、不上传</footer>
+<script>
+window.TOOL_VERSION = "v1.0";
+window.SPEC = {"_generated_by":"_tmp/p0/s2/extract.py","_doctrine":"口径只声明一次：本文件全部值取自 abox-onebox 代码真源与设计 token 真源，禁手改。","brand":{"name":"ABox 一盒","company":"北京巡礼之年科技有限公司"},"tokens":{"value":{"bg":"#F6F0E5","surface":"#FFFDF8","surface2":"#F7F1E4","surface3":"#FBF6EC","text":"#6E5435","text2":"#796C57","text-disabled":"#A79A85","gold":"#C9A876","gold-deep":"#936F3A","gold-deepest":"#8A6620","border":"#E4D8C3","border-strong":"#D6CBB8","ok":"#5B7C3A","warn":"#C44536","info":"#4A6FA5","ok-bg":"#F1F5EA","ok-bd":"#BBCBA6","warn-bg":"#FBF0EE","warn-bd":"#E3BFB8","info-bg":"#EDF1F8","info-bd":"#B4C4DA","mut-bg":"#F7F2E8","mut-bd":"#E4D8C3","gold-bg":"#FBF4E6","gold-bd":"#DCC79C","ok-fg":"#597939","warn-fg":"#C24436","info-fg":"#4A6FA5","gold-fg":"#8D6A38","from":"#FFF6E0","to":"#FFEED5","brand-meituan":"#FFD400","brand-meituan-text":"#000000","brand-taobao":"#FF6A00","brand-taobao-text":"#000000","brand-jd":"#E1251B","brand-jd-text":"#FFFFFF","font-display":"'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif","font-body":"-apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif","font-num":"'SF Mono','Roboto Mono',Consolas,monospace","r-sm":"4px","r-md":"10px","r-lg":"16px","sp-1":"6px","sp-2":"10px","sp-3":"14px","sp-4":"20px","sp-5":"28px"},"_src":"_ABox一盒设计token真源v2.1/design-tokens.css"},"env":{"unitPrice":25.8,"supplierTotal":14.0,"distributionCenter":5.0,"cutoffHour":24,"commission":{"trainee":0.08,"formal":0.09,"gold":0.1,"chief":0.12},"_src":"abox-onebox/.env.example"},"slots":{"label":{"1":"主荤","2":"半荤","3":"素菜","4":"汤","5":"主食"},"requiredSlots":[1,2,3,4],"stapleSlot":5,"_src":"abox-onebox/packages/shared-utils/src/biz.ts"},"categories":{"label":{"main":"主荤","half":"半荤","veg":"素菜","soup":"汤品","staple":"主食"},"_src":"abox-onebox/packages/shared-types/src/enums/supplier-admin.ts","_note":"档位写「汤」、品类写「汤品」—— 两轴并存，勿强行统一"},"timeline":{"value":{"publish":"14:00","cutoff":"24:00","arrival":"11:30","autoConfirm":"14:00","deliveryGenerate":"00:30"},"_src":"abox-onebox/apps/api-server/src/common/utils/order-timeline.ts","_note":"截单 24:00 是合法值（= 次日 0 点），不是笔误"},"dishes":{"list":[{"id":1,"supplierId":1,"name":"红烧肉","category":"main","cost":7.5},{"id":2,"supplierId":1,"name":"东坡肉","category":"main","cost":8.5},{"id":3,"supplierId":1,"name":"啤酒鸭","category":"main","cost":8.0},{"id":4,"supplierId":2,"name":"清炒时蔬","category":"veg","cost":3.0},{"id":5,"supplierId":2,"name":"凉拌黄瓜","category":"veg","cost":2.2},{"id":6,"supplierId":3,"name":"卤蛋","category":"half","cost":1.5},{"id":7,"supplierId":4,"name":"酸辣汤","category":"soup","cost":2.0},{"id":8,"supplierId":4,"name":"番茄蛋汤","category":"soup","cost":2.0},{"id":9,"supplierId":1,"name":"宫保鸡丁","category":"main","cost":6.5},{"id":10,"supplierId":1,"name":"清真牛肉","category":"main","cost":8.5},{"id":11,"supplierId":1,"name":"番茄鱼","category":"main","cost":8.0},{"id":12,"supplierId":1,"name":"咖喱鸡","category":"main","cost":6.0}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts"},"suppliers":{"list":[{"id":1,"name":"三味屋","contactName":"王经理","contactPhone":"13900000001","category":"本帮菜","licenseExpireAt":"2027-12-31","businessLicense":"91110105DEMO000001","foodLicense":"JY1110105DEMO000001"},{"id":2,"name":"四季鲜蔬","contactName":"李经理","contactPhone":"13900000002","category":"时蔬","licenseExpireAt":"2027-12-31","businessLicense":"91110105DEMO000002","foodLicense":"JY1110105DEMO000002"},{"id":3,"name":"京味小馆","contactName":"赵经理","contactPhone":"13900000003","category":"京味","licenseExpireAt":"2027-12-31","businessLicense":"91110105DEMO000003","foodLicense":"JY1110105DEMO000003"},{"id":4,"name":"老李家","contactName":"孙经理","contactPhone":"13900000004","category":"汤品","licenseExpireAt":"2027-12-31","businessLicense":"91110105DEMO000004","foodLicense":"JY1110105DEMO000004"}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts","_demo":true,"_note":"证照号与到期日为**演示占位值**（真源注释明示），台账首次使用须替换为真实值后再用于监管应对"},"buildings":{"list":[{"id":1,"groupId":1,"name":"国贸三期 A 座","address":"建国门外大街 1 号 A 座","city":"北京","district":"朝阳区","population":520,"status":1},{"id":2,"groupId":1,"name":"国贸三期 B 座","address":"建国门外大街 1 号 B 座","city":"北京","district":"朝阳区","population":480,"status":1},{"id":3,"groupId":1,"name":"国贸三期 C 座","address":"建国门外大街 1 号 C 座","city":"北京","district":"朝阳区","population":310,"status":2},{"id":4,"groupId":1,"name":"国贸三期 D 座","address":"建国门外大街 1 号 D 座","city":"北京","district":"朝阳区","population":250,"status":1},{"id":5,"groupId":2,"name":"建外 SOHO 北区","address":"东三环中路 39 号","city":"北京","district":"朝阳区","population":480,"status":1},{"id":6,"groupId":3,"name":"银泰中心 1 栋","address":"建国门外大街 2 号 1 栋","city":"北京","district":"朝阳区","population":360,"status":1},{"id":7,"groupId":3,"name":"银泰中心 2 栋","address":"建国门外大街 2 号 2 栋","city":"北京","district":"朝阳区","population":320,"status":1},{"id":8,"groupId":4,"name":"华贸 1 号楼","address":"建国路 79 号 1 号楼","city":"北京","district":"朝阳区","population":380,"status":1},{"id":9,"groupId":4,"name":"华贸 2 号楼","address":"建国路 79 号 2 号楼","city":"北京","district":"朝阳区","population":280,"status":1},{"id":10,"groupId":4,"name":"华贸 3 号楼","address":"建国路 79 号 3 号楼","city":"北京","district":"朝阳区","population":260,"status":3},{"id":11,"groupId":5,"name":"远洋光华 AB 座","address":"光华路 9 号 AB 座","city":"北京","district":"朝阳区","population":320,"status":1},{"id":12,"groupId":5,"name":"远洋光华 C 座","address":"光华路 9 号 C 座","city":"北京","district":"朝阳区","population":200,"status":1}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts","_note":"status 三态：1 营业中 / 2 待开通 / 3 已暂停；population 是运营估算覆盖人数，非实时统计"},"buildingGroups":{"list":[{"id":1,"name":"国贸三期组","city":"北京","district":"朝阳区","status":1},{"id":2,"name":"建外 SOHO 组","city":"北京","district":"朝阳区","status":1},{"id":3,"name":"银泰中心组","city":"北京","district":"朝阳区","status":1},{"id":4,"name":"华贸组","city":"北京","district":"朝阳区","status":1},{"id":5,"name":"远洋光华组","city":"北京","district":"朝阳区","status":1}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts"},"settlement":{"defaults":{"supplierTotal":14.0,"siteFee":0.0,"packingLaborFee":0.0,"deliveryFee":0.0},"configKeys":{"siteFee":"settlement.site_fee","packingLaborFee":"settlement.packing_labor_fee","deliveryFee":"settlement.delivery_fee"},"labels":{"siteFee":"场所摊销","packingLaborFee":"打包人工","deliveryFee":"配送费"},"registeredRule":"> 0（0 / 空 / 非数字一律视为「尚未登记」）","_src":"abox-onebox/packages/shared-utils/src/biz.ts","_note":"毛利 = 售价 −（供价 + 场所摊销 + 打包人工 + 配送费）− 佣金；三项履约成本未登记时毛利仅为**上限值**"},"today":"2026-09-24","_srcs":{"tokens":"_ABox一盒设计token真源v2.1/design-tokens.css","biz":"abox-onebox/packages/shared-utils/src/biz.ts","seed":"abox-onebox/apps/api-server/src/database/seeds/seed.ts"}};
+/* ─────────────────────────────────────────────────────────────
+   P0 工具集 · 共享工具函数（纯函数为主，不碰业务）
+   ⚠️ 必须以「普通脚本」形式可被 eval（构建期启动冒烟要用），
+      故不使用 ESM 语法，只挂 `window.U`。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var U = {};
+
+  /* ── DOM ── */
+  U.$ = function (sel, root) { return (root || document).querySelector(sel); };
+  U.$$ = function (sel, root) {
+    return Array.prototype.slice.call((root || document).querySelectorAll(sel));
+  };
+  /** 绑定事件：一律挂到 document，用 closest 分发（兄弟节点挂错容器是本项目踩过的坑） */
+  U.on = function (evt, sel, fn) {
+    document.addEventListener(evt, function (e) {
+      var t = e.target && e.target.closest ? e.target.closest(sel) : null;
+      if (t) fn(e, t);
+    });
+  };
+
+  /* ── 文本 ── */
+  U.esc = function (s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  };
+  /** 数值格式化；null/undefined/NaN 一律回显 '—'（不要显示 NaN） */
+  U.num = function (v, d) {
+    if (v == null || v === '' || !isFinite(Number(v))) return '—';
+    return Number(v).toFixed(d == null ? 2 : d);
+  };
+  /** 金额：¥ + 两位小数 */
+  U.y = function (v, d) {
+    if (v == null || v === '' || !isFinite(Number(v))) return '—';
+    return '¥' + Number(v).toFixed(d == null ? 2 : d);
+  };
+  /** 分 → 元（项目内金额一律「存分、显示元」，避免浮点） */
+  U.fen2y = function (fen, d) {
+    if (fen == null || !isFinite(Number(fen))) return '—';
+    return '¥' + (Number(fen) / 100).toFixed(d == null ? 2 : d);
+  };
+  U.y2fen = function (y) { return Math.round(Number(y || 0) * 100); };
+  /** 归一两位小数（复刻 biz.ts 的 round2 语义：先乘后再四舍五入） */
+  U.round2 = function (n) { return Math.round((Number(n) + Number.EPSILON) * 100) / 100; };
+
+  /* ── 日期（一律 YYYY-MM-DD 字符串 · 本地时区 · 不碰 UTC）── */
+  U.pad2 = function (n) { return (n < 10 ? '0' : '') + n; };
+  U.today = function (d) {
+    d = d || new Date();
+    return d.getFullYear() + '-' + U.pad2(d.getMonth() + 1) + '-' + U.pad2(d.getDate());
+  };
+  /** 字符串 → Date（本地零点）；非法返回 null —— 绝不返回 Invalid Date 让它往下跑 */
+  U.dt = function (s) {
+    if (!s) return null;
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s).trim());
+    if (!m) return null;
+    var d = new Date(+m[1], +m[2] - 1, +m[3]);
+    return isNaN(d.getTime()) ? null : d;
+  };
+  U.addDays = function (s, n) {
+    var d = U.dt(s); if (!d) return null;
+    d.setDate(d.getDate() + n);
+    return U.today(d);
+  };
+  /** b − a 的天数（两个 YYYY-MM-DD）；任一非法返回 null */
+  U.diffDays = function (a, b) {
+    var x = U.dt(a), y2 = U.dt(b);
+    if (!x || !y2) return null;
+    return Math.round((y2.getTime() - x.getTime()) / 86400000);
+  };
+  /** 校验：是不是合法的 YYYY-MM-DD（且日期真实存在，如 2026-02-30 判非法） */
+  U.isDate = function (s) {
+    var d = U.dt(s);
+    return !!d && U.today(d) === String(s).trim();
+  };
+
+  /* ── 本地存储（file:// 下 localStorage 可能直接抛异常，必须容错）── */
+  U.store = {
+    get: function (k, dflt) {
+      try {
+        var v = g.localStorage.getItem(k);
+        return v == null ? dflt : JSON.parse(v);
+      } catch (e) { return dflt; }
+    },
+    set: function (k, v) {
+      try { g.localStorage.setItem(k, JSON.stringify(v)); return true; }
+      catch (e) { return false; }
+    },
+    del: function (k) {
+      try { g.localStorage.removeItem(k); return true; } catch (e) { return false; }
+    },
+    /** 存储是否可用（不可用时页面要提示「本次改动不会保存」） */
+    ok: function () {
+      try {
+        g.localStorage.setItem('__t', '1'); g.localStorage.removeItem('__t');
+        return true;
+      } catch (e) { return false; }
+    },
+  };
+
+  /* ── 导出 / 导入 ── */
+  U.download = function (name, text, mime) {
+    var blob = new Blob([text], { type: (mime || 'text/plain') + ';charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 0);
+  };
+  U.pickFile = function (accept, fn) {
+    var i = document.createElement('input');
+    i.type = 'file'; i.accept = accept || '.json';
+    i.onchange = function () {
+      var f = i.files && i.files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function () { fn(String(r.result), f); };
+      r.readAsText(f, 'utf-8');
+    };
+    i.click();
+  };
+  /** CSV：单元格内的引号/逗号/换行都要转义，否则 Excel 打开就串列 */
+  U.toCSV = function (rows) {
+    return rows.map(function (r) {
+      return r.map(function (c) {
+        var s = c == null ? '' : String(c);
+        return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      }).join(',');
+    }).join('\r\n');
+  };
+
+  /* ── 数组 ── */
+  U.groupBy = function (arr, keyFn) {
+    var out = {};
+    (arr || []).forEach(function (x) {
+      var k = keyFn(x);
+      (out[k] = out[k] || []).push(x);
+    });
+    return out;
+  };
+  U.sum = function (arr, fn) {
+    return (arr || []).reduce(function (s, x) { return s + (Number(fn ? fn(x) : x) || 0); }, 0);
+  };
+  U.sortBy = function (arr, fn, dir) {
+    var d = dir === 'desc' ? -1 : 1;
+    return (arr || []).slice().sort(function (a, b) {
+      var x = fn(a), y2 = fn(b);
+      if (x == null && y2 == null) return 0;
+      if (x == null) return 1;        /* 空值恒排末尾，不参与方向翻转 */
+      if (y2 == null) return -1;
+      return x < y2 ? -d : x > y2 ? d : 0;
+    });
+  };
+
+  g.U = U;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ─────────────────────────────────────────────────────────────
+   S2 成本卡与毛利测算 · 纯逻辑层（不碰 DOM）
+
+   ⭐ 本文件里的结算公式是 `abox-onebox/packages/shared-utils/src/biz.ts`
+      `calcSettlement()` 的**逐字复刻**。成本卡唯一的失败模式是
+      「工具算的毛利和系统算的不一样」—— 那比没有成本卡更糟。
+      故：公式照抄，并对 5 组锁定输入写死期望值（selftest 会逐个对）。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var U = g.U;
+  var SPEC = g.SPEC;
+
+  /* ── 真源：biz.ts · SETTLEMENT_DEFAULTS / SETTLEMENT_COST_LABELS ── */
+  var DEF = SPEC.settlement.defaults;            // {supplierTotal, siteFee, packingLaborFee, deliveryFee}
+  var COST_LABELS = SPEC.settlement.labels;      // {siteFee:'场所摊销', …}
+  var COST_KEYS = ['siteFee', 'packingLaborFee', 'deliveryFee'];
+
+  /** 入参归一：null / 空 / 非数 / **负数** 一律回落真源默认（负数按「未登记」处理） */
+  function numOr(v, dflt) {
+    var n = Number(v);
+    return (v == null || v === '' || !isFinite(n) || n < 0) ? dflt : n;
+  }
+
+  function settlementCostTotal(items) {
+    return Number((numOr(items.supplierTotal, DEF.supplierTotal) + numOr(items.siteFee, DEF.siteFee)
+      + numOr(items.packingLaborFee, DEF.packingLaborFee)
+      + numOr(items.deliveryFee, DEF.deliveryFee)).toFixed(2));
+  }
+
+  /** ⭐ 复刻 biz.ts · calcSettlement()（公式逐字一致，勿改写） */
+  function calcSettlement(items, commissionRate, unitPrice) {
+    /* ⚠️ 2026-09-26：负数与非数一律**视为尚未登记**（回落真源默认），
+       与 `isCostRegistered` 的「> 0 才算已登记」同一口径。
+       起因（实测 bug）：负值被当成合法成本 ⇒ 毛利反向抬高，而页面还说是「按 0 计」。
+       这里只是**入参归一**，公式本身一字未改。 */
+    var supplierTotal = numOr(items.supplierTotal, DEF.supplierTotal);
+    var siteFee = numOr(items.siteFee, DEF.siteFee);
+    var packingLaborFee = numOr(items.packingLaborFee, DEF.packingLaborFee);
+    var deliveryFee = numOr(items.deliveryFee, DEF.deliveryFee);
+    var commission = Number((unitPrice * commissionRate).toFixed(2));
+    var platformGrossProfit = Number(
+      (unitPrice - (supplierTotal + siteFee + packingLaborFee + deliveryFee) - commission).toFixed(2));
+    return {
+      unitPrice: unitPrice, supplierTotal: supplierTotal, siteFee: siteFee,
+      packingLaborFee: packingLaborFee, deliveryFee: deliveryFee,
+      commission: commission, platformGrossProfit: platformGrossProfit,
+    };
+  }
+
+  /** 等式闭合（复刻 biz.ts · assertSettlementClosed） */
+  function settlementClosed(items, rate, unitPrice) {
+    var b = calcSettlement(items, rate, unitPrice);
+    var sum = Number((b.supplierTotal + b.siteFee + b.packingLaborFee + b.deliveryFee
+      + b.commission + b.platformGrossProfit).toFixed(2));
+    return Math.abs(sum - b.unitPrice) < 0.005;
+  }
+
+  /* ── 真源：biz.ts · isCostRegistered / summarizeCostRegistration ── */
+  function isCostRegistered(v) {
+    var n = Number(v);
+    return isFinite(n) && n > 0;
+  }
+  function costRegistration(items) {
+    var registered = {}, missingKeys = [], missingLabels = [], total = 0;
+    COST_KEYS.forEach(function (k) {
+      var v = Number(items[k] == null ? 0 : items[k]);
+      var ok = isCostRegistered(v);
+      registered[k] = ok;
+      if (!ok) { missingKeys.push(k); missingLabels.push(COST_LABELS[k]); }
+      if (isFinite(v)) total += v;
+    });
+    return {
+      allRegistered: missingKeys.length === 0, registered: registered,
+      missingKeys: missingKeys, missingLabels: missingLabels,
+      total: Number(total.toFixed(2)),
+    };
+  }
+  /** 未登记时的统一提示（照 biz.ts 的口径说同一句话） */
+  function registrationWarning(labels) {
+    return '履约成本「' + labels.join(' / ') + '」尚未登记（当前按 0 计），'
+      + '因此经营毛利只是上限值，会被系统性高估。';
+  }
+
+  /* ── 菜品与套餐 ─────────────────────────────────────────────── */
+  var DISH = {};
+  (SPEC.dishes.list || []).forEach(function (d) { DISH[d.id] = d; });
+
+  var LEVELS = Object.keys(SPEC.env.commission).map(function (k) {
+    return { key: k, rate: SPEC.env.commission[k], pct: Math.round(SPEC.env.commission[k] * 100) };
+  });
+  var LEVEL_LABEL = { trainee: '见习', formal: '正式', gold: '金牌', chief: '首席' };
+
+  /** 档位 → 菜品品类（⚠️ 档位写「汤」、品类写「汤品」—— 两轴并存，勿统一） */
+  var SLOT_CATEGORY = { 1: 'main', 2: 'half', 3: 'veg', 4: 'soup' };
+
+  function dishesOfCategory(cat) {
+    return (SPEC.dishes.list || []).filter(function (d) { return d.category === cat; });
+  }
+
+  function blankSku(name, pickIds) {
+    var picks = {};
+    (SPEC.slots.requiredSlots || [1, 2, 3, 4]).forEach(function (slot, i) {
+      picks[slot] = pickIds && pickIds[i] != null ? pickIds[i] : null;
+    });
+    return { id: 'S' + Math.random().toString(36).slice(2, 7), name: name || '新套餐', price: SPEC.env.unitPrice, picks: picks, level: 'formal' };
+  }
+
+  /** 默认三个套餐（**套餐一刻意等于真源默认组合**，供 selftest 做交叉自证） */
+  function seedSkus() {
+    return [
+      blankSku('红烧肉套餐（默认组合）', [1, 6, 4, 7]),   // 7.50+1.50+3.00+2.00 = 14.00
+      blankSku('宫保鸡丁套餐', [9, 6, 5, 8]),             // 6.50+1.50+2.20+2.00 = 12.20
+      blankSku('清真牛肉套餐', [10, 6, 4, 7]),            // 8.50+1.50+3.00+2.00 = 15.00
+    ];
+  }
+
+  /** 单份供价（Σ 逐菜协商价） */
+  function materialCost(sku) {
+    return Number((SPEC.slots.requiredSlots || [1, 2, 3, 4]).reduce(function (s, slot) {
+      var d = DISH[sku.picks[slot]];
+      return s + (d ? d.cost : 0);
+    }, 0).toFixed(2));
+  }
+  function slotsFilled(sku) {
+    return (SPEC.slots.requiredSlots || [1, 2, 3, 4]).every(function (s) { return !!DISH[sku.picks[s]]; });
+  }
+  /** 「最贵的一道菜」——官方判据点名的就是这个 */
+  function dearestDish(sku) {
+    var best = null;
+    (SPEC.slots.requiredSlots || [1, 2, 3, 4]).forEach(function (slot) {
+      var d = DISH[sku.picks[slot]];
+      if (d && (!best || d.cost > best.dish.cost)) best = { slot: slot, dish: d };
+    });
+    return best;
+  }
+  function slotName(slot) { return SPEC.slots.label[slot] || String(slot); }
+  function categoryName(cat) { return SPEC.categories.label[cat] || cat; }
+  function rateOf(sku) { return SPEC.env.commission[sku.level] == null ? SPEC.env.commission.formal : SPEC.env.commission[sku.level]; }
+
+  /** 成本卡：一份套餐的完整拆解（供价来自 BOM，履约成本来自全局参数） */
+  function costCard(sku, costParams) {
+    var supplierTotal = materialCost(sku);
+    var items = {
+      supplierTotal: supplierTotal,
+      siteFee: costParams.siteFee, packingLaborFee: costParams.packingLaborFee,
+      deliveryFee: costParams.deliveryFee,
+    };
+    var b = calcSettlement(items, rateOf(sku), Number(sku.price));
+    b.marginRate = b.unitPrice > 0 ? b.platformGrossProfit / b.unitPrice : 0;
+    b.costTotal = settlementCostTotal(items);
+    /* ⭐ 2026-09-26 新增：履约三项之和（**不含供价**）。
+       起因（实测 bug）：表格「履约」列与 CSV「履约成本合计」列都写的是 `costTotal`
+       —— 而 costTotal = 供价 + 三项履约 ⇒ 供价被重复计了一次，
+       同一行里「供价 14.00 ／ 履约 16.50 ／ 毛利 6.98」自相矛盾，人工核对配不平。
+       costTotal 本身没错（调价模拟器要的就是「全部成本」），错的是把它放进「履约」列。 */
+    b.fulfilTotal = Number((Math.max(0, Number(items.siteFee || 0))
+      + Math.max(0, Number(items.packingLaborFee || 0))
+      + Math.max(0, Number(items.deliveryFee || 0))).toFixed(2));
+    b.dearest = dearestDish(sku);
+    b.closed = settlementClosed(items, rateOf(sku), Number(sku.price));
+    b.levelLabel = LEVEL_LABEL[sku.level] || sku.level;
+    b.rate = rateOf(sku);
+    return b;
+  }
+
+  /* ── 看板：按套餐 / 按楼 / 按天 ──────────────────────────────── */
+  function bySku(skus, costParams) {
+    return skus.map(function (s) {
+      var c = costCard(s, costParams);
+      return { sku: s, card: c };
+    });
+  }
+
+  /** 按楼：每栋楼指定主推套餐 ⇒ 日单量 × 单份毛利 */
+  function byBuilding(skus, costParams, bldParams) {
+    var map = {};
+    skus.forEach(function (s) { map[s.id] = costCard(s, costParams); });
+    return (SPEC.buildings.list || []).map(function (b) {
+      var p = bldParams[b.id] || {};
+      var sku = skus.filter(function (s) { return s.id === p.skuId; })[0];
+      var card = sku ? map[sku.id] : null;
+      var qty = Number(p.qty || 0);
+      return {
+        building: b, qty: qty, sku: sku, card: card,
+        revenue: Number((qty * (sku ? Number(sku.price) : 0)).toFixed(2)),
+        gross: card ? Number((qty * card.platformGrossProfit).toFixed(2)) : 0,
+      };
+    });
+  }
+
+  /** 按天：楼总单量 × 周内日系数（**空跑假设**，等真实流水替换） */
+  function byDay(skus, costParams, bldParams, dayFactor) {
+    var rows = byBuilding(skus, costParams, bldParams);
+    var totalQty = U.sum(rows, function (r) { return r.qty; });
+    var totalGross = U.sum(rows, function (r) { return r.gross; });
+    var DAYS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    return DAYS.map(function (label, i) {
+      var f = dayFactor[i] == null ? 1 : dayFactor[i];
+      return { label: label, factor: f, qty: Math.round(totalQty * f), gross: Number((totalGross * f).toFixed(2)) };
+    });
+  }
+
+  /* ── 模拟器：调价与换料 ─────────────────────────────────────── */
+  /** 目标毛利率 → 需要的售价（毛利 = 价 − 成本 − 价×费率 ⇒ 价 = (成本) / (1 − 率 − 目标率)） */
+  function priceForTargetMargin(costTotal, rate, targetMarginRate) {
+    var denom = 1 - rate - targetMarginRate;
+    if (denom <= 0) return null;              // 该目标在数学上不可达（费率+目标率 ≥ 100%）
+    return Number((costTotal / denom).toFixed(2));
+  }
+  /** 换一道菜之后的成本差（只差供价，履约成本不变） */
+  function swapDelta(sku, slot, dishId) {
+    var oldDish = DISH[sku.picks[slot]];
+    var newDish = DISH[dishId];
+    if (!newDish) return null;
+    return {
+      from: oldDish || null, to: newDish,
+      delta: Number(((newDish.cost) - (oldDish ? oldDish.cost : 0)).toFixed(2)),
+    };
+  }
+
+  function validateSkus(skus) {
+    var bad = [];
+    var slots = SPEC.slots.requiredSlots || [1, 2, 3, 4];
+    skus.forEach(function (s) {
+      slots.forEach(function (slot) {
+        var d = DISH[s.picks[slot]];
+        if (!d) { bad.push(s.name + '：档位『' + slotName(slot) + '』未选菜'); return; }
+        var want = SLOT_CATEGORY[slot];
+        if (want && d.category !== want) {
+          bad.push(s.name + '：档位『' + slotName(slot) + '』放了「' + d.name
+            + '」（品类 ' + categoryName(d.category) + '，应为 ' + categoryName(want) + '）');
+        }
+      });
+      if (!(Number(s.price) > 0)) bad.push(s.name + '：售价非法');
+      if (!LEVELS.filter(function (l) { return l.key === s.level; }).length) bad.push(s.name + '：佣金等级非法');
+    });
+    return bad;
+  }
+
+  g.Model = {
+    DEF: DEF, COST_KEYS: COST_KEYS, COST_LABELS: COST_LABELS,
+    LEVELS: LEVELS, LEVEL_LABEL: LEVEL_LABEL, SLOT_CATEGORY: SLOT_CATEGORY,
+    DISH: DISH, dishesOfCategory: dishesOfCategory,
+    settlementCostTotal: settlementCostTotal, calcSettlement: calcSettlement,
+    settlementClosed: settlementClosed, isCostRegistered: isCostRegistered,
+    costRegistration: costRegistration, registrationWarning: registrationWarning,
+    blankSku: blankSku, seedSkus: seedSkus, materialCost: materialCost,
+    slotsFilled: slotsFilled, dearestDish: dearestDish, slotName: slotName,
+    categoryName: categoryName, rateOf: rateOf, costCard: costCard,
+    bySku: bySku, byBuilding: byBuilding, byDay: byDay,
+    priceForTargetMargin: priceForTargetMargin, swapDelta: swapDelta, validateSkus: validateSkus,
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ─────────────────────────────────────────────────────────────
+   S2 成本卡与毛利测算 · 判据层（纯函数 · 一份实现）
+
+   ⚠️ 本层每一条判据都必须**能被负控变红**。写作时踩过两次同一个坑：
+      「用 model 的同一个函数验它自己」（如 materialCost 验 materialCost、
+        isCostRegistered 验 isCostRegistered）⇒ 恒绿、毫无信息量。
+      故：凡是验计算的，都在这里**独立再算一遍**；凡是验判据行为的，
+      直接对边界值做断言（0 / 0.01 / −5 / ''）。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  function run(ctx) {
+    var SPEC = g.SPEC, M = g.Model;
+    var rows = [];
+    var add = function (name, ok, detail) { rows.push({ name: name, ok: !!ok, detail: detail || '' }); };
+
+    var skus = ctx.skus || [];
+    var cp = ctx.costParams || {};
+    var bp = ctx.bldParams || {};
+    var slots = SPEC.slots.requiredSlots || [1, 2, 3, 4];
+    var byId = {};
+    (SPEC.dishes.list || []).forEach(function (d) { byId[d.id] = d; });
+
+    /* ① 套餐非空 */
+    add('① 至少有一个套餐', skus.length > 0, skus.length + ' 个套餐');
+
+    /* ② 四档齐全（构成来自真源 requiredSlots） */
+    var lack = [];
+    skus.forEach(function (s) {
+      slots.forEach(function (slot) { if (!byId[s.picks[slot]]) lack.push(s.name + '·' + M.slotName(slot)); });
+    });
+    add('② 每个套餐四档齐全', lack.length === 0,
+      lack.length ? '缺：' + lack.slice(0, 4).join('、') : skus.length + ' 个套餐 × ' + slots.length + ' 档');
+
+    /* ③ 档位 ↔ 菜品品类匹配（主荤槽放素菜 = 一饭四菜名不副实） */
+    var mismatch = [];
+    skus.forEach(function (s) {
+      slots.forEach(function (slot) {
+        var d = byId[s.picks[slot]]; if (!d) return;
+        var want = M.SLOT_CATEGORY[slot];
+        if (want && d.category !== want) {
+          mismatch.push(s.name + '·' + M.slotName(slot) + '=' + d.name + '(' + M.categoryName(d.category) + ')');
+        }
+      });
+    });
+    add('③ 档位与菜品品类匹配', mismatch.length === 0,
+      mismatch.length ? mismatch.slice(0, 3).join('；') : '全部匹配');
+
+    /* ④ 供价 = 逐菜成本之和（**独立求和**再与模型比 —— 防 model 被改坏） */
+    var sumBad = [];
+    skus.forEach(function (s) {
+      var independent = Number(slots.reduce(function (a, slot) {
+        var d = byId[s.picks[slot]]; return a + (d ? d.cost : 0);
+      }, 0).toFixed(2));
+      if (Math.abs(independent - M.materialCost(s)) > 1e-9) {
+        sumBad.push(s.name + '：独立求和 ' + independent + ' ≠ 模型 ' + M.materialCost(s));
+      }
+    });
+    add('④ 供价 = 逐菜成本之和', sumBad.length === 0, sumBad.join('；') || '逐项一致');
+
+    /* ⑤ 交叉自证：默认组合供价 == 真源 BIZ_SUPPLIER_TOTAL（把「照真源办事」变成可校验的） */
+    var seed0 = M.seedSkus()[0];
+    var seed0Cost = M.materialCost(seed0);
+    var wantTotal = SPEC.settlement.defaults.supplierTotal;
+    add('⑤ 默认组合供价 = 真源 BIZ_SUPPLIER_TOTAL', Math.abs(seed0Cost - wantTotal) < 1e-9,
+      seed0Cost + ' / 真源 ' + wantTotal + '（'
+      + slots.map(function (x) { return (byId[seed0.picks[x]] || {}).name; }).join(' + ') + '）');
+
+    /* ⑥ 无亏本套餐（卖一份亏一份是最该被当场看见的事，不是等月底看报表） */
+    var losers = skus.filter(function (s) { return M.costCard(s, cp).platformGrossProfit < 0; })
+      .map(function (s) { return s.name + '(' + M.costCard(s, cp).platformGrossProfit.toFixed(2) + ')'; });
+    add('⑥ 无亏本套餐（单份毛利 ≥ 0）', losers.length === 0, losers.join('、') || '全部为正');
+
+    /* ⑦ 毛利 = 售价 − 成本 − 佣金（**独立复算**，不调 calcSettlement） */
+    var calcBad = [];
+    skus.forEach(function (s) {
+      var c = M.costCard(s, cp);
+      var cost = Number((c.supplierTotal + c.siteFee + c.packingLaborFee + c.deliveryFee).toFixed(2));
+      var comm = Number((Number(s.price) * M.rateOf(s)).toFixed(2));
+      var expect = Number((Number(s.price) - cost - comm).toFixed(2));
+      if (!isFinite(c.platformGrossProfit)) { calcBad.push(s.name + '：毛利非数'); return; }
+      if (Math.abs(expect - c.platformGrossProfit) > 1e-9) {
+        calcBad.push(s.name + '：独立复算 ' + expect + ' ≠ 模型 ' + c.platformGrossProfit);
+      }
+    });
+    add('⑦ 毛利 = 售价 − 成本 − 佣金', calcBad.length === 0, calcBad.join('；') || '逐项一致');
+
+    /* ⑧ 「最贵的一道菜」必须真的是成本最大的那道 */
+    var dearBad = [];
+    skus.forEach(function (s) {
+      var d = M.dearestDish(s);
+      if (!d) { dearBad.push(s.name + '：算不出'); return; }
+      var max = Math.max.apply(null, slots.map(function (slot) {
+        return byId[s.picks[slot]] ? byId[s.picks[slot]].cost : -1;
+      }));
+      if (Math.abs(d.dish.cost - max) > 1e-9) {
+        dearBad.push(s.name + '：报 ' + d.dish.name + '(' + d.dish.cost + ') ≠ 最大 ' + max);
+      }
+    });
+    add('⑧ 能点名最贵的一道菜', dearBad.length === 0, dearBad.join('；') || skus.length + ' 个套餐均可点名');
+
+    /* ⑨ 登记判据的**行为**（0 / '' / 负数一律不算已登记 —— 这是 biz.ts 的口径） */
+    var cases = [
+      [0, false], [0.01, true], [1, true], [99, true], [-5, false], ['', false], [null, false], ['abc', false],
+    ];
+    var behBad = cases.filter(function (c) { return M.isCostRegistered(c[0]) !== c[1]; })
+      .map(function (c) { return JSON.stringify(c[0]) + ' 应为 ' + c[1]; });
+    add('⑨ 登记判据行为（0/空/非数一律不算已登记）', behBad.length === 0, behBad.join('；') || cases.length + ' 组边界全对');
+
+    /* ⑩ 未登记时的提示必须**点名具体项**（只说「有项没填」等于没说） */
+    var reg = M.costRegistration(cp);
+    var warn = M.registrationWarning(reg.missingLabels);
+    var named = reg.allRegistered || (reg.missingLabels.length > 0
+      && reg.missingLabels.every(function (l) { return warn.indexOf(l) >= 0; })
+      && /上限值/.test(warn));
+    add('⑩ 未登记提示点名具体项且标明「上限值」', named,
+      reg.allRegistered ? '（三项已登记）' : warn);
+
+    /* ⑪ 楼栋全覆盖且各有主推套餐 */
+    var blds = SPEC.buildings.list || [];
+    var noSku = blds.filter(function (b) { return !(bp[b.id] && bp[b.id].skuId); });
+    add('⑪ 楼栋全覆盖且各有主推套餐', blds.length > 0 && noSku.length === 0,
+      blds.length + ' 栋' + (noSku.length
+        ? '，缺指派：' + noSku.map(function (b) { return b.name; }).slice(0, 3).join('、') : ''));
+
+    var bad = rows.filter(function (r) { return !r.ok; }).length;
+    return { rows: rows, bad: bad, ok: bad === 0 };
+  }
+
+  g.SelfCheck = { run: run };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ─────────────────────────────────────────────────────────────
+   S2 成本卡与毛利测算 · DOM 壳
+   ⚠️ 交互监听一律挂 document 用 closest 分发（挂在容器上会漏兄弟节点里的控件）。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var SPEC = g.SPEC, U = g.U, M = g.Model, SC = g.SelfCheck;
+  var KEY = 'abox.s2.costcard.v1';
+  var VERSION = g.TOOL_VERSION;
+  var SLOTS = SPEC.slots.requiredSlots || [1, 2, 3, 4];
+
+  var ST = {
+    skus: [], costParams: {}, bldParams: {}, dayFactor: [],
+    price: SPEC.env.unitPrice, targetMargin: 0.35, board: 'sku', today: '',
+  };
+
+  function defaultBldParams() {
+    var o = {};
+    (SPEC.buildings.list || []).forEach(function (b) {
+      o[b.id] = { skuId: 'S0', qty: b.status === 1 ? 20 : 0 };   // ⚠️ 空跑假设：营业中楼先按 20 单
+    });
+    return o;
+  }
+  function normalize() {
+    // 楼指派：保证每栋都指向一个存在的套餐（套餐被删后不留悬空引用）
+    var ids = ST.skus.map(function (s) { return s.id; });
+    (SPEC.buildings.list || []).forEach(function (b) {
+      var p = ST.bldParams[b.id];
+      if (!p) ST.bldParams[b.id] = { skuId: ids[0], qty: 0 };
+      else if (ids.indexOf(p.skuId) < 0) p.skuId = ids[0];
+    });
+  }
+  function load() {
+    var saved = U.store.get(KEY, null);
+    if (saved && saved.skus && saved.skus.length) {
+      ST.skus = saved.skus;
+      ST.costParams = saved.costParams || {};
+      ST.bldParams = saved.bldParams || {};
+      ST.dayFactor = saved.dayFactor || [1, 1, 1, 1, 1, 0.3, 0.2];
+      ST.price = saved.price || SPEC.env.unitPrice;
+      ST.targetMargin = saved.targetMargin == null ? 0.35 : saved.targetMargin;
+      ST.board = saved.board || 'sku';
+    } else {
+      ST.skus = M.seedSkus();
+      ST.skus.forEach(function (s, i) { s.id = 'S' + i; s.price = SPEC.env.unitPrice; });
+      ST.costParams = { siteFee: null, packingLaborFee: null, deliveryFee: null };
+      ST.bldParams = defaultBldParams();
+      ST.dayFactor = [1, 1, 1, 1, 1, 0.3, 0.2];
+    }
+    ST.today = U.today();
+    normalize();
+  }
+  function save() { return U.store.set(KEY, ST); }
+  function costParamsResolved() {
+    return {
+      siteFee: Number(ST.costParams.siteFee || 0),
+      packingLaborFee: Number(ST.costParams.packingLaborFee || 0),
+      deliveryFee: Number(ST.costParams.deliveryFee || 0),
+    };
+  }
+  function applyPrice() { ST.skus.forEach(function (s) { s.price = ST.price; }); }
+
+  /* ── 左栏 ───────────────────────────────────────────────────── */
+  function sideHTML() {
+    var cp = costParamsResolved();
+    var reg = M.costRegistration(cp);
+    var priceRow = function (key, label) {
+      var v = ST.costParams[key];
+      return '<label class="f"><span>' + label + '（元/份）</span>'
+        + '<input data-param="' + key + '" type="number" step="0.01" min="0" value="'
+        + (v == null ? '' : v) + '" placeholder="未登记"></label>';
+    };
+    return ''
+      + '<div class="card"><h2>报价参数</h2>'
+      + '<label class="f"><span>套餐售价（元/份）</span>'
+      + '<input data-param="price" type="number" step="0.1" min="1" value="' + ST.price + '"></label>'
+      + '<label class="f"><span>佣金等级（决定费率）</span><select data-param="level">'
+      + M.LEVELS.map(function (l) {
+        return '<option value="' + l.key + '"' + (ST.skus[0] && ST.skus[0].level === l.key ? ' selected' : '') + '>'
+          + M.LEVEL_LABEL[l.key] + ' · ' + l.pct + '%</option>';
+      }).join('') + '</select></label>'
+      + '<p class="hint">售价与佣金率均来自代码真源（¥' + SPEC.env.unitPrice.toFixed(2)
+      + ' · 8/9/10/12%），改这里只改<b>推演</b>，不改系统。</p>'
+      + '</div>'
+
+      + '<div class="card"><h2>履约成本 <span class="n">'
+      + (reg.allRegistered ? '已登记' : '未登记 ' + reg.missingLabels.length + ' 项') + '</span></h2>'
+      + '<p class="hint">真源：<span class="mono">' + SPEC.settlement.configKeys.siteFee + '</span> 等三项。'
+      + '自营下场所摊销 / 打包人工 / 配送费<b>都是真实成本</b>，<b>0 只表示忘了填</b>，不是没有。</p>'
+      + priceRow('siteFee', M.COST_LABELS.siteFee)
+      + priceRow('packingLaborFee', M.COST_LABELS.packingLaborFee)
+      + priceRow('deliveryFee', M.COST_LABELS.deliveryFee)
+      + (reg.allRegistered ? ''
+        : '<div class="note warn">' + U.esc(M.registrationWarning(reg.missingLabels)) + '</div>')
+      + '</div>'
+
+      + '<div class="card"><h2>操作</h2><div class="btnbar">'
+      + '<button class="btn primary" data-act="add-sku">＋ 新增套餐</button>'
+      + '<button class="btn" data-act="export-json">导出 JSON</button>'
+      + '<button class="btn" data-act="export-csv">导出 CSV</button>'
+      + '<button class="btn ghost" data-act="reset">重置</button>'
+      + '</div>' + (U.store.ok() ? '' : '<div class="note warn">本地存储不可用，本次改动不会保存。</div>')
+      + '</div>';
+  }
+
+  /* ── 成本卡 ─────────────────────────────────────────────────── */
+  function costTableHTML() {
+    var cp = costParamsResolved();
+    var head = '<tr><th style="min-width:132px">套餐</th>'
+      + SLOTS.map(function (s) { return '<th style="min-width:118px">' + M.slotName(s) + '</th>'; }).join('')
+      + '<th style="width:74px" class="num">供价</th><th style="width:74px" class="num">佣金</th>'
+      + '<th style="width:74px" class="num">履约</th><th style="width:82px" class="num">单份毛利</th>'
+      + '<th style="width:74px" class="num">毛利率</th><th style="min-width:120px">最贵的菜</th>'
+      + '<th style="width:56px"></th></tr>';
+    var body = ST.skus.map(function (s) {
+      var c = M.costCard(s, cp);
+      var dear = c.dearest;
+      return '<tr data-sku="' + s.id + '">'
+        + '<td><input data-sku-f="name" data-sku="' + s.id + '" value="' + U.esc(s.name) + '">'
+        + '<select data-sku-f="level" data-sku="' + s.id + '" style="margin-top:3px">'
+        + M.LEVELS.map(function (l) {
+          return '<option value="' + l.key + '"' + (s.level === l.key ? ' selected' : '') + '>'
+            + M.LEVEL_LABEL[l.key] + ' ' + l.pct + '%</option>';
+        }).join('') + '</select></td>'
+        + SLOTS.map(function (slot) {
+          var cur = s.picks[slot];
+          var list = M.dishesOfCategory(M.SLOT_CATEGORY[slot]);
+          return '<td><select data-sku-f="pick-' + slot + '" data-sku="' + s.id + '">'
+            + (list.length ? '' : '<option value="">（无同类菜）</option>')
+            + list.map(function (d) {
+              return '<option value="' + d.id + '"' + (d.id === cur ? ' selected' : '') + '>'
+                + U.esc(d.name) + ' ¥' + d.cost.toFixed(2) + '</option>';
+            }).join('')
+            + (list.some(function (d) { return d.id === cur; }) ? ''
+              : '<option value="' + cur + '" selected>（不匹配品类）</option>')
+            + '</select></td>';
+        }).join('')
+        + '<td class="num mono">' + c.supplierTotal.toFixed(2) + '</td>'
+        + '<td class="num mono">' + c.commission.toFixed(2) + '</td>'
+        /* ⚠️ 2026-09-26 修复：这一列原先写 `c.costTotal`（含供价），
+           与同行的「供价」列重复计数 ⇒ 表内数字配不平（14.00 / 16.50 / 6.98）。 */
+        + '<td class="num mono">' + c.fulfilTotal.toFixed(2) + '</td>'
+        + '<td class="num"><span class="big" data-cell="gp">' + c.platformGrossProfit.toFixed(2) + '</span></td>'
+        + '<td class="num mono">' + (c.marginRate * 100).toFixed(1) + '%</td>'
+        + '<td style="font-size:12.5px">' + (dear
+          ? U.esc(dear.dish.name) + ' <span class="mono">¥' + dear.dish.cost.toFixed(2) + '</span>'
+            + '<div class="hint" style="margin:0">' + M.slotName(dear.slot) + ' · '
+            + U.esc(dear.dish.category ? M.categoryName(dear.dish.category) : '') + '</div>'
+          : '<span class="pill warn">缺菜</span>') + '</td>'
+        + '<td><button class="btn sm ghost" data-act="del-sku" data-sku="' + s.id + '">删除</button></td>'
+        + '</tr>';
+    }).join('');
+    return '<div class="card"><h2>成本卡 <span class="n">一对一饭四菜 · 主食用米不建菜品项</span></h2>'
+      + '<p class="hint">供价 = 逐菜协商采购价之和（真源 <span class="mono">ab_dish.cost_price</span>）；'
+      + '毛利 = 售价 −（供价 + 场所摊销 + 打包人工 + 配送费）− 佣金 —— 公式与 '
+      + '<span class="mono">biz.ts · calcSettlement()</span> 逐字一致。</p>'
+      + '<div class="tw"><table><thead>' + head + '</thead><tbody>'
+      + (body || '<tr><td colspan="11" class="hint">还没有套餐</td></tr>') + '</tbody></table></div></div>';
+  }
+
+  /* ── 看板 ───────────────────────────────────────────────────── */
+  function boardHTML() {
+    var cp = costParamsResolved();
+    var seg = '<div class="seg">'
+      + ['sku|按套餐', 'building|按楼', 'day|按天'].map(function (x) {
+        var k = x.split('|')[0];
+        return '<button data-act="board" data-k="' + k + '"' + (ST.board === k ? ' class="on"' : '') + '>'
+          + x.split('|')[1] + '</button>';
+      }).join('') + '</div>';
+    var inner = '';
+
+    if (ST.board === 'sku') {
+      var rows = M.bySku(ST.skus, cp);
+      inner = '<div class="tw"><table><thead><tr><th>套餐</th><th class="num">售价</th>'
+        + '<th class="num">单份毛利</th><th class="num">毛利率</th><th>最贵的菜</th></tr></thead><tbody>'
+        + rows.map(function (r) {
+          return '<tr><td><b>' + U.esc(r.sku.name) + '</b></td>'
+            + '<td class="num mono">' + Number(r.sku.price).toFixed(2) + '</td>'
+            + '<td class="num"><span class="big">' + r.card.platformGrossProfit.toFixed(2) + '</span></td>'
+            + '<td class="num mono">' + (r.card.marginRate * 100).toFixed(1) + '%</td>'
+            + '<td style="font-size:12.5px">' + (r.card.dearest ? U.esc(r.card.dearest.dish.name) : '—') + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+    } else if (ST.board === 'building') {
+      var brow = M.byBuilding(ST.skus, cp, ST.bldParams);
+      var tq = U.sum(brow, function (r) { return r.qty; });
+      var tg = U.sum(brow, function (r) { return r.gross; });
+      inner = '<div class="kpis" style="margin-bottom:10px">'
+        + '<div class="kpi"><div class="k">合计日单量</div><div class="v">' + tq + '</div></div>'
+        + '<div class="kpi"><div class="k">合计日毛利</div><div class="v">' + tg.toFixed(0) + '<span class="u">元</span></div></div>'
+        + '</div>'
+        + '<div class="tw"><table><thead><tr><th>楼栋</th><th>状态</th><th>主推套餐</th>'
+        + '<th class="num">预计日单</th><th class="num">日营收</th><th class="num">日毛利</th></tr></thead><tbody>'
+        + brow.map(function (r) {
+          var st = { 1: ['营业中', 'ok'], 2: ['待开通', 'gold'], 3: ['已暂停', 'dim'] }[r.building.status] || ['?', 'dim'];
+          return '<tr><td><b>' + U.esc(r.building.name) + '</b><div class="hint" style="margin:0">'
+            + U.esc(r.building.address) + ' · 约 ' + (r.building.population || '—') + ' 人</div></td>'
+            + '<td><span class="pill ' + st[1] + '">' + st[0] + '</span></td>'
+            + '<td><select data-bld-sku="' + r.building.id + '">'
+            + ST.skus.map(function (s) {
+              return '<option value="' + s.id + '"' + (s.id === (ST.bldParams[r.building.id] || {}).skuId ? ' selected' : '') + '>'
+                + U.esc(s.name) + '</option>';
+            }).join('') + '</select></td>'
+            + '<td class="num"><input data-bld-qty="' + r.building.id + '" type="number" min="0" step="1" value="'
+            + r.qty + '" style="width:72px;text-align:right"></td>'
+            + '<td class="num mono">' + r.revenue.toFixed(0) + '</td>'
+            + '<td class="num mono">' + r.gross.toFixed(0) + '</td></tr>';
+        }).join('') + '</tbody></table></div>'
+        + '<p class="hint" style="margin:10px 0 0">⚠️ 单量为<b>空跑假设</b>（营业中楼先按 20 单/日），'
+        + '不是真实数据 —— 上线后应用真实订单量替换。</p>';
+    } else {
+      var drows = M.byDay(ST.skus, cp, ST.bldParams, ST.dayFactor);
+      inner = '<div class="tw"><table><thead><tr><th>星期</th><th class="num">系数</th>'
+        + '<th class="num">预计单量</th><th class="num">预计毛利</th><th>占比</th></tr></thead><tbody>'
+        + drows.map(function (r, i) {
+          var max = Math.max.apply(null, drows.map(function (x) { return x.gross; })) || 1;
+          return '<tr><td><b>' + r.label + '</b></td>'
+            + '<td class="num"><input data-day="' + i + '" type="number" step="0.1" min="0" value="' + r.factor
+            + '" style="width:64px;text-align:right"></td>'
+            + '<td class="num mono">' + r.qty + '</td>'
+            + '<td class="num mono">' + r.gross.toFixed(0) + '</td>'
+            + '<td><div class="bar"><i style="width:' + Math.round(r.gross / max * 100) + '%"></i></div></td></tr>';
+        }).join('') + '</tbody></table></div>'
+        + '<p class="hint" style="margin:10px 0 0">⚠️ 周内系数（周末写字楼单量骤降）为<b>假设值</b>，可改。</p>';
+    }
+    return '<div class="card"><h2>毛利看板</h2><div style="margin-bottom:10px">' + seg + '</div>' + inner + '</div>';
+  }
+
+  /* ── 调价模拟器 ─────────────────────────────────────────────── */
+  function simHTML() {
+    var cp = costParamsResolved();
+    var rows = M.bySku(ST.skus, cp);
+    return '<div class="card"><h2>调价模拟器 <span class="n">目标毛利率 → 需要的售价</span></h2>'
+      + '<label class="f" style="max-width:260px"><span>目标毛利率（%）</span>'
+      + '<input data-param="targetMargin" type="number" step="1" min="0" max="90" value="'
+      + Math.round(ST.targetMargin * 100) + '"></label>'
+      + '<div class="tw"><table><thead><tr><th>套餐</th><th class="num">当前售价</th>'
+      + '<th class="num">当前毛利</th><th class="num">当前毛利率</th>'
+      + '<th class="num">达到目标需定价</th><th>与当前差</th></tr></thead><tbody>'
+      + rows.map(function (r) {
+        var need = M.priceForTargetMargin(r.card.costTotal, r.card.rate, ST.targetMargin);
+        var delta = need == null ? null : Number((need - Number(r.sku.price)).toFixed(2));
+        return '<tr><td><b>' + U.esc(r.sku.name) + '</b></td>'
+          + '<td class="num mono">' + Number(r.sku.price).toFixed(2) + '</td>'
+          + '<td class="num mono">' + r.card.platformGrossProfit.toFixed(2) + '</td>'
+          + '<td class="num mono">' + (r.card.marginRate * 100).toFixed(1) + '%</td>'
+          + '<td class="num">' + (need == null
+            ? '<span class="pill warn">不可达</span>'
+            : '<span class="big">' + need.toFixed(2) + '</span>') + '</td>'
+          + '<td>' + (delta == null ? '—'
+            : '<span class="pill ' + (delta > 0 ? 'warn' : 'ok') + '">'
+              + (delta > 0 ? '涨 ' : '降 ') + Math.abs(delta).toFixed(2) + ' 元</span>') + '</td></tr>';
+      }).join('') + '</tbody></table></div>'
+      + '<p class="hint" style="margin:10px 0 0">反算公式：价 = 成本 ÷ (1 − 佣金率 − 目标毛利率)。'
+      + '分母 ≤ 0 时数学上不可达（费率+目标率 ≥ 100%）。</p></div>';
+  }
+
+  /* ── 自检 ───────────────────────────────────────────────────── */
+  function gateHTML() {
+    var r = SC.run({ skus: ST.skus, costParams: costParamsResolved(), bldParams: ST.bldParams, dayFactor: ST.dayFactor });
+    return '<div class="card"><h2>自检 <span class="n">' + (r.ok ? '全绿' : r.bad + ' 项不符') + '</span></h2>'
+      + '<div class="gate">' + r.rows.map(function (x, i) {
+        return '<div class="g' + (x.ok ? '' : ' bad') + '"><i>' + String(i + 1).padStart(2, '0') + '</i>'
+          + '<span class="t">' + (x.ok ? '✔ ' : '✗ ') + U.esc(x.name)
+          + (x.detail ? ' —— ' + U.esc(x.detail) : '') + '</span></div>';
+      }).join('') + '</div></div>';
+  }
+
+  function render() {
+    applyPrice();
+    U.$('#side').innerHTML = sideHTML();
+    U.$('#main').innerHTML = '<div id="cost">' + costTableHTML() + '</div>' + boardHTML() + simHTML() + gateHTML();
+  }
+  function renderHeavy() {
+    applyPrice();
+    U.$('#side').innerHTML = sideHTML();
+    U.$('#main').innerHTML = '<div id="cost">' + costTableHTML() + '</div>'
+      + boardHTML() + simHTML() + gateHTML();
+  }
+
+  /* ── 交互 ───────────────────────────────────────────────────── */
+  function onClick(e, t) {
+    var act = t.getAttribute('data-act');
+    if (!act) return;
+    if (act === 'add-sku') {
+      var s = M.blankSku('新套餐');
+      s.picks[1] = (M.dishesOfCategory('main')[0] || {}).id;
+      s.picks[2] = (M.dishesOfCategory('half')[0] || {}).id;
+      s.picks[3] = (M.dishesOfCategory('veg')[0] || {}).id;
+      s.picks[4] = (M.dishesOfCategory('soup')[0] || {}).id;
+      ST.skus.push(s); normalize(); save(); render();
+    } else if (act === 'del-sku') {
+      var id = t.getAttribute('data-sku');
+      var cur = ST.skus.filter(function (x) { return x.id === id; })[0];
+      if (cur && g.confirm('删除「' + cur.name + '」？')) {
+        ST.skus = ST.skus.filter(function (x) { return x.id !== id; });
+        normalize(); save(); render();
+      }
+    } else if (act === 'board') {
+      ST.board = t.getAttribute('data-k'); save(); render();
+    } else if (act === 'export-json') {
+      U.download('ABox成本卡-' + ST.today + '.json', JSON.stringify({
+        product: 'S2 成本卡与毛利测算', version: VERSION, exportedAt: new Date().toISOString(),
+        price: ST.price, costParams: costParamsResolved(), skus: ST.skus,
+        bldParams: ST.bldParams, dayFactor: ST.dayFactor,
+      }, null, 2), 'application/json');
+    } else if (act === 'export-csv') {
+      var cp = costParamsResolved();
+      var head = ['套餐', '佣金等级'].concat(SLOTS.map(function (s) { return M.slotName(s); }))
+        .concat(['售价', '供价合计', '佣金', '履约成本合计', '单份毛利', '毛利率', '最贵的菜', '最贵菜成本']);
+      var rows = [head].concat(ST.skus.map(function (s) {
+        var c = M.costCard(s, cp);
+        return [s.name, c.levelLabel + ' ' + Math.round(c.rate * 100) + '%']
+          .concat(SLOTS.map(function (slot) { return (M.DISH[s.picks[slot]] || {}).name || ''; }))
+          /* ⚠️ 同上：CSV 的「履约成本合计」也曾经写 costTotal（含供价），与页面上同错 */
+          .concat([Number(s.price).toFixed(2), c.supplierTotal.toFixed(2), c.commission.toFixed(2),
+            c.fulfilTotal.toFixed(2), c.platformGrossProfit.toFixed(2), (c.marginRate * 100).toFixed(1) + '%',
+            c.dearest ? c.dearest.dish.name : '', c.dearest ? c.dearest.dish.cost.toFixed(2) : '']);
+      }));
+      U.download('ABox成本卡-' + ST.today + '.csv', '\ufeff' + U.toCSV(rows), 'text/csv');
+    } else if (act === 'reset') {
+      if (g.confirm('重置为默认三套餐与参数？')) { U.store.del(KEY); load(); render(); }
+    }
+  }
+
+  function onInput(e, t) {
+    var param = t.getAttribute('data-param');
+    if (param) {
+      if (param === 'price') ST.price = Math.max(0, Number(t.value) || 0);
+      else if (param === 'targetMargin') ST.targetMargin = Math.max(0, Math.min(0.9, (Number(t.value) || 0) / 100));
+      else if (param === 'level') { ST.skus.forEach(function (s) { s.level = t.value; }); }
+      /* ⚠️ 2026-09-26 修复：原先 `Number(t.value)` 不设下界 ⇒ 填 -5 时
+         ① 毛利被反向抬高（实测 6.98 ⇒ 12.98）
+         ② 页面同时打印「尚未登记（**当前按 0 计**）」—— 提示与实际取值相反
+         `<input min="0">` 只管表单校验、管不了 input.value，必须自己判。
+         负数 / 非数一律回落 null（视为尚未登记），与 M1 / g1 / g2 的空值纪律一致。 */
+      else {
+        var num = Number(t.value);
+        ST.costParams[param] = (t.value !== '' && isFinite(num) && num >= 0) ? num : null;
+      }
+      save();
+      if (param === 'targetMargin') { U.$('#main').innerHTML = '<div id="cost">' + costTableHTML() + '</div>' + boardHTML() + simHTML() + gateHTML(); }
+      else renderHeavy();
+      var back = U.$('[data-param="' + param + '"]'); if (back) back.focus();
+      return;
+    }
+    var bk = t.getAttribute('data-bld-qty');
+    if (bk) {
+      ST.bldParams[bk] = ST.bldParams[bk] || {}; ST.bldParams[bk].qty = Math.max(0, Number(t.value) || 0);
+      save(); renderHeavy(); return;
+    }
+    var bs = t.getAttribute('data-bld-sku');
+    if (bs) { ST.bldParams[bs] = ST.bldParams[bs] || {}; ST.bldParams[bs].skuId = t.value; save(); renderHeavy(); return; }
+    var dk = t.getAttribute('data-day');
+    if (dk != null) { ST.dayFactor[Number(dk)] = Math.max(0, Number(t.value) || 0); save(); renderHeavy(); return; }
+
+    var skuId = t.getAttribute('data-sku'), f = t.getAttribute('data-sku-f');
+    if (!skuId || !f) return;
+    var sku = ST.skus.filter(function (x) { return x.id === skuId; })[0];
+    if (!sku) return;
+    if (f.indexOf('pick-') === 0) sku.picks[Number(f.slice(5))] = Number(t.value);
+    else if (f === 'name') sku.name = t.value;
+    else if (f === 'level') sku.level = t.value;
+    save(); renderHeavy();
+  }
+
+  function boot() {
+    load();
+    var v = U.$('#ver'); if (v) v.textContent = VERSION;
+    var d = U.$('#date'); if (d) d.textContent = ST.today;
+    U.on('click', '[data-act]', onClick);
+    U.on('input', 'input, select', onInput);
+    U.on('change', 'input, select', onInput);
+    render();
+    document.documentElement.setAttribute('data-tool-ready', '1');
+  }
+
+  g.S2 = {
+    state: function () { return ST; },
+    costParams: costParamsResolved,
+    cards: function () { return M.bySku(ST.skus, costParamsResolved()); },
+    byBuilding: function () { return M.byBuilding(ST.skus, costParamsResolved(), ST.bldParams); },
+    byDay: function () { return M.byDay(ST.skus, costParamsResolved(), ST.bldParams, ST.dayFactor); },
+    selfcheck: function () {
+      return SC.run({ skus: ST.skus, costParams: costParamsResolved(), bldParams: ST.bldParams, dayFactor: ST.dayFactor });
+    },
+    setState: function (patch) { Object.keys(patch || {}).forEach(function (k) { ST[k] = patch[k]; }); normalize(); render(); },
+    render: render,
+  };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script></body></html>

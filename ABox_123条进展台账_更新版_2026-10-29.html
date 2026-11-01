@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 123 条探针进展台账（更新版）</title>
+<style>
+  :root{
+    --paper:#F6F0E5; --ink:#6E5435; --ink-soft:#8a7050; --line:#e0d5c2; --card:#fffdf8;
+    --warn-bg:#fdf3e3; --warn-line:#d9b382; --ok-bg:#eef5ea; --ok-line:#8fa97e;
+    --gap-bg:#fbe9e9; --gap-line:#b23b3b; --new-bg:#eaf1f7; --new-line:#5b7f9e;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;padding:32px 20px 64px;background:var(--paper);color:var(--ink);
+    font-family:"KaiTi","STKaiti","simkai","楷体",serif;font-size:16px;line-height:1.85;}
+  .wrap{max-width:1000px;margin:0 auto;}
+  header{border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:26px;}
+  h1{font-size:27px;margin:0 0 6px;letter-spacing:1px;}
+  .sub{color:var(--ink-soft);font-size:15px;}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:12px;font-size:14px;color:var(--ink-soft);}
+  .meta b{color:var(--ink);font-weight:normal;}
+  h2{font-size:21px;margin:36px 0 12px;padding-left:12px;border-left:5px solid var(--ink);}
+  h3{font-size:17px;margin:22px 0 8px;}
+  p{margin:8px 0;} ul,ol{margin:8px 0;padding-left:24px;} li{margin:5px 0;}
+  code{background:#efe7d8;padding:1px 6px;border-radius:3px;font-family:Consolas,"Courier New",monospace;font-size:14px;}
+  .warn{background:var(--warn-bg);border:1px solid var(--warn-line);border-left:5px solid var(--warn-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .gap{background:var(--gap-bg);border:1px solid var(--gap-line);border-left:5px solid var(--gap-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .ok{background:var(--ok-bg);border:1px solid var(--ok-line);border-left:5px solid var(--ok-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .box-new{background:var(--new-bg);border:1px solid var(--new-line);border-left:5px solid var(--new-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .t{font-weight:bold;margin-bottom:6px;}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14.5px;background:var(--card);}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
+  th{background:#efe7d8;font-weight:normal;}
+  td.num{white-space:nowrap;}
+  .b{display:inline-block;font-size:12px;padding:1px 7px;border-radius:10px;color:#fff;white-space:nowrap;}
+  .b-ok{background:#5f8a52;} .b-gap{background:#b23b3b;} .b-part{background:#b07d2b;}
+  .b-na{background:#7a7a7a;} .b-new{background:#5b7f9e;}
+  footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:14px;}
+  .src{font-size:13px;color:var(--ink-soft);}
+  .big{font-size:19px;color:var(--ink);font-weight:bold;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>ABox 一盒 · 123 条探针 进展台账（更新版）</h1>
+  <div class="sub">基线 2026-10-27 14:40 · 本轮更新 2026-10-29 · 数字由回源与线上实证取得</div>
+  <div class="meta">
+    <span><b>整表</b> 有结论 <b>25 / 123</b>（20%）</span>
+    <span><b>P0</b> 有结论 <b class="big">25 / 25</b>（100%）</span>
+    <span><b>P0 中确认为「真缺口未修」</b> <b>6 条</b></span>
+    <span><b>P1＋P2＋未定</b> <b>98 条仍未动</b></span>
+  </div>
+</header>
+
+<div class="ok">
+  <div class="t">本轮最大进展：P0 二十五条，第一次全部有结论了</div>
+  上一版台账点名「P0 还剩 5 条从未核实」—— C9、H8、L13、Q3、R2。
+  这五天我逐条回源 + 上生产库实证，<b>五条全部核完</b>。<br>
+  ⇒ P0 从「核实 20/25」变成「<b>25/25 全部有结论</b>」。
+  其中四条结论是<b>通过</b>，一条（Q3 送达凭证）确认为<b>真缺口</b>。
+</div>
+
+<div class="warn">
+  <div class="t">⚠️ 但「有结论」≠「已解决」——P0 里躺着 6 条确认未修的真缺口</div>
+  P3 支付单边账 · T1/T2 任务可观测性 · H9 佣金冲正时限洞 · E5 批量退款 · S5 对账自动化 · <b>Q3 送达凭证（本轮新确认）</b>。<br>
+  这六条是「<b>核过了，确认缺</b>」，比「没核过」更需要排期 —— 因为风险是坐实的，不是未知的。
+</div>
+
+<h2>一、本轮核掉的 5 条（P0 最后一公里）</h2>
+
+<h3>1.1 C9 并发重复下单 —— 台账原定性需要更正</h3>
+<table>
+  <tr><th style="width:14%">项目</th><th>内容</th></tr>
+  <tr><td>台账原话</td><td>「同一个人 1 秒内两次<b>不同幂等键</b>的下单，会不会生成两笔并扣两次款。<b>这是能直接造成资损的一条</b>」</td></tr>
+  <tr><td>回源结果</td><td><code>order.service.ts:313-322</code>：<b>「一人一日可多单」是 2026-10-03 起的刻意口径变更</b>，原「同用户同出餐日重复下单 → 30004」<b>已移除</b>。
+      注释原文：办公室下午加订三份这种最常见的事，不该被逼成「先取消上午那单再下一单」</td></tr>
+  <tr><td>幂等是否还在</td><td>在。10-28 实测：同幂等键重放返回 <b>10006 + 首次结果</b>，<b>未重复扣款</b>。代码注释明写「移除它不等于丢掉幂等，换键再下单是用户的新意图」</td></tr>
+  <tr><td>端上防连点</td><td><code>order-create.vue:269</code> <code>canSubmit = canOrder &amp;&amp; !submitting</code> ＋ <code>:131</code> <code>:disabled="!canSubmit"</code> ⇒ 提交中按钮真禁用</td></tr>
+  <tr><td><b>结论</b></td><td><span class="b b-ok">不是资损</span> 两笔订单＝两次意图，各付各的。台账「能直接造成资损」这个假设<b>不成立</b></td></tr>
+  <tr><td>真边界</td><td><span class="b b-part">体验问题</span> 幂等键只在 <code>onLoad(:419)</code> 和业务被拒时 <code>(:371)</code> 换新。<b>同一页面内改条件想追加第二单，仍用旧键 → 被 10006 挡回</b>（表现：点了没反应／还是原来那单）。重进页面即恢复。<b>建议：改数量／改券后主动换键</b></td></tr>
+</table>
+
+<h3>1.2 H8 佣金计提与补跑 —— 全链路首次跑通</h3>
+<table>
+  <tr><th style="width:22%">环节</th><th>生产库证据</th></tr>
+  <tr><td>订单</td><td><code>AB2026102802850288</code> → <b>completed</b>（全库首笔）</td></tr>
+  <tr><td>计佣</td><td><code>ab_commission</code> <b>第 1 行</b>：51.60 × 12%（首席）= <b>¥6.19</b></td></tr>
+  <tr><td>结算</td><td><code>status = settled</code></td></tr>
+  <tr><td>入账</td><td><code>ab_balance</code> user1001 <b>balance = 6.19</b>，与 settled_at 时间戳精确对应</td></tr>
+  <tr><td>流水</td><td><code>commission +6.19</code>，关联订单号，可对账</td></tr>
+  <tr><td><b>结论</b></td><td><span class="b b-ok">计提链路通</span> 此前「佣金零行」是因为<b>从没订单走到 completed</b>，不是结算任务坏了</td></tr>
+</table>
+<p class="src">连带：提现也首次测通 —— ¥1.00 成功 → 第二笔 40025 当日重复 → ¥99999 40024 单日超限 → 同键重放 10006 → 资金 619→519、冻结 100。</p>
+
+<h3>1.3 L13 高危操作审批与二次确认 —— 已落实</h3>
+<p>回源找到完整的审批端点与留痕链路：</p>
+<ul>
+  <li>审批端点：退款 <code>:id/approve</code> · 提现 <code>:id/approve</code> · 操作申请 <code>:id/approve</code> · 供应商审核 · 团长审核 · 等级审核</li>
+  <li>留痕：<code>common/interceptors/operation-log.interceptor.ts</code> + <code>operation-log.decorator.ts</code></li>
+  <li>10-28 实测退款审批：申请期 <code>fundsMoved=false</code>（资金零变动）→ 审批后 wx 原路退 2580 分 → 订单转终态、盲盒占位正确移除</li>
+</ul>
+<p><span class="b b-ok">结论：已落实</span></p>
+
+<h3>1.4 R2 用户归属楼宇 —— 链闭合，不会拦错人</h3>
+<table>
+  <tr><th style="width:20%">环节</th><th>结果</th></tr>
+  <tr><td>归属链</td><td><code>user.buildingId</code>（<code>user.entity.ts:37-45</code>）→ <code>order.service.ts:277</code> <code>availability.forBuilding(mealDate, building.id)</code> → 落库 <code>:392</code></td></tr>
+  <tr><td>无楼用户</td><td><code>:1736</code> 有专门分支 → <b>60001「暂未开通」直接拒</b>（fail-closed，不会拦错人）</td></tr>
+  <tr><td>线上实证</td><td>用户 <b>73</b>：有楼 <b>56</b> / 无楼 <b>17</b>；楼宇 <b>12</b> 栋：ACTIVE <b>10</b> / 非 ACTIVE <b>2</b></td></tr>
+  <tr><td><b>结论</b></td><td><span class="b b-ok">链闭合</span> 但 ⚠️ <b>17 个无楼宇用户</b>是运营问题（不是缺陷）—— 他们下不了单，需确认是不是该补绑</td></tr>
+</table>
+
+<h3>1.5 Q3 送达凭证 —— 确认真缺口</h3>
+<div class="gap">
+  <p style="margin-top:0">全仓检索 <code>deliverProof</code> / <code>proofUrl</code> / <code>deliverImage</code> / <code>signImage</code> —— <b>零命中</b>。</p>
+  <p style="margin-bottom:0">团长点「送达」<b>没有任何凭证</b> ⇒ 用户说没收到时无法举证。
+  这是台账里唯一一条「核完了、确认缺」的 P0，<b>建议与 E5 批量退款一起排期</b>。</p>
+</div>
+
+<h2>二、P0 二十五条 · 本轮更新后全貌</h2>
+<table>
+  <tr><th style="width:26%">类别</th><th style="width:10%" class="c">条数</th><th>条目</th></tr>
+  <tr><td>已上线 / 已防住</td><td class="c">12</td><td>W1 一键停售 · R1 楼宇停用 · S1 提现五值 · S2 审核打款 · S3 提现并发 · T3 补跑幂等 · V1 水平越权 · V2 垂直越权 · V3 金额篡改 · <b>C9 并发下单（本轮）</b> · <b>H8 佣金计提（本轮）</b> · <b>L13 高危审批（本轮）</b> · <b>R2 楼宇归属（本轮）</b></td></tr>
+  <tr><td>刻意不做 / 已降级</td><td class="c">5</td><td>Q1 配送单生成（刻意不做）· Q2 配送推进（降 P1）· F10 券超发（降 P2）· B5 非营业日（一期人工）· Q7 日结对平（名不副实）</td></tr>
+  <tr><td><b>真缺口 · 未修</b></td><td class="c"><b>6</b></td><td><b>P3 支付单边账</b>（回调丢失无对账补齐，<code>wxpay</code> 无 <code>queryOrder</code>）· <b>T1 任务清单</b> / <b>T2 失败告警</b>（9 个定时任务无执行记录）· <b>H9 佣金冲正</b>（可退状态含 COMPLETED 且无时限 ⇒ 提现后退款会扣成负数）· <b>E5 批量退款</b>（口径已定代码未做）· <b>S5 对账自动化</b> · <b>Q3 送达凭证（本轮新确认）</b></td></tr>
+  <tr><td><b>合计</b></td><td class="c"><b>25</b></td><td>全部有结论 ✓</td></tr>
+</table>
+
+<h2>三、这五天新发现、不在 123 条里的问题</h2>
+<table>
+  <tr><th style="width:24%">发现</th><th style="width:12%" class="c">状态</th><th>说明</th></tr>
+  <tr><td>商品图片全部 401</td><td class="c"><span class="b b-ok">已修</span></td><td>URL 全指向 8081 而 8081 整端拦截</td></tr>
+  <tr><td>8081 闸门误挡 <code>/api/</code></td><td class="c"><span class="b b-ok">已修</span></td><td>server 级 <code>if</code> 覆盖全部 location，已下沉到 <code>location /</code></td></tr>
+  <tr><td>GET 带非法体返 10001</td><td class="c"><span class="b b-ok">已修已部署</span></td><td><code>bodyParser:false</code> + 自研中间件</td></tr>
+  <tr><td>佣金从未结算入账</td><td class="c"><span class="b b-ok">已打通</span></td><td>根因是供应商账号 <code>status=2</code> 被登录挡回，非结算任务坏</td></tr>
+  <tr><td>后台账号口令形态</td><td class="c"><span class="b b-ok">澄清</span></td><td>6 个账号全 <code>scrypt:</code>；e2e 报的「明文」是 seed 库，与生产无关</td></tr>
+  <tr><td><code>2026-10-27</code> 非法日期污染</td><td class="c"><span class="b b-gap">未清</span></td><td>波及 51 文件 153 处。<b>根因已溯源：是我此前把非法日期写进了文件名</b>（如台账文件名本身），代码注释照抄真实文件名而扩散</td></tr>
+  <tr><td>端上资质公示被删</td><td class="c"><span class="b b-gap">未补</span></td><td><code>index.vue:97</code> 注释明写 2026-10-24「不再写查看资质」⇒ 与 124 号令「主页持续公示资质」冲突</td></tr>
+  <tr><td>销售页食品标签</td><td class="c"><span class="b b-gap">未补</span></td><td>全仓 <code>.vue</code> 检索配料/保质期/生产日期/SC 号 <b>零命中</b></td></tr>
+  <tr><td>三家供应商须全部确认</td><td class="c"><span class="b b-part">运营风险</span></td><td><code>advanceOrdersToCooked</code> 用 <code>every()</code>：缺一家 ⇒ 当天<b>所有</b>订单不产生佣金</td></tr>
+  <tr><td>小程序／域名备案</td><td class="c"><span class="b b-new">新领域</span></td><td>备案可提交；但接口仍是 <code>http://154.8.164.180:8081</code>（IP＋明文）⇒ <b>备案过了也上不了线</b>，须补证书＋443</td></tr>
+</table>
+
+<h2>四、仍然没动的 98 条</h2>
+<div class="warn">
+  <p style="margin-top:0"><b>P1 26 条 + P2 5 条 + 未定 67 条，这五天一条没动。</b>原因是重心全在 P0 与上线阻塞项上，这是有意的取舍。</p>
+  <p style="margin-bottom:0">⚠️ 但 <b>67 条「未定」现在还缺「判定标准」</b> —— 台账上一版就提过：没有判定标准就去勾状态，等于凭感觉填。
+  <b>这 67 条现在填了也不可信，建议先把判定标准补出来再开核。</b></p>
+</div>
+
+<h2>五、建议接下来怎么走</h2>
+<ol>
+  <li><b>P0 六条真缺口排期</b>（按风险排序）：P3 支付单边账（唯一可能造成资金差错）→ H9 冲正时限洞（会把余额扣成负数）→ Q3 送达凭证（无法举证）→ T1/T2 任务可观测 → E5 批量退款 → S5 对账自动化。</li>
+  <li><b>清 <code>2026-10-27</code> 污染 + 改掉台账文件名</b> —— 根因已定位，剩的是机械替换，可交技术批量做。</li>
+  <li><b>补两处合规缺口</b>：主页资质公示 + 销售页食品标签（124 号令，属提审/巡检风险）。</li>
+  <li><b>小程序端换键逻辑小修</b>：改数量/改券后主动换幂等键，避免追加第二单被 10006 挡。</li>
+  <li><b>17 个无楼宇用户</b>确认处理 —— 是补绑还是本就无效账号。</li>
+  <li><b>P1/P2 等开测后做</b>；67 条未定先补判定标准。</li>
+</ol>
+
+<footer>
+  ABox 一盒 · 123 条探针进展台账（更新版）· 2026-10-29<br>
+  本轮新增结论取得方式：<code>order.service.ts</code> / <code>order-create.vue</code> 回源 + 生产库只读实证 + 10-28 三轮线上实测。<br>
+  「有结论」以有回源码或实跑证据为准；<b>「有结论」不等于「已解决」</b>——六条真缺口已单列。
+</footer>
+
+</div>
+</body>
+</html>

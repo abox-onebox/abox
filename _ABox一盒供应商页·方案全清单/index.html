@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 出品方页：全部可能方案清单</title>
+<style>
+@font-face {
+  font-family: 'ABoxKai';
+  src: url('ab-kaiti.woff2') format('woff2');
+  font-weight: normal; font-style: normal; font-display: swap;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'ABoxKai', 'STKaiti', 'KaiTi', 'SimSun', serif;
+  background: #E8DFCF; color: #3A322A; padding: 30px 16px 60px;
+  line-height: 1.8; -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1180px; margin: 0 auto; }
+
+h1 { font-size: 21px; font-weight: normal; letter-spacing: 0.5px; }
+.lead { margin-top: 8px; font-size: 13px; color: #5F5445; max-width: 860px; }
+.lead b { color: #6E5435; font-weight: normal; }
+
+/* 判据 */
+.rule { margin-top: 24px; background: #FFFDF8; border-radius: 13px; padding: 16px 20px; border: 1px solid rgba(110,84,53,0.18); }
+.rule h2 { font-size: 15px; font-weight: normal; color: #6E5435; letter-spacing: 0.5px; }
+.rule ol { margin-left: 19px; margin-top: 8px; }
+.rule li { font-size: 13px; color: #3A322A; padding: 4px 0; }
+.rule li b { color: #6E5435; font-weight: normal; }
+.rule li span { color: #9A8C79; font-size: 12px; }
+
+/* 组 */
+.grp { margin-top: 30px; }
+.grp__hd { display: flex; align-items: baseline; flex-wrap: wrap; }
+.grp__n { font-size: 15px; color: #6E5435; letter-spacing: 0.5px; }
+.grp__d { margin-left: 10px; font-size: 12px; color: #9A8C79; }
+.grp__w {
+  margin-top: 7px; font-size: 12px; color: #5F5445; line-height: 1.85;
+  background: #F6F0E5; border-left: 2px solid #C44536; padding: 7px 12px; border-radius: 0 7px 7px 0;
+}
+.grp__w b { color: #C44536; font-weight: normal; }
+.grp__w em { font-style: normal; color: #6E5435; }
+
+.scroller { margin-top: 10px; overflow-x: auto; background: #FFFDF8; border-radius: 12px; border: 1px solid rgba(110,84,53,0.16); }
+table { width: 100%; min-width: 880px; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 10px 13px; border-bottom: 1px solid #EDE3D2; vertical-align: top; }
+th { font-size: 11px; color: #9A8C79; letter-spacing: 1px; font-weight: normal; white-space: nowrap; }
+tbody tr:last-child td { border-bottom: none; }
+td.id { color: #9A8C79; white-space: nowrap; font-family: 'SFMono-Regular', Consolas, monospace; font-size: 12px; }
+td.nm { color: #3A322A; min-width: 210px; }
+td.nm b { font-weight: normal; }
+td.nm span { display: block; margin-top: 3px; font-size: 12px; color: #9A8C79; }
+td.kpi { white-space: nowrap; color: #5B7C3A; font-size: 12px; }
+td.cost { font-size: 12px; color: #5F5445; min-width: 150px; }
+td.risk { font-size: 12px; color: #A6503F; min-width: 230px; }
+
+/* 版本对照 */
+.map { margin-top: 30px; background: #FFFDF8; border-radius: 13px; padding: 16px 20px; border: 1px solid rgba(110,84,53,0.18); }
+.map h2 { font-size: 15px; font-weight: normal; color: #6E5435; letter-spacing: 0.5px; }
+.map table { min-width: 620px; }
+.map td { font-size: 12.5px; }
+
+/* 我的判断 */
+.mine { margin-top: 30px; background: #F6F0E5; border-radius: 13px; padding: 16px 20px; border: 1px dashed rgba(110,84,53,0.4); }
+.mine h2 { font-size: 15px; font-weight: normal; color: #8A5A2B; letter-spacing: 0.5px; }
+.mine ol { margin-left: 19px; margin-top: 8px; }
+.mine li { font-size: 13px; color: #3A322A; padding: 4px 0; }
+.mine li b { color: #8A5A2B; font-weight: normal; }
+.mine .fx { margin-top: 11px; font-size: 12px; color: #796C57; }
+
+.calc { margin-top: 18px; border-top: 1px dashed rgba(110,84,53,0.35); padding-top: 14px; }
+.calc__t { font-size: 13px; color: #8A5A2B; letter-spacing: 0.5px; }
+.calc__st { margin-top: 16px; font-size: 12px; color: #6E5435; letter-spacing: 0.5px; }
+.calc__row { display: flex; align-items: baseline; padding: 5px 0; border-bottom: 1px dashed rgba(110,84,53,0.16); font-size: 13px; }
+.calc__l { color: #5F5445; min-width: 176px; }
+.calc__v { color: #3A322A; font-family: 'SFMono-Regular', Consolas, monospace; margin-right: auto; }
+.calc__n { font-size: 11px; color: #9A8C79; text-align: right; }
+.calc__row.sum { border-bottom: none; border-top: 1px solid rgba(110,84,53,0.3); margin-top: 4px; padding-top: 7px; }
+.calc__row.sum .calc__l { color: #6E5435; }
+.calc__row.sum .calc__v { color: #6E5435; }
+.calc__nc { margin-top: 7px; font-size: 12px; color: #5F5445; line-height: 1.9; }
+.calc__nc b { color: #6E5435; font-weight: normal; }
+.calc .scroller { margin-top: 8px; background: #F6F0E5; }
+.calc table { min-width: 560px; }
+.calc th { color: #8A5A2B; }
+
+.tail { margin-top: 26px; font-size: 12px; color: #796C57; line-height: 1.95; }
+.tail b { color: #6E5435; font-weight: normal; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>出品方页 · 全部可能方案清单</h1>
+  <div class="lead">
+    下面 43 个方案按「<b>它在试图解决什么</b>」分成 7 组，
+    每一条都标了：<b>动哪个指标 / 要动什么 / 坑在哪</b>。
+    本清单<b>不带推荐顺序</b>——我的判断单独放在最末尾，你可以完全不同意。
+  </div>
+
+  <div class="rule">
+    <h2>五条筛子（你可以用自己的，也可以用这五条）</h2>
+    <ol>
+      <li><b>触发频率</b>——它是「每次下单都碰得到」还是「一周才碰一次」？
+        <span>低于每周 1 次的，养成不了习惯。</span></li>
+      <li><b>它给谁省了事</b>——只给 ABox 自己省事的（免责、降本），用户不会为它多付一分钱。<span></span></li>
+      <li><b>动的是频次还是客单价</b><span>——多吃一天 ≈ ¥7 毛利；多花 ¥8 客单 ≈ 一次性 ¥5 毛利。频次通常更值钱。</span></li>
+      <li><b>能不能随「楼」放大</b><span>——这只生意的增长单位是楼，不是人。不能随楼复制的方案，天花板低。</span></li>
+      <li><b>要不要动表</b><span>——项目长期零 DDL（28 张表），需要新增字段的方案默认往后排。</span></li>
+    </ol>
+  </div>
+
+  <!-- 组 0 -->
+  <div class="grp">
+    <div class="grp__hd"><span class="grp__n">第 0 组 · 别做这个页面</span>
+      <span class="grp__d">先问的不是「放什么」，是「该不该存在」</span></div>
+    <div class="scroller"><table>
+      <thead><tr><th>编号</th><th>方案</th><th>动哪个指标</th><th>落地要动什么</th><th>坑 / 前提</th></tr></thead>
+      <tbody>
+        <tr><td class="id">0-1</td><td class="nm"><b>彻底删掉入口</b><span>合规信息收进「关于」或「我的」</span></td><td class="kpi">无</td><td class="cost">删前端入口即可</td><td class="risk">必须先确认现行规定对小程序的强制公示义务边界（到底要不要「独立可查」）；删了就回不去</td></tr>
+        <tr><td class="id">0-2</td><td class="nm"><b>降级为菜单里一行 + 原地展开</b><span>不跳页，点开弹层，收起继续订</span></td><td class="kpi">转化（少一次打断）</td><td class="cost">改一处组件</td><td class="risk">合规口径需确认「原地展开」算不算可查（行业普遍认为算，但没有明文字<｜hy_place▁holder▁no▁813｜>）</td></tr>
+        <tr><td class="id">0-3</td><td class="nm"><b>平时不出现，出事时才出现</b><span>只在投诉 / 食安事件时开放</span></td><td class="kpi">无</td><td class="cost">几乎不用做</td><td class="risk">等于公开承认这是个甩锅页</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- 组 1 -->
+  <div class="grp">
+    <div class="grp__hd"><span class="grp__n">第 1 组 · 让它变成「看」的（信息消费）</span>
+      <span class="grp__d">用户只读，不做任何动作</span></div>
+    <div class="scroller"><table>
+      <thead><tr><th>编号</th><th>方案</th><th>动哪个指标</th><th>落地要动什么</th><th>坑 / 前提</th></tr></thead>
+      <tbody>
+        <tr><td class="id">1-1</td><td class="nm"><b>资质陈列（现状）</b><span>证照、编号、有效期</span></td><td class="kpi">合规</td><td class="cost">已有</td><td class="risk">没人主动看</td></tr>
+        <tr><td class="id">1-2</td><td class="nm"><b>核验日历</b><span>把静态证照变成「我们每季度都查」的时间线</span></td><td class="kpi">合规 + 弱信任</td><td class="cost">需核验记录可查（后台要有）</td><td class="risk">内容更新慢 ⇒ 第二次打开跟第一次一模一样</td></tr>
+        <tr><td class="id">1-3</td><td class="nm"><b>本周这家出哪道菜</b><span>菜单已有的信息换个地方再讲一遍</span></td><td class="kpi">无</td><td class="cost">已有</td><td class="risk">与菜单重复，纯冗余</td></tr>
+        <tr><td class="id">1-4</td><td class="nm"><b>下次上桌 + 到时提醒我</b><span>大日期 + 倒计时 + 订阅提醒</span></td><td class="kpi">弱留存</td><td class="cost">订阅消息模板 + 一次性授权</td><td class="risk">一周才触发一次；且微信订阅消息是一次性授权，一周一条上限，用户点过就失效</td></tr>
+        <tr><td class="id">1-5</td><td class="nm"><b>战绩回顾</b><span>这道菜赢过几次 / 被点过多少次</span></td><td class="kpi">无</td><td class="cost">ab_dish.sale_count 已有</td><td class="risk">用的是累计值 ⇒ 第二次看没有增量（这是 v0.1 真实的错）</td></tr>
+        <tr><td class="id">1-6</td><td class="nm"><b>你尝过 N 道不同的菜</b><span>按这家厨房统计你吃过多少道</span></td><td class="kpi">弱留存</td><td class="cost">订单 → 套餐项 → 菜品去重即可</td><td class="risk">每天才 +4，数字增长慢，很快就变静态</td></tr>
+        <tr><td class="id">1-7</td><td class="nm"><b>一周食材多样性矩阵</b><span>替换掉营养打勾的做法</span></td><td class="kpi">弱信任</td><td class="cost">需新增 ab_dish.ingredient_tags <b>（破零 DDL）</b></td><td class="risk">营养打勾 = GB 28050 营养声称，需含量依据，否则是虚假声称</td></tr>
+        <tr><td class="id">1-8</td><td class="nm"><b>厨房故事 / 主厨是谁</b><span>人和来历</span></td><td class="kpi">弱信任</td><td class="cost">需新增主厨名字段 <b>（破零 DDL）</b></td><td class="risk">内容是死的，讲完一遍就没了；采编成本持续</td></tr>
+        <tr><td class="id">1-9</td><td class="nm"><b>后厨实时画面 / 明厨亮灶</b><span>开放摄像头或定时抓拍</span></td><td class="kpi">信任（最强）</td><td class="cost">硬件 + 供应商配合 + CDN</td><td class="risk">成本最高的一项；供应商不一定愿意；隐私与画面责任；<b>但说服力远超任何证照</b></td></tr>
+        <tr><td class="id">1-10</td><td class="nm"><b>成本透明</b><span>把 ¥25.80 拆开：食材 / 打包 / 配送 / 佣金 / 毛利</span></td><td class="kpi">信任 + 抗价格战</td><td class="cost">纯前端，改文案</td><td class="risk">暴露毛利可能引发反感；若配「多付 ¥2 换什么」，T-1 预售下很难兑现</td></tr>
+        <tr><td class="id">1-11</td><td class="nm"><b>挑刺档案</b><span>主动展示这家被吐槽几次、TOP 原因是什么</span></td><td class="kpi">信任（最高）</td><td class="cost">评价表已有</td><td class="risk">极度反常规，可能自伤；但行业内几乎没人敢做，做成就是壁垒</td></tr>
+        <tr><td class="id">1-12</td><td class="nm"><b>还有 N 道菜你没吃过</b><span>把累计值反过来讲（稀缺而非炫耀）</span></td><td class="kpi">留存 / 频次</td><td class="cost">菜品池去重计数，不依赖评价表</td><td class="risk">数字会单调递减 ⇒ 见底那天这条就失效了</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- 组 2 -->
+  <div class="grp">
+    <div class="grp__hd"><span class="grp__n">第 2 组 · 让它变成「做」的（轻动作）</span>
+      <span class="grp__d">用户在页面留下一点东西，但不付钱</span></div>
+    <div class="scroller"><table>
+      <thead><tr><th>编号</th><th>方案</th><th>动哪个指标</th><th>落地要动什么</th><th>坑 / 前提</th></tr></thead>
+      <tbody>
+        <tr><td class="id">2-1</td><td class="nm"><b>吃后评分</b><span>吃完给这道菜打分</span></td><td class="kpi">留存（弱）</td><td class="cost">ab_dish_rating 已有</td><td class="risk">关键是「填完给我什么」——没有回馈的评分没人填</td></tr>
+        <tr><td class="id">2-2</td><td class="nm"><b>投票决定下周这家上不上</b><span>让出品方变成竞选选手</span></td><td class="kpi">留存（弱）</td><td class="cost">投票表 + 结算逻辑</td><td class="risk"><b>与「单一套餐由 ABox 定」的定位冲突</b>；且投票完要等一周才吃到，回馈太慢</td></tr>
+        <tr><td class="id">2-3</td><td class="nm"><b>请同事吃这一盒</b><span>送一份给别人</span></td><td class="kpi">拉新</td><td class="cost">赠送单 + 领取逻辑</td><td class="risk"><b>与「省心」定位拧着</b>——你在让用户替你干活；本质是拉新，不是出品方页的事</td></tr>
+        <tr><td class="id">2-4</td><td class="nm"><b>给厨房捎句话</b><span>用户留言，厨房回复</span></td><td class="kpi">关系（弱）</td><td class="cost">留言表 + 回复通道</td><td class="risk"><b>供应商在系统里没有独立后台</b>（项目真源），谁来回？</td></tr>
+        <tr><td class="id">2-5</td><td class="nm"><b>许愿池：我想吃 XXX</b><span>用户提菜名</span></td><td class="kpi">留存（弱）</td><td class="cost">留言表即可</td><td class="risk">承诺了就得兑现，兑现不了比不做更伤</td></tr>
+        <tr><td class="id">2-6</td><td class="nm"><b>「这道我不吃」负反馈</b><span>反向表达偏好</span></td><td class="kpi">留存（强）</td><td class="cost">一个布尔标记</td><td class="risk">负向数据不好做展示（页面很难看）；<b>但商业上极值钱——这是唯一能提前识别「谁要流失」的信号</b></td></tr>
+        <tr><td class="id">2-7</td><td class="nm"><b>拼单，凑够 N 份才开</b><span>社交化凑单</span></td><td class="kpi">无</td><td class="cost">拼团逻辑</td><td class="risk"><b>与 T-1 预售冲突</b>——你本来就是先收钱后做，不需要凑份</td></tr>
+        <tr><td class="id">2-8</td><td class="nm"><b>收藏这家厨房</b><span>关注</span></td><td class="kpi">无</td><td class="cost">一张关系表</td><td class="risk">用户不能点菜，收藏了也没有后续动作可承接</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- 组 3 -->
+  <div class="grp">
+    <div class="grp__hd"><span class="grp__n">第 3 组 · 让它变成「买」的（交易）</span>
+      <span class="grp__d">利用同一批厨房 / 同一趟配送做增量收入</span></div>
+    <div class="grp__w"><b>分界线在这一组的中间。</b>只有 <em>3-1（同单加购）</em>是在这个页面上加东西；
+      <em>3-2 到 3-7</em> 是<b>新增业务线</b>——它们要新建流程、新的配送时段或新的仓储，跟这个页面没有代码关系。</div>
+    <div class="scroller"><table>
+      <thead><tr><th>编号</th><th>方案</th><th>动哪个指标</th><th>落地要动什么</th><th>坑 / 前提</th></tr></thead>
+      <tbody>
+        <tr><td class="id">3-1</td><td class="nm"><b>同一单加购</b><span>冰粉 / 卤味等挂在当前订单里</span></td><td class="kpi">客单价</td><td class="cost">订单行加一个品类，复用支付 / 配送 / 分佣</td><td class="risk">频次不变、只涨客单；<b>且需确认食品经营许可范围是否覆盖新品类</b></td></tr>
+        <tr><td class="id">3-2</td><td class="nm"><b>第二单：带回家的晚饭</b><span>下班顺手带走一份</span></td><td class="kpi">客单价 ×2 + 频次</td><td class="cost">第二配送时段 + 供应商下午产能</td><td class="risk">运营复杂度大幅上升（第二套排班 / 第二趟配送）；<b>但边际履约成本极低，人已经在楼里</b></td></tr>
+        <tr><td class="id">3-3</td><td class="nm"><b>周末家庭餐</b><span>周末配送到家</span></td><td class="kpi">新场景</td><td class="cost">新的配送网络 + 到家地址</td><td class="risk"><b>配送完全不复用</b>（周末写字楼没人），等于开个新业务</td></tr>
+        <tr><td class="id">3-4</td><td class="nm"><b>团餐：整组预定某厨房某天</b><span>企业行政下单</span></td><td class="kpi">获楼（间接）</td><td class="cost">B 端下单 + 结算</td><td class="risk">需发票能力（G4 的卡点之一）</td></tr>
+        <tr><td class="id">3-5</td><td class="nm"><b>包周付费订阅</b><span>一次买一周</span></td><td class="kpi">留存 + 现金流</td><td class="cost">需连续代扣 / 订阅支付能力</td><td class="risk">T-1 预售本来就是单日闭环，包周反而要处理「某天不想吃」的退款</td></tr>
+        <tr><td class="id">3-6</td><td class="nm"><b>节日礼盒 / 团购礼品</b><span>年节场景</span></td><td class="kpi">客单价（脉冲）</td><td class="cost">品 + 独立履约</td><td class="risk">一年就几次，不是主业</td></tr>
+        <tr><td class="id">3-7</td><td class="nm"><b>半成品 / 预制菜</b><span>把厨房产能做成商品</span></td><td class="kpi">新业务</td><td class="cost">生产 + 包装 + 更长保质期管理</td><td class="risk">项目已有《预制菜路径合规辨析》；转向重资产，与「现做」心智冲突</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- 组 4 -->
+  <div class="grp">
+    <div class="grp__hd"><span class="grp__n">第 4 组 · 给团长用（分销侧）</span>
+      <span class="grp__d">读者换成你的分销渠道</span></div>
+    <div class="grp__w"><b>整组都不在那个页面上。</b>它们落在<em>团长端</em>（或团长后台），
+      是另一处界面。跟这里讨论的页面唯一的共同点是<b>用同一份出品方档案里的数据</b>。</div>
+    <div class="scroller"><table>
+      <thead><tr><th>编号</th><th>方案</th><th>动哪个指标</th><th>落地要动什么</th><th>坑 / 前提</th></tr></thead>
+      <tbody>
+        <tr><td class="id">4-1</td><td class="nm"><b>分享卡自动生成</b><span>一键出图：明天的菜 + 厨房背书 + 证照在有效期</span></td><td class="kpi">转化</td><td class="cost">小程序分享图生成能力</td><td class="risk">几乎没有硬坑；内容全部来自现有字段</td></tr>
+        <tr><td class="id">4-2</td><td class="nm"><b>团长素材库</b><span>持续供给文案 / 图片</span></td><td class="kpi">转化</td><td class="cost">内容生产流程</td><td class="risk">内容要人持续做，断了就荒</td></tr>
+        <tr><td class="id">4-3</td><td class="nm"><b>邀请同事首单</b><span>拉新</span></td><td class="kpi">获客</td><td class="cost">分销链路已有</td><td class="risk">与既有分销/佣金功能重复</td></tr>
+        <tr><td class="id">4-4</td><td class="nm"><b>楼内社区</b><span>同楼的人互相可见 / 可聊</span></td><td class="kpi">留存</td><td class="cost">UGC + 审核 + 运营</td><td class="risk"><b>UGC 的内容审核责任在你</b>；<｜hy_place▁holder▁no▁813｜>重运营；写字楼人群活跃度存疑</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- 组 5 -->
+  <div class="grp">
+    <div class="grp__hd"><span class="grp__n">第 5 组 · 给物业 / 企业用（B 端）</span>
+      <span class="grp__d">读者换成能签字的甲方</span></div>
+    <div class="grp__w"><b>整组都不是网页。 </b>5-1 是一份可以打印的文档，
+      5-2 / 5-3 / 5-4 是<b>新的后台角色与新界面</b>。
+      它们跟小程序里那个页面的关系只有一条：<em>引用同一份出品方数据</em>——
+      <b>不存在任何代码层面的关系</b>。当初我把它们列进「页面方案」清单，是我的分类错误。</div>
+    <div class="scroller"><table>
+      <thead><tr><th>编号</th><th>方案</th><th>动哪个指标</th><th>落地要动什么</th><th>坑 / 前提</th></tr></thead>
+      <tbody>
+        <tr><td class="id">5-1</td><td class="nm"><b>供应链能力说明书</b><span>一份能拿去谈楼的 PDF / 网页</span></td><td class="kpi">获楼</td><td class="cost"><b>零代码</b>，做文档</td><td class="risk">里面的稳定性数字<b>必须是真的</b>，在物业面前写假数 = 致命</td></tr>
+        <tr><td class="id">5-2</td><td class="nm"><b>物业数据看板</b><span>给物业看这栋楼的供餐数据</span></td><td class="kpi">获楼 + 留存</td><td class="cost">新角色 / 新权限 / 新页面</td><td class="risk">要先有真实运营数据，现在没有</td></tr>
+        <tr><td class="id">5-3</td><td class="nm"><b>企业行政预订界面</b><span>行政批量下单</span></td><td class="kpi">获楼</td><td class="cost">B 端下单 + 结算 + 发票</td><td class="risk"><b>卡在 G4 那两个前提：发票能力 + 已有客户</b></td></tr>
+        <tr><td class="id">5-4</td><td class="nm"><b>排他协议签署入口</b><span>把排他做成产品动作</span></td><td class="kpi">获楼（锁定）</td><td class="cost">法务模板 + 电子签</td><td class="risk">模板「真源里没有条款清单，须自拟」</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- 组 6 -->
+  <div class="grp">
+    <div class="grp__hd"><span class="grp__n">第 6 组 · 干脆换个主体</span>
+      <span class="grp__d">不谈「出品方」了，这个位置放别的东西</span></div>
+    <div class="scroller"><table>
+      <thead><tr><th>编号</th><th>方案</th><th>动哪个指标</th><th>落地要动什么</th><th>坑 / 前提</th></tr></thead>
+      <tbody>
+        <tr><td class="id">6-1</td><td class="nm"><b>彻底抹掉「出品方」这个概念</b><span>用户视野里不存在供应商</span></td><td class="kpi">品牌一致性</td><td class="cost">删入口</td><td class="risk">合规公示义务可能不允许（同 0-1）</td></tr>
+        <tr><td class="id">6-2</td><td class="nm"><b>换成「菜品档案」而非「公司档案」</b><span>点的是这道菜，讲的是这道菜</span></td><td class="kpi">留存</td><td class="cost">改文案为主</td><td class="risk"><b>与「不能点菜」冲突</b>——把菜讲得再诱人，用户也点不了</td></tr>
+        <tr><td class="id">6-3</td><td class="nm"><b>换成 ABox 自己的品牌页</b><span>讲你自己而不是讲别人</span></td><td class="kpi">信任</td><td class="cost">纯文案</td><td class="risk">用户不关心你的公司</td></tr>
+        <tr><td class="id">6-4</td><td class="nm"><b>换成「明天的菜单」页</b><span>一个更值得存在的页面</span></td><td class="kpi">转化</td><td class="cost">已有数据重组</td><td class="risk">与首页重复</td></tr>
+        <tr><td class="id">6-5</td><td class="nm"><b>换成「这一周」周视图</b><span>看整周安排</span></td><td class="kpi">留存</td><td class="cost">需要未来日期有数据</td><td class="risk"><b>种子数据目前只排过去</b>（dayOffset 一律 ≤ −2），往前排才能看</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="grp">
+    <div class="grp__hd"><span class="grp__n">先分清楚 · 哪些才是「你问的那个页面」的方案</span>
+      <span class="grp__d">43 条里有 14 条根本不在那个页面上</span></div>
+    <div class="scroller"><table>
+      <thead><tr><th>类别</th><th>包含哪些</th><th>条数</th><th>跟小程序里那个页面的关系</th></tr></thead>
+      <tbody>
+        <tr><td class="nm"><b>A · 真·页面方案</b><span>改的就是它，或者删掉它</span></td>
+          <td class="cost">组 0 全部 · 组 1 全部 · 组 2 全部 · 3-1 · 组 6 全部</td>
+          <td class="kpi">29</td>
+          <td class="risk">直接回答「这个页面怎么设计」</td></tr>
+        <tr><td class="nm"><b>B · 不是页面方案</b><span>别的事，碰巧用到同一份数据</span></td>
+          <td class="cost">3-2 ~ 3-7 · 组 4 全部 · 组 5 全部</td>
+          <td class="kpi">14</td>
+          <td class="risk"><b>没有代码关系</b>——是新业务线 / 团长端界面 / 线下物料与新后台角色</td></tr>
+      </tbody>
+    </table></div>
+    <div class="grp__w">
+      <b>我末尾那四条判断，落在哪一堆：</b>
+      ① （0-1 / 0-2 存废）在 A；③（1-12 / 2-6 频次）在 A；④（1-9 明厨亮灶 / 1-11 挑刺档案）在 A；
+      <em>只有 ②（组 5 · 物业那条）落在 B</em>。<br>
+      ⇒ 如果你问的是「<b>这个页面怎么改</b>」，那么<b>判断 ② 应当作废</b>——
+      它给出的答案是「别改这个页面，去别的地方赚钱」。<b>这是一个合法的答案，但它不是你那个问题的答案。</b>
+    </div>
+  </div>
+
+  <div class="map">
+    <h2>附：我前面出过的六版，分别落在哪一格</h2>
+    <div class="scroller"><table>
+      <thead><tr><th>版本</th><th>核心创意</th><th>对应本清单</th><th>你当时的反馈</th></tr></thead>
+      <tbody>
+        <tr><td class="id">v0.1</td><td class="nm"><b>核验日历</b></td><td class="cost">1-2 + 1-5 + 1-3</td><td class="risk">「也不好」</td></tr>
+        <tr><td class="id">v0.2</td><td class="nm"><b>排期版</b></td><td class="cost">1-4</td><td class="risk">「这版没有任何意义」</td></tr>
+        <tr><td class="id">v0.3</td><td class="nm"><b>竞选版</b></td><td class="cost">2-2</td><td class="risk">「思路很狭隘」</td></tr>
+        <tr><td class="id">v0.4</td><td class="nm"><b>请客版</b></td><td class="cost">2-3</td><td class="risk">「思路很狭隘 / 不专业」</td></tr>
+        <tr><td class="id">v0.5</td><td class="nm"><b>午餐之外</b></td><td class="cost">3-1</td><td class="risk">「小学生都能想到」</td></tr>
+        <tr><td class="id">v0.6</td><td class="nm"><b>一个资产，三个出口</b></td><td class="cost">0-2 + 4-1 + 5-1 + 1-12</td><td class="risk">「没看懂你在说什么」</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="mine">
+    <h2>我自己的判断（仅供参考，你可以全不同意）</h2>
+    <ol>
+      <li><b>先决定 0-1 / 0-2：这个页面到底该不该作为一个页面存在。</b>
+        这个问题没答案之前，往里放什么都是在不确定的地基上施工。</li>
+      <li style="color:#8A5A2B;"><b style="color:#C44536;">这条不在回答「页面怎么改」——它是另一个问题的答案，请先看这条声明。</b><br>
+        <span style="color:#3A322A;">组 5（物业那条）做的事<b>跟小程序里那个页面没有任何代码关系</b>，它是一份文档的活。
+        所以这条判断真正的含义是：<b>「如果这个页面不值得投入，钱该花在哪」</b>，
+        而不是「这个页面应该放什么」。⇒ <b>若你要的是页面方案，这条作废。</b></span><br>
+        按这套账：打透一栋楼 ≈ 150 份/天 ≈ 月毛利贡献 <b style="color:#3A322A;">¥22,308</b>，
+        而全公司固定成本 ¥22,200/月 —— <b>打平只需 0.99 栋楼</b>，而且第 2 栋开始贡献的几乎全是净利。
+        C 端怎么改都换不来这个数量级（差约 10 倍）。<br>
+        <span style="font-size:12px; color:#8A5A2B;">→ 这条的完整算式见下面《判断 ② 的完整算式》，一步一步拆开。</span></li>
+      <li><b>如果一定要留在 C 端，只有「频次」那一格值得做</b>，也就是 1-12（还有 N 道没吃过）或 2-6（负反馈）。
+        其它选项动的要么是客单价（一次性），要么干脆不动任何指标。</li>
+      <li><b>1-9（明厨亮灶）和 1-11（挑刺档案）是唯二可能做出壁垒的</b>，代价是成本高 / 风险高。
+        同行都不敢做，做成就是别人抄不走的东西。</li>
+    </ol>
+    <div class="calc">
+      <div class="calc__t">判断 ② 的完整算式（一步一步）</div>
+
+      <div class="calc__st">第一步 · 一份盒饭能贡献多少毛利</div>
+      <div class="calc__row"><span class="calc__l">售价</span><span class="calc__v">¥25.80</span><span class="calc__n">项目真源 SPEC.env.unitPrice</span></div>
+      <div class="calc__row"><span class="calc__l">减 · 供应商采购款</span><span class="calc__v">−¥14.00</span><span class="calc__n">真源 supplierTotal</span></div>
+      <div class="calc__row"><span class="calc__l">减 · 团长佣金 10%（金牌）</span><span class="calc__v">−¥2.58</span><span class="calc__n">按<b>售价</b>计提</span></div>
+      <div class="calc__row"><span class="calc__l">减 · 履约成本（预估）</span><span class="calc__v">−¥2.00</span><span class="calc__n">真源三项<b>尚未登记</b></span></div>
+      <div class="calc__row"><span class="calc__l">小计 · 一份的正常贡献</span><span class="calc__v">¥7.22</span><span class="calc__n"></span></div>
+      <div class="calc__row sum"><span class="calc__l">再摊 2% 退款后的每份贡献</span><span class="calc__v">¥6.76</span><span class="calc__n">98 单正常 + 2 单退款</span></div>
+      <div class="calc__nc">
+        退款那一栏的算法：每 100 单里退 2 单，收入 ¥25.80 全额退回、但<b>采购款 ¥14 和履约已经花出去了</b>，
+        净亏 ¥16/单 ⇒ 2 单亏 ¥32。98×7.22 − 32 = ¥675.56，除以 100 ⇒ <b>¥6.76/份</b>。
+      </div>
+
+      <div class="calc__st">第二步 · 一栋"打透"的楼值多少</div>
+      <div class="calc__row"><span class="calc__l">每天份数（示意）</span><span class="calc__v">150 份</span><span class="calc__n">一栋中型写字楼的合理密度</span></div>
+      <div class="calc__row"><span class="calc__l">每月工作日</span><span class="calc__v">22 天</span><span class="calc__n"></span></div>
+      <div class="calc__row sum"><span class="calc__l">一栋楼的月毛利贡献</span><span class="calc__v">¥22,308</span><span class="calc__n">150 × 22 × 6.76</span></div>
+      <div class="calc__row"><span class="calc__l">全公司固定成本</span><span class="calc__v">¥22,200/月</span><span class="calc__n">真源：人工 18,000 + 服务器 1,200 + 其他 3,000</span></div>
+      <div class="calc__nc">
+        ⇒ <b>¥22,308 对 ¥22,200，差 ¥108。</b>换句话说：<b>打平只需要 0.99 栋楼。</b>
+        这就是「一栋打透的楼 ≈ 全公司盈亏平衡线」这句话的全部意思——它不是一个比喻，是这两个数字刚好撞上了。
+      </div>
+
+      <div class="calc__st">第三步 · 为什么第 2 栋开始才真正赚钱</div>
+      <div class="scroller"><table>
+        <thead><tr><th>在运营的楼</th><th>月毛利贡献</th><th>减固定成本</th><th>月净利润</th></tr></thead>
+        <tbody>
+          <tr><td class="nm"><b>1 栋</b></td><td class="cost">¥22,308</td><td class="cost">¥22,200</td><td class="kpi">+¥108</td></tr>
+          <tr><td class="nm"><b>2 栋</b></td><td class="cost">¥44,616</td><td class="cost">¥22,200</td><td class="kpi">+¥22,416</td></tr>
+          <tr><td class="nm"><b>3 栋</b></td><td class="cost">¥66,924</td><td class="cost">¥22,200</td><td class="kpi">+¥44,724</td></tr>
+          <tr><td class="nm"><b>4 栋</b></td><td class="cost">¥89,232</td><td class="cost">¥22,200</td><td class="kpi">+¥67,032</td></tr>
+        </tbody>
+      </table></div>
+      <div class="calc__nc">
+        <b>每多一栋楼都只加 ¥22,308，但净利不是线性加，是从第 2 栋开始跳。</b>
+        因为固定成本这笔钱在第 1 栋就已经付完了——第 1 栋楼替全公司把房租、人工、服务器买单，
+        自己一分钱不赚；<b>第 2 栋开始贡献的每一块钱几乎都是净利。</b>
+        （真实情况下固定成本会阶梯式上涨：加到某个点要招人、加车、加厨房产能，但 2–3 栋内基本不变。）
+      </div>
+
+      <div class="calc__st">第四步 · 为什么"C 端怎么改都换不来这个数量级"</div>
+      <div class="scroller"><table>
+        <thead><tr><th>做法</th><th>效果（假设）</th><th>月增量利润</th><th>相对一栋新楼</th></tr></thead>
+        <tbody>
+          <tr><td class="nm"><b>签下一栋新楼</b></td><td class="cost">0 → 150 份/天</td><td class="kpi">+¥22,308</td><td class="risk">100%</td></tr>
+          <tr><td class="nm"><b>C 端页面做得极好</b><span>转化率 + 留存各提 10%</span></td><td class="cost">150 → 165 份/天</td><td class="kpi">+¥2,231</td><td class="risk">10%</td></tr>
+          <tr><td class="nm"><b>C 端页面做到罕见的好</b><span>提升 20%，很少见</span></td><td class="cost">150 → 180 份/天</td><td class="kpi">+¥4,462</td><td class="risk">20%</td></tr>
+          <tr><td class="nm"><b>C 端加购（v0.5 那套）</b><span>客单 +¥8，加购率 30%</span></td><td class="cost">频次不变只涨客单</td><td class="kpi">约 +¥1,400</td><td class="risk">6%</td></tr>
+        </tbody>
+      </table></div>
+      <div class="calc__nc">
+        要追上一栋新楼，C 端改造得让同一栋楼的订单<b>翻一倍</b>——
+        但一栋楼里愿意每天吃 ABox 的人数是有天花板的（渗透率到顶就涨不动了）。
+        <b>所以这一格的对比赛不是「哪个更好」，是「差一个数量级」。</b>
+      </div>
+
+      <div class="calc__st">附 · 这套账对佣金档很敏感（这张表决定它成不成立）</div>
+      <div class="scroller"><table>
+        <thead><tr><th>团长档位</th><th>每份贡献</th><th>一栋楼月贡献</th><th>vs 固定成本 ¥22,200</th></tr></thead>
+        <tbody>
+          <tr><td class="nm"><b>见习 8%</b></td><td class="cost">¥7.26</td><td class="cost">¥23,958</td><td class="kpi">打平有余</td></tr>
+          <tr><td class="nm"><b>正式 9%</b></td><td class="cost">¥7.01</td><td class="cost">¥23,133</td><td class="kpi">勉强打平</td></tr>
+          <tr><td class="nm"><b>金牌 10%</b></td><td class="cost">¥6.76</td><td class="cost">¥22,308</td><td class="kpi">刚好卡线</td></tr>
+          <tr><td class="nm"><b>首席 12%</b></td><td class="cost">¥6.25</td><td class="cost">¥20,625</td><td class="risk">打不平</td></tr>
+        </tbody>
+      </table></div>
+      <div class="calc__nc">
+        <b>这是最该被看见的一张表。</b>如果某栋楼里首席团长占比高，那一栋楼自己都养不活——
+        「多签楼」这个策略的前提是<b>团长结构不能全是顶档</b>，
+        或者说：把一件事从「靠单个楼赚钱」变成「靠楼的数量摊薄」，<b>前提是每栋楼本身贡献为正</b>。
+      </div>
+    </div>
+  </div>
+
+  <div class="tail">
+    <b>建议的使用顺序：</b>
+    <span style="color:#8A5A2B;">第一步</span>先看「先分清楚 · 哪些才是这个页面的方案」那一张，
+    确认你要答的是<b>A 堆（29 条，页面怎么改）</b>还是<b>B 堆（14 条，别的事）</b>——
+    这两堆不能混着挑。<br>
+    <span style="color:#8A5A2B;">第二步</span>在选定的那一堆里用五条筛子过一遍，
+    <b>只留 1–2 条</b>，不要贪多。<br>
+    <span style="color:#8A5A2B;">第三步</span>如果两堆都通不过筛子，答案很可能就是
+    <b>0-1：别做这个页面</b> —— 那也是一个完全正当的结论。
+  </div>
+
+</div>
+</body>
+</html>

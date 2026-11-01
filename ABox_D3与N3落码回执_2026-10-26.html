@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox · D3 提现规则落码 + N3 收口 · 回执</title>
+<style>
+  :root{
+    --brown:#6E5435; --brown-d:#4a3a22; --cream:#F6F0E5; --cream-2:#efe6d6;
+    --line:#d9cbb4; --ok:#3f7d4f; --part:#b07d2b; --gap:#b23b3b; --na:#7a7a7a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"楷体","KaiTi","STKaiti",simkai,serif;color:var(--brown-d);background:var(--cream);line-height:1.68;}
+  header{background:var(--brown);color:var(--cream);padding:22px 28px;}
+  header h1{margin:0 0 4px;font-size:23px;letter-spacing:2px;}
+  header p{margin:0;font-size:13.5px;opacity:.92;}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px 22px 60px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13.5px;}
+  .card h3{margin:0 0 10px;color:var(--brown);font-size:15px;}
+  .card h4{margin:14px 0 6px;color:var(--brown);font-size:13.5px;}
+  table{width:100%;border-collapse:collapse;font-size:12.8px;margin:10px 0;}
+  table th,table td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
+  table th{background:var(--cream-2);color:var(--brown);}
+  .v-ok{color:var(--ok);font-weight:bold;}
+  .v-part{color:var(--part);font-weight:bold;}
+  .v-gap{color:var(--gap);font-weight:bold;}
+  .code{font-family:Consolas,Monaco,monospace;font-size:11.8px;background:var(--cream-2);padding:1px 5px;border-radius:3px;color:#5a4326;word-break:break-all;}
+  .alert{background:#fceaea;border-left:4px solid var(--gap);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .warn{background:#fbf3e3;border-left:4px solid var(--part);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .good{background:#eaf3e8;border-left:4px solid var(--ok);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  ul{margin:6px 0 6px 18px;padding:0;}
+  li{margin:3px 0;}
+  .kpi{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0;}
+  .kpi div{flex:1;min-width:150px;background:var(--cream-2);border:1px solid var(--line);border-radius:8px;padding:10px 14px;text-align:center;}
+  .kpi b{display:block;font-size:20px;color:var(--brown);}
+  .kpi span{font-size:12px;color:var(--na);}
+  footer{font-size:12px;color:var(--na);text-align:center;margin-top:30px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>D3 提现规则落码 · N3 计数收口 · X1 注释</h1>
+  <p>2026-10-26 ｜ 依据：《派工包 v2》+《D3 提现规则定稿》｜ 全部改动已回源复验 · <b>tsc EXIT=0</b></p>
+</header>
+
+<div class="wrap">
+
+  <div class="kpi">
+    <div><b>8</b><span>改动文件</span></div>
+    <div><b>13/13</b><span>新增自检全绿（自证 13/13）</span></div>
+    <div><b>4</b><span>既有门禁全绿</span></div>
+    <div><b>1</b><span>本批关键发现（N3 半修）</span></div>
+  </div>
+
+  <div class="card">
+    <h3>一、两份文件的复验结论：全部属实，可以采纳</h3>
+    <table>
+      <tr><th style="width:16%">条目</th><th style="width:10%">结论</th><th>我的回源证据</th></tr>
+      <tr>
+        <td><b>N1</b> 停用楼不挡下单</td>
+        <td class="v-gap">属实</td>
+        <td><span class="code">meal.service.ts:104</span> 只判 <span class="code">assignment.status==='active' &amp;&amp; isOrderable(...)</span>；<span class="code">modules/order</span>+<span class="code">modules/meal</span> 全文无 <span class="code">BuildingStatus|BuildingGroupStatus</span>；<span class="code">BuildingGroupStatus</span> 在 <span class="code">modules/building/</span> 之外<b>零引用</b></td>
+      </tr>
+      <tr>
+        <td><b>N3</b> incr 降级致限流失效</td>
+        <td class="v-gap">属实</td>
+        <td><span class="code">kv.service.ts:192</span> catch → <span class="code">degraded=true</span> → 递归走内存；调用方确为 <span class="code">rate-limit.middleware.ts:208</span>（限流）与 <span class="code">auth.service.ts:381</span>（登录失败锁定）</td>
+      </tr>
+      <tr>
+        <td><b>D3</b> 现状盘点</td>
+        <td class="v-ok">属实</td>
+        <td><span class="code">min_withdraw</span> 默认 10（<span class="code">biz-config.service.ts:180</span>）+ config.specs 已上架；<span class="code">daily_limit/daily_count</span> <b>零命中</b>；<span class="code">idx_withdraw_leader_time</span> 索引已在；DTO <span class="code">@Min(0.01)</span> 地板确在</td>
+      </tr>
+      <tr>
+        <td><b>C1</b> 退款无时限</td>
+        <td class="v-part">属实</td>
+        <td><span class="code">REFUNDABLE_STATUS</span> 含 <span class="code">COMPLETED</span>，无任何时间窗</td>
+      </tr>
+      <tr>
+        <td><b>X1</b> 换楼清团长</td>
+        <td class="v-ok">属实</td>
+        <td><span class="code">user.service.ts:143</span> 清 <span class="code">teamLeaderId:null</span>；<span class="code">resolveLeader</span> 兜底确在（<span class="code">order.service.ts:1602</span>、<span class="code">meal.service.ts:292</span>）</td>
+      </tr>
+    </table>
+    <div class="warn">
+      <b>唯一偏差（不影响结论）：</b><span class="code">withdraw.service.ts</span> 实际在 <span class="code">modules/finance/</span>，不是派工包里写的 <span class="code">modules/commission/</span>。回源时按 finance 找。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>二、D3 提现规则 —— 5 项全部落码</h3>
+    <table>
+      <tr><th style="width:6%">#</th><th style="width:26%">定稿项</th><th>落点</th></tr>
+      <tr>
+        <td>1</td><td>起提<b>不限</b></td>
+        <td class="v-ok">零代码：<span class="code">commission.min_withdraw</span> 改配置即可。已改 <span class="code">biz-config.service.ts</span> 默认值 <b>10→0</b>、<span class="code">config.specs.ts</span> 描述（旧描述「避免小额出款被手续费吃掉」与「不收手续费」冲突，已换）、<span class="code">seed.ts</span> 同步 <b>0.00</b></td>
+      </tr>
+      <tr>
+        <td>2</td><td>单日上限 <b>¥2000</b></td>
+        <td class="v-ok">新增 <span class="code">commission.withdraw_daily_limit</span>（money，默认 2000，0=不限）+ <span class="code">withdrawDailyLimit()</span> + config.specs 登记 <span class="code">wiring:'live'</span></td>
+      </tr>
+      <tr>
+        <td>3</td><td>当日 <b>1 笔</b></td>
+        <td class="v-ok">新增 <span class="code">commission.withdraw_daily_count</span>（int，默认 1，0=不限）+ <span class="code">withdrawDailyCount()</span></td>
+      </tr>
+      <tr>
+        <td>4</td><td>错误码</td>
+        <td class="v-ok"><b>40024</b> 单日超限 / <b>40025</b> 当日重复 —— enum 与 ERROR_MESSAGE <b>两处</b>均登记（门禁 errcode:message 已复验 93 码全覆盖）</td>
+      </tr>
+      <tr>
+        <td>5</td><td>判定逻辑</td>
+        <td class="v-ok"><span class="code">apply()</span> <b>事务内</b>一次查询取当日 <span class="code">SUM</span>+<span class="code">COUNT</span>，<b>先判笔数再判金额</b>；区间 <span class="code">bjDateTime(todayBj(), 24)</span> 含尾上界；计入 pending/approved/paying/success，<b>rejected/failed 不计</b></td>
+      </tr>
+      <tr>
+        <td>6</td><td>T+1（方案甲）</td>
+        <td class="v-ok">tips 改「运营审批后 <b>1 个工作日内</b>到账（节假日顺延）」；后台清单新增 <span class="code">expectedArrivalOf()</span>（auditAt + 1 工作日 18:00，周末顺延）并下发 <span class="code">waitHours</span> / <span class="code">expectedArrivalAt</span> / <span class="code">overdue</span>（供标红）。<b>未动表结构</b></td>
+      </tr>
+      <tr>
+        <td>7</td><td>手续费</td>
+        <td class="v-ok">逻辑本就不收，只补表述：<b>「平台不收手续费，个税由灵活用工平台依法代扣代缴，到账为税后金额」</b></td>
+      </tr>
+    </table>
+    <div class="good">
+      <b>守住了两条实现纪律：</b>① 日累计/笔数校验放<b>事务内</b>（事务外读、事务内写会让并发两笔都读到旧值）；② 自然日区间用时间三件套 <span class="code">bjDateTime(d,24)</span>，没手写时区偏移。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>三、N3 —— 只改 incr 是白改（本批最关键的一处）</h3>
+    <div class="alert">
+      <b>「改 A 照亮 B」：</b>按派工包建议把 <span class="code">kv.incr</span> 改成 fail-closed <b>还不够</b>。
+      回源时发现 <span class="code">rate-limit.middleware.ts</span> 的 <span class="code">.catch()</span> 是 <b>fail-open</b>
+      —— 注释原文写着「限流器自身故障不得阻断业务」⇒ <b>incr 抛错后中间件直接放行</b>，
+      保护照样失效，而且比降级<b>更难发现</b>（降级至少还在计数，放行是零计数、零日志）。
+    </div>
+    <table>
+      <tr><th style="width:22%">改动</th><th>内容</th></tr>
+      <tr>
+        <td><span class="code">kv.service.ts</span></td>
+        <td class="v-ok"><span class="code">incr</span> 改 fail-closed，与 <span class="code">setNx</span> 同款 <span class="code">driverIsRedis</span> 判定：驱动为 redis 时<b>永不走内存</b>，出错直接抛</td>
+      </tr>
+      <tr>
+        <td><span class="code">rate-limit.middleware.ts</span></td>
+        <td class="v-ok"><span class="code">RateLimitRule</span> 新增 <span class="code">failClosed?</span>；<b>仅两条登录规则设 true</b>（<span class="code">auth:admin-login</span> / <span class="code">auth:login</span>），<span class="code">order:create</span> <b>不设</b>；catch 分支据此分流</td>
+      </tr>
+      <tr>
+        <td><span class="code">auth.service.ts</span></td>
+        <td class="v-ok">登录失败计数包 try/catch，计数不可用 ⇒ 抛 <span class="code">BizException</span> <b>拒绝登录</b>（禁裸 Error —— 裸 Error 会绕过 AllExceptionsFilter 的「HTTP 200 + body code」约定）</td>
+      </tr>
+    </table>
+    <div class="warn">
+      <b>为什么不是一刀切全部 fail-closed：</b>判断标准只有一条 —— <b>「放行」会不会让攻击者拿到本不该拿的能力</b>。
+      登录接口会（暴力破解保护失效）⇒ 拒绝；<span class="code">order:create</span> 只是<b>业务防刷</b>，
+      为了防刷在 Redis 抖动时把整个下单接口打挂，<b>得不偿失</b> ⇒ 保持放行。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>四、X1 —— 只改注释，不改逻辑（采纳该判定）</h3>
+    <div class="good">
+      <span class="code">user.service.ts</span> 换楼清空 <span class="code">teamLeaderId</span> 的注释与日志，
+      去掉了对<b>并不存在的「重算」实现</b>的承诺，改为「清空后由 <span class="code">resolveLeader</span> 兜底重解析」。
+      逻辑不动 —— 兜底已把结果算对（佣金归新楼在职团长）。
+    </div>
+    <div class="warn">
+      <b>一个自指的坑（自证第一轮就撞上了）：</b>我第一版注释里写了「旧注释写着『待重算』」，
+      结果「禁止出现该词」的静态检查<b>永远命中我自己写的注释</b>。已改写措辞。
+      ⇒ 教训：<b>禁止某承诺时，连解释性注释里也别复述它</b>。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>五、新增自检脚本：守 13 条，且自带破化自证</h3>
+    <p><span class="code">abox-onebox/scripts/check-d3-withdraw-rules.mjs</span> —— <b>13/13 全绿，自证 13/13</b>（退出码 0）。</p>
+    <p>每条判据都配一个<b>破化函数</b>：从真实文件里删掉它守的那处表述，断言「必报的报得出」；再以<b>真实未改动的文件</b>断言「必不报的不报」。任一侧不符即 <b>exit 2</b>（检查器自身坏掉，不静默放行）。</p>
+    <div class="alert">
+      <b>首轮自证抓出 5 条判据自身的缺陷 —— 这正是自证的价值：</b>
+      <ul>
+        <li>括号配平被<b>注释里的 <span class="code">)</span></b> 破坏（<span class="code">// 3 + 4)</span> 让事务块只剩 58 字符 ⇒ 判据恒红）⇒ 取块前必须剥注释；</li>
+        <li>数组字面量用「找 <span class="code">{</span>」取块取不到 ⇒ 改用 <span class="code">]</span> 收尾；</li>
+        <li><span class="code">string[]</span> 里的 <span class="code">]</span> 让非贪婪匹配提前结束 ⇒ 捕获到的根本不是数组内容 ⇒ <b>判据恒绿</b>（最危险的一种：看着在查，其实什么都没查）；</li>
+        <li>破化只改 <span class="code">if</span> 条件、没引入 <span class="code">catch</span> ⇒ 破化无效；</li>
+        <li><span class="code">catch (e)</span> 判据过宽 ⇒ 收紧为「catch 内抛 BizException + 拒绝登录语义」。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>六、验证结果</h3>
+    <table>
+      <tr><th style="width:34%">检查</th><th style="width:12%">结果</th><th>说明</th></tr>
+      <tr><td>类型检查 <span class="code">tsc --noEmit</span></td><td class="v-ok">EXIT=0</td><td>全量，无报错</td></tr>
+      <tr><td>门禁 <span class="code">errcode:message</span></td><td class="v-ok">EXIT=0</td><td>93 个码 · 93 条文案 · 无幽灵码 · 无重复映射</td></tr>
+      <tr><td>门禁 <span class="code">optimistic-lock</span></td><td class="v-ok">5/5</td><td>自证 4/4 通过</td></tr>
+      <tr><td>门禁 <span class="code">gate:parity</span></td><td class="v-ok">EXIT=0</td><td>门禁清单一致、无孤儿</td></tr>
+      <tr><td>eslint（改动 8 文件）</td><td class="v-ok">EXIT=0</td><td>无告警</td></tr>
+      <tr><td>新增 D3/N3 自检</td><td class="v-ok">13/13</td><td>自证 13/13；行尾纯 LF</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>七、还没做的（需要技术带库验收 / 需你拍板）</h3>
+    <div class="warn">
+      <b>D3 定稿第 5 节的 7 条是运行时场景，静态脚本管不到，需连库跑：</b>
+      <ul>
+        <li><span class="code">min_withdraw=0</span> 时提 ¥0.01 → 成功建单</li>
+        <li>提 ¥0 或负数 → DTO 拒，<span class="code">code:10001</span>（HTTP 恒 200）</li>
+        <li>当日已有非终态单再提 → <b>40025</b></li>
+        <li>当日累计 &gt; ¥2000 → <b>40024</b>（验时把 <span class="code">daily_count</span> 临时设 2，否则会被 40025 先拦）</li>
+        <li>前一笔被<b>驳回</b>后当日再提 → 可提</li>
+        <li>并发两笔同额 → 一笔成功、一笔被乐观锁拦</li>
+        <li>跨零点 23:59 / 次日 00:01 → 两笔都成功</li>
+      </ul>
+    </div>
+    <table>
+      <tr><th style="width:16%">事项</th><th style="width:12%">状态</th><th>下一步</th></tr>
+      <tr><td>N1 / N2 停用不挡下单</td><td class="v-gap">建议必修</td><td>用户端 <span class="code">canOrder</span> 与后台统一口径；停用前校验未完结订单。<b>建议与一键停售 W1 一起派工</b></td></tr>
+      <tr><td>C1 残余：退款无时限</td><td class="v-part">待你定</td><td>定退款时限，或「佣金已提现」情形走人工审批</td></tr>
+      <tr><td>A4 券面额上限</td><td class="v-part">待你定值</td><td>技术建议 ≤ 单份餐价 ¥25.80。<b>「券种可绕过」的说法已撤回，勿据此改造</b></td></tr>
+      <tr><td>A1 支付单边账 / A5 可观测 / C5 执行记录</td><td class="v-part">待设计评审</td><td>都需先出方案再落码</td></tr>
+      <tr><td>B 档 团长作用域死代码</td><td class="v-part">待查生产库</td><td>确认 <span class="code">teamLeaderId IS NULL</span> 为 0 后删分支</td></tr>
+    </table>
+  </div>
+
+  <footer>
+    ABox 一盒 · D3 落码 + N3 收口回执 ｜ 2026-10-26 ｜ 改动 8 文件 · 每条均可按「文件:行」回源核对
+  </footer>
+
+</div>
+</body>
+</html>

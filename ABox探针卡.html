@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 探针卡 · 自定义问题</title>
+<style>
+  :root{
+    --brown:#6E5435; --brown-d:#4a3a22; --cream:#F6F0E5; --cream-2:#efe6d6;
+    --line:#d9cbb4; --ok:#3f7d4f; --part:#b07d2b; --gap:#b23b3b; --na:#7a7a7a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"楷体","KaiTi","STKaiti",simkai,serif;color:var(--brown-d);background:var(--cream);line-height:1.6;}
+  header{background:var(--brown);color:var(--cream);padding:20px 28px;}
+  header h1{margin:0 0 4px;font-size:22px;letter-spacing:2px;}
+  header p{margin:0;font-size:13.5px;opacity:.9;}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px 22px 60px;}
+  .hint{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:16px 0;font-size:13.5px;}
+  .hint b{color:var(--brown);}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 16px;}
+  button{font-family:inherit;font-size:13px;border:1px solid var(--line);border-radius:6px;padding:6px 12px;background:var(--cream);color:var(--brown-d);cursor:pointer;}
+  button.primary{background:var(--brown);color:var(--cream);border-color:var(--brown);}
+  .grid{display:grid;grid-template-columns:48px 86px 96px 110px 1fr 120px 150px;gap:8px;padding:8px;border-bottom:1px dashed var(--line);font-size:13px;align-items:start;}
+  .grid.head{font-weight:bold;color:var(--brown);background:var(--cream-2);border-bottom:2px solid var(--brown);position:sticky;top:0;}
+  input,select,textarea{font-family:inherit;font-size:13px;width:100%;border:1px solid var(--line);border-radius:5px;padding:4px 6px;background:#fffdf8;color:var(--brown-d);}
+  textarea{resize:vertical;min-height:30px;}
+  .del{background:#f3e2e2;color:var(--gap);border-color:#e3c2c2;width:auto;padding:3px 8px;}
+  .rowidx{color:var(--brown);font-weight:bold;}
+  .importbox{display:none;margin-top:8px;}
+  .importbox textarea{width:100%;min-height:80px;}
+  footer{font-size:12px;color:var(--na);text-align:center;margin-top:24px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>ABox 探针卡 · 自定义问题补充</h1>
+  <p>你自己想到的问题，填进来。支持增删行、存本机、导出/导入。每条建议套七维：能力 / 对象范围 / 入口触发 / 业务规则 / 边界异常 / 数据一致 / 可观测审计。</p>
+</header>
+
+<div class="wrap">
+  <div class="hint">
+    <b>怎么写一条好探针：</b>把下面这句模板填实 ——
+    <br>「你能不能 <b>【动作】</b> + 作用在 <b>【谁/范围】</b> + 通过 <b>【什么入口/触发】</b> + 遵循 <b>【什么规则】</b> + 当 <b>【异常/边界】</b> 时怎么处理 + 并且 <b>【谁能追溯】</b> ？」
+    <br>每少一个括号，就少测一块完整性。
+  </div>
+
+  <div class="toolbar">
+    <button class="primary" id="add">+ 新增一行</button>
+    <button id="export">导出 CSV</button>
+    <button id="exportJson">导出 JSON</button>
+    <button id="importBtn">导入 JSON</button>
+    <button id="clear">清空全部</button>
+    <span id="cnt" style="margin-left:auto;font-size:13px;color:var(--brown);"></span>
+  </div>
+  <div class="importbox" id="importbox">
+    <textarea id="importText" placeholder="粘贴此前导出的 JSON 数组..."></textarea>
+    <div style="margin-top:6px;"><button class="primary" id="doImport">确认导入</button> <button id="cancelImport">取消</button></div>
+  </div>
+
+  <div id="table">
+    <div class="grid head">
+      <div>#</div><div>角色</div><div>模块</div><div>操作</div><div>探针问题（七维）</div><div>状态</div><div>备注/证据</div>
+    </div>
+    <div id="rows"></div>
+  </div>
+
+  <footer>数据仅存于本机浏览器（localStorage），不上传。可与《功能完整性探针问询表》配合使用：问询表测"已知功能"，探针卡补"你临时想到的问题"。</footer>
+</div>
+
+<script>
+const KEY="abox_probe_card_v1";
+let data=JSON.parse(localStorage.getItem(KEY)||"null")||[
+  {actor:"U",module:"下单与支付",op:"下单",q:"能不能在截单前 5 分钟临时加单，且不影响已生成的配送分配？",status:"待核",note:""},
+  {actor:"A",module:"代金券",op:"发券",q:"售后弥补发券时，能否一次性发给“上周有过退款的所有用户”这个群体，而不用手动逐个选？",status:"缺口",note:"你最关心的指定群体发放"},
+  {actor:"L",module:"团长体系",op:"配送",q:"团长请假/休假时，本团未送达订单由谁接力？系统有无兜底分配？",status:"待核",note:""}
+];
+const actors=[["U","用户/团员"],["L","团长"],["A","管理者/后台"]];
+const statuses=["待核","已实现","部分","缺口","不可行"];
+
+function render(){
+  const rows=document.getElementById('rows'); rows.innerHTML="";
+  data.forEach((d,i)=>{
+    const g=document.createElement('div'); g.className="grid";
+    const actorOpts=actors.map(a=>`<option value="${a[0]}" ${d.actor===a[0]?'selected':''}>${a[1]}</option>`).join('');
+    const stOpts=statuses.map(s=>`<option ${d.status===s?'selected':''}>${s}</option>`).join('');
+    g.innerHTML=`
+      <div class="rowidx">${i+1}</div>
+      <div><select data-i="${i}" data-k="actor">${actorOpts}</select></div>
+      <div><input data-i="${i}" data-k="module" value="${esc(d.module)}"></div>
+      <div><input data-i="${i}" data-k="op" value="${esc(d.op)}"></div>
+      <div><textarea data-i="${i}" data-k="q">${esc(d.q)}</textarea></div>
+      <div><select data-i="${i}" data-k="status">${stOpts}</select></div>
+      <div><textarea data-i="${i}" data-k="note" placeholder="证据/结论...">${esc(d.note)}</textarea></div>`;
+    rows.appendChild(g);
+  });
+  // 删除按钮行
+  const delRow=document.createElement('div'); delRow.className="grid"; delRow.style.borderBottom="none";
+  delRow.innerHTML=`<div></div><div></div><div></div><div></div><div style="color:#9a8a6a;font-size:12px;">点击对应行右侧删除：</div><div></div><div id="delBtns"></div>`;
+  rows.appendChild(delRow);
+  data.forEach((d,i)=>{
+    const b=document.createElement('button'); b.className="del"; b.textContent="删"+ (i+1);
+    b.onclick=()=>{data.splice(i,1);save();render();};
+    document.getElementById('delBtns').appendChild(b);
+  });
+  document.getElementById('cnt').textContent=`共 ${data.length} 条`;
+  bind();
+}
+function esc(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function bind(){
+  document.querySelectorAll('#rows [data-k]').forEach(el=>{
+    el.oninput=el.onchange=()=>{const i=+el.dataset.i,k=el.dataset.k;data[i][k]=el.value;save();};
+  });
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(data));}
+
+document.getElementById('add').onclick=()=>{data.push({actor:"U",module:"",op:"",q:"",status:"待核",note:""});save();render();};
+document.getElementById('clear').onclick=()=>{if(confirm('清空探针卡全部内容？')){data=[];save();render();}};
+document.getElementById('export').onclick=()=>{
+  let csv="角色,模块,操作,探针问题,状态,备注\n";
+  data.forEach(d=>{csv+=`${actorName(d.actor)},${cq(d.module)},${cq(d.op)},"${cq(d.q)}",${d.status},"${cq(d.note)}"\n`;});
+  download(new Blob([csv],{type:"text/csv;charset=utf-8"}),"ABox探针卡.csv");
+};
+document.getElementById('exportJson').onclick=()=>{download(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),"ABox探针卡.json");};
+document.getElementById('importBtn').onclick=()=>{document.getElementById('importbox').style.display="block";};
+document.getElementById('cancelImport').onclick=()=>{document.getElementById('importbox').style.display="none";};
+document.getElementById('doImport').onclick=()=>{
+  try{const arr=JSON.parse(document.getElementById('importText').value);if(Array.isArray(arr)){data=arr;save();render();document.getElementById('importbox').style.display="none";}}catch(e){alert("JSON 解析失败："+e.message);}
+};
+function actorName(a){return (actors.find(x=>x[0]===a)||[,"?"])[1];}
+function cq(s){return (s||"").replace(/"/g,'""');}
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();}
+render();
+</script>
+</body>
+</html>

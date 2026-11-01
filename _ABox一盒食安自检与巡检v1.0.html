@@ -1,0 +1,2017 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ABox 一盒 · 食安自检与巡检</title>
+<style>
+/* ── token 真源（生成注入，禁手改）── */
+:root{
+  --bg: #F6F0E5;
+  --surface: #FFFDF8;
+  --surface2: #F7F1E4;
+  --surface3: #FBF6EC;
+  --text: #6E5435;
+  --text2: #796C57;
+  --text-disabled: #A79A85;
+  --gold: #C9A876;
+  --gold-deep: #936F3A;
+  --gold-deepest: #8A6620;
+  --border: #E4D8C3;
+  --border-strong: #D6CBB8;
+  --ok: #5B7C3A;
+  --warn: #C44536;
+  --info: #4A6FA5;
+  --ok-bg: #F1F5EA;
+  --ok-bd: #BBCBA6;
+  --warn-bg: #FBF0EE;
+  --warn-bd: #E3BFB8;
+  --info-bg: #EDF1F8;
+  --info-bd: #B4C4DA;
+  --mut-bg: #F7F2E8;
+  --mut-bd: #E4D8C3;
+  --gold-bg: #FBF4E6;
+  --gold-bd: #DCC79C;
+  --ok-fg: #597939;
+  --warn-fg: #C24436;
+  --info-fg: #4A6FA5;
+  --gold-fg: #8D6A38;
+  --from: #FFF6E0;
+  --to: #FFEED5;
+  --brand-meituan: #FFD400;
+  --brand-meituan-text: #000000;
+  --brand-taobao: #FF6A00;
+  --brand-taobao-text: #000000;
+  --brand-jd: #E1251B;
+  --brand-jd-text: #FFFFFF;
+  --font-display: 'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif;
+  --font-body: -apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif;
+  --font-num: 'SF Mono','Roboto Mono',Consolas,monospace;
+  --r-sm: 4px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --sp-1: 6px;
+  --sp-2: 10px;
+  --sp-3: 14px;
+  --sp-4: 20px;
+  --sp-5: 28px;
+}
+/* ── 共享外壳 ── */
+/* ─────────────────────────────────────────────────────────────
+   P0 工具集 · 共享页面外壳
+   ⚠️ 本文件**零颜色字面量**：一切颜色只能来自 `:root` token（由生成器注入）。
+      构建期断言这一条（搜不到 # / rgb( / hsl( ），否则品牌必然各写各的。
+   ⚠️ 字体分层：楷体只用于**标题 / 品牌字 / 金额大字**，正文与表格用无衬线栈。
+   ───────────────────────────────────────────────────────────── */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--gold-deep); }
+
+/* ── 顶栏 ── */
+.top {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 20;
+}
+.top .logo {
+  font-family: var(--font-display);
+  font-size: 19px; letter-spacing: .04em; color: var(--text);
+}
+.top .sub { font-size: 12px; color: var(--text2); }
+.top .spacer { flex: 1; }
+.top .ver { font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); }
+
+/* ── 页头 ── */
+.hero { padding: var(--sp-4) var(--sp-4) 0; }
+.hero h1 {
+  font-family: var(--font-display); font-size: 25px; font-weight: 400;
+  margin: 0 0 4px; letter-spacing: .02em;
+}
+.hero p { margin: 0; color: var(--text2); font-size: 13px; max-width: 78ch; }
+
+/* ── 布局 ── */
+.wrap {
+  display: flex; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4) var(--sp-5);
+  align-items: flex-start;
+}
+/* ⚠️ 侧栏必须**自己能滚**（`max-height` + `overflow-y: auto`），这不是装饰：
+   `position: sticky` 的元素一旦高于视口可用高度，底部会被**钉住不动** ——
+   滚动页面也带不上来（必须滚到**整页最底**才够得到，因为那时 sticky 才脱离钉住）。
+   实测（1440×900 笔记本，最常见的办公尺寸）：6 个带侧栏的工具里有 5 个的
+   「筛选 / 操作（导出 · 导入 · 重置）」整组够不到；G1/G2/F3 在 1080 下也够不到。
+   附带好处：对 sticky 元素 `scrollIntoView` 是无效的（滚动页面它不动），
+   给侧栏自己的滚动区之后，控件才可能被自动带进视野（自动化探针同理）。
+   62px = `.top` 的实际高度（与 `top` 一致，改一处要一起改）。 */
+.side {
+  width: 310px; flex: 0 0 310px; position: sticky; top: 62px;
+  max-height: calc(100vh - 62px - var(--sp-3));
+  overflow-y: auto; overscroll-behavior: contain;
+}
+.main { flex: 1; min-width: 0; }
+
+/* ── 卡片 ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-3);
+}
+.card > h2 {
+  font-family: var(--font-display); font-size: 16px; font-weight: 400;
+  margin: 0 0 var(--sp-2); letter-spacing: .02em;
+  display: flex; align-items: center; gap: 8px;
+}
+.card > h2 .n { font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); }
+.hint { font-size: 12px; color: var(--text2); margin: 0 0 var(--sp-2); }
+
+/* ── 表格 ── */
+.tw { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left; font-weight: 500; color: var(--text2);
+  font-size: 11.5px; letter-spacing: .04em;
+  padding: 7px 9px; border-bottom: 1px solid var(--border-strong);
+  white-space: nowrap; background: var(--surface2);
+}
+td { padding: 8px 9px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: var(--surface3); }
+td.num, th.num { text-align: right; font-family: var(--font-num); }
+td.mono { font-family: var(--font-num); font-size: 12px; }
+.big {
+  font-family: var(--font-display); font-size: 22px; line-height: 1.2;
+}
+
+/* ── 徽标 ── */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 8px; border-radius: 999px;
+  font-size: 11.5px; white-space: nowrap;
+  border: 1px solid var(--mut-bd); background: var(--mut-bg); color: var(--text2);
+}
+.pill.ok { border-color: var(--ok-bd); background: var(--ok-bg); color: var(--ok-fg); }
+.pill.warn { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.pill.info { border-color: var(--info-bd); background: var(--info-bg); color: var(--info-fg); }
+.pill.gold { border-color: var(--gold-bd); background: var(--gold-bg); color: var(--gold-fg); }
+.pill.dim { color: var(--text-disabled); }
+
+/* ── 表单 ── */
+label.f { display: block; margin-bottom: var(--sp-2); }
+label.f > span {
+  display: block; font-size: 11.5px; color: var(--text2);
+  letter-spacing: .04em; margin-bottom: 3px;
+}
+input, select, textarea {
+  width: 100%; padding: 6px 9px;
+  background: var(--surface3); color: var(--text);
+  border: 1px solid var(--border-strong); border-radius: var(--r-md);
+  font-family: var(--font-body); font-size: 13px;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--gold); background: var(--surface);
+}
+input[type=number] { font-family: var(--font-num); }
+.row2 { display: flex; gap: var(--sp-2); }
+.row2 > * { flex: 1; min-width: 0; }
+
+/* ── 按钮 ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 13px; border-radius: var(--r-md);
+  border: 1px solid var(--border-strong); background: var(--surface);
+  color: var(--text); font-size: 13px; cursor: pointer;
+}
+.btn:hover { background: var(--surface2); border-color: var(--gold); }
+.btn.primary {
+  background: var(--text); border-color: var(--text); color: var(--surface);
+  font-weight: 500;
+}
+.btn.primary:hover { background: var(--gold-deep); border-color: var(--gold-deep); }
+.btn.sm { padding: 3px 9px; font-size: 12px; }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--text2); }
+.btn.ghost:hover { background: var(--surface2); }
+.btnbar { display: flex; flex-wrap: wrap; gap: var(--sp-1); margin-bottom: var(--sp-2); }
+
+/* ── 指标格 ── */
+/* ⚠️ 阈值要按**实际可用宽度**定：侧栏 310px − 卡片左右 padding 40px = 270px，
+       minmax 定 132px 时 2×132+10(gap)=274 > 270 ⇒ 永远只排 1 列（看着像没生效）。 */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(116px, 1fr)); gap: var(--sp-1); }
+.kpi {
+  background: var(--surface3); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 9px 11px;
+}
+.kpi .k { font-size: 11.5px; color: var(--text2); letter-spacing: .04em; }
+.kpi .v { font-family: var(--font-display); font-size: 21px; line-height: 1.3; }
+.kpi .u { font-size: 12px; color: var(--text2); font-family: var(--font-body); }
+.kpi.warn { border-color: var(--warn-bd); background: var(--warn-bg); }
+.kpi.ok { border-color: var(--ok-bd); background: var(--ok-bg); }
+
+/* ── 提示条 ──
+   ⚠️ 必须是**块级正常流**，绝不能写 `display: flex`：
+      提示条文案里普遍有行内 <b> / <br> / <span class="mono">。容器一旦是 flex，
+      这些行内片段就各自变成**独立的 flex 子项**，被挤成一条条窄列、每个子项还自己
+      内部换行 —— 长文案整段会散开（G2 概览那两条实测就是 9 个子项排一行，字距被拉满、
+      末行也被撑开）。**副作用迟发**：文案短、能挤进一行时看着完全正常（G1/M1 就是这样
+      过关的），所以这个坑很晚才露头。
+      原来是 flex + `gap: 8px`；块级子元素之间的留白改由下面两条规则承担。 */
+.note {
+  display: block;
+  padding: 8px 11px; border-radius: var(--r-md);
+  border: 1px solid var(--mut-bd); background: var(--mut-bg);
+  font-size: 12.5px; color: var(--text2); margin-bottom: var(--sp-3);
+}
+.note.warn { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.note.ok { border-color: var(--ok-bd); background: var(--ok-bg); color: var(--ok-fg); }
+.note.info { border-color: var(--info-bd); background: var(--info-bg); color: var(--info-fg); }
+.note b { color: inherit; }
+/* 块级子元素之间留白（替代原来的 flex gap: 8px）—— 行内元素不受影响 */
+.note > div + div { margin-top: 6px; }
+/* 药丸横排（原来靠 flex 的 gap 撑开，块级流下要自己给左边距） */
+.note > .pill + .pill { margin-left: 4px; }
+
+/* ── 分段控件（tab）── */
+.seg { display: flex; gap: 2px; padding: 3px; background: var(--surface2); border-radius: var(--r-md); border: 1px solid var(--border); }
+.seg button {
+  border: 0; background: transparent; color: var(--text2);
+  padding: 5px 13px; border-radius: var(--r-sm); cursor: pointer; font: inherit; font-size: 13px;
+}
+.seg button.on { background: var(--surface); color: var(--text); font-weight: 500; }
+
+/* ── 条形图 ── */
+.bar { height: 8px; border-radius: 999px; background: var(--surface2); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--gold); }
+.bar.warn > i { background: var(--warn); }
+.bar.ok > i { background: var(--ok); }
+
+/* ── 自检条 ── */
+.gate {
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--surface3); padding: 8px 11px; font-size: 12.5px;
+}
+.gate .g { display: flex; gap: 7px; align-items: baseline; padding: 1px 0; }
+.gate .g i { font-style: normal; font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); flex: 0 0 auto; }
+.gate .g .t { color: var(--text2); }
+.gate .g.bad .t { color: var(--warn-fg); }
+
+/* ── 页脚 ── */
+.foot {
+  padding: var(--sp-4); color: var(--text-disabled); font-size: 11.5px;
+  border-top: 1px solid var(--border); margin-top: var(--sp-5);
+}
+
+/* ── 窄屏：单列堆叠（断点与项目后台一致，避免出现第二份断点表述）── */
+@media (max-width: 768px) {
+  .wrap { flex-direction: column; padding: var(--sp-2); }
+  /* ⚠️ 落到单列后必须**解除**侧栏的自身滚动区：否则手机上会出现一个 1/4 屏高的小滚动盒，
+        里面的卡片被裁掉一半 —— 那是「为修一个坑造一个新坑」。 */
+  .side { width: 100%; flex: auto; position: static; max-height: none; overflow-y: visible; }
+  .hero { padding: var(--sp-3) var(--sp-2) 0; }
+  table { font-size: 12px; }
+}
+
+/* ── 本系统 ── */
+/* ============================================================
+ * P2 序 21 · R2「食安自检与巡检」专属样式
+ *
+ * 纪律：
+ *   ① 一律用共享外壳 shell.css 的 token，**不得写任何颜色字面量**
+ *      （build.py 有构建期硬断言）。真源变量名见 shell.css：
+ *      --text / --text2 / --text-disabled / --border / --mut-bd /
+ *      --gold-deep / --gold-bg / --gold-bd / --gold-fg /
+ *      --ok-bd / --ok-bg / --ok-fg / --warn-bd / --warn-bg / --warn-fg /
+ *      --info-bd / --info-bg / --info-fg / --surface / --surface2 / --surface3
+ *      ⚠️ 凭印象编造 --fg / --brand / --line 是本项目栽过的坑（M2/E4 各一次）
+ *   ② `.note` 不能设 display:flex（共享外壳已知坑）
+ *   ③ 侧栏 sticky 需自身可滚（另一已知坑）
+ * ============================================================ */
+
+/* ── 存在理由引用框 ── */
+.why-box {
+  border-left: 3px solid var(--warn-bd);
+  background: var(--warn-bg);
+  color: var(--warn-fg);
+  padding: var(--sp-3);
+  border-radius: var(--r-sm);
+  margin-bottom: var(--sp-4);
+}
+.why-box .why-src {
+  display: block;
+  margin-top: var(--sp-2);
+  font-size: 12px;
+  color: var(--text2);
+  font-family: var(--font-num);
+}
+
+/* ── 检查项行 ── */
+.chk-item {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  padding: var(--sp-3);
+  margin-bottom: var(--sp-2);
+}
+.chk-item.is-hard { border-color: var(--warn-bd); }
+.chk-item.is-ng { background: var(--warn-bg); }
+
+.chk-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+.chk-label { font-weight: 600; color: var(--text); }
+.chk-tag {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--warn-bd);
+  color: var(--warn-fg);
+  background: var(--warn-bg);
+  white-space: nowrap;
+}
+.chk-tag.is-ext {
+  border-color: var(--info-bd);
+  color: var(--info-fg);
+  background: var(--info-bg);
+}
+.chk-basis {
+  margin-top: var(--sp-1);
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+/* ── 三态按钮组（合格 / 不合格 / 未查）── */
+.tri { display: flex; gap: var(--sp-1); margin-top: var(--sp-2); flex-wrap: wrap; }
+.tri button {
+  font: inherit;
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  cursor: pointer;
+}
+.tri button:hover { border-color: var(--gold-bd); }
+.tri button.is-on { color: var(--text); font-weight: 600; border-color: var(--gold-bd); background: var(--gold-bg); }
+.tri button.is-on[data-v="ok"]  { border-color: var(--ok-bd);   background: var(--ok-bg);   color: var(--ok-fg); }
+.tri button.is-on[data-v="ng"]  { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.tri button.is-on[data-v="na"]  { border-color: var(--mut-bd);  background: var(--mut-bg);  color: var(--text2); }
+
+/* ── 出餐判定徽章 ── */
+.verdict {
+  display: inline-block;
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--r-sm);
+  font-weight: 600;
+  border: 1px solid var(--mut-bd);
+  background: var(--mut-bg);
+  color: var(--text2);
+}
+.verdict[data-v="pass"]       { border-color: var(--ok-bd);   background: var(--ok-bg);   color: var(--ok-fg); }
+.verdict[data-v="blocked"]    { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.verdict[data-v="incomplete"] { border-color: var(--info-bd); background: var(--info-bg); color: var(--info-fg); }
+
+.verdict-reasons {
+  margin-top: var(--sp-2);
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.7;
+}
+.verdict-reasons li { margin-left: var(--sp-4); }
+
+/* ── 整改单 ── */
+.rect {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  padding: var(--sp-3);
+  margin-bottom: var(--sp-2);
+}
+.rect.is-open { border-color: var(--warn-bd); background: var(--warn-bg); }
+.rect.is-closed { opacity: .72; }
+.rect.is-overdue { border-color: var(--warn-bd); }
+.rect-top { display: flex; align-items: baseline; gap: var(--sp-2); flex-wrap: wrap; }
+.rect-item-label { font-weight: 600; }
+.rect-meta { font-size: 12px; color: var(--text2); margin-top: var(--sp-1); line-height: 1.6; }
+.rect-desc { font-size: 13px; color: var(--text); margin-top: var(--sp-1); }
+.badge {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--mut-bd);
+  background: var(--mut-bg);
+  color: var(--text2);
+  white-space: nowrap;
+}
+.badge.is-open   { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.badge.is-done   { border-color: var(--info-bd); background: var(--info-bg); color: var(--info-fg); }
+.badge.is-closed { border-color: var(--ok-bd);   background: var(--ok-bg);   color: var(--ok-fg); }
+
+/* ── 留样数值 ── */
+.meas { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-2); }
+.meas label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 2px; }
+.meas input {
+  width: 100%;
+  font: inherit;
+  font-family: var(--font-num);
+  padding: 5px 8px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+}
+.meas .is-bad { border-color: var(--warn-bd); background: var(--warn-bg); }
+.meas .hint { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.meas .hint.is-bad-t { color: var(--warn-fg); }
+
+/* ── 照片登记 ── */
+.photo-cell { display: flex; align-items: center; gap: var(--sp-2); margin-top: var(--sp-2); flex-wrap: wrap; }
+.photo-cell input[type="text"] {
+  flex: 1 1 200px;
+  font: inherit;
+  font-size: 12px;
+  font-family: var(--font-num);
+  padding: 4px 8px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+}
+.photo-cell .cnt { font-size: 12px; color: var(--text2); }
+
+/* ── 每周巡检 ── */
+.wk-area {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) 0;
+  border-bottom: 1px dashed var(--mut-bd);
+  flex-wrap: wrap;
+}
+.wk-area:last-child { border-bottom: 0; }
+.wk-empty {
+  font-size: 12px;
+  color: var(--text-disabled);
+  font-style: italic;
+}
+
+/* ── 记录列表 ── */
+.rec-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.rec-row:last-child { border-bottom: 0; }
+.rec-date { font-family: var(--font-num); color: var(--text2); font-size: 13px; }
+.rec-site { font-weight: 600; }
+.rec-tally { font-size: 12px; color: var(--text2); font-family: var(--font-num); }
+
+/* ── 汇总条 ── */
+.tally-bar { display: flex; gap: var(--sp-3); flex-wrap: wrap; margin-bottom: var(--sp-3); }
+.tally-bar .t { font-size: 13px; color: var(--text2); }
+.tally-bar .t b { font-family: var(--font-num); color: var(--text); }
+
+/* ── 空态 ── */
+.empty-note {
+  border: 1px dashed var(--mut-bd);
+  border-radius: var(--r-md);
+  padding: var(--sp-4);
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.8;
+  background: var(--surface2);
+}
+
+</style></head><body>
+<header class="top"><div class="logo">ABox 一盒</div><div class="sub">R2 食安自检与巡检 · 每日开餐前检查、整改闭环与每周深度巡检</div><div class="spacer"></div><div class="ver">版本 <span id="ver"></span> · 基准日 <span id="date"></span></div></header>
+<div class="hero"><h1>食安自检与巡检</h1><p>F3 管的是「每一份饭有据可查」，R2 管的是「整个环境是干净的」，两者合起来才是完整的食安防线。这里的三条口径是：查了不等于合格（未查不算合格）；加热设备、温度记录、留样这三项是自制定性的支柱，缺了会被认定为「经营外购即食食品」而非自制，因此任一不合格即当日禁止出餐；整改开了单不等于修好，未闭环同样不得出餐。照片只登记索引（文件名与张数）—— 单文件的存储空间约 5MB，放不下一张原图。数据只存在本机浏览器，不上传。</p></div>
+<div class="wrap"><aside class="side" id="side"></aside><main class="main" id="main"></main></div>
+<footer class="foot" id="foot">ABox 一盒 · R2 食安自检与巡检 v1.0 · 检查项七条（硬三项出自 finance.entity.ts 集散中心注释）· 留样数值取自外部规范通用口径，须运营或合规确认 · 每周深度巡检五个领域真源只给了名字，条目如实留空待现场补 · 默认无记录：加工场所尚未实际投用，本工具是框架版</footer>
+<script>
+window.TOOL_VERSION = "v1.0";
+window.SPEC = {"_version":"v1.0","toolName":"ABox 一盒 · 食安自检与巡检","brand":{"name":"ABox 一盒","sub":"食安自检与巡检"},"tokens":{"value":{"bg":"#F6F0E5","surface":"#FFFDF8","surface2":"#F7F1E4","surface3":"#FBF6EC","text":"#6E5435","text2":"#796C57","text-disabled":"#A79A85","gold":"#C9A876","gold-deep":"#936F3A","gold-deepest":"#8A6620","border":"#E4D8C3","border-strong":"#D6CBB8","ok":"#5B7C3A","warn":"#C44536","info":"#4A6FA5","ok-bg":"#F1F5EA","ok-bd":"#BBCBA6","warn-bg":"#FBF0EE","warn-bd":"#E3BFB8","info-bg":"#EDF1F8","info-bd":"#B4C4DA","mut-bg":"#F7F2E8","mut-bd":"#E4D8C3","gold-bg":"#FBF4E6","gold-bd":"#DCC79C","ok-fg":"#597939","warn-fg":"#C24436","info-fg":"#4A6FA5","gold-fg":"#8D6A38","from":"#FFF6E0","to":"#FFEED5","brand-meituan":"#FFD400","brand-meituan-text":"#000000","brand-taobao":"#FF6A00","brand-taobao-text":"#000000","brand-jd":"#E1251B","brand-jd-text":"#FFFFFF","font-display":"'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif","font-body":"-apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif","font-num":"'SF Mono','Roboto Mono',Consolas,monospace","r-sm":"4px","r-md":"10px","r-lg":"16px","sp-1":"6px","sp-2":"10px","sp-3":"14px","sp-4":"20px","sp-5":"28px"},"_src":"_ABox一盒设计token真源v2.1/design-tokens.css"},"r2":{"name":"R2 食安自检与巡检","是什么":"每日开餐前检查表（照片留证）· 每周深度巡检 · 整改项跟踪闭环 · 历史检查记录可导出（应对监管检查）。","谁每天用":"加工场所 / 出餐人（填写）· 你（看整改）","解决什么":"F3 管的是\"每一份饭有据可查\"，R2 管的是\"整个环境是干净的\"。","现在能做":"表单 + 照片 + 提醒，简单。","量级":"1–2 天","依赖":"加工场所实际投用后"},"order":"21R2 食安自检巡检与 F3 合起来才是完整食安防线1–2 天","risk":{"risk":"食安事故对餐饮创业是一票否决：不只是赔钱，是牌照、口碑、平台准入全部归零。","now":"它的价值分两层：不出事（有检查表就不会漏）+ 出了事能自证（有留样与追溯，责任边界清楚）。"},"sites":{"list":[{"id":1,"name":"集散中心 1（国贸/建外）","address":"朝阳区建国路 88 号","contactName":"王师傅","contactPhone":"13800000001","riceFee":0.0,"packFee":0.0,"serviceGroups":[1,2],"status":1},{"id":2,"name":"集散中心 2（银泰/建外）","address":"朝阳区光华路 21 号","contactName":"刘师傅","contactPhone":"13800000002","riceFee":0.0,"packFee":0.0,"serviceGroups":[3,2],"status":1},{"id":3,"name":"集散中心 3（国贸/远洋）","address":"朝阳区东三环中路 65 号","contactName":"赵师傅","contactPhone":"13800000003","riceFee":0.0,"packFee":0.0,"serviceGroups":[1,5],"status":1},{"id":4,"name":"集散中心 4（华贸组）","address":"朝阳区四惠东","contactName":"钱师傅","contactPhone":"13800000004","riceFee":0.0,"packFee":0.0,"serviceGroups":[4],"status":1}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts","_note":"集散中心 = ABox 「自有持证场所」（非供应商、不是应付对象）；riceFee / packFee 默认 0.00 的含义是「「未登记」」而不是「免费」"},"why":{"text":"半成品由各供应商送到这里 → ABox 完成「热加工 / 复温」（要有加热设备、温度记录、留样，否则会被认定为「经营外购即食食品」而非自制）→ 打包 → 配送到楼。","src":"apps/api-server/src/database/entities/finance.entity.ts:429","raw3":["加热设备","温度记录","留样"],"_note":"这三项不是一般的环境检查 —— 缺了它们，ABox 会被认定为「经营外购即食食品」而非自制，直接冲击产品形态定性与热食类制售许可的成立。"},"items":[{"key":"heat","label":"加热 / 复温设备可用","basis":"代码注释（finance.entity.ts：要有加热设备）","hard":true,"whyTag":"自制定性"},{"key":"tempLog","label":"出餐温度记录已填（复温达标）","basis":"代码注释（finance.entity.ts：要有温度记录）","hard":true,"whyTag":"自制定性"},{"key":"sampling","label":"本餐次留样已执行","basis":"代码注释（finance.entity.ts：要有留样）","hard":true,"whyTag":"自制定性"},{"key":"health","label":"从业人员健康证在有效期","basis":"运营默认项（关联《合规资质与协议清单》§八 #8 收集健康证）","hard":false,"whyTag":""},{"key":"sanitize","label":"操作区与留样容器已消毒","basis":"运营默认项（仓库无成文条目）","hard":false,"whyTag":""},{"key":"waste","label":"临期 / 废弃物处置有痕迹","basis":"运营默认项（与 S5 损耗归因衔接）","hard":false,"whyTag":""},{"key":"seal","label":"食安封签已加封（一次性不可逆）","basis":"123 号令要求项（《上线资质与平台准入清单》#11 · ABox 自行执行）","hard":false,"whyTag":"123 号令","ext":true}],"hardKeys":["heat","tempLog","sampling"],"crossF3":{"ok":true,"f3Keys":["heat","tempLog","sampling","health","sanitize","waste"],"r2CoreKeys":["heat","tempLog","sampling","health","sanitize","waste"],"extKeys":["seal"],"reason":"核心项一致"},"keepPolicy":{"weightMinG":125,"tempMinC":0,"tempMaxC":8,"keepHours":48,"sampleWindowMin":120,"labels":{"weightMinG":"每样留样量下限（克）","tempMinC":"冷藏温度下限（℃）","tempMaxC":"冷藏温度上限（℃）","keepHours":"留样保存时长下限（小时）","sampleWindowMin":"出餐后留样时限（分钟）"},"basis":{"weightMinG":"外部规范通用口径（≥125g）","tempMinC":"外部规范通用口径（冷藏 0–8℃）","tempMaxC":"外部规范通用口径（冷藏 0–8℃）","keepHours":"外部规范通用口径（≥48 小时）","sampleWindowMin":"「本项目运营默认值」（法规未给具体分钟数，取 2 小时）"},"_src":"「外部规范口径（非代码真源）」","_note":"仓库里没有留样数值常量（全量 grep 已确认）。上列默认值取自餐饮留样的通用口径，「不代表属地监管的全部要求」；首次投入使用前须由运营/合规确认并在此改正。工具只做「登记 + 提醒 + 自证」，「不替代法规」。","_demo":true},"weekly":{"src":"食品安全管理制度 + 风险管控清单","note":"自营主体自建（含采购查验、留样、温控、应急处置、投诉处理）","owner":"运营","state":"待办","areas":[{"key":"w1","label":"采购查验","items":[],"basis":"真源只给领域名，条目待现场补"},{"key":"w2","label":"留样","items":[],"basis":"真源只给领域名，条目待现场补"},{"key":"w3","label":"温控","items":[],"basis":"真源只给领域名，条目待现场补"},{"key":"w4","label":"应急处置","items":[],"basis":"真源只给领域名，条目待现场补"},{"key":"w5","label":"投诉处理","items":[],"basis":"真源只给领域名，条目待现场补"}],"_src":"docs/ABox一盒外卖小程序上线资质与平台准入清单v1.2.md §一 #10","_note":"真源只列出上列五个领域的名字，没有任何条目。逐项内容须在加工场所投用后现场补齐 —— 本工具如实留空，不代填。"},"backlog":[{"no":"1","todo":"收集营业执照 + 食品经营许可证（含热食类制售）","owner":"项目负责人","due":"W1 D2","done":false,"state":"未完成","_src":"ABox一盒合规资质与协议清单v1.0.md §八"},{"no":"8","todo":"收集 4 家供应商资质（营业执照 + 食品许可 + 健康证）","owner":"运营","due":"W2 D3","done":false,"state":"未完成","_src":"ABox一盒合规资质与协议清单v1.0.md §八"},{"no":"3","todo":"「《食品经营许可证》（热食类制售）」","owner":"昌平区市监局","due":"需「实体经营场所」（须自有或长租、可现场核查）。见 §三","done":false,"state":"阻塞","_src":"docs/ABox一盒外卖小程序上线资质与平台准入清单v1.2.md §一"},{"no":"7","todo":"半成品供应商资质包（4 家）","owner":"运营","due":"营业执照 + 「食品生产/经营许可」（视其加工的成品形态）+ 检验/合格证明；见 §四","done":false,"state":"待办","_src":"docs/ABox一盒外卖小程序上线资质与平台准入清单v1.2.md §一"},{"no":"10","todo":"食品安全管理制度 + 风险管控清单","owner":"运营","due":"自营主体自建（含采购查验、留样、温控、应急处置、投诉处理）","done":false,"state":"待办","_src":"docs/ABox一盒外卖小程序上线资质与平台准入清单v1.2.md §一"},{"no":"11","todo":"食安封签（一次性不可逆）","owner":"运营","due":"123 号令要求项，ABox 自行执行","done":false,"state":"待办","_src":"docs/ABox一盒外卖小程序上线资质与平台准入清单v1.2.md §一"},{"no":"12","todo":"互联网 + 明厨亮灶","owner":"运营","due":"视频留存 ≥14 天；自营门店按平台要求展示","done":false,"state":"待办","_src":"docs/ABox一盒外卖小程序上线资质与平台准入清单v1.2.md §一"}],"supplierClause":{"no":"7","title":"质量与食品安全","point":"出餐时间（「≤ 09:30」）、卫生标准、留样要求","_src":"ABox一盒合规资质与协议清单v1.0.md §五"},"photo":{"store":"index","storeLabel":"只存索引（文件名 + 张数 + 时刻）","reason":"单文件 HTML 工具的数据存在浏览器 localStorage 里，容量约 5MB，放不下一张原图；把图片转 base64 存进去会在几张照片后就写满并丢失全部记录。","naming":"YYYY-MM-DD-场所-检查项.jpg","_note":"照片本体请按上列命名存到本地文件夹（如「食安留证/2026-10/」）。本工具登记的是「拍了没有、叫什么名、几张」，监管检查时按索引去文件夹里取 —— 它不是照片仓库。"},"timeline":{"value":{"publish":"14:00","cutoff":"24:00","arrival":"11:30","autoConfirm":"14:00","deliveryGenerate":"00:30"},"_src":"abox-onebox/apps/api-server/src/common/utils/order-timeline.ts","_note":"截单 24:00 是合法值（= 次日 0 点），不是笔误"},"today":"","framework":{"isFramework":true,"reason":"系统地图写明 R2 的依赖是「加工场所实际投用后」。当前 4 个集散中心是种子数据，尚未实际投用，因此检查项的「每项做多久、实际卡在哪」都还没有真实样本。","uncalibrated":["软三项（健康证 / 消毒 / 废弃物）在仓库里没有成文条目，属运营默认项","每周深度巡检的五个领域真源只给了名字，条目全空","留样数值取自外部规范通用口径，非属地监管确认值","检查频次（每日 / 每周）与「开餐前」的具体时点尚未与出餐流程对齐"]}};
+/* ─────────────────────────────────────────────────────────────
+   P0 工具集 · 共享工具函数（纯函数为主，不碰业务）
+   ⚠️ 必须以「普通脚本」形式可被 eval（构建期启动冒烟要用），
+      故不使用 ESM 语法，只挂 `window.U`。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var U = {};
+
+  /* ── DOM ── */
+  U.$ = function (sel, root) { return (root || document).querySelector(sel); };
+  U.$$ = function (sel, root) {
+    return Array.prototype.slice.call((root || document).querySelectorAll(sel));
+  };
+  /** 绑定事件：一律挂到 document，用 closest 分发（兄弟节点挂错容器是本项目踩过的坑） */
+  U.on = function (evt, sel, fn) {
+    document.addEventListener(evt, function (e) {
+      var t = e.target && e.target.closest ? e.target.closest(sel) : null;
+      if (t) fn(e, t);
+    });
+  };
+
+  /* ── 文本 ── */
+  U.esc = function (s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  };
+  /** 数值格式化；null/undefined/NaN 一律回显 '—'（不要显示 NaN） */
+  U.num = function (v, d) {
+    if (v == null || v === '' || !isFinite(Number(v))) return '—';
+    return Number(v).toFixed(d == null ? 2 : d);
+  };
+  /** 金额：¥ + 两位小数 */
+  U.y = function (v, d) {
+    if (v == null || v === '' || !isFinite(Number(v))) return '—';
+    return '¥' + Number(v).toFixed(d == null ? 2 : d);
+  };
+  /** 分 → 元（项目内金额一律「存分、显示元」，避免浮点） */
+  U.fen2y = function (fen, d) {
+    if (fen == null || !isFinite(Number(fen))) return '—';
+    return '¥' + (Number(fen) / 100).toFixed(d == null ? 2 : d);
+  };
+  U.y2fen = function (y) { return Math.round(Number(y || 0) * 100); };
+  /** 归一两位小数（复刻 biz.ts 的 round2 语义：先乘后再四舍五入） */
+  U.round2 = function (n) { return Math.round((Number(n) + Number.EPSILON) * 100) / 100; };
+
+  /* ── 日期（一律 YYYY-MM-DD 字符串 · 本地时区 · 不碰 UTC）── */
+  U.pad2 = function (n) { return (n < 10 ? '0' : '') + n; };
+  U.today = function (d) {
+    d = d || new Date();
+    return d.getFullYear() + '-' + U.pad2(d.getMonth() + 1) + '-' + U.pad2(d.getDate());
+  };
+  /** 字符串 → Date（本地零点）；非法返回 null —— 绝不返回 Invalid Date 让它往下跑 */
+  U.dt = function (s) {
+    if (!s) return null;
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s).trim());
+    if (!m) return null;
+    var d = new Date(+m[1], +m[2] - 1, +m[3]);
+    return isNaN(d.getTime()) ? null : d;
+  };
+  U.addDays = function (s, n) {
+    var d = U.dt(s); if (!d) return null;
+    d.setDate(d.getDate() + n);
+    return U.today(d);
+  };
+  /** b − a 的天数（两个 YYYY-MM-DD）；任一非法返回 null */
+  U.diffDays = function (a, b) {
+    var x = U.dt(a), y2 = U.dt(b);
+    if (!x || !y2) return null;
+    return Math.round((y2.getTime() - x.getTime()) / 86400000);
+  };
+  /** 校验：是不是合法的 YYYY-MM-DD（且日期真实存在，如 2026-02-30 判非法） */
+  U.isDate = function (s) {
+    var d = U.dt(s);
+    return !!d && U.today(d) === String(s).trim();
+  };
+
+  /* ── 本地存储（file:// 下 localStorage 可能直接抛异常，必须容错）── */
+  U.store = {
+    get: function (k, dflt) {
+      try {
+        var v = g.localStorage.getItem(k);
+        return v == null ? dflt : JSON.parse(v);
+      } catch (e) { return dflt; }
+    },
+    set: function (k, v) {
+      try { g.localStorage.setItem(k, JSON.stringify(v)); return true; }
+      catch (e) { return false; }
+    },
+    del: function (k) {
+      try { g.localStorage.removeItem(k); return true; } catch (e) { return false; }
+    },
+    /** 存储是否可用（不可用时页面要提示「本次改动不会保存」） */
+    ok: function () {
+      try {
+        g.localStorage.setItem('__t', '1'); g.localStorage.removeItem('__t');
+        return true;
+      } catch (e) { return false; }
+    },
+  };
+
+  /* ── 导出 / 导入 ── */
+  U.download = function (name, text, mime) {
+    var blob = new Blob([text], { type: (mime || 'text/plain') + ';charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 0);
+  };
+  U.pickFile = function (accept, fn) {
+    var i = document.createElement('input');
+    i.type = 'file'; i.accept = accept || '.json';
+    i.onchange = function () {
+      var f = i.files && i.files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function () { fn(String(r.result), f); };
+      r.readAsText(f, 'utf-8');
+    };
+    i.click();
+  };
+  /** CSV：单元格内的引号/逗号/换行都要转义，否则 Excel 打开就串列 */
+  U.toCSV = function (rows) {
+    return rows.map(function (r) {
+      return r.map(function (c) {
+        var s = c == null ? '' : String(c);
+        return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      }).join(',');
+    }).join('\r\n');
+  };
+
+  /* ── 数组 ── */
+  U.groupBy = function (arr, keyFn) {
+    var out = {};
+    (arr || []).forEach(function (x) {
+      var k = keyFn(x);
+      (out[k] = out[k] || []).push(x);
+    });
+    return out;
+  };
+  U.sum = function (arr, fn) {
+    return (arr || []).reduce(function (s, x) { return s + (Number(fn ? fn(x) : x) || 0); }, 0);
+  };
+  U.sortBy = function (arr, fn, dir) {
+    var d = dir === 'desc' ? -1 : 1;
+    return (arr || []).slice().sort(function (a, b) {
+      var x = fn(a), y2 = fn(b);
+      if (x == null && y2 == null) return 0;
+      if (x == null) return 1;        /* 空值恒排末尾，不参与方向翻转 */
+      if (y2 == null) return -1;
+      return x < y2 ? -d : x > y2 ? d : 0;
+    });
+  };
+
+  g.U = U;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ============================================================
+ * P2 序 21 · R2「食安自检与巡检」纯逻辑层
+ *
+ * ⭐ 三条口径（本工具最容易骗人的地方，做成一等公民）
+ *
+ *  ① 「查了」不等于「合格」
+ *     每项检查三态：ok 合格 / ng 不合格 / na 未查。只有 ok 计入通过。
+ *     默认全 na —— 若把 na 当合格，工具会在「什么都没做」时报一片绿。
+ *
+ *  ② 硬三项不是一般检查项，是自制定性的支柱
+ *     heat / tempLog / sampling 出自 finance.entity.ts 集散中心注释：
+ *     「要有加热设备、温度记录、留样，否则会被认定为『经营外购即食食品』而非自制」。
+ *     这三项任一 ng ⇒ **当日禁止出餐**（不是扣分项）。
+ *
+ *  ③ 整改未闭环 ⇒ 场所当日不得出餐
+ *     检查发现不合格只是开始，闭环才算数。开单不等于修好。
+ *
+ * ⭐ 依赖注入式：内部互相调用一律走 self()（＝ root.R2）而不是闭包局部变量，
+ *    否则 monkeypatch 类负控完全无效（E4 踩过：10 条负控恒绿）。
+ * ============================================================ */
+(function (root) {
+  'use strict';
+
+  var S = root.SPEC || {};
+  var U = root.U || {};
+
+  /* ⭐ 依赖注入式：内部互相调用一律走 self() */
+  function self() { return root.R2; }
+
+  var STORE_KEY = 'abox.r2.v1';
+  var ITEMS = (S.items || []);
+  var HARD = (S.hardKeys || []);
+  var SITES = (S.sites || {}).list || [];
+  var KP = S.keepPolicy || {};
+
+  /* ─────────────── 基础 ─────────────── */
+
+  function itemKeys() {
+    return ITEMS.map(function (x) { return x.key; });
+  }
+
+  function hardKeys() {
+    return HARD.slice();
+  }
+
+  function itemOf(key) {
+    for (var i = 0; i < ITEMS.length; i++) {
+      if (ITEMS[i].key === key) return ITEMS[i];
+    }
+    return null;
+  }
+
+  function siteName(id) {
+    for (var i = 0; i < SITES.length; i++) {
+      if (SITES[i].id === Number(id)) return SITES[i].name;
+    }
+    return '（场所 ' + id + '）';
+  }
+
+  function siteIds() {
+    return SITES.map(function (s) { return s.id; });
+  }
+
+  /** ISO 周键（周一为一周之始），如 2026-W39
+   *
+   * ⚠️ 2026-09-26 修复：原实现按「距当年 1 月 1 日过了几个 7 天 + 1」算，只要 1 月 1 日
+   *    不是周一，全年周号就整体少 1，跨年那一周还会被打回上一年 —— 与 ISO-8601 不等价。
+   *    实测：2026-09-26 报 2026-W38（ISO 实为 W39）、2026-01-01 报 2025-W52（ISO 实为 2026-W01）。
+   *    周键是周巡检的**分组主键**，也是每周巡检标题里给监管核对的周次，对不上就失去比对价值。
+   *
+   *    ISO-8601 定义：含当年第一个**星期四**的那一周为第 1 周。等价做法 ——
+   *    先把日期移到本周的星期四，该日的年份即 ISO 年；周号 = ceil((该周四 − 该年 1 月 1 日)/7 天 + 1/7)。
+   */
+  function weekKeyOf(date) {
+    var d = U.dt ? U.dt(date) : new Date(date);
+    if (!d || isNaN(d.getTime())) return '';
+    var t = new Date(d.getTime());
+    var dayNum = t.getDay() || 7;                  // 周一=1 … 周日=7
+    t.setDate(t.getDate() + 4 - dayNum);           // 移到本周的星期四
+    var y = t.getFullYear();
+    var jan1 = new Date(y, 0, 1);
+    var wk = Math.ceil(((t - jan1) / 86400000 + 1) / 7);
+    /* 跨年保护：1 月 1 日若落在周五/周六/周日，它属于上一年的最后一周 ⇒ ISO 年要回拨 */
+    if (wk < 1) {
+      y -= 1;
+      jan1 = new Date(y, 0, 1);
+      wk = Math.ceil(((t - jan1) / 86400000 + 1) / 7);
+    }
+    return y + '-W' + (wk < 10 ? '0' + wk : wk);
+  }
+
+  /* ─────────────── 记录 ─────────────── */
+
+  function newRec(date, siteId) {
+    var checks = {};
+    itemKeys().forEach(function (k) { checks[k] = 'na'; });
+    return {
+      id: 'r' + Date.now() + Math.floor(Math.random() * 1000),
+      date: date || (U.today ? U.today() : ''),
+      siteId: siteId || (SITES[0] && SITES[0].id) || 1,
+      checks: checks,
+      measures: { weightG: '', tempC: '', keepH: '', windowMin: '' },
+      photo: {},                 // { key: { done, name, count } }
+      inspector: '',
+      note: ''
+    };
+  }
+
+  function defaults() {
+    return {
+      today: U.today ? U.today() : '',
+      lead: 3,                   // 整改期限（天）
+      recs: [],
+      rects: [],
+      weekly: []
+    };
+  }
+
+  /* ─────────────── ① 合格 ≠ 查了 ─────────────── */
+
+  /** 返回 { ok, ng, na, total } —— total 是应查项数（＝全部项） */
+  function tally(rec) {
+    var t = { ok: 0, ng: 0, na: 0, total: 0 };
+    itemKeys().forEach(function (k) {
+      var v = (rec.checks || {})[k];
+      t.total += 1;
+      if (v === 'ok') t.ok += 1;
+      else if (v === 'ng') t.ng += 1;
+      else t.na += 1;
+    });
+    return t;
+  }
+
+  function passRate(rec) {
+    var t = self().tally(rec);
+    return t.total ? t.ok / t.total : 0;
+  }
+
+  /* ─────────────── ② 自制定性硬三项 ─────────────── */
+
+  function hardFail(rec) {
+    var out = [];
+    hardKeys().forEach(function (k) {
+      if ((rec.checks || {})[k] === 'ng') out.push(k);
+    });
+    return out;
+  }
+
+  /** 硬三项未查 —— 没有记录，监管检查时等于没做 */
+  function hardNa(rec) {
+    var out = [];
+    hardKeys().forEach(function (k) {
+      if ((rec.checks || {})[k] !== 'ok') out.push(k);
+    });
+    return out;
+  }
+
+  /* ─────────────── 留样数值校验 ─────────────── */
+
+  function measureIssues(rec) {
+    var out = [];
+    var m = rec.measures || {};
+    var lab = KP.labels || {};
+    function chk(key, val, min, max, unit, label) {
+      if (val === '' || val === null || val === undefined) return;   // 未填不算不符
+      var n = Number(val);
+      if (!isFinite(n)) {
+        out.push({ key: key, label: label, value: val, expect: '应为数值', ok: false });
+        return;
+      }
+      var bad = (min !== null && n < min) || (max !== null && n > max);
+      var exp = min !== null && max !== null
+        ? ('应在 ' + min + '–' + max + ' ' + unit)
+        : (min !== null ? ('应 ≥ ' + min + ' ' + unit) : ('应 ≤ ' + max + ' ' + unit));
+      if (bad) out.push({ key: key, label: label, value: n, expect: exp, ok: false });
+    }
+    chk('weightG', m.weightG, KP.weightMinG, null, 'g', lab.weightMinG || '留样量');
+    chk('tempC', m.tempC, KP.tempMinC, KP.tempMaxC, '℃', lab.tempMinC || '冷藏温度');
+    chk('keepH', m.keepH, KP.keepHours, null, '小时', lab.keepHours || '保存时长');
+    chk('windowMin', m.windowMin, null, KP.sampleWindowMin, '分钟',
+      lab.sampleWindowMin || '留样时限');
+    return out;
+  }
+
+  /* ─────────────── ③ 整改闭环 ─────────────── */
+
+  function newRect(rec, itemKey, desc, owner, lead) {
+    var it = self().itemOf(itemKey);
+    return {
+      id: 'x' + Date.now() + Math.floor(Math.random() * 1000),
+      date: rec.date,
+      siteId: rec.siteId,
+      itemKey: itemKey,
+      itemLabel: it ? it.label : itemKey,
+      desc: desc || '',
+      owner: owner || '',
+      due: U.addDays ? U.addDays(rec.date, Number(lead || 0)) : rec.date,
+      status: 'open',        // open 待改 / done 已改待验 / closed 已闭环
+      closedAt: '',
+      closedBy: ''
+    };
+  }
+
+  function openRects(siteId, rects) {
+    return (rects || []).filter(function (r) {
+      return Number(r.siteId) === Number(siteId) && r.status !== 'closed';
+    });
+  }
+
+  function isOverdue(rect, today) {
+    if (rect.status === 'closed') return false;
+    if (!rect.due || !today) return false;
+    var d = U.diffDays ? U.diffDays(today, rect.due) : null;
+    return d !== null && d < 0;
+  }
+
+  function closeRect(rect, by, today) {
+    rect.status = 'closed';
+    rect.closedAt = today;
+    rect.closedBy = by || '';
+    return rect;
+  }
+
+  /* ─────────────── 出餐闸门（三态） ─────────────── */
+
+  /**
+   * blocked    禁止出餐：硬项不合格 或 有未闭环整改单
+   * incomplete 检查未完成：有项未查（不能判定，不是合格）
+   * pass       全部合格且无未闭环整改单
+   */
+  function gate(rec, rects) {
+    var reasons = [];
+    var hf = self().hardFail(rec);
+    var hr = self().hardNa(rec);
+    var op = self().openRects(rec.siteId, rects);
+
+    if (hf.length) {
+      reasons.push('自制定性项不合格（' + hf.map(function (k) {
+        var it = self().itemOf(k); return it ? it.label : k;
+      }).join('、') + '）—— 缺了会被认定为「经营外购即食食品」而非自制');
+    }
+    if (op.length) {
+      reasons.push('有 ' + op.length + ' 项整改未闭环：'
+        + op.map(function (r) { return r.itemLabel; }).join('、'));
+    }
+    if (reasons.length) return { verdict: 'blocked', reasons: reasons };
+
+    var t = self().tally(rec);
+    if (t.na > 0) {
+      return {
+        verdict: 'incomplete',
+        reasons: ['还有 ' + t.na + ' 项未查（未查不算合格，监管检查时无记录＝没做）']
+      };
+    }
+    if (hr.length) {
+      return { verdict: 'incomplete', reasons: ['自制定性项未全部查到'] };
+    }
+    /* ⭐ 2026-09-26 修复：原先走到这里就直接判 pass，**完全没有消费 tally 出来的 t.ng**，
+       于是「全项已查但一般项判不合格」⇒ verdict='pass'，页面还打印
+       「无阻断项：全部项已查且合格」，而同一屏侧栏正显示「不合格 N」；
+       更糟的是导出 CSV（用途写着应对监管检查）会照写「可出餐」。
+       定性外的任一项不合格，出餐前必须整改闭环 —— 未闭环就不得出餐。 */
+    if (t.ng > 0) {
+      var ngLabels = itemKeys().filter(function (k) {
+        return rec.checks[k] === 'ng';
+      }).map(function (k) {
+        var it = self().itemOf(k); return it ? it.label : k;
+      });
+      return {
+        verdict: 'blocked',
+        reasons: ['有 ' + t.ng + ' 项检查不合格（须开整改单并闭环后才能出餐）：' + ngLabels.join('、')]
+      };
+    }
+    return { verdict: 'pass', reasons: [] };
+  }
+
+  function gateText(v) {
+    if (v === 'blocked') return '禁止出餐';
+    if (v === 'incomplete') return '检查未完成';
+    if (v === 'pass') return '可出餐';
+    return '待判';
+  }
+
+  /* ─────────────── 每周深度巡检 ─────────────── */
+
+  function newWeekly(weekKey, siteId) {
+    var areas = (S.weekly || {}).areas || [];
+    var a = {};
+    areas.forEach(function (x) { a[x.key] = 'na'; });   // na / ok / ng
+    return {
+      id: 'w' + Date.now() + Math.floor(Math.random() * 1000),
+      week: weekKey, siteId: siteId, areas: a, note: ''
+    };
+  }
+
+  function weeklyTally(w) {
+    var t = { ok: 0, ng: 0, na: 0, total: 0 };
+    var ks = Object.keys(w.areas || {});
+    ks.forEach(function (k) {
+      t.total += 1;
+      if (w.areas[k] === 'ok') t.ok += 1;
+      else if (w.areas[k] === 'ng') t.ng += 1;
+      else t.na += 1;
+    });
+    return t;
+  }
+
+  /* ─────────────── 导出（应对监管检查） ─────────────── */
+
+  function toRows(recs, rects) {
+    var head = ['日期', '场所', '检查人'];
+    itemKeys().forEach(function (k) {
+      var it = self().itemOf(k);
+      head.push(it ? it.label : k);
+    });
+    head = head.concat(['留样量(g)', '冷藏温度(℃)', '保存时长(h)', '出餐后留样时限(min)',
+      '出餐判定', '备注']);
+    var rows = [head];
+    (recs || []).forEach(function (r) {
+      var line = [r.date, self().siteName(r.siteId), r.inspector || ''];
+      itemKeys().forEach(function (k) {
+        var v = (r.checks || {})[k];
+        line.push(v === 'ok' ? '合格' : (v === 'ng' ? '不合格' : '未查'));
+      });
+      var m = r.measures || {};
+      line.push(m.weightG, m.tempC, m.keepH, m.windowMin);
+      line.push(self().gateText(self().gate(r, rects || []).verdict));
+      line.push(r.note || '');
+      rows.push(line);
+    });
+    return rows;
+  }
+
+  /* ─────────────── 存储 ─────────────── */
+
+  function load() {
+    try {
+      var raw = root.localStorage.getItem(STORE_KEY);
+      if (!raw) return self().defaults();
+      var o = JSON.parse(raw);
+      var d = self().defaults();
+      Object.keys(d).forEach(function (k) { if (!(k in o)) o[k] = d[k]; });
+      return o;
+    } catch (e) {
+      return self().defaults();
+    }
+  }
+
+  function save(st) {
+    try {
+      root.localStorage.setItem(STORE_KEY, JSON.stringify(st));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /* ─────────────── 演示数据 ─────────────── */
+
+  function demoRecs() {
+    var today = self().defaults().today;
+    var list = [];
+    var ids = self().siteIds();
+    var d1 = U.addDays ? U.addDays(today, -1) : today;
+    var d2 = U.addDays ? U.addDays(today, -3) : today;
+
+    // ① 昨天 · 场所1：全合格（可出餐的正面样本）
+    var a = self().newRec(d1, ids[0]);
+    itemKeys().forEach(function (k) { a.checks[k] = 'ok'; });
+    a.measures = { weightG: 130, tempC: 4, keepH: 48, windowMin: 60 };
+    a.inspector = '王师傅';
+    a.photo = { heat: { done: true, name: d1 + '-场所1-加热设备.jpg', count: 1 } };
+    list.push(a);
+
+    // ② 3 天前 · 场所2：硬项不合格 + 留样数值不符（禁止出餐的反面样本）
+    var b = self().newRec(d2, ids[1] || ids[0]);
+    itemKeys().forEach(function (k) { b.checks[k] = 'ok'; });
+    b.checks.tempLog = 'ng';
+    b.checks.seal = 'na';
+    b.measures = { weightG: 100, tempC: 12, keepH: 24, windowMin: 60 };
+    b.inspector = '刘师傅';
+    list.push(b);
+
+    // ③ 昨天 · 场所2：检查未完成（未查不算合格的样本）
+    var c = self().newRec(d1, ids[1] || ids[0]);
+    c.checks.heat = 'ok';
+    c.checks.sampling = 'ok';
+    c.inspector = '刘师傅';
+    list.push(c);
+
+    return list;
+  }
+
+  function demoRects() {
+    var today = self().defaults().today;
+    var ids = self().siteIds();
+    var d2 = U.addDays ? U.addDays(today, -3) : today;
+    var open = self().newRect({ date: d2, siteId: ids[1] || ids[0] },
+      'tempLog', '复温温度记录缺失，已停用该批次并补做温度链记录', '刘师傅', 3);
+    open.due = U.addDays ? U.addDays(today, -1) : today;   // 已超期
+    var closed = self().newRect({ date: d2, siteId: ids[1] || ids[0] },
+      'waste', '废弃物处置台账补建', '刘师傅', 3);
+    self().closeRect(closed, '祝总', today);
+    return [open, closed];
+  }
+
+  function demoWeekly() {
+    var today = self().defaults().today;
+    var ids = self().siteIds();
+    var w = self().newWeekly(self().weekKeyOf(today), ids[0]);
+    var ks = Object.keys(w.areas || {});
+    if (ks.length) { w.areas[ks[0]] = 'ok'; w.areas[ks[1]] = 'ok'; }
+    w.note = '本周只记了领域，条目真源里没有，待现场补';
+    return [w];
+  }
+
+  /* ─────────────── 框架诚实 ─────────────── */
+
+  function frameworkNote() {
+    var f = S.framework || {};
+    return {
+      isFramework: !!f.isFramework,
+      reason: f.reason || '',
+      items: (f.uncalibrated || []).slice()
+    };
+  }
+
+  function uncalibratedCount() {
+    return (S.framework && S.framework.uncalibrated || []).length;
+  }
+
+  /* ─────────────── 照片（只存索引） ─────────────── */
+
+  function photoOf(rec, key) {
+    var p = (rec.photo || {})[key];
+    return p || { done: false, name: '', count: 0 };
+  }
+
+  function photoDoneCount(rec) {
+    var n = 0;
+    itemKeys().forEach(function (k) {
+      if (self().photoOf(rec, k).done) n += 1;
+    });
+    return n;
+  }
+
+  root.R2 = {
+    STORE_KEY: STORE_KEY,
+    itemKeys: itemKeys,
+    hardKeys: hardKeys,
+    itemOf: itemOf,
+    siteName: siteName,
+    siteIds: siteIds,
+    weekKeyOf: weekKeyOf,
+    newRec: newRec,
+    defaults: defaults,
+    tally: tally,
+    passRate: passRate,
+    hardFail: hardFail,
+    hardNa: hardNa,
+    measureIssues: measureIssues,
+    newRect: newRect,
+    openRects: openRects,
+    isOverdue: isOverdue,
+    closeRect: closeRect,
+    gate: gate,
+    gateText: gateText,
+    newWeekly: newWeekly,
+    weeklyTally: weeklyTally,
+    toRows: toRows,
+    load: load,
+    save: save,
+    demoRecs: demoRecs,
+    demoRects: demoRects,
+    demoWeekly: demoWeekly,
+    frameworkNote: frameworkNote,
+    uncalibratedCount: uncalibratedCount,
+    photoOf: photoOf,
+    photoDoneCount: photoDoneCount
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ============================================================
+ * P2 序 21 · R2 判据层（20 条）
+ *
+ * ⚠️ 判据名会渲染到页面自检面板 —— 不得写 Markdown 粗体 `**X**`
+ *    （M2/E4/R4 连续三次栽在这上面），也不得写 emoji。
+ * ============================================================ */
+(function (root) {
+  'use strict';
+
+  var S = root.SPEC || {};
+  var M = root.R2;
+
+  function run(spec, state) {
+    var rows = [];
+    var todos = [];
+    S = spec || S;
+
+    function add(name, ok, detail) {
+      rows.push({ name: name, ok: !!ok, detail: String(detail || '') });
+    }
+
+    var items = S.items || [];
+    var hard = S.hardKeys || [];
+    var keys = M.itemKeys();
+    var fw = M.frameworkNote();
+
+    /* ── ① 检查项结构：硬 3 / 软 3 / 扩展 1 ── */
+    var nHard = items.filter(function (x) { return x.hard; }).length;
+    var nExt = items.filter(function (x) { return x.ext; }).length;
+    var nSoft = items.length - nHard - nExt;
+    add('① 检查项来自真源：硬 3 / 软 3 / 扩展 1，共 7 项',
+      items.length === 7 && nHard === 3 && nSoft === 3 && nExt === 1,
+      '实得 硬 ' + nHard + ' / 软 ' + nSoft + ' / 扩展 ' + nExt + '，共 ' + items.length + ' 项');
+
+    /* ── ② 与 F3 的 siteChecks 不漂移 ── */
+    var cross = S.crossF3 || {};
+    add('② 核心检查项与 F3 的 siteChecks 一致（不漂移）',
+      !!cross.ok && cross.f3Keys && cross.r2CoreKeys
+      && cross.f3Keys.length === 6 && cross.r2CoreKeys.length === 6,
+      cross.reason || '（无交叉校验结果）');
+
+    /* ── ③ 硬三项的出处必须是代码注释 ── */
+    var hardBasis = items.filter(function (x) { return x.hard; })
+      .every(function (x) { return (x.basis || '').indexOf('finance.entity.ts') >= 0; });
+    add('③ 硬三项的出处是 finance.entity.ts 集散中心注释',
+      hard.length === 3 && hardBasis,
+      '硬项 ' + hard.join('、') + ' · 出处 '
+      + (items.find(function (x) { return x.hard; }) || {}).basis);
+
+    /* ── ④ 存在理由原文含「外购即食」 ── */
+    var why = (S.why || {}).text || '';
+    add('④ 存在理由含自制定性原文（外购即食 / 非自制）',
+      why.indexOf('外购即食') >= 0 && why.indexOf('自制') >= 0,
+      (S.why || {}).src + ' · ' + why.slice(0, 60));
+
+    /* ── ⑤ ⭐ 新记录默认全「未查」，不是默认合格 ── */
+    var fresh = M.newRec('2026-09-26', 1);
+    var allNa = keys.every(function (k) { return fresh.checks[k] === 'na'; });
+    add('⑤ 新记录默认全部「未查」（不是默认合格）', allNa,
+      allNa ? '7 项全 na —— 若默认 ok，工具会在什么都没做时报绿' : '存在非 na 的默认值');
+
+    /* ── ⑥ 通过率只计「合格」，未查与不合格都不算 ── */
+    var t6 = M.newRec('2026-09-26', 1);
+    t6.checks[keys[0]] = 'ok';
+    t6.checks[keys[1]] = 'na';
+    t6.checks[keys[2]] = 'ng';
+    var tal = M.tally(t6);
+    add('⑥ 通过率只计合格项（未查 / 不合格都不计入分子）',
+      tal.ok === 1 && tal.na === keys.length - 2 && tal.ng === 1
+      && Math.abs(M.passRate(t6) - 1 / keys.length) < 1e-9,
+      '合格 ' + tal.ok + ' / 不合格 ' + tal.ng + ' / 未查 ' + tal.na
+      + ' ⇒ 通过率 ' + M.passRate(t6).toFixed(3));
+
+    /* ── ⑦ ⭐ 硬项不合格 ⇒ 禁止出餐 ── */
+    var r7 = M.newRec('2026-09-26', 1);
+    keys.forEach(function (k) { r7.checks[k] = 'ok'; });
+    r7.checks.heat = 'ng';
+    var g7 = M.gate(r7, []);
+    add('⑦ 自制定性项不合格 ⇒ 禁止出餐',
+      g7.verdict === 'blocked' && g7.reasons.join('').indexOf('外购即食') >= 0,
+      M.gateText(g7.verdict) + ' · ' + g7.reasons[0]);
+
+    /* ── ⑧ ⭐ 硬项未查 ⇒ 检查未完成，不是可出餐 ── */
+    var r8 = M.newRec('2026-09-26', 1);
+    keys.forEach(function (k) { r8.checks[k] = 'ok'; });
+    r8.checks.tempLog = 'na';
+    var g8 = M.gate(r8, []);
+    add('⑧ 有项未查 ⇒ 判「检查未完成」而非「可出餐」',
+      g8.verdict === 'incomplete',
+      M.gateText(g8.verdict) + ' · ' + g8.reasons[0]);
+
+    /* ── ⑨ 全合格且无未闭环整改 ⇒ 可出餐 ── */
+    var r9 = M.newRec('2026-09-26', 1);
+    keys.forEach(function (k) { r9.checks[k] = 'ok'; });
+    var g9 = M.gate(r9, []);
+    add('⑨ 全部合格且无未闭环整改 ⇒ 可出餐',
+      g9.verdict === 'pass', M.gateText(g9.verdict));
+
+    /* ── ⑩ ⭐ 未闭环整改单 ⇒ 禁止出餐 ── */
+    var r10 = M.newRec('2026-09-26', 1);
+    keys.forEach(function (k) { r10.checks[k] = 'ok'; });
+    var x10 = M.newRect(r10, 'waste', '废弃物台账补建', '刘师傅', 3);
+    var g10 = M.gate(r10, [x10]);
+    add('⑩ 有未闭环整改单 ⇒ 禁止出餐（开单不等于修好）',
+      g10.verdict === 'blocked' && g10.reasons.join('').indexOf('未闭环') >= 0,
+      M.gateText(g10.verdict) + ' · ' + g10.reasons[0]);
+
+    /* ── ⑪ 整改闭环后 ⇒ 不再阻断 ── */
+    M.closeRect(x10, '祝总', '2026-09-26');
+    var g11 = M.gate(r10, [x10]);
+    add('⑪ 整改单闭环后 ⇒ 不再阻断出餐',
+      g11.verdict === 'pass', M.gateText(g11.verdict));
+
+    /* ── ⑫ 超期判定 ── */
+    var x12 = M.newRect({ date: '2026-09-20', siteId: 1 }, 'heat', '加热设备维修', '王师傅', 3);
+    x12.due = '2026-09-23';
+    add('⑫ 整改超期可判定（今天晚于期限且未闭环）',
+      M.isOverdue(x12, '2026-09-26') === true
+      && M.isOverdue(x12, '2026-09-22') === false,
+      '期限 ' + x12.due + ' · 09-26 超期=true · 09-22 超期=false');
+
+    /* ── ⑬ 留样数值不符被检出 ── */
+    var r13 = M.newRec('2026-09-26', 1);
+    r13.measures = { weightG: 100, tempC: 12, keepH: 24, windowMin: 60 };
+    var iss = M.measureIssues(r13);
+    add('⑬ 留样数值不符被逐项检出（量 / 温度 / 时长）',
+      iss.length === 3,
+      '检出 ' + iss.length + ' 项：' + iss.map(function (x) {
+        return x.label + '=' + x.value;
+      }).join('、'));
+
+    /* ── ⑭ 未填不算不符（防过度报警） ── */
+    var r14 = M.newRec('2026-09-26', 1);
+    add('⑭ 留样数值未填不算不符（没记录 ≠ 不合格）',
+      M.measureIssues(r14).length === 0,
+      '空记录检出 ' + M.measureIssues(r14).length + ' 项（应为 0）');
+
+    /* ── ⑮ 边界值恰好合格 ── */
+    var KP = S.keepPolicy || {};
+    var r15 = M.newRec('2026-09-26', 1);
+    r15.measures = { weightG: KP.weightMinG, tempC: KP.tempMinC,
+      keepH: KP.keepHours, windowMin: KP.sampleWindowMin };
+    add('⑮ 留样数值取边界值时判为合格（≥ / ≤ 含等号）',
+      M.measureIssues(r15).length === 0,
+      '边界 ' + KP.weightMinG + 'g / ' + KP.tempMinC + '-' + KP.tempMaxC + '℃ / '
+      + KP.keepHours + 'h / ' + KP.sampleWindowMin + 'min ⇒ 检出 '
+      + M.measureIssues(r15).length + ' 项');
+
+    /* ── ⑯ 每周深度巡检：五个领域、条目如实留空 ── */
+    var wk = S.weekly || {};
+    var emptyItems = (wk.areas || []).every(function (a) {
+      return (a.items || []).length === 0;
+    });
+    add('⑯ 每周巡检五个领域且条目如实留空（不代填）',
+      (wk.areas || []).length === 5 && emptyItems,
+      '领域 ' + (wk.areas || []).map(function (a) { return a.label; }).join('、')
+      + ' · 条目数全为 0');
+
+    /* ── ⑰ 照片只存索引，不存图片本体 ── */
+    var r17 = M.newRec('2026-09-26', 1);
+    r17.photo = { heat: { done: true, name: '2026-09-26-场所1-加热设备.jpg', count: 1 } };
+    var pj = JSON.stringify(r17.photo);
+    // ⭐ 必须**同时**校验 spec 层的 photo.store —— 只查某条记录的话，
+    //    「工具层面允许存原图」这种口径错误根本发现不了（本轮负控就是这样失效的）。
+    var ph17 = S.photo || {};
+    add('⑰ 照片只登记索引（文件名 / 张数），不存图片本体',
+      ph17.store === 'index'
+      && pj.indexOf('data:') < 0 && pj.indexOf('base64') < 0
+      && M.photoOf(r17, 'heat').name.indexOf('.jpg') > 0,
+      '口径 store=' + ph17.store + ' · 序列化后 ' + pj.length
+      + ' 字节无 base64 —— localStorage 约 5MB 放不下原图');
+
+    /* ── ⑱ 两条记录互不共享引用 ── */
+    var a18 = M.newRec('2026-09-26', 1);
+    var b18 = M.newRec('2026-09-26', 2);
+    a18.checks.heat = 'ok';
+    add('⑱ 两条新记录互不共享引用（改一条不污染另一条）',
+      b18.checks.heat === 'na' && a18.checks !== b18.checks,
+      'A.heat=' + a18.checks.heat + ' · B.heat=' + b18.checks.heat);
+
+    /* ── ⑲ 导出表行列守恒 ── */
+    var rs = M.demoRecs();
+    var rowsOut = M.toRows(rs, []);
+    // ⭐ 必须校验**绝对列数**，不能只比「每行与表头一致」——
+    //    整体少切一刀（每行都少一列）时仍然自洽，判据会恒绿（本轮负控就是这样失效的）。
+    var wantCols = 3 + keys.length + 6;   // 日期/场所/检查人 + 各项 + 4 数值 + 判定 + 备注
+    var colOk = rowsOut.every(function (r) { return r.length === wantCols; });
+    add('⑲ 导出表行列守恒（应为 ' + wantCols + ' 列 × ' + (rs.length + 1) + ' 行）',
+      rowsOut.length === rs.length + 1 && colOk,
+      rowsOut.length + ' 行 × ' + rowsOut[0].length + ' 列（期望 ' + wantCols + ' 列）');
+
+    /* ── ⑳ 框架声明与未校准项已暴露 ── */
+    add('⑳ 框架版身份与未校准项已暴露（不许伪装成已验证）',
+      fw.isFramework && fw.items.length >= 4 && !!fw.reason,
+      '未校准 ' + fw.items.length + ' 项 · ' + fw.reason.slice(0, 50));
+
+    /* ── ㉑ ⭐ 2026-09-26 新增：定性之外的一般项判不合格 ⇒ 禁止出餐 ──
+       起因（实测 bug）：gate() 走到最后直接 return pass，**从不消费 tally 出来的 ng**，
+       于是「7 项全查过、其中 health 判 ng」时 verdict 仍是 pass，页面打印
+       「无阻断项：全部项已查且合格」，导出 CSV（用途写明应对监管检查）照写「可出餐」。
+       这条判据专门守住那条路径：只要有一项 ng 且不是硬三项，也必须 blocked。 */
+    var softKeys = keys.filter(function (k) { return hard.indexOf(k) < 0; });
+    var r21 = M.newRec('2026-09-26', 1);
+    keys.forEach(function (k) { r21.checks[k] = 'ok'; });
+    r21.checks[softKeys[0]] = 'ng';
+    var g21 = M.gate(r21, []);
+    add('㉑ 一般项判不合格 ⇒ 禁止出餐（不得因「全查过」就放行）',
+      g21.verdict === 'blocked' && M.tally(r21).ng === 1,
+      M.gateText(g21.verdict) + ' · ' + g21.reasons[0]);
+
+    /* ── ㉒ ⭐ 2026-09-26 新增：ISO 周键与 ISO-8601 一致 ──
+       起因（实测 bug）：旧实现按「距 1 月 1 日过了几个 7 天 +1」算，2026-09-26 报成 W38
+       （ISO 实为 W39）、2026-01-01 报成 2025-W52（ISO 实为 2026-W01）。
+       周键既是周巡检的分组主键，也是给监管核对的周次，必须与日历上的 ISO 周一致。 */
+    var wkCases = [
+      ['2026-09-26', '2026-W39'], ['2026-01-01', '2026-W01'],
+      ['2026-01-05', '2026-W02'], ['2026-12-31', '2026-W53'], ['2027-01-04', '2027-W01'],
+    ];
+    var wkBad = wkCases.filter(function (c) { return M.weekKeyOf(c[0]) !== c[1]; })
+      .map(function (c) { return c[0] + '⇒' + M.weekKeyOf(c[0]) + '(应 ' + c[1] + ')'; });
+    add('㉒ ISO 周键与 ISO-8601 一致（含当年第一周与跨年周）',
+      wkBad.length === 0,
+      wkBad.join('；') || wkCases.map(function (c) { return c[0] + '⇒' + c[1]; }).join(' · '));
+
+    /* ── 待办 ── */
+    if (fw.isFramework) {
+      todos.push('本工具是框架版：' + fw.reason
+        + '。检查项的「有没有」有真源支撑，但「每项做多久、实际卡在哪」'
+        + '须加工场所投用、真实跑一轮后校准。');
+    }
+    var naItems = items.filter(function (x) {
+      return !x.hard && !x.ext && (x.basis || '').indexOf('运营默认') >= 0;
+    });
+    if (naItems.length) {
+      todos.push('有 ' + naItems.length + ' 项是运营默认项（'
+        + naItems.map(function (x) { return x.label; }).join('、')
+        + '），仓库里没有成文条目 —— 须现场确认后再转为硬口径。');
+    }
+    if ((S.weekly || {}).areas && (S.weekly.areas || []).length
+        && (S.weekly.areas.every(function (a) { return !a.items.length; }))) {
+      todos.push('每周深度巡检的五个领域真源只给了名字，条目全空 —— '
+        + '须在加工场所投用后现场补齐，本工具不代填。');
+    }
+    var kpNote = (S.keepPolicy || {})._src || '';
+    if (kpNote.indexOf('非代码真源') >= 0) {
+      todos.push('留样数值（' + KP.weightMinG + 'g / ' + KP.tempMinC + '-' + KP.tempMaxC
+        + '℃ / ' + KP.keepHours + 'h / ' + KP.sampleWindowMin + 'min）取自外部规范通用口径，'
+        + '非属地监管确认值 —— 投入使用前须由运营或合规确认。');
+    }
+
+    var bad = rows.filter(function (r) { return !r.ok; }).length;
+    return { rows: rows, bad: bad, todos: todos };
+  }
+
+  root.SelfCheck = { run: run };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ============================================================
+ * P2 序 21 · R2「食安自检与巡检」—— 页面逻辑
+ * 五块内容：每日开餐前检查 / 整改闭环 / 每周深度巡检 / 记录与导出 / 自证
+ * ⚠️ 渲染纪律：所有拼进 HTML 的文本一律 esc()；不得出现 ** 与 emoji
+ *    （判据名与待办文案都会渲染 —— 前几款工具被探针抓到过）
+ * ============================================================ */
+'use strict';
+
+(function (root) {
+  var U = root.U, M = root.R2, S = root.SPEC, SC = root.SelfCheck;
+
+  var SK = 'abox.r2.v1';
+  var state = null;
+  var tab = 'daily';        // daily | rect | weekly | recs | prove
+  var cur = null;           // 当前编辑的检查记录 id
+
+  /* ── 存取 ── */
+  function load() {
+    try {
+      var raw = root.localStorage.getItem(SK);
+      if (raw) {
+        var o = JSON.parse(raw);
+        if (o && o.recs) return o;
+      }
+    } catch (e) { /* 首次运行或损坏 → 回落默认 */ }
+    return M.defaults();
+  }
+  function save() {
+    try { root.localStorage.setItem(SK, JSON.stringify(state)); } catch (e) { /* 忽略 */ }
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+
+  function curRec() {
+    if (!cur) return null;
+    for (var i = 0; i < state.recs.length; i++) if (state.recs[i].id === cur) return state.recs[i];
+    return null;
+  }
+  function ensureRec() {
+    var r = curRec();
+    if (r) return r;
+    r = M.newRec(state.today, state.siteId || (M.siteIds()[0] || 1));
+    state.recs.unshift(r);
+    cur = r.id;
+    return r;
+  }
+
+  /* ─────────────── 侧栏 ─────────────── */
+  function renderSide() {
+    var el = root.document.getElementById('side');
+    if (!el) return;
+    var h = [];
+
+    h.push('<div class="fld"><label>今天</label>'
+      + '<input type="date" id="f-today" value="' + esc(state.today) + '"></div>');
+
+    h.push('<div class="fld"><label>检查场所</label><select id="f-site">');
+    M.siteIds().forEach(function (id) {
+      h.push('<option value="' + id + '"'
+        + (Number(state.siteId) === Number(id) ? ' selected' : '') + '>'
+        + esc(M.siteName(id)) + '</option>');
+    });
+    h.push('</select></div>');
+
+    h.push('<div class="fld"><label>整改期限（天）</label>'
+      + '<input type="number" id="f-lead" min="0" max="60" value="'
+      + esc(state.lead) + '"></div>');
+
+    h.push('<div class="fld"><label>检查人</label>'
+      + '<input type="text" id="f-insp" placeholder="如：王师傅" value="'
+      + esc((curRec() || {}).inspector || '') + '"></div>');
+
+    // 汇总
+    var t = { ok: 0, ng: 0, na: 0 };
+    var r = curRec();
+    if (r) t = M.tally(r);
+    var open = 0, over = 0;
+    (state.rects || []).forEach(function (x) {
+      if (x.status !== 'closed') {
+        open += 1;
+        if (M.isOverdue(x, state.today)) over += 1;
+      }
+    });
+    h.push('<div class="tally-bar">');
+    h.push('<span class="t">合格 <b>' + t.ok + '</b></span>');
+    h.push('<span class="t">不合格 <b>' + t.ng + '</b></span>');
+    h.push('<span class="t">未查 <b>' + t.na + '</b></span>');
+    h.push('<span class="t">整改未闭环 <b>' + open + '</b></span>');
+    h.push('<span class="t">其中超期 <b>' + over + '</b></span>');
+    h.push('</div>');
+
+    h.push('<div class="acts">');
+    h.push('<button class="btn" id="a-demo">载入演示数据</button>');
+    h.push('<button class="btn" id="a-clear">清空本机记录</button>');
+    h.push('</div>');
+
+    // 真源
+    var srcs = [];
+    srcs.push(['系统地图 P2 序 21', '_ABox一盒创业系统地图与开发路线v1.0.html:606']);
+    srcs.push(['自制定性原文', (S.why || {}).src || '']);
+    srcs.push(['加工场所', (S.sites || {})._src || '']);
+    srcs.push(['留样数值', 'F3 keepPolicy（外部规范通用口径）']);
+    srcs.push(['每周巡检领域', (S.weekly || {})._src || '']);
+    srcs.push(['供应商协议第7条', (S.supplierClause || {})._src || '']);
+    h.push('<div class="srcs"><h4>真源</h4><ul>');
+    srcs.forEach(function (x) {
+      h.push('<li>' + esc(x[0]) + '<br><code>' + esc(x[1]) + '</code></li>');
+    });
+    h.push('</ul></div>');
+
+    el.innerHTML = h.join('');
+  }
+
+  /* ─────────────── 每日开餐前检查 ─────────────── */
+  /** 找到「今天 + 当前场所」的记录；没有则返回 null（不预建 —— 空态才是现状） */
+  function todayRec() {
+    var out = null;
+    (state.recs || []).forEach(function (x) {
+      if (x.date === state.today
+        && Number(x.siteId) === Number(state.siteId || M.siteIds()[0])) out = x;
+    });
+    if (out) cur = out.id;
+    return out;
+  }
+
+  function viewDaily() {
+    var h = [];
+    var r = todayRec();
+
+    // 存在理由
+    var w = S.why || {};
+    h.push('<div class="why-box"><b>为什么这三项是硬的</b><br>' + esc(w.text));
+    h.push('<span class="why-src">出处：' + esc(w.src) + '</span></div>');
+
+    // ⭐ 空态：今天还没开始检查 —— 不预建记录，否则「默认有记录」会掩盖「根本没查」
+    if (!r) {
+      h.push('<div class="card"><h3>'
+        + esc(state.today) + ' · ' + esc(M.siteName(state.siteId || M.siteIds()[0]))
+        + '</h3>');
+      h.push('<div class="empty-note">今天还没有检查记录。'
+        + '这个空不是缺数据，是现状 —— 开餐前检查一旦开始，'
+        + '每一项的「合格 / 不合格 / 未查」都会留痕，'
+        + '不合格项直接生成整改单。</div>');
+      h.push('<div class="acts"><button class="btn" data-act="start">'
+        + '开始今日检查</button></div>');
+      h.push('</div>');
+      return h.join('');
+    }
+
+    // 出餐判定
+    var g = M.gate(r, state.rects);
+    h.push('<div class="card"><h3>出餐判定</h3>');
+    h.push('<span class="verdict" data-v="' + g.verdict + '">' + esc(M.gateText(g.verdict)) + '</span>');
+    if (g.reasons.length) {
+      h.push('<ul class="verdict-reasons">');
+      g.reasons.forEach(function (x) { h.push('<li>' + esc(x) + '</li>'); });
+      h.push('</ul>');
+    } else {
+      h.push('<div class="verdict-reasons">无阻断项：全部项已查且合格，无未闭环整改单。</div>');
+    }
+    h.push('</div>');
+
+    // 检查项
+    h.push('<div class="card"><h3>每日开餐前检查（' + esc(r.date) + ' · '
+      + esc(M.siteName(r.siteId)) + '）</h3>');
+    h.push('<div class="note">每项三态：合格 / 不合格 / 未查。'
+      + '只有「合格」计入通过 —— 未查不算合格，监管检查时无记录等同于没做。</div>');
+
+    (S.items || []).forEach(function (it) {
+      var v = r.checks[it.key] || 'na';
+      h.push('<div class="chk-item' + (it.hard ? ' is-hard' : '')
+        + (v === 'ng' ? ' is-ng' : '') + '" data-key="' + esc(it.key) + '">');
+      h.push('<div class="chk-head"><span class="chk-label">' + esc(it.label) + '</span>');
+      if (it.hard) h.push('<span class="chk-tag">自制定性</span>');
+      if (it.ext) h.push('<span class="chk-tag is-ext">123 号令</span>');
+      h.push('</div>');
+      h.push('<div class="chk-basis">出处：' + esc(it.basis) + '</div>');
+      h.push('<div class="tri">');
+      [['ok', '合格'], ['ng', '不合格'], ['na', '未查']].forEach(function (p) {
+        h.push('<button data-act="chk" data-key="' + esc(it.key) + '" data-v="' + p[0] + '"'
+          + (v === p[0] ? ' class="is-on"' : '') + '>' + p[1] + '</button>');
+      });
+      h.push('</div>');
+      if (v === 'ng') {
+        var has = (state.rects || []).some(function (x) {
+          return x.itemKey === it.key && x.date === r.date
+            && Number(x.siteId) === Number(r.siteId) && x.status !== 'closed';
+        });
+        h.push('<div class="photo-cell">');
+        if (has) {
+          h.push('<span class="badge is-open">已开整改单</span>');
+        } else {
+          h.push('<button class="btn" data-act="openrect" data-key="' + esc(it.key) + '">'
+            + '开整改单</button>');
+        }
+        h.push('</div>');
+      }
+      // 照片登记
+      var p = M.photoOf(r, it.key);
+      h.push('<div class="photo-cell"><span class="cnt">照片：</span>');
+      h.push('<button class="btn" data-act="photo" data-key="' + esc(it.key) + '">'
+        + (p.done ? '已拍（取消）' : '标记已拍') + '</button>');
+      h.push('<input type="text" data-act="photoname" data-key="' + esc(it.key)
+        + '" placeholder="' + esc(M.newRec().date ? '' : '')
+        + '文件名，如 2026-09-26-场所1-加热设备.jpg" value="' + esc(p.name) + '">');
+      h.push('</div>');
+      h.push('</div>');
+    });
+    h.push('</div>');
+
+    // 留样数值
+    var KP = S.keepPolicy || {};
+    var iss = M.measureIssues(r);
+    var badMap = {};
+    iss.forEach(function (x) { badMap[x.key] = x; });
+    var m = r.measures || {};
+    h.push('<div class="card"><h3>留样数值（选填）</h3>');
+    h.push('<div class="note">不填不算不符项；填了才按口径比对。'
+      + '口径取自 ' + esc(KP._src || '外部规范') + '，'
+      + '须由运营或合规确认后才算属地口径。</div>');
+    h.push('<div class="meas">');
+    [['weightG', KP.weightMinG, null, 'g'],
+     ['tempC', KP.tempMinC, KP.tempMaxC, '℃'],
+     ['keepH', KP.keepHours, null, '小时'],
+     ['windowMin', null, KP.sampleWindowMin, '分钟']].forEach(function (f) {
+      var lab = (KP.labels || {})[f[0]] || f[0];
+      var exp = f[1] !== null && f[1] !== undefined && f[2] !== null && f[2] !== undefined
+        ? (f[1] + '–' + f[2] + ' ' + f[3])
+        : (f[1] !== null && f[1] !== undefined
+            ? ('≥ ' + f[1] + ' ' + f[3]) : ('≤ ' + f[2] + ' ' + f[3]));
+      var bad = !!badMap[f[0]];
+      h.push('<div><label>' + esc(lab) + '</label>');
+      h.push('<input type="number" data-act="meas" data-key="' + f[0] + '" value="'
+        + esc(m[f[0]]) + '" class="' + (bad ? 'is-bad' : '') + '">');
+      h.push('<div class="hint' + (bad ? ' is-bad-t' : '') + '">'
+        + (bad ? esc(badMap[f[0]].expect) : ('应 ' + esc(exp))) + '</div></div>');
+    });
+    h.push('</div></div>');
+
+    return h.join('');
+  }
+
+  /* ─────────────── 整改闭环 ─────────────── */
+  function viewRect() {
+    var h = [];
+    h.push('<div class="card"><h3>整改闭环</h3>');
+    h.push('<div class="note">检查发现不合格只是开始，闭环才算数 —— '
+      + '开单不等于修好。只要该场所还有未闭环的整改单，当日就不得出餐。</div>');
+
+    var list = (state.rects || []).slice().sort(function (a, b) {
+      var pa = a.status === 'closed' ? 2 : (M.isOverdue(a, state.today) ? 0 : 1);
+      var pb = b.status === 'closed' ? 2 : (M.isOverdue(b, state.today) ? 0 : 1);
+      return pa - pb;
+    });
+
+    if (!list.length) {
+      h.push('<div class="empty-note">还没有整改单。'
+        + '在「每日检查」里把某项判为不合格，就能一键开单。</div>');
+    }
+
+    list.forEach(function (x) {
+      var over = M.isOverdue(x, state.today);
+      h.push('<div class="rect ' + (x.status === 'closed' ? 'is-closed' : 'is-open')
+        + (over ? ' is-overdue' : '') + '">');
+      h.push('<div class="rect-top"><span class="rect-item-label">'
+        + esc(x.itemLabel) + '</span>');
+      var lab = x.status === 'closed' ? '已闭环' : (x.status === 'done' ? '已改待验' : '待改');
+      h.push('<span class="badge ' + (x.status === 'closed' ? 'is-closed'
+        : (x.status === 'done' ? 'is-done' : 'is-open')) + '">' + lab + '</span>');
+      if (over) h.push('<span class="badge is-open">已超期</span>');
+      h.push('</div>');
+      h.push('<div class="rect-desc">' + esc(x.desc || '（无说明）') + '</div>');
+      h.push('<div class="rect-meta">' + esc(x.date) + ' · ' + esc(M.siteName(x.siteId))
+        + ' · 责任人 ' + esc(x.owner || '未指定') + ' · 期限 ' + esc(x.due)
+        + (x.status === 'closed' ? (' · 已由 ' + esc(x.closedBy || '') + ' 于 '
+            + esc(x.closedAt) + ' 闭环') : '') + '</div>');
+      if (x.status !== 'closed') {
+        h.push('<div class="photo-cell">');
+        if (x.status === 'open') {
+          h.push('<button class="btn" data-act="rectdone" data-id="' + esc(x.id) + '">'
+            + '标记已改待验</button>');
+        }
+        h.push('<button class="btn" data-act="rectclose" data-id="' + esc(x.id) + '">'
+          + '确认闭环</button>');
+        h.push('</div>');
+      }
+      h.push('</div>');
+    });
+    h.push('</div>');
+    return h.join('');
+  }
+
+  /* ─────────────── 每周深度巡检 ─────────────── */
+  function viewWeekly() {
+    var h = [];
+    var wk = S.weekly || {};
+    var key = M.weekKeyOf(state.today);
+    h.push('<div class="card"><h3>每周深度巡检（' + esc(key) + ' · '
+      + esc(M.siteName(state.siteId || M.siteIds()[0])) + '）</h3>');
+    h.push('<div class="note">' + esc(wk._note || '') + '</div>');
+    h.push('<div class="note">真源：' + esc(wk.src || '') + ' —— '
+      + esc(wk.note || '') + '</div>');
+
+    (wk.areas || []).forEach(function (a) {
+      var rec = null;
+      (state.weekly || []).forEach(function (w) {
+        if (w.week === key && Number(w.siteId) === Number(state.siteId || M.siteIds()[0])) rec = w;
+      });
+      if (!rec) {
+        rec = M.newWeekly(key, state.siteId || M.siteIds()[0]);
+        state.weekly.push(rec);
+      }
+      var v = rec.areas[a.key] || 'na';
+      h.push('<div class="wk-area"><span>' + esc(a.label) + '</span>');
+      [['ok', '已巡检合格'], ['ng', '发现问题'], ['na', '未巡检']].forEach(function (p) {
+        h.push('<button class="btn" data-act="wk" data-key="' + esc(a.key) + '" data-v="'
+          + p[0] + '"' + (v === p[0] ? ' style="border-color:var(--gold-bd)"' : '') + '>'
+          + p[1] + '</button>');
+      });
+      h.push('<span class="wk-empty">' + esc(a.basis) + '</span>');
+      h.push('</div>');
+    });
+    h.push('</div>');
+    return h.join('');
+  }
+
+  /* ─────────────── 记录与导出 ─────────────── */
+  function viewRecs() {
+    var h = [];
+    h.push('<div class="card"><h3>历史检查记录（应对监管检查）</h3>');
+    if (!state.recs.length) {
+      h.push('<div class="empty-note">还没有检查记录。'
+        + '这个空不是缺数据，是当前现状 —— 加工场所尚未实际投用，'
+        + '工具先把手头该定的口径定下来。</div>');
+    } else {
+      h.push('<div class="acts"><button class="btn" id="a-csv">导出 CSV</button></div>');
+      state.recs.slice().sort(function (a, b) {
+        return String(b.date).localeCompare(String(a.date));
+      }).forEach(function (r) {
+        var t = M.tally(r);
+        var g = M.gate(r, state.rects);
+        h.push('<div class="rec-row">');
+        h.push('<span class="rec-date">' + esc(r.date) + '</span>');
+        h.push('<span class="rec-site">' + esc(M.siteName(r.siteId)) + '</span>');
+        h.push('<span class="verdict" data-v="' + g.verdict + '">'
+          + esc(M.gateText(g.verdict)) + '</span>');
+        h.push('<span class="rec-tally">合格 ' + t.ok + ' / 不合格 ' + t.ng
+          + ' / 未查 ' + t.na + ' · 照片 ' + M.photoDoneCount(r) + ' 项</span>');
+        h.push('<button class="btn" data-act="edit" data-id="' + esc(r.id) + '">编辑</button>');
+        h.push('</div>');
+      });
+    }
+    h.push('</div>');
+
+    // 照片说明
+    var ph = S.photo || {};
+    h.push('<div class="card"><h3>照片留证怎么存</h3>');
+    h.push('<div class="note"><b>' + esc(ph.storeLabel || '') + '</b> —— '
+      + esc(ph.reason || '') + '</div>');
+    h.push('<div class="note">建议命名：<code>' + esc(ph.naming || '') + '</code><br>'
+      + esc(ph._note || '') + '</div>');
+    h.push('</div>');
+    return h.join('');
+  }
+
+  /* ─────────────── 自证 ─────────────── */
+  function viewProve() {
+    var h = [];
+    var r = SC.run(S, state);
+    h.push('<div class="card"><h3>本工具的判据（'
+      + (r.rows.length - r.bad) + ' / ' + r.rows.length + ' 通过）</h3>');
+    h.push('<div class="gate">');
+    r.rows.forEach(function (x) {
+      h.push('<div class="g' + (x.ok ? '' : ' bad') + '">'
+        + '<b>' + (x.ok ? '通过' : '不符') + '</b> ' + esc(x.name)
+        + '<div class="d">' + esc(x.detail) + '</div></div>');
+    });
+    h.push('</div></div>');
+
+    if (r.todos.length) {
+      h.push('<div class="card"><h3>待办</h3><ul class="todo">');
+      r.todos.forEach(function (t) { h.push('<li>' + esc(t) + '</li>'); });
+      h.push('</ul></div>');
+    }
+
+    var fw = M.frameworkNote();
+    h.push('<div class="card"><h3>框架版声明</h3>');
+    h.push('<div class="note"><b>' + (fw.isFramework ? '本工具是框架版' : '已校准')
+      + '</b> —— ' + esc(fw.reason) + '</div>');
+    h.push('<ul class="todo">');
+    fw.items.forEach(function (x) { h.push('<li>' + esc(x) + '</li>'); });
+    h.push('</ul></div>');
+
+    // 食安相关待办
+    var bl = S.backlog || [];
+    if (bl.length) {
+      h.push('<div class="card"><h3>食安相关待办（真源）</h3>');
+      h.push('<table><thead><tr><th>#</th><th>事项</th><th>归口</th>'
+        + '<th>状态</th><th>说明</th></tr></thead><tbody>');
+      bl.forEach(function (b) {
+        h.push('<tr><td>' + esc(b.no) + '</td><td>' + esc(b.todo) + '</td><td>'
+          + esc(b.owner) + '</td><td>' + esc(b.state) + '</td><td>' + esc(b.due)
+          + '</td></tr>');
+      });
+      h.push('</tbody></table></div>');
+    }
+    return h.join('');
+  }
+
+  /* ─────────────── 渲染 ─────────────── */
+  function render() {
+    renderSide();
+    var main = root.document.getElementById('main');
+    if (!main) return;
+    var body = tab === 'daily' ? viewDaily()
+      : tab === 'rect' ? viewRect()
+      : tab === 'weekly' ? viewWeekly()
+      : tab === 'recs' ? viewRecs()
+      : viewProve();
+
+    var tabs = [['daily', '每日检查'], ['rect', '整改闭环'],
+      ['weekly', '每周巡检'], ['recs', '记录与导出'], ['prove', '自证']];
+    var nav = '<div class="tabs">';
+    tabs.forEach(function (t) {
+      nav += '<button class="tab' + (tab === t[0] ? ' on' : '') + '" data-tab="'
+        + t[0] + '">' + t[1] + '</button>';
+    });
+    nav += '</div>';
+
+    // 框架横幅
+    var fw = M.frameworkNote();
+    var banner = fw.isFramework
+      ? '<div class="why-box" style="margin-bottom:var(--sp-3)"><b>框架版</b> —— '
+        + esc(fw.reason) + '</div>' : '';
+
+    main.innerHTML = nav + banner + body;
+  }
+
+  /* ─────────────── 事件 ─────────────── */
+  function bind() {
+    var doc = root.document;
+
+    function on(sel, fn) {
+      var list = doc.querySelectorAll(sel);
+      for (var i = 0; i < list.length; i++) list[i].addEventListener('click', fn);
+    }
+
+    on('[data-tab]', function () {
+      tab = this.getAttribute('data-tab');
+      render(); bind();
+    });
+
+    on('[data-act="start"]', function () {
+      ensureRec();
+      save(); render(); bind();
+    });
+
+    on('[data-act="chk"]', function () {
+      var r = ensureRec();
+      r.checks[this.getAttribute('data-key')] = this.getAttribute('data-v');
+      save(); render(); bind();
+    });
+
+    on('[data-act="photo"]', function () {
+      var r = ensureRec();
+      var k = this.getAttribute('data-key');
+      var p = M.photoOf(r, k);
+      r.photo[k] = { done: !p.done, name: p.name || '', count: p.done ? 0 : (p.count || 1) };
+      save(); render(); bind();
+    });
+
+    on('[data-act="openrect"]', function () {
+      var r = ensureRec();
+      var k = this.getAttribute('data-key');
+      var x = M.newRect(r, k, '（待补充整改说明）', state.inspector || '', state.lead);
+      state.rects.push(x);
+      save(); tab = 'rect'; render(); bind();
+    });
+
+    on('[data-act="rectdone"]', function () {
+      var id = this.getAttribute('data-id');
+      (state.rects || []).forEach(function (x) {
+        if (x.id === id) x.status = 'done';
+      });
+      save(); render(); bind();
+    });
+
+    on('[data-act="rectclose"]', function () {
+      var id = this.getAttribute('data-id');
+      (state.rects || []).forEach(function (x) {
+        if (x.id === id) M.closeRect(x, '（本工具操作）', state.today);
+      });
+      save(); render(); bind();
+    });
+
+    on('[data-act="wk"]', function () {
+      var k = this.getAttribute('data-key');
+      var key = M.weekKeyOf(state.today);
+      var sid = state.siteId || M.siteIds()[0];
+      var rec = null;
+      (state.weekly || []).forEach(function (w) {
+        if (w.week === key && Number(w.siteId) === Number(sid)) rec = w;
+      });
+      if (!rec) { rec = M.newWeekly(key, sid); state.weekly.push(rec); }
+      rec.areas[k] = this.getAttribute('data-v');
+      save(); render(); bind();
+    });
+
+    on('[data-act="edit"]', function () {
+      cur = this.getAttribute('data-id');
+      tab = 'daily'; render(); bind();
+    });
+
+    var csv = doc.getElementById('a-csv');
+    if (csv) csv.addEventListener('click', function () {
+      // ⚠️ U.toCSV 吃的是**整张二维表**并内部 join，不是逐行调用
+      U.download('ABox食安检查记录-' + state.today + '.csv',
+        '\uFEFF' + U.toCSV(M.toRows(state.recs, state.rects)));
+    });
+
+    var demo = doc.getElementById('a-demo');
+    if (demo) demo.addEventListener('click', function () {
+      state.recs = M.demoRecs();
+      state.rects = M.demoRects();
+      state.weekly = M.demoWeekly();
+      cur = state.recs[0] ? state.recs[0].id : null;
+      save(); render(); bind();
+    });
+
+    var clr = doc.getElementById('a-clear');
+    if (clr) clr.addEventListener('click', function () {
+      state = M.defaults(); cur = null; save(); render(); bind();
+    });
+
+    function hook(id, fn) {
+      var el = doc.getElementById(id);
+      if (el) el.addEventListener('change', fn);
+    }
+    hook('f-today', function () { state.today = this.value; save(); render(); bind(); });
+    hook('f-site', function () {
+      state.siteId = Number(this.value);
+      /* ⚠️ 2026-09-26 修复：原写法是 `var r = curRec(); if (r) r.siteId = state.siteId;`
+         —— 而 curRec() 只按 id 取**当前编辑游标**指向的那条记录，**不校验它属于哪天、哪个场所**。
+         于是载入演示数据（游标停在昨天·场所 1）后，把「检查场所」切到场所 2，
+         昨天的留痕就被无声改标成场所 2，save() 落盘、无提示、不可撤销。
+         食安留痕的**场所归属**是可归责字段，绝不能被一次下拉框改写。
+         正确语义：切场所只切换视图，随后由 todayRec() 把游标指向新场所今天的记录。 */
+      cur = null;
+      save(); render(); bind();
+    });
+    hook('f-lead', function () { state.lead = Number(this.value) || 0; save(); render(); bind(); });
+    hook('f-insp', function () {
+      var r = ensureRec(); r.inspector = this.value; save(); render(); bind();
+    });
+
+    var phs = doc.querySelectorAll('[data-act="photoname"]');
+    for (var j = 0; j < phs.length; j++) {
+      phs[j].addEventListener('change', function () {
+        var r = ensureRec();
+        var k = this.getAttribute('data-key');
+        var p = M.photoOf(r, k);
+        r.photo[k] = { done: p.done, name: this.value, count: p.count || (p.done ? 1 : 0) };
+        save();
+      });
+    }
+
+    var ms = doc.querySelectorAll('[data-act="meas"]');
+    for (var q = 0; q < ms.length; q++) {
+      ms[q].addEventListener('change', function () {
+        var r = ensureRec();
+        r.measures[this.getAttribute('data-key')] = this.value;
+        save(); render(); bind();
+      });
+    }
+  }
+
+  /* ── 启动 ── */
+  function boot() {
+    state = load();
+    if (!state.recs) state.recs = [];
+    if (!state.rects) state.rects = [];
+    if (!state.weekly) state.weekly = [];
+    if (!state.siteId) state.siteId = M.siteIds()[0] || 1;
+    render();
+    bind();
+    // ⚠️ 探针断言的是 body 上的这个属性 —— 挂 html 上会恒红（实测过的坑）
+    root.document.body.setAttribute('data-tool-ready', '1');
+  }
+
+  root.R2_APP = {
+    boot: boot,
+    getState: function () { return state; },
+    setTab: function (t) { tab = t; },
+    render: render,
+    setToday: function (d) { state.today = d; save(); render(); }
+  };
+
+  // ⚠️ 产物里 script 在 </body> 之前执行 ⇒ 真实浏览器此刻 readyState 还是 'loading'，
+  //    必须挂 DOMContentLoaded；而 DOM 桩里已是就绪态 ⇒ 同步 boot。两种路径都要跑通。
+  if (root.document.readyState === 'loading') {
+    root.document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script></body></html>

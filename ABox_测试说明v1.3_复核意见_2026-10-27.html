@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox · 测试说明 v1.3 复核意见</title>
+<style>
+  :root{
+    --brown:#6E5435; --brown-d:#4a3a22; --cream:#F6F0E5; --cream-2:#efe6d6;
+    --line:#d9cbb4; --ok:#3f7d4f; --part:#b07d2b; --gap:#b23b3b; --na:#7a7a7a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"楷体","KaiTi","STKaiti",simkai,serif;color:var(--brown-d);background:var(--cream);line-height:1.7;}
+  header{background:var(--brown);color:var(--cream);padding:22px 28px;}
+  header h1{margin:0 0 4px;font-size:23px;letter-spacing:2px;}
+  header p{margin:0;font-size:13.5px;opacity:.92;}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px 22px 60px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13.5px;}
+  .card h3{margin:0 0 10px;color:var(--brown);font-size:15px;}
+  table{width:100%;border-collapse:collapse;font-size:12.8px;margin:10px 0;}
+  table th,table td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
+  table th{background:var(--cream-2);color:var(--brown);}
+  .v-ok{color:var(--ok);font-weight:bold;}
+  .v-part{color:var(--part);font-weight:bold;}
+  .v-gap{color:var(--gap);font-weight:bold;}
+  .code{font-family:Consolas,Monaco,monospace;font-size:11.8px;background:var(--cream-2);padding:1px 5px;border-radius:3px;color:#5a4326;word-break:break-all;}
+  .alert{background:#fceaea;border-left:4px solid var(--gap);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .warn{background:#fbf3e3;border-left:4px solid var(--part);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .good{background:#eaf3e8;border-left:4px solid var(--ok);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  ul{margin:6px 0 6px 18px;padding:0;}
+  li{margin:3px 0;}
+  .kpi{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0;}
+  .kpi div{flex:1;min-width:150px;background:var(--cream-2);border:1px solid var(--line);border-radius:8px;padding:10px 14px;text-align:center;}
+  .kpi b{display:block;font-size:19px;color:var(--brown);}
+  .kpi span{font-size:12px;color:var(--na);}
+  pre{background:var(--cream-2);border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-family:Consolas,Monaco,monospace;font-size:11.6px;overflow-x:auto;line-height:1.6;white-space:pre-wrap;}
+  footer{font-size:12px;color:var(--na);text-align:center;margin-top:30px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>《本次变更测试说明 v1.3》复核意见</h1>
+  <p>2026-10-27 ｜ 基线 main @ <span class="code">8a3467f</span> ｜ 首轮 6 项必修逐条回销 ｜ 实跑：DI 检查 + 7 套单测</p>
+</header>
+
+<div class="wrap">
+
+  <div class="kpi">
+    <div><b>6/6</b><span>首轮必修项已全部改到位</span></div>
+    <div><b>65/65</b><span>变更域内单测全绿（EXIT=0）</span></div>
+    <div><b>202</b><span>依赖注入点全部有登记，无第二颗雷</span></div>
+    <div><b>1</b><span>新引入：会让测试开局停摆</span></div>
+  </div>
+
+  <div class="card">
+    <h3>一、结论</h3>
+    <p><b>首轮提的 6 项必修，全部改到位了，而且改得比我要求的还细一步。</b>我逐条回源核过，不是照着回复念。</p>
+    <div class="good">
+      <b>额外加分的一处</b>：盲盒遮蔽他用了 <span class="code">Boolean(order.blindBoxName)</span> 而不是 <span class="code">!== null</span> —— 实体列是 <span class="code">string | null | undefined</span>，列未加载时是 <span class="code">undefined</span>，而 <span class="code">undefined !== null</span> 为 <b>true</b>，会把「没查这个字段」误判成「有惊喜」。这行没掉坑，说明是真懂。
+    </div>
+    <div class="alert">
+      <b>但有一处改出了新问题，必须在发出去之前修掉</b>：文档把「界面显示『由团长送到工位』」当作<b>版本在位的判据</b>，并写了「对不上就别继续往下测」；可同一份文档后面又承认「该字段用户端<b>并未展示</b>，界面上看不出变化」。<br>
+      两条并存的结果是：测试人员开局第一件事就是找不到那个字 ⇒ 判定「测的是旧版本」⇒ <b>整轮测试停摆</b>。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>二、必修回归：开机前的判据自相矛盾</h3>
+    <table>
+      <tr><th style="width:8%">位置</th><th>原文说</th><th>问题</th></tr>
+      <tr>
+        <td>92-95 行</td>
+        <td>版本在位的行为判据：……取餐点显示「<b>由团长送到工位</b>」而不是「1 楼大堂」。<br>若这两条都对不上，先截图反馈，<b>别继续往下测</b>。</td>
+        <td rowspan="2" class="v-gap">
+          互相打架。第 2 条判据<b>在界面上永远取不到</b>，于是任何人都满足不了「两条都对得上」。<br><br>
+          <b>改法（二选一）</b>：<br>
+          ① 把这条改成抓包判据 ——「订单详情<b>响应体</b>里 <span class="code">pickup.point</span> 应为 <code>{楼名} · 由团长送到工位</code>」；<br>
+          ② 或干脆从判据里删掉，只留盲盒那条（它是真能在界面上验的）。<br>
+          <b>无论如何，不能把它留在「不满足就停测」的位置上。</b>
+        </td>
+      </tr>
+      <tr>
+        <td>346-348 行</td>
+        <td>该字段<b>用户端目前并未展示</b>（订单详情只取 <span class="code">pickup.leaderName</span> 与 <span class="code">pickup.expectAt</span>）……<b>界面上看不出变化</b>。</td>
+      </tr>
+    </table>
+    <div class="warn">
+      我核了代码，<b>文档后半句是对的</b>：<span class="code">order.service.ts:607</span> 确实已改成 <span class="code">${building.name} · 由团长送到工位</span>，但你得看响应体才看得见。<br>
+      所以这是<b>判据写错位置</b>，不是功能没做。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>三、首轮 6 项必修的回销结论</h3>
+    <table>
+      <tr><th style="width:5%">#</th><th style="width:26%">首轮提的问题</th><th style="width:8%">状态</th><th>回源证据</th></tr>
+      <tr><td>1</td><td>3.2 步骤与求值顺序不符</td><td class="v-ok">已改</td><td>四步按全序重写；A/B 组定义、60013 最高优先、force 无效都写对了。<span class="code">suspend-gate.ts:111-117</span> 与文档一致</td></tr>
+      <tr><td>2</td><td>60012 阈值没给</td><td class="v-ok">已改</td><td>写明「临时调成 2，默认 20」，并加了一句关键的<b>「混进一笔 A 组就被 60013 截走」</b></td></tr>
+      <tr><td>3</td><td>forceSuspend 零覆盖</td><td class="v-ok">已改</td><td>第 4 步「勾选强制停用 → 应放行成功，且操作日志有记录」</td></tr>
+      <tr><td>4</td><td>停售是日期区间而非即时开关</td><td class="v-ok">已改</td><td>单列警示块 + 步骤改为「填起止日期（建议就填今天）」+ 明说「停未来某天当天仍可下单属正常」</td></tr>
+      <tr><td>5</td><td>漏测 60010 / 60011</td><td class="v-ok">已补</td><td>新增 3.7 节，并标注为「本次修复本体」；引用的三个抛点我核过行号未漂移</td></tr>
+      <tr><td>6</td><td>盲盒只验 UI，服务端无条件下发</td><td class="v-ok">已改代码</td><td><span class="code">order.service.ts:566-570</span>：仅 <span class="code">delivered/completed</span> 下发内容，另加 <span class="code">blindBoxPending</span> 只给 true/false；前端 <span class="code">order-detail.vue:335</span> 判据也收口为「服务端给了就是揭晓」</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>四、我额外验过的（这部分可以放心）</h3>
+    <table>
+      <tr><th style="width:24%">核验项</th><th style="width:10%">结果</th><th>方式与证据</th></tr>
+      <tr><td>线上崩溃是否已修</td><td class="v-ok">已修</td><td><span class="code">common.module.ts:96</span> 补登记 <span class="code">SalesPause</span></td></tr>
+      <tr><td>还有没有第二颗同型雷</td><td class="v-ok">没有</td><td>跑 <span class="code">check-di-forfeature.mjs</span>：<b>202 处</b>注入点全部有登记，EXIT=0（这类缺陷 tsc 和单测都拦不住，只能靠它）</td></tr>
+      <tr><td>订单列表会不会漏字段</td><td class="v-ok">不漏</td><td><span class="code">order.service.ts:469-479</span> 列表出参是显式字段枚举，不含盲盒字段</td></tr>
+      <tr><td>团长端取货点</td><td class="v-ok">合理</td><td><span class="code">workbench.service.ts:138</span> 是「楼名+楼层」，无自提字样，团长确实要取货，保留原样正确</td></tr>
+      <tr><td>变更域单测</td><td class="v-ok">65/65</td><td>实跑 7 套（含 <span class="code">unfinished-orders</span> / <span class="code">suspend-notify</span>），EXIT=0</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>五、新发现的一处边界（建议补，不阻断本轮）</h3>
+    <div class="warn">
+      <b>已取消 / 已退款的订单上，还会挂着一个「待揭晓」的惊喜占位行。</b><br>
+      遮蔽判据是「仅 delivered / completed 下发内容」，而订单终态是 <span class="code">COMPLETED / CANCELLED / REFUNDED</span> 三个 ——<br>
+      ① 下单后<b>取消</b> ⇒ 没送达、没揭晓，但 <span class="code">blindBoxPending</span> 仍为 true ⇒ 详情里挂着「待揭晓 · 送达后揭晓惊喜内容」，<b>而这单永远不会送达</b>；<br>
+      ② 已送达<b>再退款成功</b> ⇒ status 变 <span class="code">refunded</span>，不再是 delivered/completed ⇒ 内容又从「已揭晓」<b>倒退回「待揭晓」</b>。<br>
+      <span style="font-size:12.5px">（这条是读码推断，遮蔽逻辑是一行三元表达式、无分支歧义，未实跑。）</span>
+    </div>
+    <div class="good">
+      <b>建议改法</b>：终态且从未揭晓过的一律 <span class="code">blindBoxPending: false</span>。<br>
+      <b>更值得做的是：给这个遮蔽抽个纯函数</b>（比如 <span class="code">blindBoxView(status, name)</span>）配一条单测 —— 现在这两个新改的逻辑都在 <span class="code">order.service.ts</span> 里，而全仓<b>没有 order.service 的单元测试</b>，将来重构很容易悄悄退化回去。他自己在 <span class="code">suspend-gate.ts</span> 上证明了「纯函数 + jest 钉死」这条路线有效，照着做一份即可。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>六、两处小事</h3>
+    <ul>
+      <li><b>版本号错位</b>：文件 <span class="code">&lt;title&gt;</span> 写的是 <b>v1.2</b>，正文和页脚写 <b>v1.3</b>。这个项目历史上吃过「同名/旧版混淆、打开的不是最新版」的亏，转发前建议统一。</li>
+      <li><b>有一句话建议由您确认后再留</b>：第六节写「项目负责人已确认：这是有意的一期范围」。结论我认同（大概率就是有意范围），但<b>这类确认最好由您发出</b>，落到测试文档里容易被当成既成事实。若您已经和技术口头定过，那这条不用动。</li>
+      <li><b>部署声明我核不了</b>：服务器我没有访问权限，13:27 是否真部署到 <span class="code">154.8.164.180</span> 只能由测试人员用文档给的 <span class="code">health/ready</span> 自查。</li>
+    </ul>
+  </div>
+
+  <footer>
+    ABox 一盒 · 测试说明 v1.3 复核意见 ｜ 2026-10-27 ｜ 首轮 6 项已回销；实跑 DI 检查与 7 套单测（65/65，EXIT=0）
+  </footer>
+
+</div>
+</body>
+</html>

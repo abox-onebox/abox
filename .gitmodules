@@ -1,0 +1,6 @@
+[submodule "abox-onebox"]
+	path = abox-onebox
+	url = git@github.com:abox-onebox/abox-onebox.git
+[submodule "_app/abox-kb"]
+	path = _app/abox-kb
+	url = git@github.com:abox-onebox/abox-kb.git

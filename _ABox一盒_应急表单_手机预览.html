@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox一盒 · 应急表单长什么样（手机预览）</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --ink:#3A2E1F; --brown:#6E5435; --brown-soft:#8A6E45;
+    --card:#EDE3D2; --card-2:#E4D7BE; --line:#D8C9AE; --warn:#9C4A2E; --ok:#4F6B3A;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--ink);
+    font-family:"KaiTi","STKaiti","楷体","Kaiti SC","Kaiti TC",serif; line-height:1.8; font-size:18px;}
+  .wrap{max-width:980px; margin:0 auto; padding:40px 24px 80px;}
+  header{border-bottom:3px solid var(--brown); padding-bottom:16px; margin-bottom:8px;}
+  h1{font-size:30px; color:var(--brown); margin:0 0 6px; letter-spacing:1px;}
+  .sub{font-size:15px; color:var(--brown-soft);}
+  h2{font-size:22px; color:var(--brown); margin:38px 0 14px; border-left:6px solid var(--brown); padding-left:12px;}
+  p{margin:10px 0;}
+  .note{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin:16px 0; color:var(--brown-soft); font-size:15px;}
+  .law{background:#EAF0E2; border:2px solid var(--ok); border-radius:12px; padding:14px 20px; margin:18px 0; color:#3F552E; font-size:15px;}
+  .law b{color:var(--ok);}
+  .stage{display:flex; flex-wrap:wrap; gap:34px; align-items:flex-start; margin:22px 0;}
+  /* 手机外壳 */
+  .phone{width:330px; background:#2c2c2e; border-radius:38px; padding:14px; box-shadow:0 18px 40px rgba(60,46,31,.28); flex:0 0 auto; margin:0 auto;}
+  .screen{background:#FBF7EE; border-radius:28px; overflow:hidden; min-height:600px; position:relative;}
+  .statusbar{display:flex; justify-content:space-between; align-items:center; padding:10px 18px 4px; font-size:13px; color:#6b5a44;}
+  .appbar{background:var(--brown); color:#fff; padding:14px 18px; font-size:18px; letter-spacing:.5px;}
+  .appbar small{display:block; font-size:13px; opacity:.85; margin-top:2px; font-weight:normal;}
+  .body{padding:16px 16px 22px;}
+  .intro{background:#fff; border:1px solid var(--line); border-radius:12px; padding:13px 14px; font-size:14.5px; color:var(--ink); margin-bottom:14px;}
+  .intro b{color:var(--brown);}
+  .qr{width:100%; height:120px; border:2px dashed var(--brown); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--brown-soft); font-size:14px; margin:10px 0 4px; background:#fff;}
+  .field{background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px; margin:14px 0;}
+  .field label{display:block; font-size:16px; color:var(--brown); margin-bottom:4px;}
+  .field .req{color:var(--warn); font-size:13px;}
+  .field .hint{font-size:13px; color:var(--brown-soft); margin-top:6px;}
+  .stepper{display:flex; align-items:center; gap:16px; margin-top:10px;}
+  .stepper button{width:42px; height:42px; border-radius:50%; border:1.5px solid var(--brown); background:#fff; color:var(--brown); font-size:24px; cursor:pointer; line-height:1; font-family:inherit;}
+  .stepper .val{font-size:30px; color:var(--ink); min-width:42px; text-align:center;}
+  .submit{width:100%; background:var(--brown); color:#fff; border:none; border-radius:12px; padding:15px; font-size:18px; cursor:pointer; font-family:inherit; margin-top:6px;}
+  .submit:active{opacity:.85;}
+  .privacy{font-size:12.5px; color:var(--brown-soft); text-align:center; margin-top:12px; line-height:1.6;}
+  .done{display:none; text-align:center; padding:40px 20px;}
+  .done .tick{width:64px; height:64px; border-radius:50%; background:var(--ok); color:#fff; font-size:36px; line-height:64px; margin:0 auto 14px;}
+  .done p{font-size:16px;}
+  .menu{background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin:14px 0;}
+  .menu-h{font-size:15px; color:var(--brown); margin-bottom:8px;}
+  .menu ul{margin:0; padding-left:6px; list-style:none;}
+  .menu li{font-size:14px; color:var(--ink); padding:3px 0;}
+  .menu-note{font-size:12.5px; color:var(--brown-soft); margin-top:8px;}
+  /* 团长端 */
+  .admin{background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px 18px; flex:1 1 280px; min-width:280px;}
+  .admin h3{margin:0 0 4px; color:var(--brown); font-size:19px;}
+  .admin .sub2{font-size:13px; color:var(--brown-soft); margin-bottom:12px;}
+  table{width:100%; border-collapse:collapse; font-size:14.5px;}
+  th,td{border:1px solid var(--line); padding:8px 10px; text-align:left;}
+  th{background:var(--card-2); color:var(--brown); font-weight:normal;}
+  .tag{display:inline-block; background:var(--brown); color:#fff; border-radius:5px; padding:1px 7px; font-size:12px;}
+  .legend{font-size:13px; color:var(--brown-soft); margin-top:10px;}
+  footer{margin-top:46px; border-top:1px solid var(--line); padding-top:14px; font-size:13px; color:var(--brown-soft);}
+  @media print{ .phone{box-shadow:none;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>ABox一盒 · 应急表单长什么样</h1>
+    <div class="sub">团长专属表单 · 用户只填「份数」一项 · 身份靠工具自动记提交人，不收真实姓名</div>
+  </header>
+
+  <div class="law">
+    <b>这张表单的设计原则：</b><br>
+    ① 单一套餐 ⇒ 用户<b>不能选</b>菜，但表单会<b>展示今日一饭四菜</b>让你看（只读、不增加填写负担），无任何口味/选餐/备注输入框。<br>
+    ② 团长送上楼 ⇒ 文案是「<b>团长送到你工位</b>」，无自提字样。<br>
+    ③ 只填<b>份数</b>一栏；<b>不出现「姓名」输入框</b>——你是谁，表单自动记提交人、团长也都认识。
+  </div>
+
+  <div class="stage">
+
+    <!-- ===== 用户端表单 ===== -->
+    <div class="phone">
+      <div class="screen">
+        <div class="statusbar"><span>9:41</span><span>ABox一盒 · 应急</span><span>▪▪▪ 5G</span></div>
+        <div class="appbar">ABox一盒 · 张姐 今日订餐<small>10月21日（周二）· 单一套餐</small></div>
+        <div class="body">
+          <div class="intro">
+            我们是一盒现做盒饭（<b>一饭四菜，单一套餐不用选</b>）。<br>
+            明天 <b>11:30 前</b> 团长会直接把餐 <b>送到你工位</b>，你不用下楼 👍
+          </div>
+
+          <div class="menu">
+            <div class="menu-h">今日一饭四菜 · 只读展示（运营每日更新）</div>
+            <ul>
+              <li>🍚 主食：［运营填入，例：糙米饭］</li>
+              <li>🥘 主菜：［例：红烧肉］</li>
+              <li>🥬 素菜：［例：清炒时蔬］</li>
+              <li>🍲 汤品：［例：番茄蛋汤］</li>
+              <li>🥗 凉菜：［例：凉拌木耳］</li>
+            </ul>
+            <div class="menu-note">今日统一配，不可选 —— 但你可以先看今天吃什么再决定订几份。</div>
+          </div>
+
+          <div class="qr">［ 商家收款码图片放这里 ］<br>填完份数，扫此码付款</div>
+
+          <div class="field">
+            <label>份数 <span class="req">＊必填</span></label>
+            <div class="stepper">
+              <button type="button" onclick="step(-1)">−</button>
+              <span class="val" id="qty">1</span>
+              <button type="button" onclick="step(1)">＋</button>
+            </div>
+            <div class="hint">默认 1 份。今天吃什么看上面的「今日一饭四菜」。不需要填姓名——你是谁表单会自动记、团长也都认识。</div>
+          </div>
+
+          <button class="submit" onclick="submitForm()">提交订单</button>
+
+          <div class="privacy">🔒 本表单<b>不收集你的真实姓名</b>，仅用于当日配餐与份数统计。</div>
+
+          <!-- 提交后状态 -->
+          <div class="done" id="done">
+            <div class="tick">✓</div>
+            <p><b>提交成功！</b></p>
+            <p>你订了 <span id="doneQty">1</span> 份。<br>明天 11:30 前，张姐会把餐送到你工位，<br>坐着等就好～</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 团长端汇总 ===== -->
+    <div class="admin">
+      <h3>团长后台看到的</h3>
+      <div class="sub2">表单工具自动记录「提交人」，团长据此认领，无需用户填姓名</div>
+      <table>
+        <thead><tr><th>提交人（自动）</th><th>份数</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td>微信昵称·小李</td><td>1</td><td><span class="tag">已付</span></td></tr>
+          <tr><td>微信昵称·王工</td><td>2</td><td><span class="tag">已付</span></td></tr>
+          <tr><td>微信昵称·陈姐</td><td>1</td><td>待付</td></tr>
+          <tr style="font-weight:bold; background:var(--card);"><td>合计</td><td>4</td><td>—</td></tr>
+        </tbody>
+      </table>
+      <div class="legend">
+        · 团长认识同事，看到昵称即知是谁、送哪层。<br>
+        · 「已付 / 待付」来自商家收款码对账（备注昵称，非强制）。<br>
+        · 收班后把<b>合计份数</b>报给你，进《团长-商家对账表》结算佣金。
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <b>怎么搭出这张表单（30 秒）：</b>在腾讯文档 / 问卷星 / 金山表单新建一份收集表，标题写「ABox一盒 · ［团长名］ 今日订餐」，只加<b>一个「数字」题＝份数（必填，默认1）</b>，说明区贴上面的简介＋放商家收款码图。每个团长建一份、用自己的链接转发即可。完整字段配置与可复制文案见《应急表单与对账模板》。
+  </div>
+
+  <footer>
+    ABox一盒 · 应急连续性工具包 ｜ 配套：应急作战手册 / 应急表单与对账模板 ｜ 单价 ¥25.80／份 ｜ 不收集用户真实姓名
+  </footer>
+
+</div>
+
+<script>
+  var qty = 1;
+  function step(d){ qty = Math.max(1, qty + d); document.getElementById('qty').textContent = qty; }
+  function submitForm(){
+    document.getElementById('doneQty').textContent = qty;
+    document.querySelector('.field').style.display = 'none';
+    document.querySelector('.qr').style.display = 'none';
+    document.querySelector('.submit').style.display = 'none';
+    document.getElementById('done').style.display = 'block';
+  }
+</script>
+</body>
+</html>

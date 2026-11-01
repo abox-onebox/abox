@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>ABox 一盒 · 商品图真机自检</title>
+    <style>
+      :root {
+        --bg: #f6f0e5;
+        --ink: #6e5435;
+        --ink-soft: #8d7555;
+        --line: #e3d9c6;
+        --ok: #4a7c59;
+        --bad: #a33b2a;
+        --card: #fffdf8;
+      }
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        margin: 0;
+        padding: 20px 16px 40px;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: KaiTi, STKaiti, "Kaiti SC", serif;
+        line-height: 1.6;
+      }
+      h1 {
+        font-size: 21px;
+        margin: 0 0 4px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+      .sub {
+        font-size: 13px;
+        color: #907954;
+        margin-bottom: 16px;
+      }
+      .board {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 14px 14px 6px;
+        margin-bottom: 16px;
+      }
+      .board .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 5px 0;
+        border-bottom: 1px dashed var(--line);
+        font-size: 14px;
+      }
+      .board .row:last-child {
+        border-bottom: none;
+      }
+      .board .k {
+        color: #907954;
+        flex-shrink: 0;
+      }
+      .board .v {
+        font-weight: 600;
+        text-align: right;
+        word-break: break-all;
+      }
+      .v.ok {
+        color: var(--ok);
+      }
+      .v.bad {
+        color: var(--bad);
+      }
+      .v.run {
+        color: #907954;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      .cell {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .cell .ph {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        background: #efe7d7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: #a9977a;
+        overflow: hidden;
+      }
+      .cell img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .cell .meta {
+        padding: 7px 9px 9px;
+        font-size: 11.5px;
+        color: #7d6a4c;
+      }
+      .cell .nm {
+        font-size: 12.5px;
+        color: var(--ink);
+        font-weight: 600;
+        margin-bottom: 3px;
+        word-break: break-all;
+      }
+      .tag {
+        display: inline-block;
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-left: 4px;
+      }
+      .t-ok {
+        background: #e6f0e8;
+        color: var(--ok);
+      }
+      .t-bad {
+        background: #f8e7e4;
+        color: var(--bad);
+      }
+      .t-run {
+        background: #efe7d7;
+        color: #907954;
+      }
+      .note {
+        margin-top: 18px;
+        font-size: 12.5px;
+        color: #877350;
+        border-left: 3px solid var(--line);
+        padding-left: 10px;
+      }
+      .note b {
+        color: var(--ink);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>ABox 一盒 · 商品图真机自检</h1>
+    <div class="sub">
+      打开本页即自动拉取小程序首页所用的全部商品图，实时显示每一张是否真的显示出来。
+    </div>
+
+    <div class="board">
+      <div class="row"><span class="k">检测时间</span><span class="v" id="at">准备中</span></div>
+      <div class="row"><span class="k">网络宿主</span><span class="v" id="host">准备中</span></div>
+      <div class="row">
+        <span class="k">加载结果</span><span class="v run" id="sum">检测中</span>
+      </div>
+      <div class="row"><span class="k">合计传输</span><span class="v" id="bytes">—</span></div>
+      <div class="row"><span class="k">总耗时</span><span class="v" id="ms">—</span></div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <div class="note">
+      <b>怎么用这张截图验收：</b>在手机上打开本页后截图，图上<b>每一格若能看见零食照片</b>，即等价于小程序首页的商品图在真机上显示正常 ——
+      本页读取的就是小程序请求的同一批图片资源（同一域名、同一路径）。<br /><br />
+      <b>看什么：</b>右上角「加载结果」须为 <b>全部正常</b>；每一格右下角须显示 <b>正常</b> 标签与真实字节数。若某一格是灰色占位且标 <b>失败</b>，即该图在真机不可达，请连同本截图一起反馈。
+    </div>
+
+    <script>
+      var FILES = [
+        'snack-01-kangshifu.png',
+        'snack-02-sanzhisongshu.png',
+        'snack-03-liangpinpuzi.png',
+        'snack-04-wangwang.png',
+        'snack-05-weilong.png',
+        'snack-06-daliyuan.png',
+        'snack-06b-daliyuan-bread.png',
+        'snack-07-yili.png',
+      ];
+      var BASE = './';
+
+      function fmt(n) {
+        return n > 1024 * 1024 ? (n / 1024 / 1024).toFixed(2) + ' MB' : (n / 1024).toFixed(0) + ' KB';
+      }
+
+      var grid = document.getElementById('grid');
+      var totalBytes = 0;
+      var elapsed = 0;
+      var okCount = 0;
+      var t0 = Date.now();
+
+      document.getElementById('at').textContent = new Date().toLocaleString('zh-CN', {
+        hour12: false,
+      });
+      document.getElementById('host').textContent = location.host;
+
+      function setState(el, text, cls) {
+        el.textContent = text;
+        el.className = 'v ' + cls;
+      }
+
+      FILES.forEach(function (f, i) {
+        var cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.innerHTML =
+          '<div class="ph" id="ph' + i + '">载入中</div>' +
+          '<div class="meta"><div class="nm">' + f + '</div>' +
+          '<div><span id="st' + i + '">—</span> <span class="tag t-run" id="tg' + i + '">检测中</span></div></div>';
+        grid.appendChild(cell);
+
+        var st = document.getElementById('st' + i);
+        var tg = document.getElementById('tg' + i);
+        var ph = document.getElementById('ph' + i);
+        var s = Date.now();
+
+        fetch(BASE + f, { cache: 'no-store' })
+          .then(function (r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.blob();
+          })
+          .then(function (b) {
+            totalBytes += b.size;
+            elapsed += Date.now() - s;
+            okCount += 1;
+            st.textContent = fmt(b.size);
+            tg.textContent = '正常';
+            tg.className = 'tag t-ok';
+            var im = document.createElement('img');
+            im.src = BASE + f;
+            im.alt = f;
+            ph.innerHTML = '';
+            ph.appendChild(im);
+          })
+          .catch(function (e) {
+            st.textContent = String(e.message || e);
+            tg.textContent = '失败';
+            tg.className = 'tag t-bad';
+            ph.textContent = '无法显示';
+          })
+          .then(function () {
+            if (i !== FILES.length - 1) return;
+            var wall = Date.now() - t0;
+            var sum = document.getElementById('sum');
+            if (okCount === FILES.length) {
+              setState(sum, okCount + ' / ' + FILES.length + ' 全部正常', 'ok');
+            } else {
+              setState(sum, okCount + ' / ' + FILES.length + ' 正常', 'bad');
+            }
+            document.getElementById('bytes').textContent = fmt(totalBytes);
+            document.getElementById('ms').textContent = wall + ' ms';
+          });
+      });
+    </script>
+  </body>
+</html>

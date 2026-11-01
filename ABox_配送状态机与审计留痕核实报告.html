@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 配送状态机与审计留痕核实报告 · 第三批</title>
+<style>
+  :root{
+    --brown:#6E5435; --brown-d:#4a3a22; --cream:#F6F0E5; --cream-2:#efe6d6;
+    --line:#d9cbb4; --ok:#3f7d4f; --part:#b07d2b; --gap:#b23b3b; --na:#7a7a7a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"楷体","KaiTi","STKaiti",simkai,serif;color:var(--brown-d);background:var(--cream);line-height:1.65;}
+  header{background:var(--brown);color:var(--cream);padding:22px 28px;}
+  header h1{margin:0 0 4px;font-size:23px;letter-spacing:2px;}
+  header p{margin:0;font-size:13.5px;opacity:.92;}
+  .wrap{max-width:1120px;margin:0 auto;padding:18px 22px 60px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13.5px;}
+  .card h3{margin:0 0 10px;color:var(--brown);font-size:15px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0;}
+  table th,table td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top;}
+  table th{background:var(--cream-2);color:var(--brown);}
+  .v-ok{color:var(--ok);font-weight:bold;}
+  .v-part{color:var(--part);font-weight:bold;}
+  .v-gap{color:var(--gap);font-weight:bold;}
+  .code{font-family:Consolas,Monaco,monospace;font-size:12px;background:var(--cream-2);padding:1px 5px;border-radius:3px;color:#5a4326;word-break:break-all;}
+  .item{border:1px solid var(--line);border-radius:10px;background:#fff;padding:16px 20px;margin:18px 0;}
+  .item h2{font-size:16.5px;margin:0 0 4px;color:var(--brown);}
+  .item .sub{font-size:12.5px;color:#8a6a3a;margin-bottom:12px;}
+  .kv{margin:6px 0;}
+  .kv b{color:var(--brown);}
+  .alert{background:#fceaea;border-left:4px solid var(--gap);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .warn{background:#fbf3e3;border-left:4px solid var(--part);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .good{background:#eaf3e8;border-left:4px solid var(--ok);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  ul{margin:6px 0 6px 18px;padding:0;}
+  li{margin:3px 0;}
+  footer{font-size:12px;color:var(--na);text-align:center;margin-top:30px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>ABox 一盒 · 配送状态机与审计留痕核实报告</h1>
+  <p>第三批 ｜ 核实日期 2026-10-26 ｜ 方法：真实代码走查 + 全量端点统计 ｜ 结论先行：<b>历史缺陷 #79 已正确修复；但发现一条「安全闸门的开关本身没有审计」的真缺口</b></p>
+</header>
+
+<div class="wrap">
+
+  <div class="alert">
+    <b>本批最重要的一条（新发现 X2）：限制 AI 助手的「禁止清单」，它的解除动作没有任何审计痕迹。</b><br>
+    <span class="code">OpBlocklistService.remove()</span> 直接执行 <span class="code">repo.delete()</span> —— <b>物理删除</b>，
+    不记谁解除的、不记什么时候解除的，解除后连「这条禁令曾经存在过」都查不出来。<br>
+    对比同一张表的「列入」操作（<span class="code">add()</span>）是<b>完整记录</b>了操作人与时间的 ——
+    <b>同一个文件的两个相邻方法，一个留痕一个不留，这是典型的不对称缺口。</b>
+  </div>
+
+  <div class="card">
+    <h3>本批结论一览</h3>
+    <table>
+      <tr><th>编号</th><th>探针问题</th><th>核实结论</th><th>要不要动</th></tr>
+      <tr>
+        <td><b>T8/T9</b></td><td>配送状态推进是否真的联动订单（#79 静默卡死是否修好）</td>
+        <td class="v-ok">已正确修复，且做了比我预期更严谨的设计</td>
+        <td class="v-ok">不用动</td>
+      </tr>
+      <tr>
+        <td><b>X2</b></td><td>禁止清单的「解除」是否留痕</td>
+        <td class="v-gap">真缺口 · 打开安全闸门无痕迹（<b>本批最实</b>）</td>
+        <td class="v-gap">建议尽快补</td>
+      </tr>
+      <tr>
+        <td><b>X3</b></td><td>操作日志写库失败会怎样</td>
+        <td class="v-part">刻意吞异常仅告警（取舍合理），但<b>无补偿、无告警升级</b></td>
+        <td class="v-part">加监控即可</td>
+      </tr>
+      <tr>
+        <td><b>X4</b></td><td>团长 / 用户侧动作有没有审计</td>
+        <td class="v-part">结构性限制：日志表<b>只有 adminUserId 列</b>，装不下团长身份</td>
+        <td class="v-part">知道即可（查业务表）</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ===================== T8/T9 ===================== -->
+  <div class="item">
+    <h2>T8 / T9 · 配送状态机的订单联动：历史缺陷 #79 确认已修好</h2>
+    <div class="sub">这条我原本担心还能查出问题，核实结果反而是全项目里写得最讲究的地方之一</div>
+
+    <div class="kv"><b>① 联动确实生效，而且是逐单条件更新</b></div>
+    <ul>
+      <li>T8 发货：<span class="code">delivery.service.ts:869</span> <span class="code">advanceGroupOrdersToDelivering()</span> —— 订单 <span class="code">cooked → delivering</span></li>
+      <li>T9 送达：<span class="code">delivery.service.ts:922</span> <span class="code">advanceGroupOrdersToDelivered()</span> —— 订单 <span class="code">delivering → delivered</span></li>
+      <li>两者都是：<span class="code">WHERE id = ? AND status = '来源态'</span> 条件更新 + <span class="code">version + 1</span>，<span class="code">affected = 0</span> 就跳过</li>
+    </ul>
+
+    <div class="kv"><b>② 「静默卡死」这个历史病根是怎么被根治的</b></div>
+    <div class="good">
+      我之前提到的风险是「写条件不命中 ⇒ 一单都没动且不报错」。<span class="code">delivery.service.ts:779-789</span> 专门处理了这个形状：<br>
+      当 <span class="code">advanced === 0</span> 时，代码会回头查 <span class="code">remaining</span> 里还有几单停在来源态，并<b>生成一句能照着排查的话</b>回给运营 ——
+      「该楼群当日仍有 N 单停在『已出餐』而无法推进 —— 请先确认上游是否完成（出餐确认 / 上一段发车），订单不会替物理流程做假设」。<br>
+      <b>这正是「不静默」的标准做法：做不到要说出来，并且要说清楚卡在哪。</b>
+    </div>
+
+    <div class="kv"><b>③ 一个我很认可的设计细节（他们主动放弃了「少写几行」）</b></div>
+    <p><span class="code">delivery.service.ts:736-748</span> 的注释解释了为什么 T8 和 T9 要写成两个独立方法，而不是共用一个「传目标状态进来」的通用更新：</p>
+    <ul>
+      <li>通用写法更短，但两处订单状态写入点在静态扫描下都是「<b>动态值 · 判不出来</b>」</li>
+      <li>而门禁 <span class="code">state:audit</span> 正是靠<b>能静态判定</b>才对得上「声明 ↔ 写入点」</li>
+      <li>源码原话：「等于亲手把 #79 逃过全部门禁的那个盲区重新打开一次。<b>不要为了少写几行，把可对账性让掉。</b>」</li>
+    </ul>
+    <p><b>我核实了这个门禁确实存在</b>（不是注释里的空承诺）：<span class="code">scripts/check-order-edges.mjs</span> —— 订单状态机「<b>边级</b>」对账，就是为守这个而写的。</p>
+
+    <div class="good">
+      <b>结论：T8/T9 这条可以划掉了，不用再提。</b>顺带一提，这两处还做到了「每次状态迁移都在事务内落 <span class="code">ab_operation_log</span>」—— 见下文 X3 的对比，这里的留痕反而是最扎实的。
+    </div>
+  </div>
+
+  <!-- ===================== X2 ===================== -->
+  <div class="item">
+    <h2>X2 · 真缺口：禁止清单的「解除」是一道不留痕迹的门</h2>
+    <div class="sub">本批唯一建议尽快补的一条 ｜ 等级：<b class="v-gap">建议排 P1</b> ｜ 性质：安全管控自身的变更缺少审计</div>
+
+    <div class="kv"><b>这道闸门是干什么的</b></div>
+    <ul>
+      <li><span class="code">OpBlocklistInterceptor</span> 以 <span class="code">APP_INTERCEPTOR</span> 全局注册（<span class="code">common.module.ts:84</span>）</li>
+      <li>它专管 <b>AI 知识助手</b>的写操作：只拦截带 <span class="code">X-KB-OpBlock</span> 头的 POST / PUT / DELETE 请求</li>
+      <li>一旦某个操作码进了清单，助手就会收到 <span class="code">OP_BLOCKED</span>，无法执行也无法提交审批</li>
+    </ul>
+    <p>简单说：<b>这是你用来约束「AI 能替你做什么」的唯一一道闸门。</b></p>
+
+    <div class="kv"><b>问题出在哪 —— 同一个文件的两个方法，一个记一个不记</b></div>
+    <table>
+      <tr><th>操作</th><th>代码位置</th><th>留痕情况</th></tr>
+      <tr>
+        <td><b>列入</b>禁令 <span class="code">add()</span></td>
+        <td><span class="code">op-blocklist.controller.ts:38</span> → <span class="code">op-blocklist.service.ts:29-42</span></td>
+        <td class="v-ok">完整：写 <span class="code">createdBy</span>（谁列入）+ <span class="code">createdAt</span></td>
+      </tr>
+      <tr>
+        <td><b>解除</b>禁令 <span class="code">remove()</span></td>
+        <td><span class="code">op-blocklist.controller.ts:45</span> → <span class="code">op-blocklist.service.ts:44-46</span></td>
+        <td class="v-gap"><b>零留痕</b>：<span class="code">repo.delete({ opCode })</span> 物理删除</td>
+      </tr>
+    </table>
+
+    <div class="alert">
+      <b>三个层面同时失效，这是我把它的等级定得比看起来更高的原因：</b>
+      <ol style="margin-bottom:0;">
+        <li><b>不记操作人</b> —— <span class="code">remove()</span> 这个方法签名<b>连当前登录人都没有取</b>（对比同为 admin 端点的 <span class="code">add()</span> 明确取了 <span class="code">@CurrentAdmin() actor</span> 并传下去）。它既没挂 <span class="code">@OperationLog</span>，也没取身份。</li>
+        <li><b>不记时间</b> —— 表里有 <span class="code">createdAt</span>，但没有「解除时间」字段。</li>
+        <li><b>记录本身被删掉</b> —— 用的是 <span class="code">delete()</span> 而非软删除（项目里用户注销这类场景用的都是 <span class="code">deletedAt</span> 软删）。解除之后，<b>连「这条禁令曾经存在过」都无法证明</b>。</li>
+      </ol>
+    </div>
+
+    <div class="warn">
+      <b>再加一层放大：这道栅栏本身是 fail-open 的。</b><br>
+      <span class="code">op-blocklist.interceptor.ts:48</span>：<span class="code">catch</span> 到<b>任何非业务异常</b>（数据库连接抖动、查询超时）时，
+      日志写的是 <b>「禁止清单查询失败，<span class="v-gap">放行</span>助手写操作」</b> 然后继续放行。<br>
+      这个取舍本身可以理解（不能查库失败就全站瘫痪），<b>但它和「解除无留痕」叠加之后效果是：</b>
+      想让助手去做一件被禁的事，只需要一个带 admin 权限的 HTTP 请求删掉那条禁令，<b>事后查无此人、查无此事</b>。
+    </div>
+
+    <div class="kv"><b>建议的修改（三选一，成本都不高）</b></div>
+    <ul>
+      <li><b>最小改动：</b>给 <span class="code">remove()</span> 补上 <span class="code">@CurrentAdmin()</span> + <span class="code">@OperationLog</span>，让它至少写进 <span class="code">ab_operation_log</span>（module 建议用 <span class="code">'security'</span>，便于单独筛）</li>
+      <li><b>更彻底：</b>把物理删除改成<b>软删除或历史表</b> —— 加 <span class="code">deletedAt</span> / <span class="code">deletedBy</span>，或删前先插一条 <span class="code">op_blocklist_history</span>。这样「谁在什么时候打开了哪道门」永久可查</li>
+      <li><b>配套：</b>把这个删除操作纳入现有的高危审批（<span class="code">operation-request</span>）范围，而不是普通 admin 直接执行</li>
+    </ul>
+  </div>
+
+  <!-- ===================== X3 ===================== -->
+  <div class="item">
+    <h2>X3 · 操作日志「留痕 ≠ 真落库」：写失败会被静默吞掉</h2>
+    <div class="sub">这是「留痕不等于真落库」这个问题的准确答案 ｜ 等级：取舍合理，但建议加监控</div>
+
+    <div class="kv"><b>机制</b></div>
+    <ul>
+      <li>全局拦截器 <span class="code">common/interceptors/operation-log.interceptor.ts</span>，按 <span class="code">@OperationLog()</span> 元数据决定是否落库</li>
+      <li><span class="code">:240</span>：<b>整个写库过程包在 try/catch 里，失败只打一行 WARN</b>，原文注释「旁路失败不影响业务：仅告警」</li>
+    </ul>
+
+    <div class="kv"><b>我的评价：这个取舍是对的，但缺少后半段</b></div>
+    <p><b>对的部分：</b>不能因为日志表炸了就让「退款审批」失败 —— 这是正确的取舍，反过来实现才是错的。<br>
+    <b>缺的部分：</b>一旦触发（磁盘满、表容量、连接池耗尽、JSON 字段异常），<b>审计日志会静默消失，而运营和业务方完全没有感知</b>。等到真要追责时才发现「那几天的日志是空的」。</p>
+
+    <div class="good">
+      <b>顺带说清楚一个好消息（防炸措施其实相当到位）：</b><br>
+      <span class="code">MAX_FIELD_LEN = 2000</span> 字段截断 · 数组只留前 50 项 · 嵌套超过 4 层写 <span class="code">[depth-limit]</span> · <span class="code">password/token/secret</span> 自动脱敏 · IP 再截到 64 字符。<br>
+      这几条把「日志自己把库写爆」的常见路径基本堵死了。<b>剩下会触发 catch 的主要是基础设施级故障</b>（磁盘 / 连接 / 权限），概率低但一旦发生影响是全量的。
+    </div>
+
+    <div class="kv"><b>建议（不需要改代码逻辑）</b></div>
+    <ul>
+      <li>给这条 WARN 配一个监控告警 —— 只要出现一次就该有人看（它平时应该是<b>零出现</b>，任何一次都是异常）</li>
+      <li>或加一个「每日落库条数」的心跳检查：某天条数突降到 0 就告警。<b>「恒零的检查等于没有检查」</b>，这条正好可以用上。</li>
+    </ul>
+  </div>
+
+  <!-- ===================== X4 ===================== -->
+  <div class="item">
+    <h2>X4 · 团长与用户的动作为什么查不到「谁干的」—— 结构性限制，不是遗漏</h2>
+    <div class="sub">这条解释了「为什么大量端点没挂留痕」，答案和「开发偷懒」无关</div>
+
+    <div class="kv"><b>全量统计（84 个写端点）</b></div>
+    <table>
+      <tr><th>分类</th><th>端点数</th><th>说明</th></tr>
+      <tr><td>写操作端点总数</td><td><b>84</b></td><td>全部 controller 的 @Post / @Put / @Patch / @Delete</td></tr>
+      <tr><td>有 <span class="code">@OperationLog</span></td><td class="v-ok"><b>54</b></td><td>拦截器自动落 <span class="code">ab_operation_log</span></td></tr>
+      <tr><td>无 <span class="code">@OperationLog</span> · 用户/团长侧</td><td>24</td><td>登录、下单、支付、评价、埋点、团长申请/资料/退出等</td></tr>
+      <tr><td>无 <span class="code">@OperationLog</span> · 后台类</td><td class="v-part"><b>6</b></td><td>见下表逐条判定</td></tr>
+    </table>
+
+    <div class="kv"><b>为什么团长那 24 个「挂了也白挂」</b></div>
+    <ul>
+      <li><span class="code">operation-log.interceptor.ts:63</span>：<span class="code">subject = req.admin ?? (req.user?.typ === 'admin' ? req.user : undefined) ?? undefined;</span></li>
+      <li>团长令牌的 <span class="code">typ</span> 不是 <span class="code">'admin'</span> ⇒ <span class="code">subject</span> 恒为 <span class="code">undefined</span> ⇒ 落库时 <span class="code">adminUserId = null</span></li>
+      <li>而 <span class="code">ab_operation_log</span> 表<b>只有 adminUserId 一列承载主体</b>（<span class="code">system.entity.ts:59-115</span> 核过：没有 userId / leaderId 列）</li>
+    </ul>
+    <p><b>结论：这不是开发漏挂，而是这张表结构上就装不下团长身份。</b>要审计团长行为，得查业务表本身 —— <span class="code">ab_withdraw</span>（提现流水）、订单状态流转时间戳、佣金 pending 明细，这些是真实可用的证据。</p>
+
+    <div class="kv"><b>后台类 6 个无留痕端点 · 逐条判定</b></div>
+    <table>
+      <tr><th>端点</th><th>位置</th><th>判定</th></tr>
+      <tr>
+        <td>禁止清单 列入 / 解除</td><td><span class="code">op-blocklist.controller.ts</span></td>
+        <td class="v-gap"><b>真缺口</b>（即上文 X2，解除方零留痕）</td>
+      </tr>
+      <tr>
+        <td>企微绑定 / 解绑</td><td><span class="code">wecom-binding.admin.controller.ts:21,39</span></td>
+        <td class="v-part">真缺口但等级低 —— 解除外部渠道绑定无痕迹</td>
+      </tr>
+      <tr>
+        <td>图片上传</td><td><span class="code">media.controller.ts</span></td>
+        <td class="v-ok">影响很小，可补可不补</td>
+      </tr>
+      <tr>
+        <td>提交高危操作申请</td><td><span class="code">operation-request.controller.ts</span></td>
+        <td class="v-ok"><b>不是缺口</b> —— 它用专用表记录，且比 OperationLog 更完整</td>
+      </tr>
+    </table>
+    <p><b>特别说明最后一条：</b><span class="code">OperationRequest</span> 实体专门存了 <span class="code">submitterAdminId</span> / <span class="code">submitterKb</span> / <span class="code">submitterNl</span> / <span class="code">submitterOpBlock</span> / <span class="code">status</span>，
+    <b>这是比通用日志表更合适的做法</b> —— 审批类动作就该有自己的表。我把它列为「不是缺口」，是因为它确实有留痕，只是不在那张通用表里。</p>
+  </div>
+
+  <!-- ===================== 汇总 ===================== -->
+  <div class="card">
+    <h3>处置清单（可直接转技术）</h3>
+    <table>
+      <tr><th>优先级</th><th>事项</th><th>验收条件</th></tr>
+      <tr>
+        <td class="v-gap">P1</td>
+        <td>禁止清单的「解除」必须留痕</td>
+        <td>调用 <span class="code">DELETE /admin/op-blocklist/:opCode</span> 后，能在 <span class="code">ab_operation_log</span>（或专用历史表）里查到：<b>谁解除的、解除时间、解除的是哪个操作码</b>；且「这条禁令曾被列入过」仍可查</td>
+      </tr>
+      <tr>
+        <td class="v-part">P2</td>
+        <td>日志写失败的告警</td>
+        <td>人为让 <span class="code">ab_operation_log</span> 不可写（如改表名），期望：业务照常成功，但产生一条可观测告警 / 日志条数监控掉零告警</td>
+      </tr>
+      <tr>
+        <td class="v-part">P3</td>
+        <td>企微绑定 / 解绑补留痕</td>
+        <td>同上 X2 的最小改法，补 <span class="code">@CurrentAdmin</span> + <span class="code">@OperationLog</span></td>
+      </tr>
+      <tr>
+        <td class="v-ok">不用动</td>
+        <td>T8 / T9 配送联动</td>
+        <td>—（确认已修复，且有 <span class="code">check-order-edges.mjs</span> 门禁持续守护）</td>
+      </tr>
+      <tr>
+        <td class="v-ok">不用动</td>
+        <td>高危审批的自有记录</td>
+        <td>—（<span class="code">OperationRequest</span> 表已记录完整提交人信息）</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>本轮方法论记录（第三次踩同一个坑，值得单列）</h3>
+    <ul>
+      <li><b>统计类探针必须先看真实样本再定规则。</b>我统计「多少写端点没挂 @OperationLog」时，<b>连续两次写错窗口</b>：<br>
+        ① 第一版只向上找 —— 但项目里 <span class="code">@OperationLog</span> 写在 <span class="code">@Post</span> <b>下面</b>，误报 70 条；<br>
+        ② 第二版改成 ±6 行窗口 —— 但 <span class="code">refund-admin</span> 里两者相隔 <b>9 行</b>，把明明有留痕的<b>退款审批</b>又判成了缺口；<br>
+        ③ 第三版改成「从 @Post 一直读到方法签名行」，才拿到准数 <b>84 / 54 / 30</b>。<br>
+        <b>教训：先抽 3 个真实样本确认格式，再写规则；更要拿「肉眼确认有留痕的端点」做负控。</b></li>
+      <li><b>「有没有 @OperationLog」不等于「有没有留痕」。</b>高危审批用自有表，比通用日志更完整 —— <b>判据要落在「有没有可查的记录」，不是「有没有那个注解」。</b></li>
+      <li><b>同一张表相邻两个方法，add 记录而 remove 不记录 —— 这类「不对称」是真缺口的高发形状，值得专门去找。</b></li>
+      <li>本报告引用的代码位置与统计数字，均已通过脚本回查确认真实存在（含反向验证：<span class="code">wecom-binding.admin.controller.ts</span> 的 <span class="code">OperationLog</span> 计数确认为 0）。</li>
+    </ul>
+  </div>
+
+  <footer>
+    ABox 一盒 · 第三批探针核实（配送状态机 + 审计留痕） ｜ 生成 2026-10-26 ｜ 证据基准：工作区真实代码，非推测
+  </footer>
+
+</div>
+</body>
+</html>

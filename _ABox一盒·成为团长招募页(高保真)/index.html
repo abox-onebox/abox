@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 成为团长招募页（高保真）</title>
+<style>
+  @font-face{
+    font-family:"ABKaiti";
+    src:url("ab-kaiti.woff2") format("woff2");
+    font-weight:400;
+  }
+  :root{
+    --bg:#F6F0E5; --bg2:#EFE7D8; --surface:#FCFAF5; --surface2:#F2EADB;
+    --ink:#6E5435; --ink-deep:#4A3925; --ink2:#8A7350; --weak:#A99B82;
+    --gold:#C9A86A; --gold-deep:#A8843E; --ok:#5B8C5A; --warn:#B5793A;
+    --line:#E4D8C4; --red:#B05A45;
+    --shadow:0 8px 22px rgba(74,57,37,.14);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:"ABKaiti","Kaiti SC","STKaiti","KaiTi","楷体",serif;
+    background:var(--bg2); color:var(--ink-deep);
+    line-height:1.7; padding:30px 16px 60px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .stage{max-width:1080px; margin:0 auto; display:flex; gap:34px; flex-wrap:wrap; justify-content:center;}
+
+  /* ===== 手机外框 ===== */
+  .phone{
+    width:340px; flex:none; background:#fff; border-radius:38px;
+    border:10px solid var(--ink-deep); box-shadow:0 18px 40px rgba(74,57,37,.26);
+    overflow:hidden; position:relative;
+  }
+  .phone .notch{height:26px; background:var(--ink-deep); position:relative;}
+  .phone .notch::after{content:""; position:absolute; left:50%; top:9px; transform:translateX(-50%);
+    width:90px; height:8px; border-radius:8px; background:rgba(255,255,255,.25);}
+  .scr{height:680px; overflow-y:auto; background:var(--bg); scrollbar-width:thin;}
+  .scr::-webkit-scrollbar{width:4px;} .scr::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px;}
+  .statusbar{height:30px; display:flex; justify-content:space-between; align-items:center;
+    padding:0 18px; font-size:12px; color:var(--ink-deep); background:var(--bg);}
+  .nav{display:flex; align-items:center; gap:8px; padding:10px 16px; background:var(--surface);
+    border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5;}
+  .nav .back{font-size:20px; color:var(--ink);}
+  .nav .title{font-size:16px; font-weight:700; color:var(--ink); letter-spacing:1px;}
+
+  /* ===== Hero ===== */
+  .hero{background:linear-gradient(150deg,var(--ink) 0%,var(--gold-deep) 100%);
+    color:var(--bg); padding:26px 22px 30px; position:relative; overflow:hidden;}
+  .hero .kicker{font-size:11.5px; letter-spacing:3px; opacity:.85;}
+  .hero h1{font-size:25px; line-height:1.45; margin:10px 0 12px; letter-spacing:1px;}
+  .hero p{font-size:13px; line-height:1.9; opacity:.95;}
+  .hero .tower{position:absolute; right:-26px; bottom:-10px; width:150px; height:200px; opacity:.16;}
+  .hero .tower .flr{height:18px; border-top:1.5px solid #fff; margin:0 0 8px 30px;}
+  .hero .tower .flr:last-child{border-bottom:1.5px solid #fff;}
+
+  /* ===== 价值条 ===== */
+  .band{margin:14px 16px; background:var(--surface); border:1px solid var(--line);
+    border-left:4px solid var(--gold-deep); border-radius:12px; padding:14px 16px;}
+  .band .bt{font-size:14px; font-weight:700; color:var(--ink);}
+  .band .bd{font-size:12px; color:var(--ink2); margin-top:4px; line-height:1.8;}
+
+  /* ===== 章节通用 ===== */
+  .sec{padding:6px 16px 4px;}
+  .sech{display:flex; align-items:baseline; justify-content:space-between; margin:18px 0 10px;}
+  .sech .t{font-size:16px; font-weight:700; color:var(--ink); border-left:4px solid var(--gold-deep); padding-left:9px;}
+  .sech .tag{font-size:11px; color:var(--weak);}
+
+  /* ===== 佣金阶梯 ===== */
+  .ladder{display:flex; gap:7px;}
+  .lv{flex:1; background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:11px 5px; text-align:center; position:relative; overflow:hidden;}
+  .lv .rate{font-size:19px; font-weight:700; color:var(--gold-deep);}
+  .lv .name{font-size:12px; color:var(--ink); font-weight:700; margin-top:2px;}
+  .lv .cond{font-size:9.5px; color:var(--weak); margin-top:5px; line-height:1.5;
+    border-top:1px dashed var(--line); padding-top:5px;}
+  .lv.t0{background:linear-gradient(180deg,#FBF3E4,#FCFAF5);}
+  .lvnote{font-size:11px; color:var(--ink2); line-height:1.8; margin-top:9px;
+    background:var(--surface2); border-radius:9px; padding:9px 12px;}
+  .lvnote b{color:var(--ink-deep);}
+
+  /* ===== 团长做什么 ===== */
+  .do-card{background:var(--surface); border:1px solid var(--line); border-radius:13px; padding:15px 16px;}
+  .do-card .lead{font-size:13.5px; color:var(--ink-deep); line-height:1.9; font-weight:700;}
+  .steps{display:flex; align-items:stretch; margin-top:14px; gap:0;}
+  .step{flex:1; text-align:center;}
+  .step .dot{width:34px; height:34px; line-height:34px; margin:0 auto 7px; border-radius:50%;
+    background:var(--ink); color:var(--bg); font-size:14px; font-weight:700;}
+  .step .st{font-size:11px; color:var(--ink2); line-height:1.5;}
+  .step:not(:last-child)::after{content:""; }
+  .arrow{flex:none; align-self:center; color:var(--gold-deep); font-size:18px; padding:0 2px;}
+  .honest{margin-top:13px; font-size:11.5px; color:var(--ink2); line-height:1.85;
+    background:#FBF3E4; border-radius:9px; padding:10px 12px;}
+  .honest b{color:var(--warn);}
+
+  /* ===== 两种参与 ===== */
+  .modes{display:flex; gap:10px;}
+  .mode{flex:1; background:var(--surface); border:1px solid var(--line); border-radius:13px; padding:14px 13px;}
+  .mode .badge{display:inline-block; font-size:10.5px; background:var(--ink); color:var(--bg);
+    border-radius:12px; padding:2px 10px; margin-bottom:8px;}
+  .mode .mt{font-size:14px; font-weight:700; color:var(--ink);}
+  .mode .md{font-size:11.5px; color:var(--ink2); line-height:1.85; margin-top:6px;}
+
+  /* ===== 表单 ===== */
+  .form{background:var(--surface); border:1px solid var(--line); border-radius:13px; padding:6px 15px;}
+  .field{padding:12px 0; border-bottom:1px solid rgba(228,216,195,.6);}
+  .field:last-of-type{border-bottom:none;}
+  .field .lab{font-size:12px; color:var(--ink2);}
+  .field .req{color:var(--red);}
+  .field .inp{margin-top:6px; font-size:14px; color:var(--ink-deep);
+    background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:9px 11px;}
+  .field .ph{color:var(--weak); font-size:12px;}
+  .bld{display:flex; align-items:center; justify-content:space-between;
+    padding:12px 0; border-bottom:1px solid rgba(228,216,195,.6);}
+  .bld .bl{font-size:12px; color:var(--ink2);}
+  .bld .bv{font-size:13px; color:var(--ink-deep); font-weight:700;}
+
+  .agree{display:flex; align-items:flex-start; gap:9px; padding:14px 2px 4px;}
+  .agree .box{flex:none; width:24px; height:24px; border:1.5px solid var(--gold-deep);
+    border-radius:7px; background:var(--gold); text-align:center; line-height:24px; color:#fff; font-size:15px;}
+  .agree .at{font-size:11.5px; color:var(--ink2); line-height:1.6;}
+  .agree .at b{color:var(--gold-deep);}
+
+  /* ===== 工作台预览 ===== */
+  .wb{background:var(--surface2); border:1px dashed var(--gold); border-radius:13px; padding:15px 16px;}
+  .wb .wbt{font-size:13.5px; font-weight:700; color:var(--gold-deep); margin-bottom:11px;
+    display:flex; align-items:center; gap:7px;}
+  .wb .wbt .crown{font-size:15px;}
+  .wbgrid{display:grid; grid-template-columns:1fr 1fr; gap:9px;}
+  .wbc{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:11px 12px;}
+  .wbc .n{font-size:18px; font-weight:700; color:var(--ink);}
+  .wbc .l{font-size:10.5px; color:var(--weak); margin-top:3px;}
+  .wbc .row{font-size:11px; color:var(--ink2); line-height:1.7; margin-top:4px;}
+
+  /* ===== 严选厨房 ===== */
+  .kit{background:var(--surface); border:1px solid var(--line); border-radius:13px; padding:15px 16px;}
+  .kit .kt{font-size:14px; font-weight:700; color:var(--ink); margin-bottom:8px;}
+  .kit .kd{font-size:12px; color:var(--ink2); line-height:1.9;}
+  .kit .chips{display:flex; gap:7px; flex-wrap:wrap; margin-top:11px;}
+  .kit .chip{font-size:10.5px; color:var(--ink); background:var(--surface2);
+    border:1px solid var(--line); border-radius:11px; padding:3px 10px;}
+
+  /* ===== CTA ===== */
+  .cta-wrap{padding:16px 16px 8px;}
+  .cta{background:linear-gradient(135deg,var(--ink),var(--gold-deep)); color:var(--bg);
+    text-align:center; border-radius:14px; padding:15px; font-size:16px; font-weight:700;
+    letter-spacing:2px; box-shadow:var(--shadow);}
+  .cta-sub{text-align:center; font-size:12px; color:var(--ink2); margin-top:9px; text-decoration:underline;}
+
+  .risk{margin:14px 16px; background:#FBEDE7; border:1px solid var(--red); border-radius:12px; padding:13px 16px;}
+  .risk h3{font-size:13px; color:var(--red); margin-bottom:7px;}
+  .risk p{font-size:11.5px; color:var(--ink-deep); line-height:1.85;}
+  .foot{font-size:10.5px; color:var(--weak); padding:10px 16px 22px; line-height:1.8;}
+
+  /* ===== 右侧说明卡 ===== */
+  .note-card{width:300px; flex:none; align-self:flex-start;}
+  .note-card .blk{background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:18px 20px; margin-bottom:16px; box-shadow:0 3px 10px rgba(110,84,53,.06);}
+  .note-card h3{font-size:16px; color:var(--ink); border-left:4px solid var(--gold-deep); padding-left:10px; margin-bottom:10px;}
+  .note-card p{font-size:12.5px; color:var(--ink2); line-height:1.9;}
+  .note-card .kv{font-size:12.5px; color:var(--ink-deep); line-height:2;}
+  .note-card .kv b{color:var(--ink);}
+  .fix{background:#FBF3E4; border:1px solid var(--gold); border-radius:12px; padding:14px 16px;}
+  .fix h3{font-size:14px; color:var(--gold-deep); margin-bottom:8px;}
+  .fix p{font-size:12px; color:var(--ink-deep); line-height:1.9;}
+  .footer{width:100%; text-align:center; font-size:11px; color:var(--weak); margin-top:18px;}
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <!-- ===================== 手机屏 ===================== -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="statusbar"><span>9:41</span><span>ABox 一盒</span></div>
+    <div class="nav"><span class="back">‹</span><span class="title">成为团长</span></div>
+    <div class="scr">
+
+      <!-- Hero -->
+      <div class="hero">
+        <div class="kicker">ABOX 一盒 · 团长招募</div>
+        <h1>把这一盒，<br>送到每一层楼</h1>
+        <p>你多走几层楼，别人就少跑一趟腿。<br>一盒饭的"省心"，是团长一层一层爬出来的。</p>
+        <div class="tower">
+          <div class="flr"></div><div class="flr"></div><div class="flr"></div>
+          <div class="flr"></div><div class="flr"></div><div class="flr"></div>
+          <div class="flr"></div><div class="flr"></div>
+        </div>
+      </div>
+
+      <!-- 价值条 -->
+      <div class="band">
+        <div class="bt">为什么是你来送，而不是让用户自己取？</div>
+        <div class="bd">用户花钱买的不是"一份盒饭"，是"中午不用动"。团长把饭送上楼，替整栋楼省下的，是每天最贵的那二十分钟。</div>
+      </div>
+
+      <!-- 佣金阶梯 -->
+      <div class="sec">
+        <div class="sech"><span class="t">你的佣金阶梯</span><span class="tag">卖一盒赚一盒</span></div>
+        <div class="ladder">
+          <div class="lv t0"><div class="rate">8%</div><div class="name">见习</div><div class="cond">提交即生效</div></div>
+          <div class="lv"><div class="rate">9%</div><div class="name">正式</div><div class="cond">月单&gt;30<br>介绍1人</div></div>
+          <div class="lv"><div class="rate">10%</div><div class="name">金牌</div><div class="cond">月单&gt;60<br>介绍2人</div></div>
+          <div class="lv"><div class="rate">12%</div><div class="name">首席</div><div class="cond">月单&gt;100<br>介绍3人</div></div>
+        </div>
+        <div class="lvnote">
+          每单 <b>¥25.80</b>，见习每单约赚 <b>¥2.06</b>。等级越高抽成越多——升级硬门槛是"月单量 <b>且</b> 介绍 N 名转正团长"，双条件须同时满足。<br>
+          数据取自代码常量 <b>LEVEL_UP_RULE</b>，落码时由服务端下发真实值。
+        </div>
+      </div>
+
+      <!-- 团长做什么 -->
+      <div class="sec">
+        <div class="sech"><span class="t">团长到底做什么</span><span class="tag">不美化</span></div>
+        <div class="do-card">
+          <div class="lead">清晨取餐 → 回楼逐层送上楼 → 用户零走动。</div>
+          <div class="steps">
+            <div class="step"><div class="dot">1</div><div class="st">到取货点<br>统一取餐</div></div>
+            <span class="arrow">›</span>
+            <div class="step"><div class="dot">2</div><div class="st">回楼按层<br>分装</div></div>
+            <span class="arrow">›</span>
+            <div class="step"><div class="dot">3</div><div class="st">逐层爬楼<br>送上工位</div></div>
+            <span class="arrow">›</span>
+            <div class="step"><div class="dot">4</div><div class="st">零走动<br>交付完成</div></div>
+          </div>
+          <div class="honest">
+            <b>如实说辛苦：</b>一栋楼约 30 份/日，爬 12 层是常态。这份辛苦，就是用户"省心"的来源——写清楚反而留得住人，招来的人知道真实分量，做两周就跑才是真损耗。
+          </div>
+        </div>
+      </div>
+
+      <!-- 两种参与方式 -->
+      <div class="sec">
+        <div class="sech"><span class="t">两种参与方式</span><span class="tag">任选</span></div>
+        <div class="modes">
+          <div class="mode">
+            <span class="badge">方式一</span>
+            <div class="mt">自己当团长</div>
+            <div class="md">提交即生效，零押金。诚实告知：见习 30 天未促单，资格自动取消。</div>
+          </div>
+          <div class="mode">
+            <span class="badge">方式二</span>
+            <div class="mt">只介绍、不当</div>
+            <div class="md">身边谁适合？介绍 1 名朋友转正，你得现金红包（单层，不抽其下线）。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 真实表单（基于现有 leader-apply 结构） -->
+      <div class="sec">
+        <div class="sech"><span class="t">填写资料</span><span class="tag">提交即生效</span></div>
+        <div class="bld">
+          <span class="bl">服务办公楼</span>
+          <span class="bv">已绑定（见首页取货点）</span>
+        </div>
+        <div class="form">
+          <div class="field">
+            <div class="lab">公司 + 姓名<span class="req"> *</span></div>
+            <div class="inp"><span class="ph">如：XX 公司 · 张某某</span></div>
+          </div>
+          <div class="field">
+            <div class="lab">手机号<span class="req"> *</span></div>
+            <div class="inp"><span class="ph">用于到楼下提醒用户取货</span></div>
+          </div>
+          <div class="field">
+            <div class="lab">所在楼层</div>
+            <div class="inp"><span class="ph">如：12F（选填）</span></div>
+          </div>
+        </div>
+
+        <div class="agree">
+          <div class="box">✓</div>
+          <div class="at">我已阅读并同意 <b>《团长合作协议》</b>（v1.0）。佣金按等级费率结算，由灵活用工平台代发代扣个税；退出不影响已结算佣金。</div>
+        </div>
+      </div>
+
+      <!-- 工作台预览 -->
+      <div class="sec">
+        <div class="sech"><span class="t">当上后长这样</span><span class="tag">工作台预览</span></div>
+        <div class="wb">
+          <div class="wbt"><span class="crown">◈</span> 团长工作台（非真实页 · 预览）</div>
+          <div class="wbgrid">
+            <div class="wbc"><div class="n">48 份</div><div class="l">今日已取货 · 待分发</div></div>
+            <div class="wbc"><div class="n">¥612</div><div class="l">本月佣金（正式 9%）</div></div>
+            <div class="wbc"><div class="row">我服务的办公楼<br>· 中关村 × 栋<br>· 团员 32 人</div></div>
+            <div class="wbc"><div class="row">佣金流水<br>· 提现申请<br>· 邀请工具</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 严选厨房 -->
+      <div class="sec">
+        <div class="sech"><span class="t">你代表的厨房</span><span class="tag">资质透明</span></div>
+        <div class="kit">
+          <div class="kt">严选厨房 · 拒绝预制菜与脏乱差</div>
+          <div class="kd">你即将代表的，是附近的夫妻小店。点任意一道菜，可在首页看营业执照 / 门头 / 大厅 / 厨房实拍——你送出去的每一盒，都经得起看。</div>
+          <div class="chips">
+            <span class="chip">营业执照</span><span class="chip">门头实拍</span>
+            <span class="chip">大厅实拍</span><span class="chip">厨房实拍</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="cta-wrap">
+        <div class="cta">提交申请并立即生效</div>
+        <div class="cta-sub">我暂时不当，先介绍朋友 ›</div>
+      </div>
+
+      <!-- 合规 -->
+      <div class="risk">
+        <h3>合规红线（落码前必须对齐）</h3>
+        <p>① 介绍奖励钉死"你→新团长"单层，绝不 cascade 二级分销；② 招募入口不进下单流（只放底部 tab + 首页横幅 + 我的页），守住"省心"北极星；③ 如实写见习 30 天未促单取消、需逐层爬楼；④ 全页不出现任何第三方平台名（五项禁令）。</p>
+      </div>
+
+      <div class="foot">
+        申请即代表同意《团长协议》（v1.0）。佣金按售价计提，次月结算。介绍奖励为单层现金红包，非分销抽成。
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================== 右侧说明 ===================== -->
+  <div class="note-card">
+    <div class="blk">
+      <h3>这版改了什么</h3>
+      <p>
+        上一版是"hero + 几张文字卡"的潦草壳，被你打回。这版按<b>首页同档</b>重做：完整手机屏、品牌楷体 + 米/棕、真实佣金数据、含真实表单（基于已开发的 <b>leader-apply</b>）、如实写团长辛苦、工作台预览、严选厨房、合规红线全齐。
+      </p>
+    </div>
+
+    <div class="blk">
+      <h3>数据真源（非编造）</h3>
+      <div class="kv">
+        <b>佣金</b>：LEVEL_UP_RULE<br>
+        见习 8% · 正式 9% · 金牌 10% · 首席 12%<br>
+        <b>升级门槛</b>：月单 &gt; 30/60/100 <b>且</b> 介绍 1/2/3 名转正团长<br>
+        <b>取消</b>：见习 30 天未促单自动取消<br>
+        <b>计算</b>：¥25.80 × 8% ≈ ¥2.06 / 单<br>
+        <b>生效</b>：勾选协议后提交即生效，无审核
+      </div>
+    </div>
+
+    <div class="fix">
+      <h3>两点说明（避免你再误会）</h3>
+      <p>
+        1. <b>团长工作台</b>：右侧手机里那块"当上后长这样"是<b>预览</b>，不是重做——真工作台 <code>pages/leader/workbench.vue</code> 早已开发，本页不碰它。<br>
+        2. <b>供应商 tab</b>：按你 17:17 的决定，底部第 2 tab「供应商」落点将<b>替换为本招募页</b>，资质墙下沉到本页"严选厨房"小节 + 首页点菜弹窗。供应商页不再当独立页做。
+      </p>
+    </div>
+  </div>
+
+  <div class="footer">ABox 一盒 · 成为团长招募页（高保真原型 · 2026-10-22）· 零 emoji · 品牌楷体 · 米/棕</div>
+</div>
+</body>
+</html>

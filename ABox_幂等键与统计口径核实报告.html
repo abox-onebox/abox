@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 幂等键与统计口径核实报告 · 第四批</title>
+<style>
+  :root{
+    --brown:#6E5435; --brown-d:#4a3a22; --cream:#F6F0E5; --cream-2:#efe6d6;
+    --line:#d9cbb4; --ok:#3f7d4f; --part:#b07d2b; --gap:#b23b3b; --na:#7a7a7a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"楷体","KaiTi","STKaiti",simkai,serif;color:var(--brown-d);background:var(--cream);line-height:1.65;}
+  header{background:var(--brown);color:var(--cream);padding:22px 28px;}
+  header h1{margin:0 0 4px;font-size:23px;letter-spacing:2px;}
+  header p{margin:0;font-size:13.5px;opacity:.92;}
+  .wrap{max-width:1120px;margin:0 auto;padding:18px 22px 60px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13.5px;}
+  .card h3{margin:0 0 10px;color:var(--brown);font-size:15px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0;}
+  table th,table td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top;}
+  table th{background:var(--cream-2);color:var(--brown);}
+  .v-ok{color:var(--ok);font-weight:bold;}
+  .v-part{color:var(--part);font-weight:bold;}
+  .v-gap{color:var(--gap);font-weight:bold;}
+  .code{font-family:Consolas,Monaco,monospace;font-size:12px;background:var(--cream-2);padding:1px 5px;border-radius:3px;color:#5a4326;word-break:break-all;}
+  .item{border:1px solid var(--line);border-radius:10px;background:#fff;padding:16px 20px;margin:18px 0;}
+  .item h2{font-size:16.5px;margin:0 0 4px;color:var(--brown);}
+  .item .sub{font-size:12.5px;color:#8a6a3a;margin-bottom:12px;}
+  .kv{margin:6px 0;}
+  .kv b{color:var(--brown);}
+  .alert{background:#fceaea;border-left:4px solid var(--gap);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .warn{background:#fbf3e3;border-left:4px solid var(--part);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .good{background:#eaf3e8;border-left:4px solid var(--ok);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  ul{margin:6px 0 6px 18px;padding:0;}
+  li{margin:3px 0;}
+  footer{font-size:12px;color:var(--na);text-align:center;margin-top:30px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>ABox 一盒 · 幂等键与统计口径核实报告</h1>
+  <p>第四批 ｜ 核实日期 2026-10-26 ｜ 方法：真实代码走查 + 双端链路追踪 + 配置实查 ｜ 结论先行：<b>幂等链路本身做得对；但 Redis 一次抖动会让它永久静默失效（fail-open），且与项目自己在队列上坚持的口径相反</b></p>
+</header>
+
+<div class="wrap">
+
+  <div class="alert">
+    <b>本批最重要的一条（新发现 X5）：幂等保护会在 Redis 抖动后「永久降级」，而且不告警、不自愈。</b><br>
+    <span class="code">kv.service.ts:126-128</span> —— <span class="code">setNx()</span> 只要 <b>抛任何异常</b>（不只是连不上，还包括网络抖动、命令超时），
+    就把 <span class="code">degraded</span> 置为 <span class="code">true</span> 并退回<b>进程内内存 Map</b>。<br>
+    这个标志在全文件里 <b>7 处置位</b>（唯一的 1 处 <span class="code">false</span> 是第 27 行的<b>字段声明</b>，不是复位），<b>运行期没有任何复位路径</b>：
+    一次抖动 ⇒ 服务重启前，所有幂等键都只在单个进程内存里判重 ——
+    <b>多实例部署下等于保护失效</b>（两个实例各判一次，都判「没见过」，都放行）。
+  </div>
+
+  <div class="card">
+    <h3>本批结论一览</h3>
+    <table>
+      <tr><th style="width:9%">编号</th><th style="width:30%">核实项</th><th style="width:16%">结论</th><th>要害</th></tr>
+      <tr>
+        <td><b>X5</b><br><span style="font-size:11.5px;color:#8a6a3a">新发现</span></td>
+        <td>Redis 抖动后幂等永久失效</td>
+        <td class="v-gap">真缺口 · 建议 P1</td>
+        <td>降级单向不可复位、静默；与项目自身「队列连不上拒绝启动」的口径<b>相反</b></td>
+      </tr>
+      <tr>
+        <td><b>I1</b></td>
+        <td>幂等主链路（下单 / 支付 / 取餐 / 提现）</td>
+        <td class="v-ok">正确 · 不用动</td>
+        <td>占位→回填→失败删键三段齐全，端上还把 <span class="code">10006</span> 按成功解包；<b>且有 e2e 断言守着</b></td>
+      </tr>
+      <tr>
+        <td><b>I2</b></td>
+        <td>统计数字与订单是否同源</td>
+        <td class="v-ok">正确 · 不用动</td>
+        <td>直查订单表、无缓存无快照，且「有效订单」只有<b>一处判定</b>（注释原话「不许多处实现」）</td>
+      </tr>
+      <tr>
+        <td><b>X6</b><br><span style="font-size:11.5px;color:#8a6a3a">新发现</span></td>
+        <td>操作日志表有没有清理策略</td>
+        <td class="v-part">无 · 建议补</td>
+        <td><span class="code">ab_operation_log</span> 全仓<b>零清理任务</b>；同类埋点表 <span class="code">ab_page_track</span> 却有每日清理</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ============ X5 ============ -->
+  <div class="item">
+    <h2>X5 · Redis 一抖动，幂等保护就永久静默失效<span class="v-gap">（真缺口）</span></h2>
+    <div class="sub">证据位置：<span class="code">apps/api-server/src/common/cache/kv.service.ts:112-130</span> · <span class="code">:27 / :47 / :127</span></div>
+
+    <div class="kv"><b>代码事实：</b></div>
+    <ul>
+      <li><span class="code">:126</span> <span class="code">catch {</span> —— <b>不区分异常类型</b>，连接失败 / 超时 / 命令报错一律捕获</li>
+      <li><span class="code">:127</span> <span class="code">this.degraded = true;</span> —— 置位</li>
+      <li><span class="code">:128</span> <span class="code">return this.setNx(key, value, ttlSec);</span> —— 递归后走内存分支（<b>不会栈溢出</b>，此处实现是对的）</li>
+      <li><b>反向验证：</b>全文件 <span class="code">grep "degraded = true"</span> 得 <b>7 处</b>；<span class="code">grep "degraded = false"</span> 仅 <b>1 处</b>且是 <span class="code">:27</span> 的<b>字段声明</b> ⇒ <b>运行期零复位</b>，单向、需重启才能恢复</li>
+    </ul>
+
+    <div class="warn">
+      <b>为什么这次抖动「很容易发生」：</b>Redis 客户端建连参数写的是
+      <span class="code">enableOfflineQueue: false</span> + <span class="code">maxRetriesPerRequest: 1</span>（<span class="code">kv.service.ts:38-45</span>）。
+      这两项是<b>刻意让故障立即暴露</b>的正确写法，但副作用是：<b>一次亚秒级网络抖动就会立刻抛错并触发降级</b>，而不是等重连。
+      也就是说，这条降级路径不是「理论上的极端分支」，而是<b>生产环境迟早会走到的路径</b>。
+    </div>
+
+    <div class="alert">
+      <b>最值得说的一点：它与本项目自己坚持的口径相反。</b><br>
+      同一套代码里，<b>队列</b>明确选择了 fail-closed —— 项目文档原文：
+      「Redis 驱动连不上是 <b>fail-closed 抛错，不静默降级</b>」，理由是「丢一条『退款待重试』既无报错也无处可查」。<br>
+      而<b>幂等键</b>这里恰恰是静默降级。问题在于：<b>幂等键失效的后果比队列丢一条更直接</b> ——
+      它防的是「同一笔钱被扣两次、同一单被建两遍」，而失效时<b>表面上一切正常</b>（请求照常成功返回）。
+    </div>
+
+    <div class="kv"><b>建议修法（三选一，工作量都很小）：</b></div>
+    <ul>
+      <li><b>推荐 · 改成 fail-closed</b>：Redis 驱动下 <span class="code">setNx</span> 抛错<b>直接向上抛</b>，不降级 —— 与队列同口径。代价是 Redis 抖动期间下单会失败，但「明确失败」远好于「静默重复」</li>
+      <li><b>次选 · 可自愈的降级</b>：保留降级，但加一个<b>后台探活</b>（每隔 N 秒试一次 Redis，恢复后把 <span class="code">degraded</span> 复位为 false）</li>
+      <li><b>最小改法 · 至少让它吵起来</b>：降级时打 <span class="code">ERROR</span>（现在是 <span class="code">WARN</span>）并接入告警 —— 目前只有一行日志，没有任何人会被通知</li>
+    </ul>
+
+    <div class="kv"><b>验收标准（可直接转技术）：</b></div>
+    <ul>
+      <li>让 Redis 不可达，调用下单接口两次 ⇒ 期望<b>返回明确错误</b>，而不是「第二次被判为重复提交」或「两次都成功建单」</li>
+      <li>让 Redis 抖动一次后恢复 ⇒ 期望 <span class="code">degraded</span> <b>能回到 false</b>（若选次选方案）</li>
+      <li>降级期间，日志级别为 <b>ERROR</b> 且能被监控系统捕获</li>
+    </ul>
+  </div>
+
+  <!-- ============ I1 ============ -->
+  <div class="item">
+    <h2>I1 · 幂等主链路：设计正确，且有自动化测试守着<span class="v-ok">（不用动）</span></h2>
+    <div class="sub">证据位置：<span class="code">common/interceptors/idempotent.interceptor.ts</span> · <span class="code">apps/miniprogram/src/api/request.ts:9</span></div>
+
+    <p>这条我原本怀疑会出问题，逐段追下来发现<b>三段齐全</b>，是同类实现里写得比较完整的：</p>
+    <table>
+      <tr><th style="width:16%">环节</th><th style="width:34%">实现</th><th>为什么这样是对的</th></tr>
+      <tr>
+        <td>① 占位</td>
+        <td><span class="code">:71</span> <span class="code">setNx(key, '__pending__', 600)</span></td>
+        <td>Redis 分支用的是 <span class="code">SET key val EX ttl NX</span>（<span class="code">:123</span>）—— <b>单条命令原子</b>，并发下只有一个请求能拿到锁</td>
+      </tr>
+      <tr>
+        <td>② 回填</td>
+        <td><span class="code">:78</span> 成功后把首次结果写回该键</td>
+        <td>重复命中时返回 <span class="code">10006 + data=首次结果</span>，<b>HTTP 仍是 200</b>，端上按成功处理 ⇒ 用户不会看到「下单失败」但钱被扣了</td>
+      </tr>
+      <tr>
+        <td>③ 失败删键</td>
+        <td><span class="code">:80-86</span> 业务抛错时 <span class="code">del(key)</span></td>
+        <td>注释写得很清楚：不删的话键会一直停在占位态，<b>用户改完再提交就永久卡死</b>。删掉后「失败可重试、成功仍被缓存」</td>
+      </tr>
+    </table>
+
+    <div class="good">
+      <b>端上配合也是对的（这是最容易做错的一环）：</b>
+      <ul>
+        <li>下单页<b>持有同一个键</b>（<span class="code">order-create.vue:193</span> 声明、<span class="code">:380</span> 生成一次），不每次点击都换</li>
+        <li>请求层 <span class="code">request.ts:9</span> 明确：<b><span class="code">10006</span> 且携带 data 时按成功解包</b> ⇒ 回放不会误触发「换键重试」，不会重复建单</li>
+        <li>只在<b>服务端已明确拒绝</b>（<span class="code">code &gt; 0</span> 且不属回放）时才换键（<span class="code">:341</span>）</li>
+      </ul>
+    </div>
+
+    <div class="kv"><b>而且它不是「看起来对」，是有断言守着：</b></div>
+    <ul>
+      <li><span class="code">scripts/e2e-m1.mjs:540</span> —— 断言同键重复下单 <span class="code">code === 10006</span> 且回吐<b>原 orderNo</b></li>
+      <li><span class="code">e2e-m1.mjs:551</span> —— 断言回放走 <b>HTTP 200</b></li>
+      <li><span class="code">e2e-m1.mjs:582</span> —— 断言「<b>一人一日可多单</b>」：换键再下能成功建单，且<b>不是</b>幂等回放</li>
+    </ul>
+    <p style="font-size:12.5px;color:#8a6a3a;margin-top:8px;">
+      最后这条尤其关键 —— 它把「防重复」和「允许多单」这对矛盾需求<b>同时钉住</b>，任何一侧改坏都会立刻报红。这是本项目少见的高质量断言。
+    </p>
+
+    <div class="warn">
+      <b>两条次要观察（不建议现在动，记着即可）：</b>
+      <ul>
+        <li><b>18 处 <span class="code">@Idempotent</span> 中 12 处是 <span class="code">required: false</span></b>，包含提现审批四连、退款审批、强制退款等资金动作。目前靠管理后台的 axios 拦截器<b>自动注入</b>键才生效；若有人用脚本 / curl 直调接口，这些动作没有幂等保护</li>
+        <li><b>管理后台自动键不含操作人身份</b>（键 = 分钟桶 + 请求哈希）：两个管理员在同一分钟对同一动作各点一次，第二次会被判重复并回放首次结果。<b>不会重复执行</b>，但运营会看到「请勿重复提交」而困惑</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ I2 ============ -->
+  <div class="item">
+    <h2>I2 · 统计数字与订单同源，没有滞后<span class="v-ok">（不用动）</span></h2>
+    <div class="sub">证据位置：<span class="code">modules/stats/stats.service.ts:225</span>（口径注释） · <span class="code">:229-234</span>（判定实现）</div>
+
+    <p>你看到的报表数字会不会和订单真实数据对不上？核下来的结论是<b>不会</b>，原因是它<b>没有走任何中间层</b>：</p>
+    <ul>
+      <li>数据源是 <span class="code">dataSource.getRepository(Order).createQueryBuilder('o')</span> —— <b>直接查订单表</b>，不是快照表、不是汇总表</li>
+      <li>反向验证：全文 <span class="code">grep cache / kv. / snapshot</span> <b>零命中</b> ⇒ 没有缓存，不存在「数字滞后于真实订单」的窗口</li>
+      <li><b>「什么算有效订单」只有一处判定</b>（<span class="code">validOrderQb()</span>），四个统计端点共用。源码注释原话：「<b>不许多处实现</b>」</li>
+    </ul>
+
+    <div class="good">
+      这一条之所以值得单独说：统计口径最常见的坑不是算错，而是<b>同一件事有多份实现</b>（列表页一套、看板一套、导出一套），
+      改了一个忘另两个，两边都不报错。这里主动收敛成一处，是<b>预防性的正确写法</b>。
+    </div>
+  </div>
+
+  <!-- ============ X6 ============ -->
+  <div class="item">
+    <h2>X6 · 操作日志表没有任何清理策略<span class="v-part">（建议补，低优先级）</span></h2>
+    <div class="sub">证据位置：<span class="code">apps/api-server/src/tasks/</span> 全目录 · 对比 <span class="code">modules/track/page-track-cleanup.task.ts</span></div>
+
+    <p>第三批我核实了「日志写失败只打 WARN」（X3），这次顺带查了它的上游 —— <b>这张表会不会一直涨</b>：</p>
+    <table>
+      <tr><th style="width:34%">表</th><th style="width:22%">清理策略</th><th>说明</th></tr>
+      <tr>
+        <td><span class="code">ab_page_track</span>（匿名埋点）</td>
+        <td class="v-ok">有</td>
+        <td><span class="code">page-track-cleanup.task.ts</span> 每日 03:30 清理，保留 180 天（与隐私条款声明一致）</td>
+      </tr>
+      <tr>
+        <td><span class="code">ab_operation_log</span>（操作审计）</td>
+        <td class="v-gap">无</td>
+        <td>全仓 <span class="code">tasks/</span> 目录与全量代码中<b>零清理任务</b>；且该表不只有后台操作 —— 跑批对账不平也会往里写（<span class="code">reconciliation.task.ts:54</span>）</td>
+      </tr>
+    </table>
+
+    <div class="warn">
+      <b>为什么值得记一笔（虽然不紧急）：</b>审计日志的特殊性在于 —— <b>它既不能随便删，又不能一直涨</b>。
+      匿名埋点可以「满 180 天就清」，操作日志往往有留存要求，但<b>现在的状态是「没有任何策略」</b>，
+      等真正出问题（表大到影响查询、或磁盘告警）时再临时决定，容易两头不讨好。
+    </div>
+
+    <div class="kv"><b>建议：</b></div>
+    <ul>
+      <li>先<b>拍板留存期</b>（建议 1–2 年，与财务对账周期对齐），再照 <span class="code">page-track-cleanup</span> 的样子写一个归档任务</li>
+      <li>更稳的做法是<b>先归档再删</b>（转存到对象存储），审计数据删了就真没了</li>
+      <li>顺带给 X3 补上监控：日志表「每日新增条数」做一个心跳，条数骤降即说明写入在静默失败</li>
+    </ul>
+  </div>
+
+  <!-- ============ 方法 ============ -->
+  <div class="card">
+    <h3>核实方法与已排除的误判</h3>
+    <ul>
+      <li><b>生产配置实查：</b><span class="code">docker-compose.prod.yml:109</span> 明确 <span class="code">QUEUE_DRIVER: redis</span>，<span class="code">redis.config.ts:17</span> 默认也是 <span class="code">redis</span> ⇒ 生产确实是分布式 KV，X5 只会在抖动后发生，不是常态</li>
+      <li><b>本批排除的两条误判：</b>
+        <ul>
+          <li>一度怀疑「端上每次点击都换新键导致幂等形同虚设」—— 追到 <span class="code">order-create.vue:193/380</span> 确认键是<b>页面级持有</b>，不是每次生成，判断不成立</li>
+          <li>一度怀疑「管理后台自动键会串到别人的操作」—— 确认键含 <span class="code">method+url+body</span>，不同目标单号键就不同，风险仅存在于同一分钟完全相同的重复点击，<b>而那正是要拦的场景</b></li>
+        </ul>
+      </li>
+      <li><b>反向验证：</b><span class="code">degraded = true</span> 7 处 / 运行期复位 0 处（支撑 X5「不可复位」）；<span class="code">grep cache|snapshot</span> 在 stats 服务零命中（支撑 I2「无缓存」）</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>四批累计进度</h3>
+    <table>
+      <tr><th style="width:20%">批次</th><th style="width:44%">核实项</th><th>结论分布</th></tr>
+      <tr><td>第一批</td><td>Q2 送达计佣 / S3 提现并发 / T3 补跑入账 / P3 单边账</td><td>2 条我判断错了（已防住）· 1 条降级 · <b>1 条真缺口（P3）</b></td></tr>
+      <tr><td>第二批</td><td>F10 发券 / V1 水平越权 / V2 团长越权 / X1</td><td>越权系统性防住 · F10 降级 · <b>1 条真缺口（发券限量可绕过）</b></td></tr>
+      <tr><td>第三批</td><td>T8/T9 配送状态机 / 审计留痕</td><td>T8/T9 已修复 · <b>1 条真缺口（X2 禁止清单解除零留痕）</b></td></tr>
+      <tr><td>第四批（本批）</td><td>幂等键链路 / 统计口径 / 日志清理</td><td>幂等与统计均正确 · <b>1 条真缺口（X5 降级 fail-open）</b> · 1 条待补（X6）</td></tr>
+    </table>
+    <p style="margin-top:10px;">
+      <b>一个贯穿四批的观察：</b>本项目的<b>单点实现质量相当高</b>（乐观锁全覆盖、幂等三段齐全、统计口径收敛、状态机刻意保静态可判定），
+      但<b>「基础设施故障时会怎样」这一层普遍偏乐观</b> —— 第三批的 X2（黑名单查询失败即放行）与本批的 X5（Redis 抖动即降级）是<b>同一类取向</b>，
+      两次独立发现同源。建议把「故障时的默认动作」作为一个统一口径重新过一遍：<b>涉及钱与权限的，默认应该是失败，而不是放行。</b>
+    </p>
+  </div>
+
+  <footer>
+    ABox 一盒 · 第四批核实报告 ｜ 2026-10-26 ｜ 结论均基于真实代码走查，附文件与行号可回查
+  </footer>
+
+</div>
+</body>
+</html>

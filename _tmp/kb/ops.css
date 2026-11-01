@@ -1,0 +1,82 @@
+/* ── 五期「操作草稿」页样式（独立源件 · 由 build2.py 读入拼进产物） ── */
+/* 全部沿用知识助手全局 token（--bg/--card/--brand/--ink/--ink2/--line/--warn 等），
+   不引入新色值，保持象牙铜调性统一。 */
+
+/* 输入区（与 ask 的 composer 同位，但独立 id，仅在操作 tab 内显示） */
+.op-input{display:flex;gap:10px;align-items:flex-end;margin:14px 0 4px}
+.op-input textarea{flex:1;min-height:46px;max-height:150px;resize:none;padding:12px 14px;
+  font:15px var(--sans);line-height:1.5;color:var(--ink);background:var(--card);
+  border:1px solid var(--line);border-radius:10px;outline:none}
+.op-input textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(110,84,53,.10)}
+.op-input .btn{flex:0 0 auto}
+.op-sug{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 4px}
+.op-sug span{font-size:13px;color:var(--brand);background:var(--card);border:1px solid var(--line);
+  border-radius:20px;padding:5px 13px;cursor:pointer}
+.op-sug span:hover{border-color:var(--brand)}
+
+/* 草稿卡 */
+.op-card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:14px 16px;margin:14px 0}
+.op-card .op-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.op-card .op-name{font:600 16px/1.5 var(--serif);color:var(--brand)}
+.op-badge{font:11px/1 var(--sans);letter-spacing:.04em;padding:4px 8px;border-radius:6px;flex:0 0 auto}
+.op-badge.admin{background:#F4E3E3;color:var(--warn);border:1px solid #E2BFBF}
+.op-badge.operator{background:#F7EEDC;color:#8A6520;border:1px solid #E5D3AC}
+.op-badge.draft{background:var(--brand-soft);color:var(--brand);border:1px solid #E0D5C0}
+.op-ep{margin-top:8px;font:13px/1.6 ui-monospace,Menlo,Consolas,monospace;color:var(--ink)}
+.op-ep b{color:var(--brand);font-weight:700}
+.op-sub{margin-top:4px;font-size:13.5px;color:var(--ink2);line-height:1.7}
+
+/* 参数表 */
+.op-ptbl{width:100%;border-collapse:collapse;margin:10px 0 4px;font-size:13.5px}
+.op-ptbl th,.op-ptbl td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+.op-ptbl th{background:var(--brand-soft);color:var(--brand);font-weight:600;width:1%}
+.op-ptbl td.k{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--ink);white-space:nowrap}
+.op-ptbl td .tag{font-size:11px;padding:1px 7px;border-radius:20px;margin-left:6px}
+.op-ptbl td .tag.req{background:#F4E3E3;color:var(--warn)}
+.op-ptbl td .tag.opt{background:#EDEAE0;color:#6C6858}
+.op-ptbl td.v.miss{color:var(--warn);font-weight:600}
+
+/* 待补资料 / 警示 */
+.op-miss{margin-top:10px;padding:9px 12px;background:#FBF2EA;border:1px solid #EEDCCB;border-radius:9px;
+  font-size:13.5px;color:#8A3B1E;line-height:1.8}
+.op-miss b{color:var(--warn)}
+.op-warn{margin-top:10px;padding:9px 12px;background:#F7EEDC;border:1px solid #E5D3AC;border-radius:9px;
+  font-size:13px;color:#8A6520;line-height:1.8}
+.op-warn b{color:#8A6520}
+.op-note{margin-top:10px;font-size:13px;color:var(--ink2);line-height:1.85;
+  border-top:1px dashed var(--line);padding-top:9px}
+.op-note b{color:var(--brand);font-weight:600}
+
+/* 操作按钮区（阶段 1：确认执行禁用） */
+.op-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.op-exec{font:15px var(--sans);padding:11px 20px;border-radius:10px;border:1px dashed var(--line);
+  background:#F1EDE3;color:#9A8E78;cursor:not-allowed}
+.op-copy{font:14px var(--sans);padding:10px 18px;border-radius:10px;border:1px solid var(--brand);
+  background:var(--card);color:var(--brand);cursor:pointer}
+.op-copy:hover{background:var(--brand-soft)}
+.op-lock{font-size:12.5px;color:var(--ink2);margin-top:8px;line-height:1.7}
+.op-lock b{color:var(--brand);font-weight:600}
+
+/* 阶段 2：执行身份 / 令牌面板 */
+.op-meta{margin:12px 0 0;padding:11px 14px;background:var(--card);border:1px solid var(--line);border-radius:10px}
+.op-meta-row{display:flex;align-items:center;gap:10px;margin:6px 0}
+.op-meta-row label{font:13px var(--sans);color:var(--ink2);width:84px;flex:0 0 auto}
+.op-meta-row input{flex:1;min-width:0;padding:9px 12px;font:14px var(--sans);color:var(--ink);
+  background:var(--bg);border:1px solid var(--line);border-radius:8px;outline:none}
+.op-meta-row input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(110,84,53,.10)}
+.op-meta-note{font-size:12px;color:var(--ink2);margin-top:4px;line-height:1.6}
+.op-exec.live{font:15px var(--sans);padding:11px 20px;border-radius:10px;border:1px solid var(--brand);
+  background:var(--brand);color:#fff;cursor:pointer}
+.op-exec.live:hover{background:#5b4628}
+.op-card.op-ok{border-color:#BCD9B0;background:#F3F8EF}
+.op-card.op-ok .op-name{color:#3F7A2E}
+.op-card.op-err{border-color:#E2BFBF;background:#FBF2EA}
+.op-card.op-err .op-name{color:var(--warn)}
+
+/* 阶段 1 横幅 */
+.op-stage{margin:12px 0 0;padding:10px 14px;background:var(--brand-soft);
+  border-left:2px solid var(--brand);border-radius:0 7px 7px 0;font-size:13px;color:var(--ink2);line-height:1.8}
+.op-stage b{color:var(--brand);font-weight:600}
+
+.op-empty{color:var(--ink2);font-size:14px;padding:20px 0}

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 功能完整性探针问询表</title>
+<style>
+  :root{
+    --brown:#6E5435; --brown-d:#4a3a22; --cream:#F6F0E5; --cream-2:#efe6d6;
+    --line:#d9cbb4; --ok:#3f7d4f; --part:#b07d2b; --gap:#b23b3b; --na:#7a7a7a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"楷体","KaiTi","STKaiti",simkai,serif;color:var(--brown-d);background:var(--cream);line-height:1.6;}
+  header{background:var(--brown);color:var(--cream);padding:22px 28px;}
+  header h1{margin:0 0 4px;font-size:24px;letter-spacing:2px;}
+  header p{margin:0;font-size:14px;opacity:.9;}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px 22px 60px;}
+  .legend{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:18px 0;font-size:13.5px;}
+  .legend h3{margin:0 0 8px;color:var(--brown);font-size:15px;}
+  .dims{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px 14px;}
+  .dims span{border-left:3px solid var(--brown);padding-left:8px;}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 16px;}
+  .controls label{font-size:13px;color:var(--brown);}
+  select,button{font-family:inherit;font-size:13px;border:1px solid var(--line);border-radius:6px;padding:5px 9px;background:var(--cream);color:var(--brown-d);cursor:pointer;}
+  button.primary{background:var(--brown);color:var(--cream);border-color:var(--brown);}
+  .stats{margin-left:auto;font-size:13px;color:var(--brown);}
+  .stats b{font-size:16px;}
+  .module{margin:22px 0;}
+  .module h2{font-size:17px;color:var(--brown);border-bottom:2px solid var(--brown);padding-bottom:6px;margin:0 0 10px;}
+  .row{display:grid;grid-template-columns:54px 70px 92px 1fr 120px 150px;gap:10px;padding:9px 8px;border-bottom:1px dashed var(--line);align-items:start;font-size:13px;}
+  .row.head{font-weight:bold;color:var(--brown);background:var(--cream-2);border-bottom:2px solid var(--brown);position:sticky;top:0;}
+  .row .q{white-space:pre-wrap;}
+  .tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:10px;background:var(--cream-2);color:var(--brown);margin-right:3px;}
+  .actor-U{color:#2f6d8a;} .actor-L{color:#8a5a2f;} .actor-A{color:#5a3f7a;}
+  select.status{width:100%;}
+  .note{width:100%;font-family:inherit;font-size:12.5px;border:1px solid var(--line);border-radius:5px;background:#fffdf8;color:var(--brown-d);padding:3px 5px;resize:vertical;min-height:26px;}
+  .s-ok{color:var(--ok);} .s-part{color:var(--part);} .s-gap{color:var(--gap);} .s-na{color:var(--na);}
+  footer{font-size:12px;color:var(--na);text-align:center;margin-top:30px;}
+  .hidden{display:none;}
+</style>
+</head>
+<body>
+<header>
+  <h1>ABox 一盒 · 功能完整性探针问询表</h1>
+  <p>用 7 维探针穷尽用户 / 团长 / 管理者所有操作，逐条验证“功能是否可行、逻辑是否闭环”。数据基于项目锁定口径（2026-10-23 起），状态默认“待核”，请逐条验证后勾选。</p>
+</header>
+
+<div class="wrap">
+  <div class="legend">
+    <h3>七维探针说明（每条问句都已内嵌这些维度）</h3>
+    <div class="dims">
+      <span><b>① 能力</b>：系统做不做得到</span>
+      <span><b>② 对象/范围</b>：谁能操作、作用于谁</span>
+      <span><b>③ 入口/触发</b>：从哪发起、何时触发</span>
+      <span><b>④ 业务规则</b>：面额/门槛/有效期/叠加</span>
+      <span><b>⑤ 边界/异常</b>：退款/撤销/过期/重复</span>
+      <span><b>⑥ 数据/一致性</b>：落库/幂等/对账</span>
+      <span><b>⑦ 可观测/审计</b>：谁/何时/可追溯</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>角色
+      <select id="fActor"><option value="">全部</option><option value="U">用户/团员</option><option value="L">团长</option><option value="A">管理者/后台</option></select>
+    </label>
+    <label>模块
+      <select id="fModule"><option value="">全部</option></select>
+    </label>
+    <label>状态
+      <select id="fStatus"><option value="">全部</option><option value="待核">待核</option><option value="已实现">已实现</option><option value="部分">部分</option><option value="缺口">缺口</option><option value="不可行">不可行</option></select>
+    </label>
+    <label><input type="checkbox" id="fUnset"> 仅看“待核”</label>
+    <button class="primary" id="btnExport">导出 CSV</button>
+    <button id="btnClear">清空我的勾选</button>
+    <span class="stats" id="stats"></span>
+  </div>
+
+  <div id="list"></div>
+
+  <footer>状态与备注自动存于本机浏览器（localStorage），不会上传。导出 CSV 可留档或交开发核对。</footer>
+</div>
+
+<script>
+const PROBES = [
+// A 账户与身份
+{id:"A1",actor:"U",module:"账户与身份",dim:"①②",op:"注册/登录",q:"是否微信授权登录即开通账户？游客能否浏览首页不下单？用户与团长共用同一身份，切换/区分逻辑是否清晰？",src:"ab_balance 同表；用户与团长共用身份"},
+{id:"A2",actor:"U",module:"账户与身份",dim:"②④",op:"信息收集",q:"用户表单是否误收真实姓名？（铁律：不收集真实姓名，靠团长认识）配送位置是否也误进表单？（铁律：不进用户表单）",src:"交付铁律·单一套餐：仅份数字段"},
+{id:"A3",actor:"U",module:"账户与身份",dim:"④⑥",op:"余额",q:"用户余额查询/变动流水是否可见？余额与团长佣金同表(ab_balance)，充值/扣减/提现路径是否清晰、对账一致？",src:"用户余额与团长佣金同表 ab_balance"},
+{id:"A4",actor:"U",module:"账户与身份",dim:"⑤⑦",op:"注销",q:"账号注销流程是否存在？注销后埋点数据是否按 180 天规则清理、券/订单如何处理？",src:"ab_page_track 180天自动清理"},
+
+// B 首页与浏览
+{id:"B1",actor:"U",module:"首页与浏览",dim:"①③",op:"首页展示",q:"首页是否展示当日一饭四菜（只读信息，非输入）与 X 盲盒格？信息是否从接口实时取、取不到整行不显示？",src:"交付铁律：当日一饭四菜须作为只读信息展示"},
+{id:"B2",actor:"U",module:"首页与浏览",dim:"②④",op:"套餐选择",q:"是否仅单一套餐、无任何口味/选餐/备注输入？（铁律严禁此类用户输入字段）",src:"交付铁律·单一套餐：严禁口味/选餐/备注字段"},
+{id:"B3",actor:"U",module:"首页与浏览",dim:"④",op:"价格展示",q:"价格是否恒定 ¥25.80/份？佣金四档是否对用户隐藏？",src:"¥25.80/份；佣金不展示用户"},
+
+// C 下单与支付
+{id:"C1",actor:"U",module:"下单与支付",dim:"①③",op:"下单时机",q:"是否只有“明日”可下单(isOrderable 上界)？今日/后日是否被正确禁用并说明理由？",src:"isOrderable 上界⇒只有明日能下单"},
+{id:"C2",actor:"U",module:"下单与支付",dim:"②④",op:"下单字段",q:"用户表单必要字段是否仅=份数一项？推荐团长是否靠专属链接自动归属、不要求用户选？",src:"用户侧表单必要字段仅=份数一项"},
+{id:"C3",actor:"U",module:"下单与支付",dim:"⑥",op:"幂等",q:"重复提交（同 Idempotency-Key）是否回放原结果并返 10006，绝不重复成单？",src:"幂等靠 Idempotency-Key，同键回放→10006"},
+{id:"C4",actor:"U",module:"下单与支付",dim:"④",op:"多单/上限",q:"一人一日可多单是否成立？日累计份数上限未设是否为有意为之（无上限风险）？",src:"一人一日可多单；日累计份数上限未设"},
+{id:"C5",actor:"U",module:"下单与支付",dim:"⑤",op:"支付异常",q:"微信支付失败/超时/用户中途取消时，订单状态与库存如何回滚？是否产生孤儿单？",src:"支付商户号+HTTPS；错误响应恒 200+code"},
+{id:"C6",actor:"U",module:"下单与支付",dim:"④⑥",op:"券抵扣",q:"下单时是否自动选抵扣最多的一张券并落 discount_amount？端上是否无任何选券控件（守表单仅份数）？能否关闭抵扣？",src:"下单自动选抵扣最多一张；端上不做选券控件"},
+
+// D 订单与取消
+{id:"D1",actor:"U",module:"订单与取消",dim:"①⑦",op:"状态机",q:"订单 11 态流转是否完整闭合？每推进到终态是否必写 cancel_source（空白=未取消）？",src:"订单11态；cancel_source 四来源"},
+{id:"D2",actor:"U",module:"订单与取消",dim:"⑤",op:"用户取消",q:"用户自助取消是否触发退券？截单前取消与截单后取消处理结果是否不同？",src:"退券三处之一：用户自助取消"},
+{id:"D3",actor:"L",module:"订单与取消",dim:"②⑤",op:"团长取消",q:"团长(leader)取消权限范围？仅本团订单还是任意？cancel_source=leader 是否留痕？",src:"cancel_source 四来源 user/leader"},
+{id:"D4",actor:"A",module:"订单与取消",dim:"⑤⑦",op:"系统取消",q:"系统(source=system)截单兜底自动取消是否执行退券？失败有无告警？",src:"退券三处之二：截单兜底自动取消"},
+{id:"D5",actor:"A",module:"订单与取消",dim:"⑦",op:"管理取消",q:"管理员(admin)取消订单是否强制记录 cancel_source=admin 并进入审计日志？",src:"cancel_source 四来源 admin"},
+
+// E 退款与售后
+{id:"E1",actor:"U",module:"退款与售后",dim:"①③",op:"发起退款",q:"用户能否发起退款？入口在哪（订单详情/客服）？是否有时间窗限制？",src:"退款流程；审批通过才退券"},
+{id:"E2",actor:"A",module:"退款与售后",dim:"⑤⑦",op:"退款审批",q:"退款是否须审批通过才真正退券(settleRefundDb 挂在审批通过而非建单)？驳回后券是否原样保留不退？",src:"settleRefundDb 挂审批通过；D42驳回后券不退"},
+{id:"E3",actor:"A",module:"退款与售后",dim:"⑤⑥",op:"退券闭环",q:"三处退券（自助取消/截单兜底/审批通过退款）是否缺一不可？releaseForOrder 是否幂等、可重复安全调用？",src:"退券三处缺一不可；releaseForOrder 幂等"},
+{id:"E4",actor:"A",module:"退款与售后",dim:"⑥",op:"钱路径对账",q:"退款金额、原支付渠道、佣金冲减是否三方一致？(注：F-10 写钱路径闸未收口，需重点核)",src:"未收口：F-10 写钱路径闸"},
+
+// F 代金券系统（重点）
+{id:"F1",actor:"A",module:"代金券",dim:"③",op:"发券入口",q:"后台是否有手动发券 UI？还是只能走 API/代码？(用户最关心的售后弥补入口)",src:"来源含 manual；2026-10-23 上线"},
+{id:"F2",actor:"A",module:"代金券",dim:"②",op:"发券对象",q:"发券时能否指定单个用户 / 批量用户 / 按标签筛选？还是只能全量广播？这是你问的“指定用户”能力的核心。",src:"ab_user_coupon 持有；来源 manual"},
+{id:"F3",actor:"A",module:"代金券",dim:"④⑦",op:"来源标记",q:"手动发券 vs 售后补偿发券，来源字段是否区分 manual / compensation？售后弥补应标记哪一种以便追溯？",src:"来源 referral/compensation/manual"},
+{id:"F4",actor:"A",module:"代金券",dim:"④",op:"券规则配置",q:"面额、使用门槛、有效期、是否可叠加、是否互斥能否在后台配置？默认回落规则是什么？",src:"ab_coupon 券种；blind_box 无关"},
+{id:"F5",actor:"U",module:"代金券",dim:"④",op:"自动选券",q:"下单自动选抵扣最多的一张，端上无选券控件；用户能否查看自己持有的券及预计抵扣？",src:"下单自动选抵扣最多一张"},
+{id:"F6",actor:"A",module:"代金券",dim:"⑤⑥",op:"退券",q:"三处退券缺一不可，是否真覆盖所有取消/退款路径？幂等 releaseForOrder 防重复退？",src:"退券三处缺一不可；幂等"},
+{id:"F7",actor:"L",module:"代金券",dim:"④",op:"推荐返券",q:"转正钩子 markFormal 发 5 元/30 天券，失败是否只 warn 不阻断晋级？",src:"推荐返券 markFormal 发5元/30天券"},
+{id:"F8",actor:"A",module:"代金券",dim:"⑥",op:"错误码",q:"券错误码 40020 不可用 / 40021 门槛不足 / 40022 券种不可用 / 40023 发券参数不完整，前端是否逐一友好提示？",src:"券错误码 40020-40023"},
+{id:"F9",actor:"A",module:"代金券",dim:"⑦",op:"发券审计",q:"谁发的、发给谁、面额/门槛/来源、结果，是否全量可追溯（含售后弥补发券）？",src:"ab_coupon/ab_user_coupon；审计需求"},
+
+// G X盲盒
+{id:"G1",actor:"U",module:"X盲盒",dim:"⑥",op:"抽取",q:"下单时是否从 blindBoxItems 随机抽一个并落 ab_order.blind_box_name（迁移 1700000000016）？",src:"blind_box_name；blindBoxItems()"},
+{id:"G2",actor:"U",module:"X盲盒",dim:"①③",op:"揭晓",q:"是否送达后揭晓？呈现是否仅两处（首页 x 格 + 订单详情内联），无弹层？",src:"送达后揭晓；呈现仅两处"},
+{id:"G3",actor:"A",module:"X盲盒",dim:"④",op:"配置",q:"blind_box_items 是否可在后台配置？读取为空时是否回落 DEFAULT_BLIND_BOX_ITEMS？",src:"读 ab_config.blind_box_items，回落 DEFAULT"},
+{id:"G4",actor:"A",module:"X盲盒",dim:"③",op:"范围边界",q:"是否严格不做集盒/勋章/订阅消息/弹层（用户明确“不要五屏、不作主功能”）？",src:"X盲盒轻量小辅助；不做弹层/集盒"},
+
+// H 团长体系
+{id:"H1",actor:"U",module:"团长体系",dim:"①③",op:"申请成为团长",q:"招募页路径 A 是否清晰、CTA“成为团长”仅出现一次且仅作路径 A 动作？",src:"招募页 CTA 铁律：一屏一义"},
+{id:"H2",actor:"L",module:"团长体系",dim:"④⑦",op:"团长协议",q:"leader-agreement 版本真源是否为 v1.0？升版是否走“旧值进 HISTORY→改当前→同步 e2e”三步？",src:"leader-agreement.ts v1.0；升版三步"},
+{id:"H3",actor:"L",module:"团长体系",dim:"④⑥",op:"佣金",q:"四档 见习/正式/金牌/首席=8/9/10/12% 是否准确？结算是否自动、与 ab_balance 同表一致？",src:"佣金 8/9/10/12% ；自动结算"},
+{id:"H4",actor:"L",module:"团长体系",dim:"②④",op:"取送服务",q:"交付=团长取餐并送上楼、团员零走动；所有文案是否无“自提/用户自提/自行领取”字样？",src:"交付铁律·团长送上楼；严禁自提字样"},
+{id:"H5",actor:"L",module:"团长体系",dim:"④",op:"推荐奖励",q:"推荐返券是否仅单层、禁多级？见习 30 天取消是否保留？",src:"介绍奖励仅单层禁多级；见习30天取消保留"},
+{id:"H6",actor:"A",module:"团长体系",dim:"②",op:"团长管理后台",q:"后台能否查看团长列表/佣金明细/协议状态/提现？审核成为团长的流程是否闭环？",src:"团长协议/佣金；后台客服配置卡"},
+
+// I 客服与帮助
+{id:"I1",actor:"U",module:"客服与帮助",dim:"①③",op:"客服入口",q:"csEntryLabel(mode) 是否按模式给出正确客服入口？小程序出参是否永读 takeout_links（不出第三方名）？",src:"csEntryLabel(mode)；出参永读 takeout_links"},
+{id:"I2",actor:"U",module:"客服与帮助",dim:"④",op:"客服微信",q:"账户注销终态是否刻意写“客服微信号”（B 微信）？用户能否直接联系到真人客服？",src:"account-cancel 终态写客服微信号"},
+{id:"I3",actor:"A",module:"客服与帮助",dim:"⑦",op:"售后弥补 SOP",q:"以发券作售后弥补手段，是否有标准操作 SOP（标记 compensation 来源、记录缘由、可追溯）？",src:"来源 compensation；售后弥补手段"},
+
+// J 评价
+{id:"J1",actor:"U",module:"评价",dim:"④",op:"吃后评价",q:"ab_dish_rating 是否仅为吃后评价（非点菜偏好）？是否存在误把评价当偏好推荐的逻辑？",src:"ab_dish_rating 是吃后评价非点菜偏好"},
+{id:"J2",actor:"A",module:"评价",dim:"②",op:"推荐禁区",q:"单一套餐下，“最爱/常点/偏好推荐”是否一律不成立、无任何违规推荐入口？",src:"单一套餐用户不点菜；推荐不成立"},
+
+// K 消息通知
+{id:"K1",actor:"U",module:"消息通知",dim:"①③",op:"订阅消息",q:"截单/送达/退款/券到账是否通过订阅消息通知？盲盒是否遵守“无订阅消息”？",src:"盲盒不做订阅消息；通知需求"},
+{id:"K2",actor:"A",module:"消息通知",dim:"⑦",op:"通知审计",q:"通知发送是否留痕、可排查“发了但用户没收到”？",src:"通知/审计需求"},
+
+// L 后台管理
+{id:"L1",actor:"A",module:"后台管理",dim:"④",op:"商品配置",q:"后台能否配置套餐与“一饭四菜”内容？改当日菜单是否影响已截单订单？",src:"单一套餐；当日一饭四菜只读展示"},
+{id:"L2",actor:"A",module:"后台管理",dim:"③⑤",op:"截单",q:"T-1 24:00 截单是否系统自动？截单后新下单是否被拒并正确提示？",src:"T-1 24:00截单→次日11:30达"},
+{id:"L3",actor:"A",module:"后台管理",dim:"③⑤",op:"明日开团分配",q:"明日开团分配行是否为 0 时手动补（prod-patch-insert-assignment，须用户当轮批准）？有无只读核查先做？",src:"明日开团SOP：手动补分配行"},
+{id:"L4",actor:"A",module:"后台管理",dim:"⑦",op:"订单管理",q:"后台能否查看/筛选/导出全部订单与状态？是否只读还是可改？",src:"后台客服配置维护操作卡"},
+{id:"L5",actor:"A",module:"后台管理",dim:"②",op:"用户管理",q:"后台能否查看用户列表、余额、券持有？越权查看限制？",src:"ab_balance/ab_user_coupon"},
+{id:"L6",actor:"A",module:"后台管理",dim:"②",op:"团长管理",q:"后台能否审核团长、查看佣金明细、管理协议版本？",src:"团长体系；协议 v1.0"},
+{id:"L7",actor:"A",module:"后台管理",dim:"②③④",op:"发券管理台",q:"后台发券管理台是否支持按用户/批量/全量发放，配置面额门槛有效期，并标记来源？",src:"F1-F9 综合；manual/compensation"},
+{id:"L8",actor:"A",module:"后台管理",dim:"④",op:"客服配置",q:"后台客服配置（入口标签/微信号）维护是否有操作卡、改后即时生效？",src:"_ABox一盒_后台客服配置维护操作卡"},
+{id:"L9",actor:"A",module:"后台管理",dim:"⑦",op:"审计日志",q:"ab_operation_log 是否可查看/筛选/导出？kb_operator/kb_nl_intent/kb_op_block 三列解码是否可读？",src:"ab_operation_log 增三可空列"},
+{id:"L10",actor:"A",module:"后台管理",dim:"⑦",op:"运营日志",q:"知识助手操作日志（kb_* 头 base64 UTF-8 解码）是否准确入库、可审计？",src:"OperationLogInterceptor 从 X-KB* 解码"},
+{id:"L11",actor:"A",module:"后台管理",dim:"⑥",op:"数据看板",q:"是否有关键指标看板（销量/份数/佣金/退款率/券核销）？数据来源与订单库是否一致？",src:"数据需求；对账未收口"},
+{id:"L12",actor:"A",module:"后台管理",dim:"②",op:"权限分级",q:"admin 与 operator1 角色权限是否明确划分？operator 能否发券/退款/改商品？",src:"B2 operator账号 operator1(id4)"},
+
+// M 知识助手
+{id:"M1",actor:"U",module:"知识助手",dim:"①③",op:"AI 问答",q:"知识助手 v4.0 是否仅从已发布域名开放（云服务 exact Origin 放行）？非白名单域是否被拒？",src:"知识助手v4.0；exact Origin 放行"},
+{id:"M2",actor:"A",module:"知识助手",dim:"③",op:"重发控制",q:"助手重发是否须用户当轮明确要求？有无防止误重发的确认？",src:"重发须用户当轮明确要求"},
+
+// N 门户
+{id:"N1",actor:"A",module:"门户",dim:"③",op:"系统入口",q:"门户是否系统总入口？刷新是否走 collect.py + build.py（数字禁手写）？",src:"门户=系统总入口；刷新脚本"},
+
+// O 埋点与隐私
+{id:"O1",actor:"A",module:"埋点与隐私",dim:"⑦",op:"匿名埋点",q:"ab_page_track 是否只写不读、DTO 无身份字段(forbidNonWhitelisted 拒夹带 openid)？180 天清理是否生效？",src:"埋点匿名口径；page-track-cleanup 每日03:30"},
+{id:"O2",actor:"U",module:"埋点与隐私",dim:"④⑦",op:"隐私条款",q:"隐私三条款（真源 agreements.ts）是否在注册/关键操作前向用户明示并可得？",src:"隐私三条款真源 agreements.ts"},
+
+// P 支付与对账
+{id:"P1",actor:"A",module:"支付与对账",dim:"⑥",op:"支付商户号",q:"微信支付商户号是否配齐、HTTPS + 域名 ICP 备案是否完成（未备案不阻体验版但阻生产）？",src:"支付商户号+HTTPS；未备案不阻体验版"},
+{id:"P2",actor:"A",module:"支付与对账",dim:"⑥",op:"对账闭环",q:"订单/支付/退款/佣金四方是否可对账一致？(F-10 写钱路径闸未收口，是高优先级缺口)",src:"未收口 F-10；对账需求"}
+];
+
+const MODULES = [...new Set(PROBES.map(p=>p.module))];
+const actorName = {U:"用户",L:"团长",A:"管理者"};
+const KEY = "abox_probe_status_v1";
+let store = JSON.parse(localStorage.getItem(KEY)||"{}");
+
+const modSel = document.getElementById('fModule');
+MODULES.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;modSel.appendChild(o);});
+
+function render(){
+  const fa=document.getElementById('fActor').value;
+  const fm=document.getElementById('fModule').value;
+  const fs=document.getElementById('fStatus').value;
+  const fu=document.getElementById('fUnset').checked;
+  const list=document.getElementById('list');
+  list.innerHTML="";
+  let shown=0, counts={已实现:0,部分:0,缺口:0,不可行:0,待核:0};
+  MODULES.forEach(mod=>{
+    const rows=PROBES.filter(p=>p.module===mod && (!fa||p.actor===fa) && (!fm||p.module===fm));
+    if(!rows.length) return;
+    const sec=document.createElement('div'); sec.className="module";
+    sec.innerHTML=`<h2>${mod}（${rows.length}）</h2>`;
+    const head=document.createElement('div'); head.className="row head";
+    head.innerHTML=`<div>编号</div><div>角色</div><div>操作</div><div>七维探针问题</div><div>状态</div><div>备注</div>`;
+    sec.appendChild(head);
+    rows.forEach(p=>{
+      const st = store[p.id]?.status || "待核";
+      if(fu && st!=="待核") return;
+      if(fs && st!==fs) return;
+      counts[st]=(counts[st]||0)+1; shown++;
+      const r=document.createElement('div'); r.className="row";
+      const sel=`<select class="status s-${st==='待核'?'na':st}" data-id="${p.id}">
+        ${["待核","已实现","部分","缺口","不可行"].map(s=>`<option ${s===st?'selected':''}>${s}</option>`).join('')}
+      </select>`;
+      const note=store[p.id]?.note||"";
+      r.innerHTML=`<div><b>${p.id}</b><br><span class="tag">${p.dim}</span></div>
+        <div class="actor-${p.actor}">${actorName[p.actor]}</div>
+        <div>${p.op}</div>
+        <div class="q">${p.q}<div style="font-size:11px;color:#9a8a6a;margin-top:4px;">依据：${p.src}</div></div>
+        <div>${sel}</div>
+        <div><textarea class="note" data-id="${p.id}" placeholder="验证结论/证据...">${note}</textarea></div>`;
+      sec.appendChild(r);
+    });
+    if(sec.querySelectorAll('.row:not(.head)').length) list.appendChild(sec);
+  });
+  document.getElementById('stats').innerHTML=`显示 <b>${shown}</b> 条 ｜ 已实现 ${counts.已实现} · 部分 ${counts.部分} · 缺口 ${counts.缺口} · 不可行 ${counts.不可行} · 待核 ${counts.待核}`;
+  bind();
+}
+function bind(){
+  document.querySelectorAll('select.status').forEach(s=>{
+    s.onchange=()=>{const id=s.dataset.id;store[id]=store[id]||{};store[id].status=s.value;s.className="status s-"+(s.value==='待核'?'na':s.value);localStorage.setItem(KEY,JSON.stringify(store));render();};
+  });
+  document.querySelectorAll('textarea.note').forEach(t=>{
+    t.oninput=()=>{const id=t.dataset.id;store[id]=store[id]||{};store[id].note=t.value;localStorage.setItem(KEY,JSON.stringify(store));};
+  });
+}
+document.getElementById('fActor').onchange=render;
+document.getElementById('fModule').onchange=render;
+document.getElementById('fStatus').onchange=render;
+document.getElementById('fUnset').onchange=render;
+document.getElementById('btnClear').onclick=()=>{if(confirm('清空本机所有勾选与备注？')){store={};localStorage.removeItem(KEY);render();}};
+document.getElementById('btnExport').onclick=()=>{
+  let csv="编号,角色,模块,操作,维度,探针问题,依据,状态,备注\n";
+  PROBES.forEach(p=>{const st=store[p.id]?.status||"待核";const nt=(store[p.id]?.note||"").replace(/\n/g," ");
+    csv+=`${p.id},${actorName[p.actor]},${p.module},${p.op},${p.dim},"${p.q.replace(/"/g,'""')}","${p.src.replace(/"/g,'""')}",${st},"${nt.replace(/"/g,'""')}"\n`;});
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download="ABox功能探针核查.csv";a.click();
+};
+render();
+</script>
+</body>
+</html>

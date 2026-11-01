@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 深度测试报告 · 佣金链路已通（2026-10-28）</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --ink:#2B2622; --brown:#6E5435; --line:rgba(110,84,53,.22);
+    --card:#FFFDF8; --bad:#9A3B2B; --good:#3F6B4E; --warn:#8A6A1F;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:"Kaiti SC","STKaiti",KaiTi,"Songti SC",serif;line-height:1.75}
+  .wrap{max-width:960px;margin:0 auto;padding:40px 22px 72px}
+  header{border-bottom:2px solid var(--brown);padding-bottom:18px;margin-bottom:28px}
+  h1{font-size:26px;margin:0 0 6px;color:var(--brown);font-weight:600}
+  .sub{font-size:13px;opacity:.72}
+  h2{font-size:19px;margin:34px 0 12px;color:var(--brown);
+     border-left:4px solid var(--brown);padding-left:10px}
+  h3{font-size:15px;margin:20px 0 8px;color:var(--brown)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:6px;
+        padding:16px 18px;margin:14px 0}
+  .card--good{border-left:4px solid var(--good)}
+  .card--bad{border-left:4px solid var(--bad)}
+  .card--warn{border-left:4px solid var(--warn)}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  th{background:rgba(110,84,53,.08);font-weight:600}
+  code{font-family:Consolas,Menlo,monospace;font-size:12px;
+       background:rgba(110,84,53,.08);padding:1px 4px;border-radius:3px}
+  pre{background:rgba(110,84,53,.06);border:1px solid var(--line);border-radius:5px;
+      padding:10px 12px;overflow:auto;font-size:12px;
+      font-family:Consolas,Menlo,monospace;line-height:1.6;white-space:pre-wrap}
+  .ok{color:var(--good);font-weight:600}
+  .no{color:var(--bad);font-weight:600}
+  .wa{color:var(--warn);font-weight:600}
+  ul,ol{margin:8px 0;padding-left:20px}
+  li{margin:4px 0}
+  .kv{font-size:13px;opacity:.8}
+  footer{margin-top:40px;border-top:1px solid var(--line);padding-top:14px;font-size:12px;opacity:.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>深度测试报告 · 佣金链路已通</h1>
+  <div class="sub">2026-10-28 21:50–22:10（北京时间） ｜ 被测：线上 154.8.164.180 ｜
+  方式：生产库只读查询 + 真实接口实调 + 备份脚本反向验证 + 门禁回归</div>
+</header>
+
+<h2>结论先行</h2>
+<div class="card card--good">
+  <p style="margin-top:0"><b>技术的修改有效 —— 佣金全链路首次在生产跑通了。</b>
+  上一次报告里我最担心的「团长看到有佣金却提不出来」，现在已经闭环：
+  <b>订单走到 completed → 计佣 ¥6.19 → 结算 settled → 真正进余额 → 提现成功</b>，
+  每一步我都在生产库和真实接口上取到了证据。</p>
+  <p>顺带把从没验过的一环也测了：<b>提现</b>。D3 定稿的五个值（起提不限 / T+1 / 免手续费 / 单日 ¥2000 / 当日 1 笔）
+  <b>全部在真实调用中命中</b>，不是一个时辰的事。</p>
+  <p style="margin-bottom:0"><b>但还有三件事没收尾</b>：① <code>2026-10-27</code> 这个非法日期我溯源到根因了，波及
+  <b>51 个文件 153 处</b>，比我上次说的范围大得多；② 提现单挂在 pending，需要财务处理；
+  ③ 「三家供应商每天各自确认」目前只被手工跑通一次，能否天天做到没验证。详见第五、六节。</p>
+</div>
+
+<h2>一、技术这轮到底改了什么</h2>
+<div class="card">
+  <p style="margin-top:0"><b>git 上只有一个提交</b> <code>6a0b8dd</code>（运维脚本：<code>backup-db.sh</code> 库名口径 + nginx 日志按天保留），
+  <b>业务代码一行没动</b>。</p>
+  <p>真正的改动在<b>账号与数据层</b> —— 而且正是我上次报告提的建议①：给三家配齐可用账号。</p>
+  <table>
+    <tr><th style="width:22%">账号</th><th style="width:14%">supplier_id</th><th style="width:22%">对应厂商</th><th>状态</th></tr>
+    <tr><td><code>sanweiwu</code></td><td>1</td><td>三味屋</td><td>status=1（原本就有）</td></tr>
+    <tr><td><code>supplier_lp</code></td><td>16</td><td>良品铺子</td><td class="ok">status 2 → <b>1</b>（上次被停用，已启用）</td></tr>
+    <tr><td><code>supplier_wl</code></td><td>18</td><td>卫龙</td><td class="ok">新建 · status=1</td></tr>
+    <tr><td><code>supplier_yl</code></td><td>20</td><td>伊利</td><td class="ok">新建 · status=1</td></tr>
+  </table>
+  <p style="margin-bottom:0">随后 <code>2026-10-29</code> 的生产计划 4 行全部转为 <code>done</code>、
+  明细 4 行 <code>confirmed</code>、<code>actual_quantity=3</code>（足额，无短送），确认时间 20:43:46 ——
+  <b>是真实调用 API 的结果，不是直接改库</b>。</p>
+</div>
+
+<h2>二、深度测试 · 佣金全链路（首次跑通）</h2>
+<div class="card">
+  <table>
+    <tr><th style="width:16%">环节</th><th style="width:44%">证据（生产库真值）</th><th>判定</th></tr>
+    <tr><td>出餐确认</td><td><code>ab_supplier_item_daily</code> 10-29 四行全部 <code>done</code>；
+        明细四行 <code>confirmed</code>、<code>actual_quantity=3</code></td><td class="ok">通过</td></tr>
+    <tr><td>订单推进</td><td><code>AB2026102802850288</code> → <b>completed</b>（20:50:02）</td><td class="ok">首次</td></tr>
+    <tr><td>计佣</td><td><code>ab_commission</code> <b>第 1 行</b>：base ¥51.60 × 12%（chief）= <b>¥6.19</b></td><td class="ok">金额正确</td></tr>
+    <tr><td>结算</td><td><code>status=settled</code>、<code>settled_at=20:50:16.752</code></td><td class="ok">非 pending</td></tr>
+    <tr><td><b>入账</b></td><td><code>ab_balance</code>（真源表）user 1001 <b>balance=6.19</b>、total_in=6.19，
+        时间戳 20:50:16.757 与 settled_at 精确对应</td><td class="ok">真进账了</td></tr>
+    <tr><td>流水</td><td><code>ab_balance_log</code>：type=commission、direction=+1、amount=6.19、
+        related_id=AB2026102802850288、备注「佣金入账 首席 12%」</td><td class="ok">可对账</td></tr>
+    <tr><td>团长侧可见</td><td><code>/leader/commissions</code> 月度汇总 earnedFen=619、netFen=619、quantity=2、首席 12%</td><td class="ok">端上看得到</td></tr>
+  </table>
+
+  <div class="card card--warn" style="margin:12px 0 0">
+    <p style="margin-top:0;font-size:14px"><b>⚠️ 一次差点误判的自查</b>：
+    我第一眼查到 <code>ab_team_leader.balance = 0.00</code>，几乎要报「佣金没进账」。
+    及时想起项目里记着「<code>ab_team_leader.balance</code> <b>恒 0、不是真源</b>，真源是 <code>ab_balance</code>」
+    这条踩过两次的坑 —— 转查真源表才确认钱其实到账了。</p>
+    <p style="margin-bottom:0;font-size:14px"><b>连带订正我上次的一条结论</b>：
+    我上轮说 <code>total_commission</code> 是「历史遗留字段、与当前链路脱钩」—— <b>不准确</b>。
+    李明的 <code>total_commission</code> 从 <b>575.86 → 582.05</b>，增量 <b>正好等于 6.19</b>，
+    ⇒ 它<b>每次结算都会被更新</b>，只是不可用于判断「可提多少钱」。</p>
+  </div>
+</div>
+
+<h2>三、深度测试 · 提现（首次验证，含 D3 五值）</h2>
+<div class="card">
+  <p style="margin-top:0">上一轮提现被 <code>40007 请先绑定收款方式</code> 拦死，这次李明已绑 alipay，能测了。</p>
+  <table>
+    <tr><th style="width:26%">D3 规则 / 校验</th><th style="width:40%">真实调用结果</th><th>判定</th></tr>
+    <tr><td>起提不限</td><td>¥1.00 提现<b>成功</b> → <code>WD2026102866699238</code>，status=pending</td><td class="ok">通过</td></tr>
+    <tr><td>当日 1 笔</td><td>换幂等键再提一笔 → <b>40025</b>「今日已有一笔提现在处理中」</td><td class="ok">通过</td></tr>
+    <tr><td>单日 ¥2000</td><td>提 ¥99999 → <b>40024</b>「今日剩余可提 ¥2000.00」</td><td class="ok">通过</td></tr>
+    <tr><td>免手续费 / T+1</td><td>回带文案「运营审批后 1 个工作日内到账（节假日顺延）· 平台不收手续费，
+        个税由灵活用工平台依法代扣代缴」</td><td class="ok">文案正确</td></tr>
+    <tr><td>幂等</td><td>同键重放 → <b>10006</b> 请勿重复提交，<b>未产生第二笔</b></td><td class="ok">通过</td></tr>
+    <tr><td>金额地板</td><td>-1 / 0 / 0.005 → 全部 <b>10001</b>「提现金额需大于 0」，不产生提现单</td><td class="ok">通过</td></tr>
+    <tr><td>资金冻结</td><td>balanceFen <b>619 → 519</b>、frozenFen <b>100</b>、inFlightCount=1；
+        流水 type=withdraw −100「冻结至审批完成」</td><td class="ok">账目自洽</td></tr>
+  </table>
+  <p style="margin-bottom:0" class="kv">小提示（非缺陷）：提 ¥99999 时先报<b>单日超限</b>而不是「余额不足」——
+  这是代码「先判笔数、再判限额」的顺序使然，提示语没指向真实的那个原因（钱不够）。建议后续把提示改成先比余额。</p>
+</div>
+
+<h2>四、backup 脚本自证 · 反向验证 8/8</h2>
+<div class="card">
+  <p style="margin-top:0">这是本轮<b>唯一的代码改动</b>（第 104 行加了「文件名里的库 ≡ 文件里真装的库」的断言）。
+  按规矩我造样本证明它<b>抓得住错</b>，只看它跑通不算数：</p>
+  <table>
+    <tr><th style="width:34%">构造样本</th><th style="width:18%">期望</th><th style="width:14%">实得</th><th>结论</th></tr>
+    <tr><td>① 真名（CREATE + USE）</td><td>通过</td><td>通过</td><td class="ok">不会误报</td></tr>
+    <tr><td>② 异名 <code>other_db</code></td><td>报错</td><td>报错</td><td class="ok">抓得住</td></tr>
+    <tr><td>③ 空文件</td><td>报错</td><td>报错</td><td class="ok">抓得住</td></tr>
+    <tr><td>④ 仅 <code>USE</code>（无 CREATE）</td><td>通过</td><td>通过</td><td class="ok">不误伤</td></tr>
+    <tr><td>⑤ 前缀相同更长 <code>abox_onebox_extra</code></td><td>报错</td><td>报错</td><td class="ok">不糊弄</td></tr>
+    <tr><td>⑥ 后缀相同更长 <code>my_abox_onebox</code></td><td>报错</td><td>报错</td><td class="ok">不糊弄</td></tr>
+    <tr><td>⑦ 含二进制字节（验 <code>-a</code>）</td><td>通过</td><td>通过</td><td class="ok">断言没哑</td></tr>
+    <tr><td>⑧ 只有 <code>DROP DATABASE</code></td><td>报错</td><td>报错</td><td class="ok">抓得住</td></tr>
+  </table>
+  <p><b>⇒ 判据既不恒绿也不恒红 ✅</b>（8/8）。真跑一次备份也成功：<code>abox-abox_onebox-20261028T135736Z.sql.gz</code>，45,541 字节。</p>
+  <p style="margin-bottom:0" class="kv">另：<code>gate all</code> 复跑 <b>31/31 全绿</b>，本轮改动无回归。</p>
+</div>
+
+<h2>五、新发现的问题</h2>
+
+<div class="card card--bad">
+  <h3 style="margin-top:0">① <code>2026-10-27</code> 溯源到根因 —— 波及 51 个文件、153 处</h3>
+  <p>上次我把它当成「pm_admin 昨天的测试残留」，<b>范围看小了</b>。这次查到：</p>
+  <ul>
+    <li>代码库里共有 <b>51 个文件、153 处</b> <code>2026-10-27</code> 字面量。</li>
+    <li><b>根因：文件名本身就用了这个非法日期。</b>例如我此前生成的
+        <code>ABox_123条进展台账_2026-10-27.html</code> —— 而 <code>biz-config.service.ts:236</code>
+        是<b>照抄了这个真实文件名</b>才把它写进注释的。</li>
+    <li><b>强证据</b>：<code>request-body.policy.ts:6</code> 写「2026-10-27 生产事故：GET 返回 10001」——
+        这说的正是<b>昨天 10-27 我实测到的那起事故</b>。⇒ 这批日期的真实值应为 <b><code>2026-10-27</code></b>，
+        <code>10-27</code> 是被错写成了不存在的 <code>07-32</code>。</li>
+    <li>生产库里的 <code>2026-10-27</code>（排期表 <b>active 5 条</b>、config updated_at、停售/退款记录）是同一个源。</li>
+  </ul>
+  <p style="margin-bottom:0"><b>⇒ 这不是「昨天的测试脏数据」，是一次系统性的日期命名错误。</b>
+  清理／订正请按这个方向做，别当成纯测试残留随手删。</p>
+</div>
+
+<div class="card card--warn">
+  <h3 style="margin-top:0">② <code>lib/db-name.sh</code> 的注释与代码打架</h3>
+  <p>头注明写「<b>刻意不读 <code>DB_OODJXNLK</code></b>，那不是规范键」「② 读 <code>DB_DATABASE</code>」，
+  但代码第 ② 步 grep 的<b>恰恰是 <code>DB_OODJXNLK</code></b>。</p>
+  <p>我查了线上 <code>.env.prod</code>：<b>真实键名就是 <code>DB_OODJXNLK</code> / <code>MYSQL_KSCBRVRD</code>，
+  压根不存在 <code>DB_DATABASE</code></b>。</p>
+  <p style="margin-bottom:0"><b>⇒ 当前代码碰巧是对的，注释在撒谎。</b>
+  风险在于：若后人照注释把 <code>DB_OODJXNLK</code> 改成 <code>DB_DATABASE</code>，
+  取值会落空、回退到兜底常量 <code>abox_onebox</code> —— 今天因为值恰好相同所以不报错，
+  <b>下次改库名就会静默恢复到错的库</b>。建议二选一：订正注释，或把 .env 键名改成规范名。</p>
+</div>
+
+<h2>六、上线建议（更新）</h2>
+<div class="card">
+  <p style="margin-top:0"><b>最大的不确定性已经消除。</b>上次卡住的「佣金链路没跑通过」现在是实的：
+  计佣、结算、入账、提现四步全通。</p>
+  <p><b>但我仍建议先灰度一天再全量</b>，理由剩三条：</p>
+  <ol>
+    <li><b>「三家供应商每天各自确认」只手工跑通了一次。</b>按 <code>advanceOrdersToCooked</code> 的
+        <code>every()</code> 判据，<b>缺任何一家，当天所有订单都不产生佣金</b>。
+        今天是技术手动替三家点的，<b>明天厂商自己会不会按时点（09:30 前），没人验证过</b>。</li>
+    <li><code>2026-10-27</code> 污染未清理，生产库里还有 <b>5 条 active 排期</b>挂着这个日期。</li>
+    <li><code>gate verify</code> 的 m3 <b>23 条存量红灯</b>未清（技术没动业务代码，数字应仍是 1328/1351）。</li>
+  </ol>
+  <p style="margin-bottom:0"><b>灰度当天务必验证一件事</b>：厂商在后台点了出餐确认之后，
+  订单<b>立刻</b>从 <code>cut_off</code> 变 <code>cooked</code>（可用那条完整链路的订单号反向追踪）。</p>
+</div>
+
+<h2>七、测试残留 · 需要你处理</h2>
+<div class="card card--warn">
+  <ul>
+    <li><b>提现单 <code>WD2026102866699238</code></b>（¥1.00，status=pending）挂在账上，
+        冻结了李明 <b>¥1.00</b>。需要财务账号<b>审批</b>或<b>驳回</b>，否则这笔一直挂着。</li>
+    <li><b>李明今天不能再提现了</b> —— 当日 1 笔的额度已被我用掉。<b>明天（10-29）自动重置，不影响上线</b>。</li>
+    <li>订单 <code>AB2026102802850288</code> 已 completed，佣金已结算 —— 这是第一次成功样本，
+        <b>建议保留作为对账基准</b>，别删。</li>
+    <li>服务器上的临时备份与自证样本我已清理干净。</li>
+  </ul>
+</div>
+
+<footer>
+  测试方式：生产库只读查询（SSH + docker exec mysql，全程只读）· 真实接口实调（8081，含团长 mock 身份 dev:1001）·
+  备份脚本反向验证（8 构造样本）· <code>gate all</code> 回归 31/31。<br>
+  本轮含 1 处自我纠错、1 处结论订正：① 差点用 <code>ab_team_leader.balance</code>（恒 0）误判「佣金没进账」，
+  及时转查真源 <code>ab_balance</code>；② 上轮称 <code>total_commission</code>「与链路脱钩」不准确 ——
+  实测它每次结算都更新（575.86 → 582.05，增量恰为 6.19）。<br>
+  生成时间：2026-10-28 · 北京
+</footer>
+
+</div>
+</body>
+</html>

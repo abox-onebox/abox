@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 首页天地盖 v0.4（份数归属修正）</title>
+<style>
+@font-face {
+  font-family: 'ABoxKai';
+  src: url('ab-kaiti.woff2') format('woff2');
+  font-weight: normal; font-style: normal; font-display: swap;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* 色值取自 apps/miniprogram/src/styles/tokens.scss（v2.1） */
+:root{
+  --bg:#f6f0e5; --surface:#fffdf8; --surface2:#f7f1e4; --surface3:#fbf6ec;
+  --text:#6e5435; --weak:#796c57;
+  --gold:#c9a876; --gold-deep:#936f3a; --gold-deepest:#8a6620;
+  --border:#e4d8c3; --border-strong:#d6cbb8;
+  --warning:#c44536; --gold-fg:#8a6620; --ok-fg:#577738; --info-fg:#4a6fa5;
+  --kai:'ABoxKai', KaiTi, STKaiti, 楷体, 'Noto Serif SC', serif;
+  --base:-apple-system, BlinkMacSystemFont, 'PingFang SC', 'HarmonyOS Sans SC', 'Noto Sans CJK SC', 'Microsoft YaHei', Arial, sans-serif;
+  --num:'SF Mono','Roboto Mono',Consolas,monospace;
+}
+body{
+  font-family:var(--kai); background:#e8dfcf; color:#3a322a;
+  padding:30px 16px 70px; line-height:1.8; -webkit-font-smoothing:antialiased;
+}
+.wrap{ max-width:1180px; margin:0 auto; }
+h1{ font-size:21px; font-weight:normal; letter-spacing:.5px; color:var(--text); }
+.lead{ margin-top:8px; font-size:13px; color:#5f5445; max-width:920px; font-family:var(--base); line-height:1.95; }
+.lead b{ color:var(--text); font-weight:600; }
+
+/* 根因块 */
+.why{
+  margin-top:16px; background:var(--surface); border:1px solid var(--border-strong);
+  border-left:6px solid var(--gold-deep); border-radius:12px; padding:14px 18px 15px;
+}
+.why h3{ font-size:14px; font-weight:normal; color:var(--gold-fg); letter-spacing:.5px; }
+.why p{ margin-top:6px; font-size:13px; color:#3a322a; font-family:var(--base); line-height:1.95; }
+.why p b{ color:var(--text); font-weight:600; }
+
+/* 层级表 */
+.layer{ display:flex; gap:14px; flex-wrap:wrap; margin-top:12px; }
+.layer__b{ flex:1; min-width:200px; border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
+.layer__b.c{ background:var(--surface3); }
+.layer__b.d{ background:#fbf0ee; border-color:#e3bfb8; }
+.layer__t{ font-size:12px; font-weight:600; color:var(--text); font-family:var(--base); }
+.layer__t span{ font-weight:normal; color:var(--weak); font-size:11.5px; }
+.layer__l{ margin-top:5px; font-size:12px; color:#3a322a; font-family:var(--base); line-height:1.85; }
+.layer__b.d .layer__l b{ color:var(--warning); }
+
+/* 两栏 */
+.two{ display:flex; gap:26px; flex-wrap:wrap; margin-top:24px; align-items:flex-start; }
+.col{ flex:1; min-width:340px; }
+.col h2{ font-size:14.5px; font-weight:normal; color:var(--text); letter-spacing:.5px; }
+.col .who{ font-size:11.5px; color:var(--weak); margin:3px 0 12px; font-family:var(--base); line-height:1.7; }
+.col h2.bad{ color:var(--warning); }
+.col h2.good{ color:var(--ok-fg); }
+
+.phone{
+  width:375px; max-width:100%; background:var(--bg); border-radius:18px;
+  box-shadow:0 2px 18px rgba(58,50,42,.14); padding:0 0 14px; overflow:hidden;
+}
+
+/* 倒计时（不动） */
+.cd{ background:var(--text); color:var(--bg); text-align:center; padding:14px 20px; border-radius:0 0 18px 18px; }
+.cd__l{ font-size:12px; opacity:.92; font-family:var(--base); }
+.cd__n{ margin-top:6px; font-size:18px; font-weight:700; color:var(--gold); letter-spacing:2px; font-family:var(--num); }
+.cd__s{ margin-top:6px; font-size:12px; opacity:.85; font-family:var(--base); }
+
+/* 天地盖盒（①③② 沿用 v0.3） */
+.box2{ margin:14px 20px 0; border-radius:18px; overflow:hidden; box-shadow:0 3px 14px rgba(110,84,53,.14); }
+.box2__lid{
+  background:linear-gradient(135deg,var(--gold),var(--gold-deep));
+  color:#fff; text-align:center; padding:15px 18px 17px;
+  box-shadow:inset 0 -7px 11px -7px rgba(58,42,16,.55);
+}
+.box2__lid-d{ font-size:12.5px; opacity:.95; letter-spacing:1px; }
+.box2__lid-p{ margin-top:9px; padding:6px 14px; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.4); border-radius:14px; }
+.box2__lid-p span{ display:block; font-size:11.5px; line-height:1.55; font-family:var(--base); }
+.box2__seam{ height:3px; background:linear-gradient(90deg, rgba(138,102,32,.18) 0%, var(--gold-deepest) 16%, var(--gold-deepest) 84%, rgba(138,102,32,.18) 100%); }
+.box2__body{ background:var(--surface2); padding:11px; border:1px solid var(--border); border-top:none; border-radius:0 0 18px 18px; }
+.grid2{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.cell2{ background:var(--surface); border:1px solid rgba(110,84,53,.14); border-radius:10px; padding:6px; box-shadow:0 1px 3px rgba(110,84,53,.10); }
+.ph2{ height:129px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:11.5px; color:rgba(255,253,248,.92); letter-spacing:1px; font-family:var(--base); }
+.im1{ background:#6b7a4e; } .im2{ background:#8a6b4f; }
+.im3{ background:#7a4e42; } .im4{ background:#5e6e52; }
+.cell2__n{ margin-top:6px; font-size:14px; font-weight:700; color:var(--text); padding:0 2px; }
+.cell2__s{ font-size:11.5px; color:var(--weak); padding:1px 2px 0; font-family:var(--base); }
+.cell2__s em{ font-style:normal; color:var(--gold-fg); }
+
+.rice2{ margin:9px -11px 0; padding:9px 11px; display:flex; align-items:center; gap:9px; border-top:1px solid var(--border-strong); }
+.rice2__ic{ width:30px; height:22px; flex:none; border-radius:11px; background:#fff; border:1px solid rgba(110,84,53,.3); position:relative; overflow:hidden; }
+.rice2__ic i{ position:absolute; width:4px; height:2.5px; background:#e9d98a; border-radius:2px; transform:rotate(24deg); }
+.rice2__t{ font-size:13px; color:var(--text); white-space:nowrap; }
+.rice2__s{ font-size:11px; color:var(--weak); font-family:var(--base); white-space:nowrap; }
+
+/* v0.3 的歧义写法：份数贴在米饭上 */
+.qty2{ margin-left:auto; display:inline-flex; align-items:center; background:var(--bg); border:1px solid var(--border-strong); border-radius:999px; overflow:hidden; flex:none; }
+.qty2 span{ width:26px; height:26px; display:flex; align-items:center; justify-content:center; background:var(--surface); color:var(--text); font-size:17px; }
+.qty2 b{ width:32px; text-align:center; font-size:13px; color:var(--text); }
+.pay{ margin:12px 20px 0; padding:12px 16px; background:var(--surface); border:1px solid var(--border); border-radius:14px; display:flex; align-items:baseline; justify-content:space-between; }
+.pay__v{ font-size:28px; font-weight:700; color:var(--text); line-height:1.2; font-family:var(--num); }
+.pay__h{ font-size:11.5px; color:var(--weak); font-family:var(--base); }
+
+/* ===== v0.4 修正：决策层单独成行 ===== */
+.buy{ margin:12px 20px 0; padding:12px 16px; background:var(--surface); border:1px solid var(--border); border-radius:14px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.buy__l{ display:flex; align-items:center; gap:9px; flex:none; }
+.buy__k{ font-size:12.5px; color:var(--text); font-family:var(--base); font-weight:600; }
+.qty3{ display:inline-flex; align-items:center; background:var(--bg); border:1px solid var(--border-strong); border-radius:999px; overflow:hidden; }
+.qty3 span{ width:27px; height:27px; display:flex; align-items:center; justify-content:center; background:var(--surface); color:var(--text); font-size:17px; }
+.qty3 b{ width:34px; text-align:center; font-size:13px; font-weight:700; color:var(--text); }
+.buy__r{ text-align:right; }
+.buy__money{ font-size:27px; font-weight:700; color:var(--text); line-height:1.2; font-family:var(--num); }
+.buy__meta{ margin:5px 20px 0; text-align:right; font-size:11.5px; line-height:1.5; color:var(--weak); font-family:var(--base); }
+
+/* 歧义气泡（左栏演示用） */
+.qmark{
+  position:relative;
+}
+.qmark::after{
+  content:attr(data-q);
+  position:absolute; right:-4px; top:-8px; z-index:6;
+  font-size:10px; font-family:var(--base); color:#fff; background:var(--warning);
+  padding:1px 7px; border-radius:9px; white-space:nowrap;
+}
+
+.cta{ display:block; margin:14px 20px 0; padding:14px 0; text-align:center;
+  background:linear-gradient(135deg,var(--text) 0%,var(--gold-deep) 100%);
+  color:var(--bg); font-size:15px; font-weight:700; letter-spacing:2px; border-radius:999px; }
+.bb{ margin-top:16px; display:flex; border-top:1px solid var(--border); background:var(--surface); }
+.bb i{ flex:1; text-align:center; padding:9px 0; font-style:normal; font-size:11px; color:var(--weak); font-family:var(--base); }
+.bb i.on{ color:var(--gold-fg); font-weight:700; }
+
+.note{ margin-top:13px; font-size:12.5px; color:var(--weak); line-height:2; font-family:var(--base); }
+.note b{ color:var(--text); font-weight:600; }
+.note .warn{ color:var(--warning); font-weight:600; }
+
+/* 表格区段 */
+.blk{ margin-top:30px; background:var(--surface); border:1px solid var(--border); border-radius:13px; padding:16px 20px 18px; }
+.blk h2{ font-size:15px; font-weight:normal; color:var(--text); letter-spacing:.5px; }
+table{ width:100%; border-collapse:collapse; margin-top:10px; font-family:var(--base); }
+th,td{ font-size:12.5px; text-align:left; padding:8px 9px; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.8; }
+th{ color:var(--text); font-weight:600; background:var(--surface2); white-space:nowrap; }
+td.k{ color:var(--text); font-weight:600; white-space:nowrap; }
+.no{ color:var(--warning); font-weight:600; }
+.yes{ color:var(--ok-fg); font-weight:600; }
+code{ font-family:var(--num); font-size:11.5px; background:var(--surface2); padding:1px 5px; border-radius:4px; color:var(--gold-fg); }
+
+.calc pre{
+  margin-top:10px; font-family:var(--num); font-size:12px; line-height:2; color:#3a322a;
+  background:var(--surface3); border:1px solid var(--border); border-radius:8px; padding:12px 14px; white-space:pre-wrap;
+}
+.cv{ margin-top:9px; font-size:11.5px; color:var(--warning); font-family:var(--base); line-height:1.9; }
+
+.rule{ margin-top:26px; background:var(--surface); border:1px dashed rgba(110,84,53,.45); border-radius:13px; padding:15px 20px 16px; }
+.rule h2{ font-size:15px; font-weight:normal; color:var(--gold-deepest); letter-spacing:.5px; }
+.rule ol{ margin-left:19px; margin-top:6px; }
+.rule li{ font-size:12.5px; color:#3a322a; padding:5px 0; line-height:1.95; font-family:var(--base); }
+
+.ask{ margin-top:26px; background:var(--surface); border:1px solid var(--border-strong); border-radius:13px; padding:15px 20px 16px; }
+.ask h2{ font-size:15px; font-weight:normal; color:var(--warning); letter-spacing:.5px; }
+.ask ol{ margin-left:19px; margin-top:6px; }
+.ask li{ font-size:12.5px; color:#3a322a; padding:5px 0; line-height:1.95; font-family:var(--base); }
+.ask b{ color:var(--warning); font-weight:600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>首页 · 天地盖 v0.4 · 份数归属修正</h1>
+  <div class="lead">
+    你指出的「容易被误解为米饭需要多少份」是真的，而且根因比"位置没摆好"更深一层。
+    这一版把它<b>从内容层挪回决策层</b>，并顺手把单价比也一起解决了。左栏是 v0.3 的写法，右栏是修正后。
+  </div>
+
+  <div class="why">
+    <h3>根因：这不是视觉问题，是信息层级错配</h3>
+    <p>
+      份数<b>不归属于任何一道具体的东西</b>——它归属于「<b>整盒</b>」。用户买的是盒数，不是"几份米饭"或"几份红烧排骨"。
+      而 v0.3 把它塞进了饭位，等于把<b>决策层的信息放进了内容层</b>。控件紧挨着"米饭"二字，
+      按邻近原则人的第一反应自然是"这是在选米饭的份数"。
+    </p>
+    <p>
+      ⇒ 所以<b>靠调间距、调颜色都救不回来</b>——层级错了就得挪回去。
+    </p>
+    <div class="layer">
+      <div class="layer__b c">
+        <div class="layer__t">内容层 <span>= 这一盒里有什么</span></div>
+        <div class="layer__l">天盖日期 / 品牌文案<br>四格菜<br><b>米饭</b>（在此层，静态展示）</div>
+      </div>
+      <div class="layer__b d">
+        <div class="layer__t">决策层 <span>= 你要几盒、付多少</span></div>
+        <div class="layer__l"><b>份数</b>（应在此层）<br>应付<br>单价 / 上限</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two">
+
+    <!-- ============ 左：v0.3（有歧义） ============ -->
+    <div class="col">
+      <h2 class="bad">左 · v0.3（被读出歧义）</h2>
+      <div class="who">份数控件紧挨「米饭」，读作"米饭的份数"；且单价没地方显示</div>
+      <div class="phone">
+
+        <div class="cd">
+          <div class="cd__l">距离截单还剩</div>
+          <div class="cd__n">08:42:15</div>
+          <div class="cd__s">24:00 后将无法下单</div>
+        </div>
+
+        <div class="box2">
+          <div class="box2__lid">
+            <div class="box2__lid-d">10月12日 周一 · 明天 11:30 到楼</div>
+            <div class="box2__lid-p">
+              <span>四方好味汇一盒</span>
+              <span>每家只出一道拿手菜</span>
+            </div>
+          </div>
+          <div class="box2__seam"></div>
+          <div class="box2__body">
+            <div class="grid2">
+              <div class="cell2"><div class="ph2 im1">实拍图位</div><div class="cell2__n">蒜蓉菠菜</div><div class="cell2__s">来自：<em>四季鲜蔬</em> ›</div></div>
+              <div class="cell2"><div class="ph2 im2">实拍图位</div><div class="cell2__n">小炒黄牛肉</div><div class="cell2__s">来自：<em>三味屋</em> ›</div></div>
+              <div class="cell2"><div class="ph2 im3">实拍图位</div><div class="cell2__n">红烧排骨</div><div class="cell2__s">来自：<em>老饭盒</em> ›</div></div>
+              <div class="cell2"><div class="ph2 im4">实拍图位</div><div class="cell2__n">韭菜炒蛋</div><div class="cell2__s">来自：<em>三味屋</em> ›</div></div>
+            </div>
+            <div class="rice2 qmark" data-q="歧义在这里">
+              <div class="rice2__ic">
+                <i style="left:6px; top:5px;"></i><i style="left:14px; top:9px;"></i>
+                <i style="left:21px; top:4px;"></i><i style="left:10px; top:13px;"></i>
+              </div>
+              <div class="rice2__t">米饭<span class="rice2__s"> · 少饭/免饭可备注</span></div>
+              <div class="qty2"><span>−</span><b>1</b><span>+</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pay">
+          <div><span class="pay__v">¥25.80</span></div>
+          <span class="pay__h">单笔最多 10 份</span>
+        </div>
+
+        <div class="cta">立即预订 ¥25.80</div>
+        <div class="bb"><i class="on">首页</i><i>订单</i><i>我的</i></div>
+      </div>
+
+      <div class="note">
+        <span class="warn">两个问题：</span>① 份数控件与「米饭」同处一行且相邻 ⇒ 读作米饭的份数；
+        ② v0.3 把「应付」标签去掉后，<b>单价没地方显示</b>，用户不知道一份多少钱，只能从总数反推。
+      </div>
+    </div>
+
+    <!-- ============ 右：v0.4（修正后） ============ -->
+    <div class="col">
+      <h2 class="good">右 · v0.4（份数回到决策层）</h2>
+      <div class="who">饭位恢复纯净；份数与应付合成一行决策条</div>
+      <div class="phone">
+
+        <div class="cd">
+          <div class="cd__l">距离截单还剩</div>
+          <div class="cd__n">08:42:15</div>
+          <div class="cd__s">24:00 后将无法下单</div>
+        </div>
+
+        <div class="box2">
+          <div class="box2__lid">
+            <div class="box2__lid-d">10月12日 周一 · 明天 11:30 到楼</div>
+            <div class="box2__lid-p">
+              <span>四方好味汇一盒</span>
+              <span>每家只出一道拿手菜</span>
+            </div>
+          </div>
+          <div class="box2__seam"></div>
+          <div class="box2__body">
+            <div class="grid2">
+              <div class="cell2"><div class="ph2 im1">实拍图位</div><div class="cell2__n">蒜蓉菠菜</div><div class="cell2__s">来自：<em>四季鲜蔬</em> ›</div></div>
+              <div class="cell2"><div class="ph2 im2">实拍图位</div><div class="cell2__n">小炒黄牛肉</div><div class="cell2__s">来自：<em>三味屋</em> ›</div></div>
+              <div class="cell2"><div class="ph2 im3">实拍图位</div><div class="cell2__n">红烧排骨</div><div class="cell2__s">来自：<em>老饭盒</em> ›</div></div>
+              <div class="cell2"><div class="ph2 im4">实拍图位</div><div class="cell2__n">韭菜炒蛋</div><div class="cell2__s">来自：<em>三味屋</em> ›</div></div>
+            </div>
+            <!-- 饭位恢复纯净：不再挂任何控件 -->
+            <div class="rice2">
+              <div class="rice2__ic">
+                <i style="left:6px; top:5px;"></i><i style="left:14px; top:9px;"></i>
+                <i style="left:21px; top:4px;"></i><i style="left:10px; top:13px;"></i>
+              </div>
+              <div class="rice2__t">米饭<span class="rice2__s"> · 少饭/免饭可备注</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 决策条：份数 + 应付，同一行 -->
+        <div class="buy">
+          <div class="buy__l">
+            <span class="buy__k">份数</span>
+            <div class="qty3"><span>−</span><b>1</b><span>+</span></div>
+          </div>
+          <div class="buy__r"><span class="buy__money">¥25.80</span></div>
+        </div>
+        <div class="buy__meta">¥25.80/份 · 单笔最多 10 份</div>
+
+        <div class="cta">立即预订 ¥25.80</div>
+        <div class="bb"><i class="on">首页</i><i>订单</i><i>我的</i></div>
+      </div>
+
+      <div class="note">
+        <b>三件事一起解决：</b>① 份数挪出内容层，与「应付」同行 ⇒ 读作"买几盒、付多少"；
+        ② 加「<b>份数</b>」二字标签，控件不再悬空无主语；
+        ③ 小字行补回单价 <b>¥25.80/份</b>，顺带带上限，<b>比原来还省一行</b>。
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ 备选与否决 ============ -->
+  <div class="blk">
+    <h2>一、试过的另外三个方向，以及为什么没选</h2>
+    <table>
+      <thead><tr><th style="width:36px;">#</th><th style="width:190px;">方案</th><th style="width:56px;">结论</th><th>理由</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="k">1</td>
+          <td class="k">给控件加「份数」标签，<br>但留在饭位</td>
+          <td class="no">否决</td>
+          <td>只是打补丁，<b>层级没变</b>。而且 295px 宽度下饭位会挤：标签+控件+米饭文字+备注放不进一行，备注要么换行要么删。</td>
+        </tr>
+        <tr>
+          <td class="k">2</td>
+          <td class="k">份数移到天盖</td>
+          <td class="no">否决</td>
+          <td>语义倒是匹配（天盖 = "这一盒"的概念层），但天盖是<b>品牌区</b>，往里放交互控件会破坏调性，且挤压「四方好味汇一盒」那两行文案。</td>
+        </tr>
+        <tr>
+          <td class="k">3</td>
+          <td class="k">饭位文案改「这一盒」<br>（不写米饭）</td>
+          <td class="no">否决</td>
+          <td>歧义能消，但<b>牺牲掉"米饭 = 底座"这个最像实物的隐喻</b>——那个隐喻正是天地盖成立的原因，为消歧义把它弄丢，不划算。</td>
+        </tr>
+        <tr>
+          <td class="k">4</td>
+          <td class="k">份数与应付合成决策条<br>（内容层保持纯净）</td>
+          <td class="yes">采纳</td>
+          <td>份数回到决策层，语义正确；饭位保持纯粹 ⇒ 盒内就是盒内的东西；
+            且顺势把单价塞进小字行，<b>一行同时给了单价和上限</b>。</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ============ 实物给的最后一道证据 ============ -->
+  <div class="blk">
+    <h2>二、其实实物早就把答案给出来了</h2>
+    <div class="layer" style="margin-top:12px;">
+      <img src="_产品实拍参考.png" alt="产品实拍：天地盖一饭四菜，上两排四格菜、底部通栏米饭"
+           style="width:240px; border-radius:10px; border:1px solid rgba(110,84,53,.25); align-self:flex-start;">
+      <div class="layer__b c" style="flex:1; min-width:280px;">
+        <div class="layer__t">拿实物对照一下就清楚了</div>
+        <div class="layer__l">
+          这只盒子里<b>没有任何一格是可以单独加量的</b>——不存在"米饭要两份、排骨只要一份"这种买法，
+          四格菜加一格饭<b>永远是一整份</b>。<br><br>
+          所以"份"根本不是一个可以贴在某道菜旁边的概念，它只能是<b>盒的倍数</b>。<br><br>
+          ⇒ v0.3 把份数控件放进饭位，等于暗示"这一格可以单独加"，
+          <b>而实物上恰恰做不到</b>。这就是那个歧义的物理根源。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 尺寸账 ============ -->
+  <div class="calc">
+    <h2>二、修正后高度：基本持平，歧义白拿</h2>
+    <pre>口径：375px 视口（750rpx ⇒ 1rpx=0.5px），取 tokens.scss v2.1 实际值。均为推算，非真机实测。
+
+【v0.4（修正版）】
+  倒计时         ≈  96px   ← 估算
+  天盖 + 盖缝    ≈ 103px   ← 估算
+  地盒           =  11 + (186×2 + 8) + 41 + 11 = 443px
+    饭位不含控件 ⇒ 18(padding) + 22(图标) + 1(隔挡线) = 41px
+  决策条         =  12(margin) + 24(padding) + 34(金额行) = 70px
+  小字行         =   5(margin) + 17(11.5×1.5) = 22px
+  主按钮         ≈  64px   ← 估算
+  ─────────────────────────────────
+  到按钮底部     = <b>798px</b>
+
+⇒ 与 v0.3 <b>基本持平</b>（地盒省 4px、小字行多 22px，净差 ±10px 内）
+  比最初优化前（894px）仍省约 <b>96px</b>
+  iPhone X/11 (812px) → ✅ 主按钮首屏可见（余 14px，偏紧）
+  iPhone SE   (667px) → 需下滑约 1 指
+
+⚠️ 精度声明：标「估算」的三项受字体 fallback / 行高继承 / rpx 舍入影响，
+   本表的可信区间约 <b>±20px</b>。够用来判断"能不能进首屏"，<b>不够用来验收</b>——
+   落码后必须真机核对。算式部分（能精确加出来的）已由抽验脚本复算。</pre>
+    <div class="cv">
+      ⚠️ <b>v0.3 那个 785px 不算数。</b>它与本表的 798px 来自同一套估算，差额落在三个「估算」项的口径抖动里，
+      <b>不是修正带来的</b>。结论只有一个——<b>两版都在 800px 附近，都在 iPhone X 首屏边缘</b>，
+      要不要为这点余量再砍一刀，取决于你对 <b>iPhone SE</b> 这类小屏用户的容忍度。
+    </div>
+  </div>
+
+  <!-- ============ 纪律 ============ -->
+  <div class="rule">
+    <h2>三、这条派生的落码纪律（新增第 7 条）</h2>
+    <ol>
+      <li><b>时刻一律从响应取，端上不写死。</b><code>cutoffAt</code> / <code>deliverAt</code>；取不到整行不显示，不回落写死值。</li>
+      <li><b>格子顺序 = 服务端顺序，端上不重排。</b><code>dishesOfSetMeal</code> 已按 <code>slot ASC</code> 下发。</li>
+      <li><b>⛔ 不许写 <code>&lt;ab-icon&gt;</code> 组件。</b>唯一写法 <code>&lt;text class="abi abi-16"&gt;{{ I.chart }}&lt;/text&gt;</code>，script 段不许出现 <code>I.xxx</code>。</li>
+      <li><b>⛔ 「来自：X ›」不许变成第三方平台的东西。</b>名称 / 标识 / 链接 / 可跳转物 / 可复制口令五项全禁（撞 5.10 / 5.20 / 5.15.4）。</li>
+      <li><b>菜数 ≠ 4 时要有降级。</b><code>dishesOfSetMeal</code> 没过滤主食槽 <code>slot=5</code>。规则：4 条 2×2；3 条 2+1 左对齐；≥5 或 &lt;3 退回纵向列表。</li>
+      <li><b>图位优先读 <code>d.imageUrl</code>，读不到回落到 iconfont 占位图标。</b>此回落是允许的（它回退的是"没有图"，不是"假装有图"）。</li>
+      <li>
+        <b>⭐ 本轮新增：份数控件的语义主语必须是「份数」，且不得与内容层元素共处一行。</b>
+        更一般地说——<b>任何表数量的控件，都不能紧贴一个可被计数的名词</b>（米饭、某道菜），
+        否则控件会被读作那个名词的量词。这条是从这次歧义里提炼的，建议写进设计系统。
+      </li>
+    </ol>
+  </div>
+
+  <!-- ============ 待拍板 ============ -->
+  <div class="ask">
+    <h2>四、待拍板（沿用 v0.3，另加一条）</h2>
+    <ol>
+      <li><b>图位比例 1:1 还是 4:3？</b>我仍倾向 <b>1:1</b>——盖沿 / 隔挡 / 米饭底座这三处都依赖"格子看着像格子"。</li>
+      <li><b>团长那两块要不要挪走？</b>它们让团长视角多 180px，等于让少数团长承担大多数用户的首屏改善。涉及团长工作动线，我没动。</li>
+      <li><b>要不要在图位上加档位角标？</b>我有 <code>d.slot</code> 数据，建议不加——会挡实拍图这个主角。</li>
+      <li>
+        <b>⭐ 新增：决策条里的金额要不要保留「应付」二字？</b>
+        本稿为了给「份数」标签腾位置，把金额上方的标签去掉了，只留数字 + 下方小字的「¥25.80/份」。
+        好处是紧凑；风险是<b>孤立的大数字可能被读成"这一盒的单价"而不是"我要付的钱"</b>——
+        与这次修的是同一类病。要不要改回带标签的两行？
+      </li>
+    </ol>
+  </div>
+
+</div>
+</body>
+</html>

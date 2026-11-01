@@ -1,0 +1,19 @@
+### 3.7 补登端点（2026-11-01 契约对账补齐）
+
+> 同 6.11：这 6 个端点**一直在跑**，规范里从未登记 ⇒ **内部助手查不到**。说明取自 `@ApiOperation.summary`。
+
+| # | 方法 | 路径 | 说明（取自 `@ApiOperation.summary`） | 入参 DTO |
+| --- | --- | --- | --- | --- |
+| U23 | GET | `/building` | 可选办公楼列表（**仅营业中** · 含该楼在职团长） | — |
+| U24 | PUT | `/me/building` | 自助绑定 / 更换办公楼（**换楼即按新楼重算跟随团长**） | `BindBuildingDto` |
+| U25 | GET | `/me/referral` | 我的推荐中心（**非团长也可推荐**）· USR 码 + 落地链接 + 推荐列表 | `InviteListQueryDto` |
+| U26 | GET | `/traceability/suppliers` | 供应商资质墙 · 列表（**免登录只读**） | — |
+| U27 | GET | `/traceability/suppliers/{id}` | 供应商资质墙 · 详情（**免登录只读**） | — |
+| U28 | POST | `/track/page-duration` | 上报页面停留时长（**匿名批量**） | `PageDurationBatchDto` |
+
+> ⭐ **U24 换楼要重算团长**：团长是按楼归属的（`leader.source` 见 U1 口径），换楼不改跟随团长
+> ⇒ 用户在新楼、佣金却记给旧楼团长，是**最容易被当成 bug 上报的沉默错误**。
+> ⭐ **U28 只有写侧有端上入口、读侧在后台**：`GET /admin/stats/page-duration`（D77）才是读侧，
+> 入参 `range` 仅 `today` / `7d` / `30d`，出参时长字段是 `avgMs` / `medianMs` / `maxMs`。
+> ⚠️ **匿名埋点无用户维度** ⇒ 只有 PV 类指标，不能按人查。
+> ⚠️ **U26/U27 与 C8 同源**：资质墙只出**合作状态与资质**，不含供价 / 分账 / 联系方式。

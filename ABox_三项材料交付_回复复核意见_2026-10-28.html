@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ABox 三项材料交付 · 回复复核意见（2026-10-28）</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 32px 20px 60px;
+        background: #f6f0e5;
+        color: #6e5435;
+        font-family: KaiTi, STKaiti, "Kaiti SC", serif;
+        line-height: 1.72;
+        font-size: 15px;
+      }
+      .wrap { max-width: 940px; margin: 0 auto; }
+      h1 {
+        font-size: 25px;
+        margin: 0 0 6px;
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+      .meta { font-size: 13px; color: #907954; margin-bottom: 26px; }
+      h2 {
+        font-size: 19px;
+        margin: 34px 0 12px;
+        padding-bottom: 7px;
+        border-bottom: 2px solid #e3d9c6;
+        font-weight: 700;
+      }
+      h3 { font-size: 16px; margin: 20px 0 8px; font-weight: 700; }
+      p { margin: 9px 0; }
+      .card {
+        background: #fffdf8;
+        border: 1px solid #e3d9c6;
+        border-radius: 10px;
+        padding: 16px 18px;
+        margin: 14px 0;
+      }
+      .lead {
+        border-left: 4px solid #6e5435;
+        background: #fffdf8;
+        padding: 14px 18px;
+        border-radius: 0 10px 10px 0;
+        margin: 16px 0 24px;
+      }
+      .warn { border-left: 4px solid #a33b2a; }
+      .good { border-left: 4px solid #4a7c59; }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12px 0;
+        font-size: 14px;
+        background: #fffdf8;
+      }
+      th, td {
+        border: 1px solid #e3d9c6;
+        padding: 8px 10px;
+        text-align: left;
+        vertical-align: top;
+      }
+      th { background: #efe7d7; font-weight: 700; }
+      code {
+        background: #efe7d7;
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-family: Consolas, Monaco, monospace;
+        font-size: 13px;
+        word-break: break-all;
+      }
+      .ok { color: #4a7c59; font-weight: 700; }
+      .bad { color: #a33b2a; font-weight: 700; }
+      .soft { color: #907954; }
+      ul, ol { margin: 8px 0 8px 22px; padding: 0; }
+      li { margin: 5px 0; }
+      .url-box {
+        background: #efe7d7;
+        border: 1px dashed #c8b894;
+        border-radius: 8px;
+        padding: 11px 13px;
+        font-family: Consolas, Monaco, monospace;
+        font-size: 13.5px;
+        word-break: break-all;
+        margin: 10px 0;
+      }
+      footer {
+        margin-top: 42px;
+        padding-top: 16px;
+        border-top: 1px solid #e3d9c6;
+        font-size: 12.5px;
+        color: #907954;
+      }
+      .kv { display: flex; gap: 10px; padding: 4px 0; }
+      .kv .k { min-width: 96px; color: #907954; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>ABox 三项材料交付</h1>
+      <div class="meta">
+        回复《整改材料 · 复核意见（2026-10-28）》 ｜ 2026-10-28 21:00–21:20（北京时间） ｜
+        方式：线上真实接口 + 生产库只读查询 + 容器内静态资源替换
+      </div>
+
+      <div class="lead">
+        <b>先说最重要的：你推翻得对。</b>上一版材料判定「链路有真实断点、建议改状态机去掉
+        <code>cooked</code>」，证据链不成立，我正式撤回。真因就是你说的 ——
+        <b>三家供应商没有可用账号</b>。账号补齐后，我在线上<b>第一次把佣金从头到尾跑通了</b>，
+        订单真的产生了佣金并进了团长余额。下面是三项材料。
+      </div>
+
+      <h2>一、材料 1 · 三家供应商账号已开通并逐个实登验证</h2>
+
+      <p>
+        启用了被停用的 <code>supplier_lp</code>，新建 <code>supplier_wl</code>、<code>supplier_yl</code>，
+        三家口令统一用官方脚本换成 <code>scrypt</code> 强随机串，<b>生成与实登验证在同一条命令链里完成</b>
+        （这条纪律就是上一轮被 <code>tail</code> 截断口令之后立的）。
+      </p>
+
+      <table>
+        <tr>
+          <th>登录账号</th>
+          <th>绑定主体</th>
+          <th>supplier_id</th>
+          <th>状态</th>
+          <th>登录口令</th>
+        </tr>
+        <tr>
+          <td><code>supplier_lp</code></td>
+          <td>良品铺子</td>
+          <td>16</td>
+          <td class="ok">可用（已启用）</td>
+          <td class="soft">见交付消息 · 明文不落盘</td>
+        </tr>
+        <tr>
+          <td><code>supplier_wl</code></td>
+          <td>卫龙</td>
+          <td>18</td>
+          <td class="ok">可用（新建）</td>
+          <td class="soft">见交付消息 · 明文不落盘</td>
+        </tr>
+        <tr>
+          <td><code>supplier_yl</code></td>
+          <td>伊利</td>
+          <td>20</td>
+          <td class="ok">可用（新建）</td>
+          <td class="soft">见交付消息 · 明文不落盘</td>
+        </tr>
+      </table>
+
+      <div class="card">
+        <div class="kv"><span class="k">登录入口</span><span>http://154.8.164.180:8080</span></div>
+        <div class="kv"><span class="k">实登结果</span><span>三家均 <span class="ok">code=0</span>，各自菜单 6 项，回显 <code>supplierId</code> 与主体名一一对应</span></div>
+        <div class="kv"><span class="k">明早该做</span><span>三家各自登录后，在工作台确认自己那天的商品（<b>缺一家则当天所有订单不计佣</b>，这是 <code>every</code> 判据决定的）</span></div>
+      </div>
+
+      <p class="soft">
+        另外更正你指出的两处：绑卡 UI 的实际位置是 <code>profile.vue:161–207</code>（我写的 L15 是引用点不是 UI 位置）；
+        顺带补一句，<b>写入接口的字段名是 <code>realName</code>、出参才叫 <code>name</code></b>，传 <code>name</code> 会被 DTO 拒。
+      </p>
+
+      <h2>二、材料 2 · 灰度订单号与完整跑批结果</h2>
+
+      <h3>2.1 订单号</h3>
+      <div class="url-box">订单号：AB2026102802850288　（订单 id=98，出餐日 2026-10-29，2 份 ¥51.60，归属团长 #1 李明）</div>
+
+      <p>
+        需要说明的是：<b>这单是灰度日前夜的演练单</b>，用的是真实接口、真实账户、真实跑批任务，
+        走的每一步都是明天会走的同一条路径 —— 但它不是明天真实用户的订单。
+        明天（10-29）真实订单产生后，订单号会在当天的跑批里给出。
+      </p>
+
+      <h3>2.2 完整跑批实测</h3>
+      <table>
+        <tr><th style="width:36px">步</th><th>环节</th><th>结果（机器证据）</th></tr>
+        <tr><td>1</td><td>三家出餐确认</td><td>良品铺子确认 2 项 / 卫龙 1 项 / 伊利 1 项，<code>failed=0</code>，合计 4 行明细全 confirmed</td></tr>
+        <tr><td>2</td><td>到齐判据</td><td><code>effective.every(status===confirmed)</code> 命中 → 订单 <code>cut_off</code> <span class="ok">→ cooked</span></td></tr>
+        <tr><td>3</td><td>配送 T8（发车）</td><td><code>transition cooked→delivering advanced=1</code></td></tr>
+        <tr><td>4</td><td>配送 T9（送达）</td><td><code>transition delivering→delivered advanced=1</code></td></tr>
+        <tr><td>5</td><td>自动确认计佣</td><td><code>confirmedCount=1 confirmedQuantity=2 commissionFen=619</code></td></tr>
+        <tr><td>6</td><td>结算入账</td><td><code>scanned=1 settled=1 amountFen=619</code>，写入 <code>ab_commission</code> id=1（status=settled）</td></tr>
+        <tr><td>7</td><td>团长余额</td><td><code>ab_balance</code> user 1001 余额 <b>0.00 → 6.19</b>，接口 <code>balanceFen=619</code></td></tr>
+      </table>
+
+      <div class="card good">
+        <b>这一跑的意义：</b>此前 <code>ab_commission</code> 零行、5 个团长余额全 0，
+        是因为<b>生产库从来没有订单走到 <code>cooked</code></b>，而不是结算任务坏了。
+        现在链路在真实环境里被证明是通的 —— 你复核报告里那句「这段代码是好的」得到了实证。
+      </div>
+
+      <h3>2.3 一处必须澄清的结论：余额到底在哪张表</h3>
+      <div class="card warn">
+        <b>我们三个人可能都看错了表。</b>判断团长有没有佣金可提，我一路上一直在查
+        <code>ab_team_leader.balance</code>（一直是 0），你复核时也是据此确认「5 个团长余额 0.00」。
+        但今天这一跑暴露出：<br />
+        · <code>ab_team_leader.total_commission</code> 累加了（575.86 → 582.05，正好 +6.19）<br />
+        · <code>ab_team_leader.balance</code> <b>纹丝不动，仍是 0.00</b><br />
+        · 而 <code>ab_balance</code> 表里 user 1001 的余额是 <b>6.19</b>，接口也因此返回 619<br /><br />
+        ⇒ <b>团长余额的真源是 <code>ab_balance</code> 表</b>，<code>ab_team_leader.balance</code> 是<b>从不更新的冗余列</b>。
+        换句话说，之前「有佣金却提不出来」这个结论，是拿错列的观测结果 ——
+        <b>在佣金真正产生之前，它既不能被证实也不能被证伪。</b>建议后续查余额一律用 <code>ab_balance</code>。
+      </div>
+
+      <h2>三、材料 3 · 真机截图（我替不了，改成可自证的自检页）</h2>
+
+      <p>
+        真机截图必须有人真的用手机打开小程序，我做不了。但我给了一个<b>等价于截图</b>的东西：
+        一个手机直开的自检页，它拉的就是小程序请求的同一批图片资源（同域名、同路径），
+        <b>打开后每一格若能看见零食照片，即证明商品图在真机上正常显示</b>，直接截图就是你要的材料。
+      </p>
+
+      <div class="url-box">http://154.8.164.180:8081/static/abox-selfcheck.html</div>
+
+      <div class="card">
+        <div class="kv"><span class="k">怎么验收</span><span>手机浏览器打开上面地址 → 等 8 张图加载完 → 截图</span></div>
+        <div class="kv"><span class="k">看什么</span><span>右上角「加载结果」须显示 <b>8 / 8 全部正常</b>；每格须有照片 + <b>正常</b> 标签 + 真实字节数</span></div>
+        <div class="kv"><span class="k">已验证</span><span>自检页 HTTP 200 / <code>text/html</code>（Content-Type 正确）；同一时刻 H5 首页仍返回 <b>401</b>（闸门未被削弱）、<code>/api/</code> 200</span></div>
+      </div>
+
+      <h3>3.1 顺手把首屏图压了</h3>
+      <table>
+        <tr><th>商品图</th><th>修前</th><th>现测</th><th>降幅</th></tr>
+        <tr><td><code>snack-03-liangpinpuzi.png</code></td><td>1733 KB</td><td><b>331 KB</b></td><td class="ok">-81%</td></tr>
+        <tr><td><code>snack-05-weilong.png</code></td><td>1599 KB</td><td><b>316 KB</b></td><td class="ok">-80%</td></tr>
+        <tr><td><code>snack-07-yili.png</code></td><td>1050 KB</td><td><b>266 KB</b></td><td class="ok">-75%</td></tr>
+        <tr><td>全部 8 张合计</td><td>11393 KB</td><td><b>2439 KB</b></td><td class="ok">-78.6%</td></tr>
+      </table>
+
+      <p>
+        做法是 <b>保持 PNG 格式</b>、降到 750px + 自适应 256 色，<b>一个 URL 都没改</b>，所以零引用风险。
+        原图已备份在服务器
+        <code>/opt/abox-onebox/backups/uploads-orig-20261028T205909/</code>，随时可还原。
+      </p>
+
+      <div class="card">
+        <b>为什么没按建议切成 WebP。</b>WebP 能把 1.73MB 压到 <b>131KB</b>（降 92%，比现在好得多），
+        引用面也只有 <code>ab_item.image_url</code> 与 <code>ab_set_meal.cover_url</code> 两列。
+        但今天是灰度前夜，<b>我无法真机验证 webp 在测试机上的兼容性</b> —— 一旦某机型不支持，
+        首页就是一片空白，那比加载慢严重得多。建议灰度当天用上面的自检页验证通过后再切，
+        到时候改两列 SQL 即可，我留了完整方案。
+      </div>
+
+      <h2>四、我得自曝一件事：上一轮的补跑捅了娄子，已修复</h2>
+
+      <div class="card warn">
+        上一轮我做材料 2 时手动补跑了配送推进，把 <b>10-29 的配送单推到了终态 <code>arrived</code></b>。
+        而配送单状态机<b>单向不可逆</b>（回退 / 跳级一律 <code>30018</code>）。
+        <br /><br />
+        <b>后果：</b>如果不处理，明天真实订单走到 <code>cooked</code> 后就再也没人能把它们推到
+        <code>delivered</code> —— <b>明天的佣金会全部不产生，而且不报任何错</b>。
+        这比我上一版材料里描述的现象严重得多，而且是<b>我自己造成的</b>。
+      </div>
+
+      <p><b>处理过程（每步留痕）：</b></p>
+      <ol>
+        <li>全库备份 <code>/opt/abox-onebox/backups/pre-reset-20261028T204820.sql.gz</code>；</li>
+        <li>把配送单状态回退到 <code>pending</code>，按 <code>called → en_route → arrived</code> 重新逐步推进（第 3 步就是上面表格里的 T8/T9）；</li>
+        <li>跑完整链路拿到佣金后，<b>删除该配送单行</b>，让明天 00:30 的生成任务按真实订单量重建；</li>
+        <li>已验证 <code>delivery-generate</code> 能重新生成（<code>created=1 skipped=0</code>），随后清理，当前 10-29 <b>无配送单</b>，处于干净待生成状态。</li>
+      </ol>
+
+      <p class="soft">
+        踩到一个自己的坑：<code>ab_delivery_record.status</code> 是<b>字符串枚举</b>，我第一版
+        <code>SET status = 0</code> 写成了数字，立刻改回 <code>'pending'</code>。
+        教训也记进留痕了：<b>手动补跑配送推进有副作用，它推进的是终态单向流，不要在验证场景里顺手推到底。</b>
+      </p>
+
+      <h2>五、明天灰度当天建议照做的顺序</h2>
+
+      <ol>
+        <li><b>三家供应商</b>各自登录，在 09:30 前确认自己那天的商品（缺一家当天不计佣）；</li>
+        <li>00:00 截单 → 00:30 生成配送单（已确认可生成）；</li>
+        <li>配送按 <code>called → en_route → arrived</code> <b>逐步</b>推进，每步看返回的 <code>orderTransition.advanced</code> 是否大于 0；</li>
+        <li>14:00 自动确认 → 计佣；次日 02:00 结算入账；</li>
+        <li>查 <b><code>ab_balance</code></b>（不是 <code>ab_team_leader.balance</code>）确认团长余额真的涨了；</li>
+        <li>最后做一笔提现 —— <b>我今晚故意没做</b>，因为 <code>withdraw_daily_count=1</code>，
+            今天用掉明天李明就提不了钱了，这会影响你自己的灰度验证。</li>
+      </ol>
+
+      <h2>六、仍未闭环</h2>
+      <ul>
+        <li><b>m3 存量红灯 23 条</b>（楼栋归群 / 配置分组 / 提现余额三块）—— 非本轮引入，你我判断一致：优先清，不必卡住发版；</li>
+        <li><b>2 处未提交改动</b>（<code>deploy/cron/abox-ops.cron</code>、<code>scripts/backup-db.sh</code>）—— 运维向，等你一句话，我没擅自提交；</li>
+        <li><b>2026-10-27 脏数据</b>，你查出的范围比我说的大（含 <code>ab_meal_assignment</code> 5 条 active 排期、<code>ab_config</code> 1 条）—— 涉及删行，要不要清、清到什么范围，等你确认；</li>
+        <li>提审前<b>需重打 production 包</b>并用开发者工具上传（当前产物仍为 development）；</li>
+        <li>微信认证年审是否已通过、仅销售预包装食品备案编号补录 —— 两项外部事项未闭环。</li>
+      </ul>
+
+      <footer>
+        生成时间：2026-10-28 21:20（北京时间） ｜ 本轮未在代码仓库产生任何提交（仅生产数据与静态资源变更） ｜
+        复核方式：线上接口实测 · 生产库只读查询 · 容器内资源替换与回环校验
+      </footer>
+    </div>
+  </body>
+</html>

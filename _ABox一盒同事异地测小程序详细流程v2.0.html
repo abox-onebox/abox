@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 同事异地测小程序（体验版）详细操作流程 v2.0</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --ink:#3A3128; --brown:#6E5435; --sub:#796C57;
+    --line:rgba(110,84,53,.22); --card:#FFFDF8; --gold:#C9A876;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;line-height:1.75}
+  .wrap{max-width:900px;margin:0 auto;padding:40px 24px 72px}
+  h1{font-family:"KaiTi","STKaiti",serif;font-size:32px;color:var(--brown);
+    margin:0 0 6px;letter-spacing:1px}
+  .sub{color:var(--sub);font-size:14px;margin-bottom:28px}
+  h2{font-family:"KaiTi","STKaiti",serif;font-size:21px;color:var(--brown);
+    margin:34px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  h3{font-size:16px;margin:20px 0 8px;color:var(--brown)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:18px 20px;margin:14px 0}
+  .lead{background:#fff;border-left:4px solid var(--brown)}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0;background:#fff}
+  th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+  th{background:#F1E9DA;color:var(--brown);font-weight:600}
+  code,kbd{background:#EFE7D8;padding:1px 6px;border-radius:4px;
+    font-family:"Cascadia Mono",Consolas,monospace;font-size:13px;color:#5B4730;
+    word-break:break-all}
+  .step{display:flex;gap:14px;margin:18px 0;align-items:flex-start}
+  .n{flex:0 0 30px;height:30px;border-radius:50%;background:var(--brown);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+  .step .b{flex:1}
+  .step .b b{color:var(--brown);display:block;margin-bottom:4px;font-size:15px}
+  .badge{display:inline-block;font-size:12px;padding:2px 9px;border-radius:11px;
+    margin-right:6px;font-weight:600}
+  .b-done{background:#E4EFE2;color:#3D6B36;border:1px solid #BCD4B6}
+  .b-you{background:#F7E9CF;color:#8A5A16;border:1px solid #E4C892}
+  .b-he{background:#E6EDF5;color:#33536E;border:1px solid #BCCDE0}
+  .b-warn{background:#FBE3E1;color:#9A3324;border:1px solid #E9BDB6}
+  ol,ul{margin:8px 0;padding-left:22px}
+  li{margin:5px 0}
+  .path{font-size:13px;color:var(--sub);background:#FBF7EE;border:1px dashed var(--line);
+    padding:6px 10px;border-radius:6px;margin:6px 0}
+  .k{font-size:12px;color:var(--brown);font-weight:600}
+  .k::before{content:"坑：";color:#9A3324}
+  .ok::before{content:"成功标志：";color:#3D6B36;font-weight:600}
+  .ok{font-size:13px;background:#F2F7F0;border:1px solid #D3E3CE;
+    padding:6px 10px;border-radius:6px;margin:6px 0}
+  .foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);
+    font-size:13px;color:var(--sub)}
+  .kai{font-family:"KaiTi","STKaiti",serif}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1 class="kai">同事异地测小程序 · 详细操作流程</h1>
+<div class="sub">ABox 一盒 · 体验版真机测试 · v2.0 · 2026-10-03</div>
+
+<div class="card lead">
+<b class="kai" style="font-size:17px;color:var(--brown)">先讲清楚：为什么不能"像前天那样扫码"</b>
+<p style="margin:8px 0 4px">前天你扫的是<b>预览码</b>。预览码有两条硬限制：<b>只有管理员/开发者本人能扫</b>（同事扫会直接报错），且<b>有效期约 30 分钟</b>。所以发给同事必须换成 <b>体验版</b>。</p>
+<p style="margin:4px 0 0">体验版二维码<b>长期有效</b>，但只有被你加进「体验成员」的人能扫——这两点是它和预览码的本质区别。</p>
+</div>
+
+<h2 class="kai">一、已经确认可行的三个前提（我都查过了）</h2>
+<table>
+<tr><th style="width:26%">担心的问题</th><th>结论</th></tr>
+<tr><td>小程序还没备案</td><td><b>不影响</b>。微信规则明确：未备案只是<b>不能发正式版</b>，开发版/体验版照常可用。</td></tr>
+<tr><td>服务器只有 http + IP，没有 HTTPS 域名</td><td><b>体验版可以绕过</b>。真机打开调试后，不校验合法域名、不校验 SSL、<b>允许直接用 IP</b>。</td></tr>
+<tr><td>同事不是开发者，能开调试吗</td><td><b>能</b>。右上角「…」→ 打开调试，对体验成员同样生效，官方社区已确认。</td></tr>
+</table>
+
+<h2 class="kai">二、我已经帮你做好的（你本机敲不了）</h2>
+<table>
+<tr><th style="width:26%">项</th><th>值</th></tr>
+<tr><td>小程序代码包</td><td>已按测试参数构建完成，大小 <b>1.4 MB</b>（主包上限 2 MB，安全）</td></tr>
+<tr><td>产物目录</td><td><code>C:\Users\herma\WorkBuddy\ABox小程序\abox-onebox\apps\miniprogram\dist\build\mp-weixin</code></td></tr>
+<tr><td>接口地址</td><td><code>http://154.8.164.180:8081/api/v1</code>（已注入产物，无 localhost 残留）</td></tr>
+<tr><td>AppID</td><td><code>wx389db239bcec75ca</code>（已写进产物的 project.config.json，导入时会自动带出）</td></tr>
+<tr><td>登录模式</td><td><code>demoMode = true</code>（固定身份，<b>不会每次登录换人</b>）</td></tr>
+<tr><td>8081 端口</td><td>你已放行，我实测公网 200，登录 / 明日团 / 下单 / 支付<b>全链路已跑通</b></td></tr>
+</table>
+
+<h2 class="kai">三、你要做的 4 步（约 10 分钟）</h2>
+
+<div class="step"><div class="n">1</div><div class="b">
+<b>把同事加为体验成员</b>
+<span class="badge b-you">你做</span><span class="badge b-warn">同事扫不出来的头号原因</span>
+<div class="path">浏览器打开 <b>mp.weixin.qq.com</b> → 用<b>你自己的管理员微信</b>扫码登录 → 左侧「管理」→「成员管理」→「体验成员」→ 点「+」添加</div>
+<ol>
+<li>填的是<b>微信号</b>，不是昵称、不是手机号。同事的查看路径：微信 →「我」→ 头像下方那行「微信号」。</li>
+<li>加完后同事会收到一条服务通知，让他点一下接受。</li>
+<li>你可以先加自己，验证一下流程通不通。</li>
+</ol>
+<div class="ok">成员列表里能看到同事的微信号，状态为已接受。</div>
+</div></div>
+
+<div class="step"><div class="n">2</div><div class="b">
+<b>微信开发者工具导入产物并上传</b>
+<span class="badge b-you">你做</span>
+<ol>
+<li>打开<b>微信开发者工具</b>，右上角头像确保是用<b>管理员微信</b>登录的（否则上传会失败或传到别人的号）。</li>
+<li>点「<b>导入项目</b>」（不是「新建项目」）。</li>
+<li>目录选：<code>...\apps\miniprogram\dist\build\mp-weixin</code>
+<div class="k">必须选到 <b>dist\build\mp-weixin</b> 这一层。选成 <code>apps\miniprogram</code> 会失败——那里是 uni-app 源码（.vue），微信工具只认原生小程序的 wxml/js。</div></li>
+<li>AppID 一栏会自动填好 <code>wx389db239bcec75ca</code>；如果弹选择框，选「小程序 · ABox 一盒」，<b>不要选测试号</b>。</li>
+<li>导入后先在模拟器里看一眼能不能跑起来（能显示首页、不发红）。</li>
+<li>点右上角「<b>上传</b>」：版本号填 <code>1.0.0</code>，项目备注填 <code>同事异地测试·开发模式·指向154.8.164.180:8081</code>。</li>
+</ol>
+<div class="ok">提示「上传成功」，后台版本管理里多一条开发版本。</div>
+<div class="k">上传时若报一堆 ESLint / 代码质量警告：点「详情 → 本地设置」，把「上传时进行代码保护/ESLint 检查」关掉再传。这些警告不影响运行。</div>
+</div></div>
+
+<div class="step"><div class="n">3</div><div class="b">
+<b>把这个版本设为体验版，取出二维码</b>
+<span class="badge b-you">你做</span>
+<div class="path">mp.weixin.qq.com →「管理」→「版本管理」→ 往下拉到「<b>开发版本</b>」→ 找到刚上传的 1.0.0 → 点右侧下拉箭头 →「<b>选为体验版本</b>」</div>
+<ol>
+<li>选完后页面会自动刷新，上方出现「<b>体验版本</b>」区块，版本号旁会打上「体验版」标签。</li>
+<li>点版本号下方的「<b>体验版二维码</b>」，弹出二维码 → <b>保存图片</b>发给同事。</li>
+<li>这张码<b>长期有效</b>，不像预览码那样半小时就过期。</li>
+</ol>
+<div class="ok">二维码能保存出来，且你用自己的手机扫能打开小程序。</div>
+<div class="k">同时只能有一个体验版。以后你改了代码重新上传，<b>必须再走一遍「选为体验版本」</b>，同事扫的码才会更新（二维码图片本身不变，但背后的版本会换）。</div>
+</div></div>
+
+<div class="step"><div class="n">4</div><div class="b">
+<b>把二维码 + 下面那段同事操作步骤一起发给同事</b>
+<span class="badge b-you">你做</span>
+<p style="margin:6px 0 0">重点是<b>让同事一定打开调试</b>。这一步漏掉，他看到的就是白屏或「本楼今日未开团」，很容易误判成你的功能坏了。</p>
+</div></div>
+
+<h2 class="kai">四、同事要做的 3 步（务必原话转给他）</h2>
+
+<div class="step"><div class="n">1</div><div class="b">
+<b>用微信「扫一扫」扫你发的二维码</b>
+<span class="badge b-he">同事做</span>
+<p style="margin:4px 0 0">是微信的<b>扫一扫</b>，不是长按识别图片。打开方式：微信右上角「+」→「扫一扫」→「相册」里选刚才那张图。</p>
+<div class="k">如果提示「没有体验权限」→ 说明第 1 步没加他，或他没点接受邀请。回去补。</div>
+</div></div>
+
+<div class="step"><div class="n">2</div><div class="b">
+<b>打开调试（最关键的一步）</b>
+<span class="badge b-he">同事做</span><span class="badge b-warn">漏了必然白屏</span>
+<ol>
+<li>进入小程序后，点<b>右上角「…」</b>（胶囊按钮）。</li>
+<li>弹出的面板滑到<b>最底部</b>，<b>右下角</b>有一个「<b>打开调试</b>」，点它。</li>
+<li>点完小程序会自动退出。<b>重新进入一次</b>——这一步不能省。</li>
+</ol>
+<div class="ok">屏幕右下角出现一个<b>绿色圆形悬浮按钮（vConsole）</b>，点开能看到请求日志。看到它才算成功。</div>
+<div class="k">为什么必须重启？调试开关要<b>下次启动</b>才生效。很多人开了没重启，界面照旧空白，就以为没用。</div>
+<div class="k">安卓和 iPhone 的按钮位置一样，都在「…」面板底部右下角。iPhone 若找不到，先把小程序从后台划掉再重进。</div>
+</div></div>
+
+<div class="step"><div class="n">3</div><div class="b">
+<b>开始测，每次进入先瞄一眼绿色按钮还在不在</b>
+<span class="badge b-he">同事做</span>
+<p style="margin:4px 0 0">调试状态偶尔会掉（尤其是微信清了缓存之后）。如果哪次打开界面不对，先确认绿色按钮还在，不在就重开一次。</p>
+</div></div>
+
+<h2 class="kai">五、打开后第一眼该看到什么（验收）</h2>
+<table>
+<tr><th style="width:30%">位置</th><th>预期</th></tr>
+<tr><td>首页</td><td>显示<b>明日团</b>：2026-10-04 红烧肉套餐 ¥25.80，四个菜齐全，可下单</td></tr>
+<tr><td>底部 TAB</td><td>5 个图标<b>都在</b>（首页/溯源/团长/订单/我的）——这是上一版修掉的缺陷，顺手确认一下</td></tr>
+<tr><td>下单 → 支付</td><td>能提交订单，支付能走完到成功页（<b>支付是模拟的</b>，见红线）</td></tr>
+<tr><td>我的</td><td>显示身份为「李明」，团长等级「首席」</td></tr>
+</table>
+
+<h2 class="kai">六、出问题先查这张表</h2>
+<table>
+<tr><th style="width:32%">现象</th><th>真正原因</th><th>怎么办</th></tr>
+<tr><td>扫码提示「没有体验权限」</td><td>没加体验成员 / 他没点接受</td><td>回到第 1 步，确认成员列表里有他</td></tr>
+<tr><td>能进小程序，但页面空白、网络异常、「本楼今日未开团」</td><td><b>99% 是没开调试，或开了没重启</b></td><td>右上角「…」→ 打开调试 → <b>杀掉小程序重进</b>，确认绿色按钮出现</td></tr>
+<tr><td>开发者工具里一切正常，真机就是不行</td><td>工具里勾的「不校验合法域名」<b>对真机完全无效</b></td><td>真机只能靠「打开调试」，没有第二条路</td></tr>
+<tr><td>接口全空、数据加载不出来</td><td>8081 又被拦了，或服务器上团期过期</td><td>先让我复验；团期现排到 <b>10-08</b>，过期会全场「未开团」，那不是功能坏了</td></tr>
+<tr><td>上传时报错代码包过大</td><td>不会发生</td><td>当前 1.4 MB，主包上限 2 MB</td></tr>
+<tr><td>提示「该小程序未完成备案」</td><td>按规则不应影响体验版</td><td>真出现了立刻告诉我，我换方案</td></tr>
+</table>
+
+<h2 class="kai">七、一个现在就要你拍板的事：多人是不是同一个账号</h2>
+<div class="card">
+<p style="margin:0 0 8px"><b>现状：所有同事共用同一个身份——李明（user#1001，团长/首席）。</b></p>
+<ul style="margin:6px 0">
+<li>好处：不用额外配置，扫了就能测，而且是团长视角，功能面最全。</li>
+<li>坏处：<b>A 下的单 B 也能看见</b>，多人同时测会互相干扰；而且看不到"普通用户"视图。</li>
+</ul>
+<p style="margin:8px 0 0">三个办法，你选一个：</p>
+<table>
+<tr><th style="width:22%">方案</th><th>怎么做</th><th>代价</th></tr>
+<tr><td><b>A. 就共用</b>（推荐先这样）</td><td>什么都不用做</td><td>多人数据混在一起</td></tr>
+<tr><td><b>B. 网页版各自身份</b></td><td>同事改用 <code>http://154.8.164.180:8081/?devCode=tom</code>，换 devCode 就是换一个人</td><td>不是小程序形态，是网页</td></tr>
+<tr><td><b>C. 给小程序加身份切换入口</b></td><td>我改代码加一个仅开发模式可见的切换按钮，重新构建 + 你重新上传一次</td><td>多花约 15 分钟，且上线前要记得删掉</td></tr>
+</table>
+</div>
+
+<h2 class="kai">八、三条红线（测试结束前别忘）</h2>
+<table>
+<tr><th style="width:30%">项</th><th>说明</th></tr>
+<tr><td>上线前必须用正式模式重建上传</td><td>当前这版带 <code>demoMode</code> 后门，任何人指定 devCode 就能切到任意身份。<b>上线前必须换回 production 构建重新上传。</b></td></tr>
+<tr><td>支付是模拟的</td><td>服务器 <code>PROVIDER_MODE=mock</code>，支付会自动置成功。同事看到"支付成功"<b>不代表真支付链路通</b>，真支付要等商户号到齐才能切。</td></tr>
+<tr><td>生产库有我留的测试订单</td><td><code>AB2026100363480519</code>（李明 / 10-04 / ¥25.80 / 已支付），是我验证链路时建的，<b>测试完告诉我，我清掉</b>。</td></tr>
+</table>
+
+<div class="foot">
+流程走完如果卡在任意一步，把提示原文发我，我按现象定位。<br>
+测试结束后：清测试订单 → 关 8081 → 上线前换 production 重建。
+</div>
+
+</div>
+</body>
+</html>

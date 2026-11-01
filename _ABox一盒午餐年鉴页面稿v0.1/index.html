@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 周报 / 年鉴 页面稿 v0.2</title>
+<style>
+@font-face {
+  font-family: 'ABoxKai';
+  src: url('ab-kaiti.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'ABoxKai', 'STKaiti', 'KaiTi', 'SimSun', serif;
+  background: #E8DFCF;
+  color: #3A322A;
+  min-height: 100vh;
+  padding: 32px 16px 56px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 980px; margin: 0 auto; }
+
+.doc-head { margin-bottom: 24px; }
+.doc-head h1 { font-size: 20px; font-weight: normal; color: #3A322A; letter-spacing: 0.5px; }
+.doc-head p { margin-top: 6px; font-size: 13px; color: #796C57; line-height: 1.8; }
+
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+.btn {
+  font-family: inherit; font-size: 13px; color: #6E5435;
+  background: #FFFDF9; border: 1px solid rgba(110,84,53,0.28);
+  border-radius: 8px; padding: 7px 16px; cursor: pointer;
+}
+.btn:hover { background: #F6F0E5; }
+.btn.is-on { background: #6E5435; color: #FFFDF9; border-color: #6E5435; }
+
+.stage { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+
+.phone {
+  width: 375px; flex: none; min-height: 760px;
+  background: #F6F0E5; border-radius: 22px; overflow: hidden;
+  box-shadow: 0 2px 24px rgba(58,50,42,0.14);
+  padding: 26px 20px 30px;
+}
+
+.hd { margin-bottom: 22px; }
+.hd__t { font-size: 21px; color: #3A322A; letter-spacing: 1px; }
+.hd__no { font-size: 13px; color: #6E5435; margin-left: 6px; letter-spacing: 0.5px; }
+.hd__s { margin-top: 6px; font-size: 12px; color: #9A8C79; letter-spacing: 0.5px; }
+
+.hero {
+  background: #FFFDF9; border: 1px solid rgba(110,84,53,0.16);
+  border-radius: 14px; padding: 24px 20px 22px; text-align: center; margin-bottom: 14px;
+}
+.hero__num { font-size: 52px; line-height: 1; color: #6E5435; letter-spacing: 2px; }
+.hero__unit { font-size: 15px; color: #6E5435; margin-left: 3px; }
+.hero__cap { margin-top: 12px; font-size: 13px; color: #796C57; letter-spacing: 0.5px; }
+
+.card {
+  background: #FFFDF9; border: 1px solid rgba(110,84,53,0.16);
+  border-radius: 14px; padding: 16px 18px; margin-bottom: 12px;
+}
+.card__label { font-size: 12px; color: #9A8C79; letter-spacing: 0.5px; }
+.card__main { margin-top: 7px; font-size: 16px; color: #3A322A; line-height: 1.7; }
+.card__sub { margin-top: 5px; font-size: 12px; color: #796C57; line-height: 1.8; }
+
+.mtx { width: 100%; border-collapse: collapse; margin-top: 11px; font-size: 12px; }
+.mtx th { font-weight: normal; color: #9A8C79; padding: 3px 0; text-align: center; letter-spacing: 1px; }
+.mtx td { padding: 5px 0; text-align: center; color: #C9BCA8; line-height: 1; }
+.mtx td:first-child { text-align: left; color: #796C57; padding-right: 8px; width: 58px; }
+.mtx td.on { color: #6E5435; }
+
+.tmr {
+  background: #F6F0E5; border: 1px dashed rgba(110,84,53,0.4);
+  border-radius: 14px; padding: 16px 18px; margin-top: 16px;
+}
+.tmr__label { font-size: 12px; color: #9A8C79; letter-spacing: 0.5px; }
+.tmr__main { margin-top: 7px; font-size: 15px; color: #3A322A; line-height: 1.7; }
+.tmr__sub { margin-top: 5px; font-size: 12px; color: #796C57; }
+
+.ft { margin-top: 26px; text-align: center; }
+.ft__cum { font-size: 12px; color: #9A8C79; line-height: 1.9; }
+.ft__line { margin-top: 14px; font-size: 13px; color: #6E5435; letter-spacing: 1px; }
+.ft__note { margin-top: 10px; font-size: 11px; color: #9A8C79; line-height: 1.9; }
+
+.empty { padding: 96px 24px; text-align: center; }
+.empty__mark {
+  width: 62px; height: 62px; margin: 0 auto 26px;
+  border: 1px solid rgba(110,84,53,0.4); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: #6E5435;
+}
+.empty__t { font-size: 18px; color: #3A322A; letter-spacing: 1px; }
+.empty__p { margin-top: 14px; font-size: 14px; color: #796C57; line-height: 2; }
+.empty__s { margin-top: 20px; font-size: 12px; color: #9A8C79; line-height: 1.9; }
+
+.src {
+  display: none; margin-top: 10px; padding-top: 9px;
+  border-top: 1px dashed rgba(110,84,53,0.28);
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 11px; line-height: 1.75; color: #8A7A64; word-break: break-all;
+}
+body[data-src="on"] .src { display: block; }
+
+body[data-mode="data"] .empty { display: none; }
+body[data-mode="empty"] .data { display: none; }
+
+.notes { flex: 1; min-width: 280px; max-width: 460px; }
+.notes h2 { font-size: 15px; font-weight: normal; color: #3A322A; margin-bottom: 12px; letter-spacing: 0.5px; }
+.notes ul { list-style: none; }
+.notes li {
+  font-size: 13px; color: #5F5445; line-height: 1.9;
+  padding: 9px 0; border-top: 1px solid rgba(110,84,53,0.14);
+}
+.notes li:first-child { border-top: none; }
+.notes li b { font-weight: normal; color: #6E5435; }
+.notes .warn { color: #8A5A2B; }
+</style>
+</head>
+<body data-mode="data" data-src="off">
+
+<div class="wrap">
+
+  <div class="doc-head">
+    <h1>ABox 一盒 · 周报 / 年鉴（页面稿 v0.2 · 评审用）</h1>
+    <p>替换对象：小程序「供应商资质页」。v0.2 起改为<b>周五周更</b>：内容全部换成周维度，累计值降级为页脚一行。年底同一容器升级为「我的午餐年鉴」。</p>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn is-on" id="btnData">周五周报</button>
+    <button class="btn" id="btnEmpty">还没到周五（空态）</button>
+    <button class="btn" id="btnSrc">数据来源</button>
+  </div>
+
+  <div class="stage">
+
+    <div class="phone">
+
+      <div class="data">
+        <div class="hd">
+          <div class="hd__t">ABox 周报<span class="hd__no">第 12 期</span></div>
+          <div class="hd__s">10 月 6 日 — 10 月 10 日</div>
+          <div class="src">期号 = 自首单起算的自然周序号；区间 = 本周一至本周五</div>
+        </div>
+
+        <div class="hero">
+          <span class="hero__num">5</span><span class="hero__unit">盒</span>
+          <div class="hero__cap">这一周，你在 ABox 吃了 5 顿午餐</div>
+          <div class="src">COUNT(ab_order) WHERE user_id=? AND meal_date BETWEEN 本周一 AND 本周五 AND status 已送达</div>
+        </div>
+
+        <div class="card">
+          <div class="card__label">这一周的新菜</div>
+          <div class="card__main">你尝了 9 道没吃过的</div>
+          <div class="card__sub">这周之前，它们没出现在你的餐盒里</div>
+          <div class="src">本周 dish_id 集合 − 历史 dish_id 集合（均来自 ab_order → ab_set_meal_item）</div>
+        </div>
+
+        <div class="card">
+          <div class="card__label">这一周的食材</div>
+          <table class="mtx">
+            <tr><th></th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th></tr>
+            <tr><td>绿叶菜</td><td class="on">●</td><td class="on">●</td><td class="on">●</td><td class="on">●</td><td class="on">●</td></tr>
+            <tr><td>菌菇</td><td class="on">●</td><td>·</td><td class="on">●</td><td>·</td><td class="on">●</td></tr>
+            <tr><td>豆制品</td><td>·</td><td class="on">●</td><td>·</td><td class="on">●</td><td>·</td></tr>
+            <tr><td>鱼虾</td><td>·</td><td>·</td><td class="on">●</td><td>·</td><td class="on">●</td></tr>
+            <tr><td>全谷物</td><td class="on">●</td><td>·</td><td class="on">●</td><td class="on">●</td><td>·</td></tr>
+          </table>
+          <div class="card__sub">这一周你吃到了 12 种蔬菜 · 3 次豆制品 · 2 次鱼虾 · 3 次菌菇</div>
+          <div class="src">ab_dish.ingredient_tags（拟增 JSON 列 · 定性标签）。⚠️ 只陈述「吃到了什么」，不做营养声称（GB 28050）</div>
+        </div>
+
+        <div class="card">
+          <div class="card__label">在量子大厦</div>
+          <div class="card__main">213 位同事和你一起吃午餐</div>
+          <div class="card__sub">这一周，这栋楼共送达 842 盒</div>
+          <div class="src">COUNT(DISTINCT ab_order.user_id) WHERE building_group=? AND meal_date 在本周</div>
+        </div>
+
+        <div class="card">
+          <div class="card__label">本周主理</div>
+          <div class="card__main">三味屋</div>
+          <div class="card__sub">这一周你给了它 4 个好评</div>
+          <div class="src">ab_meal_assignment(本周) → ab_set_meal_item → ab_supplier 占比最高者；好评 = ab_dish_rating rating=1 AND supplier_id=?</div>
+        </div>
+
+        <div class="tmr">
+          <div class="tmr__label">下周主理</div>
+          <div class="tmr__main">四季鲜蔬</div>
+          <div class="tmr__sub">周一开始 · 明天中午 11:30 见</div>
+          <div class="src">ab_meal_assignment(下周一) → ab_set_meal_item → ab_supplier.name</div>
+        </div>
+
+        <div class="ft">
+          <div class="ft__cum">从 9 月 14 日起，你已吃过 47 盒 · 尝过 62 道不同的菜</div>
+          <div class="ft__line">ABox 记得你吃过的每一盒</div>
+          <div class="ft__note">
+            出品方证照与核验状态，可在「我的 → 出品方」查看<br>
+            证照编号可至国家企业信用信息公示系统核对
+          </div>
+        </div>
+      </div>
+
+      <div class="empty">
+        <div class="empty__mark">盒</div>
+        <div class="empty__t">还没有你的第一期周报</div>
+        <div class="empty__p">明天中午 11:30<br>我们会在楼下等你</div>
+        <div class="empty__s">吃完第一盒，周五你就能收到它<br>——那一周你吃了什么、尝了几道新菜</div>
+      </div>
+
+    </div>
+
+    <div class="notes">
+      <h2>评审要点</h2>
+      <ul>
+        <li><b>频次改了：周五周更，不占常驻入口。</b>低频不是缺点——「每天都该看却没理由看」才是。每天都该看的是工具，每周五才看的是节目。</li>
+        <li class="warn"><b>v0.1 的错：内容用了累计值。</b>47 盒 / 62 道菜什么时候看都一样 ⇒ 没有回来看的理由。v0.2 全换周维度，<b>累计值降级为页脚一行</b>。</li>
+        <li><b>回来看的理由是「新菜」。</b>「这一周你尝了 9 道没吃过的」只在周维度成立，且每周都是新数字——这是全页唯一有追更价值的一项。</li>
+        <li><b>年底同一容器升级为「我的午餐年鉴」。</b>周报养关系，年鉴刷屏；两者共用同一个聚合层，不是两套。</li>
+        <li><b>没有「最爱的那道」。</b>ABox 单一套餐、用户不点菜 ⇒ 不存在「最爱」。<code>ab_dish_rating</code> 是吃后评价，不是点菜偏好。</li>
+        <li class="warn"><b>营养表改成了食材表。</b>「每天都满勾」没有信息量；且打勾 = 营养声称，受 GB 28050 约束、须有含量依据。改为陈述「吃到了什么」。代价：需新增 <code>ab_dish.ingredient_tags</code>（JSON 定性标签，运营录菜时勾选），不录克数。</li>
+        <li class="warn"><b>推送有硬约束，别想当然。</b>微信订阅消息是<b>一次性授权</b>（点一次收一条），每周推就必须在用户每次下单时顺带续授权——项目已有两段式实现可用。<b>一周一条是上限</b>：既有纪律是「避免订阅消息被当成骚扰而遭拒收」，<code>user_order_status</code> 那条就是因此刻意不推的。</li>
+        <li><b>待你定的口径：</b>① 期号从首单起算还是按自然周；② 同楼分位数类指标（若有）必须设样本下限，否则早期用户看到失真的 100%。</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var body = document.body;
+var btnData = document.getElementById('btnData');
+var btnEmpty = document.getElementById('btnEmpty');
+var btnSrc = document.getElementById('btnSrc');
+
+btnData.onclick = function () {
+  body.setAttribute('data-mode', 'data');
+  btnData.classList.add('is-on');
+  btnEmpty.classList.remove('is-on');
+};
+btnEmpty.onclick = function () {
+  body.setAttribute('data-mode', 'empty');
+  btnEmpty.classList.add('is-on');
+  btnData.classList.remove('is-on');
+};
+btnSrc.onclick = function () {
+  var on = body.getAttribute('data-src') === 'on';
+  body.setAttribute('data-src', on ? 'off' : 'on');
+  btnSrc.classList.toggle('is-on', !on);
+};
+</script>
+
+</body>
+</html>

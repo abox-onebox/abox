@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 成为团长（极简）</title>
+<style>
+  @font-face{ font-family:"ABKaiti"; src:url("ab-kaiti.woff2") format("woff2"); font-weight:400; }
+  :root{
+    --bg:#F6F0E5; --surface:#FCFAF5;
+    --ink:#6E5435; --ink-deep:#4A3925; --ink2:#8A7350; --weak:#A99B82;
+    --gold:#C9A86A; --gold-deep:#A8843E; --line:#E4D8C4;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:"ABKaiti","Kaiti SC","STKaiti","KaiTi","楷体",serif;
+    background:#EAE1D2; color:var(--ink-deep); line-height:1.8; padding:40px 16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .phone{ width:350px; margin:0 auto; background:var(--bg); border-radius:40px;
+    border:10px solid var(--ink-deep); box-shadow:0 20px 50px rgba(74,57,37,.22); overflow:hidden; }
+  .notch{height:26px; background:var(--ink-deep); position:relative;}
+  .notch::after{content:""; position:absolute; left:50%; top:9px; transform:translateX(-50%);
+    width:90px; height:8px; border-radius:8px; background:rgba(255,255,255,.22);}
+  .statusbar{display:flex; justify-content:space-between; padding:8px 22px 0; font-size:12px; color:var(--ink-deep);}
+  .nav{display:flex; align-items:center; gap:10px; padding:14px 22px 6px;}
+  .nav .back{font-size:22px; color:var(--ink); line-height:1;}
+  .nav .t{font-size:15px; letter-spacing:2px; color:var(--ink);}
+  .scr{padding:54px 30px 48px;}
+
+  .kicker{font-size:11px; letter-spacing:5px; color:var(--gold-deep); margin-bottom:30px;}
+  .hero{font-size:32px; line-height:1.55; color:var(--ink-deep); font-weight:600; letter-spacing:1px;}
+  .hero .accent{color:var(--gold-deep);}
+  .sub{margin-top:26px; font-size:15px; line-height:2.05; color:var(--ink2);}
+
+  .rule{width:46px; height:2px; background:var(--gold); margin:46px 0 36px;}
+
+  .earn{font-size:16px; color:var(--ink-deep);}
+  .earn .num{font-size:30px; font-weight:600; color:var(--gold-deep); letter-spacing:1px;}
+  .earn .ctx{display:block; margin-top:10px; font-size:12.5px; color:var(--weak); line-height:1.9;}
+
+  .cta{margin-top:48px; display:block; text-align:center; background:var(--ink-deep);
+    color:var(--bg); font-size:17px; letter-spacing:4px; padding:17px; border-radius:14px;
+    box-shadow:0 8px 20px rgba(74,57,37,.18);}
+  .closing{margin-top:34px; font-size:13.5px; line-height:2; color:var(--ink2);}
+  .foot{margin-top:46px; font-size:11px; color:var(--weak); letter-spacing:.5px;}
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="statusbar"><span>9:41</span><span>ABox 一盒</span></div>
+    <div class="nav"><span class="back">‹</span><span class="t">成为团长</span></div>
+    <div class="scr">
+      <div class="kicker">ABOX 一盒 · 团长招募</div>
+      <div class="hero">把这一盒，<br>送到<span class="accent">每一层楼</span>。</div>
+      <div class="sub">你多走几层楼，别人就少跑一趟。<br>一盒饭的"省心"，是团长一层一层爬出来的。</div>
+
+      <div class="rule"></div>
+
+      <div class="earn">
+        每送一盒，赚 <span class="num">8% – 12%</span>
+        <span class="ctx">见习即生效。送得越多、介绍的朋友越多，抽成越高。<br>一单 ¥25.80，见习每单约 ¥2.06。</span>
+      </div>
+
+      <div class="cta">成为团长</div>
+
+      <div class="closing">送上楼，用户零走动。<br>这栋楼，还缺一个把饭送到工位的人。</div>
+
+      <div class="foot">勾选《团长协议》后提交即生效 · 无审核</div>
+    </div>
+  </div>
+</body>
+</html>

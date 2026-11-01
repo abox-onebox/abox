@@ -1,0 +1,57 @@
+extra 命中 = 52 / 清单 = 52
+GET /api/v1/admin/building-groups/:id | D16 附属 · 楼群详情（成员楼 + 服务集散中心） | detail() | buildingAdmin.groupDetail | BuildingGroupIdParamDto | apps\api-server\src\modules\building\building-admin.controller.ts:215
+GET /api/v1/admin/building-groups/filter-options | D16 附属 · 筛选器下拉（楼群状态 + 可搬入的楼） | filterOptions() | buildingAdmin.groupFilterOptions |  | apps\api-server\src\modules\building\building-admin.controller.ts:202
+GET /api/v1/admin/buildings/:id | D13 附属 · 办公楼详情（档案 + 楼群 + 团长 + 集散映射 + 近期套餐） | detail() | buildingQuery.buildingDetail | BuildingIdParamDto | apps\api-server\src\modules\building\building-admin.controller.ts:128
+GET /api/v1/admin/buildings/delivery-map | P37 集散中心映射视图 · 办公楼 → 主/备集散中心（派生） | deliveryMap() | buildingQuery.deliveryMap |  | apps\api-server\src\modules\building\building-admin.controller.ts:116
+GET /api/v1/admin/buildings/filter-options | D13 附属 · 筛选器下拉（状态 / 楼群 / 覆盖缺口 / 团长归属） | filterOptions() | buildingQuery.overview |  | apps\api-server\src\modules\building\building-admin.controller.ts:76
+GET /api/v1/admin/buildings/overview | P37 总览视图 · 主数据健康度（楼栋 / 楼群 / 团长 / 集散覆盖） | overview() | buildingQuery.overview |  | apps\api-server\src\modules\building\building-admin.controller.ts:105
+GET /api/v1/admin/deliveries/:id/proofs | Q3 送达凭证列表 | listProofs() | delivery.listProofs | DeliveryProofListQueryDto | apps\api-server\src\modules\delivery\delivery.controller.ts:156
+POST /api/v1/admin/deliveries/:id/proofs | Q3 挂一张送达凭证到配送单 | addProof() | delivery.addProof | DeliveryProofCreateDto | apps\api-server\src\modules\delivery\delivery.controller.ts:173
+DELETE /api/v1/admin/deliveries/:id/proofs/:proofId | Q3 撤销一张送达凭证（软删） | revokeProof() | delivery.revokeProof |  | apps\api-server\src\modules\delivery\delivery.controller.ts:197
+GET /api/v1/admin/dishes/ | 商品库列表（扩展） | list() | itemAdmin.list | AdminDishesQueryDto | apps\api-server\src\modules\supplier\item\item-admin.controller.ts:45
+POST /api/v1/admin/dishes/ | 新增商品（扩展） | create() | itemAdmin.create | CreateDishDto | apps\api-server\src\modules\supplier\item\item-admin.controller.ts:57
+PUT /api/v1/admin/dishes/:id | 编辑商品（扩展） | update() | itemAdmin.update | ItemIdParamDto,UpdateItemDto | apps\api-server\src\modules\supplier\item\item-admin.controller.ts:83
+POST /api/v1/admin/dishes/batch-status | 批量上下架（扩展） | batchStatus() | itemAdmin.batchStatus | BatchDishStatusDto | apps\api-server\src\modules\supplier\item\item-admin.controller.ts:70
+POST /api/v1/admin/finance/refunds/batch-approve | E5 批量审批通过（D41 的批量形态） | batchApprove() | refundBatch.batchApprove | BatchApproveRefundDto | apps\api-server\src\modules\finance\refund-admin.controller.ts:88
+POST /api/v1/admin/finance/refunds/batch-reject | E5 批量驳回（D42 的批量形态） | batchReject() | refundBatch.batchReject | BatchRejectRefundDto | apps\api-server\src\modules\finance\refund-admin.controller.ts:111
+GET /api/v1/admin/finance/refunds/detail/:id | 退款单详情（审批前二次确认用） | detail() | refundAdmin.detail | RefundIdParamDto | apps\api-server\src\modules\finance\refund-admin.controller.ts:77
+POST /api/v1/admin/finance/refunds/scope-approve | E5 按配送日 / 楼宇批量 —— 审批通过 | scopeApprove() | refundBatch.approveByScope | BatchApproveByScopeDto | apps\api-server\src\modules\finance\refund-admin.controller.ts:144
+POST /api/v1/admin/finance/refunds/scope-preview | E5 按配送日 / 楼宇批量 —— 预览（**只算不执行**） | scopePreview() | refundBatch.previewScope | BatchRefundPreviewDto | apps\api-server\src\modules\finance\refund-admin.controller.ts:128
+POST /api/v1/admin/finance/refunds/scope-reject | E5 按配送日 / 楼宇批量 —— 驳回 | scopeReject() | refundBatch.rejectByScope | BatchRejectByScopeDto | apps\api-server\src\modules\finance\refund-admin.controller.ts:167
+GET /api/v1/admin/leaders/:id | D19 附属 · 团长详情（档案 + 裂变链 + 佣金流水 + 操作日志） | detail() | leaderAdmin.detail | LeaderIdParamDto | apps\api-server\src\modules\team-leader\leader-admin.controller.ts:66
+GET /api/v1/admin/leaders/filter-options | D19 附属 · 筛选器下拉（楼群 / 办公楼 / 等级 / 状态） | filterOptions() | leaderAdmin.filterOptions |  | apps\api-server\src\modules\team-leader\leader-admin.controller.ts:55
+GET /api/v1/admin/meal/dishes | 商品选择器（D7 编排页候选商品 · 只读） | dishOptions() | mealAdmin.dishOptions | ItemOptionQueryDto | apps\api-server\src\modules\meal\meal-admin.controller.ts:109
+GET /api/v1/admin/meal/distribution-centers | 集散中心选择器（D2/D3 前置数据源 · 只读） | distributionCenterOptions() | mealAdmin.distributionCenterOptions |  | apps\api-server\src\modules\meal\meal-admin.controller.ts:120
+POST /api/v1/admin/operation-requests/ | 提交高危操作申请（operator 可提交，admin 可代建） | create() | svc.create | CreateOperationRequestDto | apps\api-server\src\modules\admin\operation-request\operation-request.controller.ts:30
+GET /api/v1/admin/operation-requests/ | 申请单列表（operator 仅看自己提交） | list() | svc.list | OperationRequestQueryDto | apps\api-server\src\modules\admin\operation-request\operation-request.controller.ts:36
+GET /api/v1/admin/operation-requests/:id | 申请单详情 | detail() | svc.detail |  | apps\api-server\src\modules\admin\operation-request\operation-request.controller.ts:42
+POST /api/v1/admin/operation-requests/:id/approve | 审批通过（两步：仅置 approved，不执行） | approve() | svc.approve |  | apps\api-server\src\modules\admin\operation-request\operation-request.controller.ts:48
+POST /api/v1/admin/operation-requests/:id/execute | 执行已审批的申请（调原目标接口，复用 @OperationLog 审计） | execute() | svc.execute |  | apps\api-server\src\modules\admin\operation-request\operation-request.controller.ts:79
+POST /api/v1/admin/operation-requests/:id/reject | 驳回申请 | reject() | svc.reject | RejectOperationRequestDto | apps\api-server\src\modules\admin\operation-request\operation-request.controller.ts:56
+GET /api/v1/admin/orders/filter-options | 订单筛选下拉（楼群 / 办公楼 / 团长 / 状态 · 只读） | filterOptions() | orderAdmin.filterOptions |  | apps\api-server\src\modules\order\order-admin.controller.ts:74
+GET /api/v1/admin/packing-tasks/ | 加工场所打包任务（原 S3 · P39） | packingTasks() | supplier.packingTasks | PackingTasksQueryDto | apps\api-server\src\modules\supplier\packing-admin.controller.ts:42
+GET /api/v1/admin/sales-pause/ | 停售区间列表（含历史） | list() | svc.list |  | apps\api-server\src\modules\admin\sales-pause\sales-pause.controller.ts:50
+POST /api/v1/admin/sales-pause/ | 创建停售区间（立刻生效） | create() | svc.create | CreateSalesPauseDto | apps\api-server\src\modules\admin\sales-pause\sales-pause.controller.ts:61
+POST /api/v1/admin/sales-pause/:id/resume | 恢复指定停售区间（打 resumedAt，不删行） | resume() | svc.resume |  | apps\api-server\src\modules\admin\sales-pause\sales-pause.controller.ts:74
+GET /api/v1/admin/suppliers/:id | D23 附属 · 供应商详情（档案 + 商品 + 应付 + 操作日志） | detail() | supplierAdmin.detail | SupplierIdParamDto | apps\api-server\src\modules\supplier\supplier-admin.controller.ts:101
+PUT /api/v1/admin/suppliers/:id/photos | 扩展 · 供应商门店实拍 / 证照照片（方案B 照片墙） | setStorePhotos() | supplierAdmin.setStorePhotos | SupplierIdParamDto,SetStorePhotosDto | apps\api-server\src\modules\supplier\supplier-admin.controller.ts:206
+PUT /api/v1/admin/suppliers/:id/takeout-links | 扩展 · 外卖平台店铺链接（美团 / 淘宝闪购 / 京东） | setTakeoutLinks() | supplierAdmin.setTakeoutLinks | SupplierIdParamDto,SetTakeoutLinksDto | apps\api-server\src\modules\supplier\supplier-admin.controller.ts:190
+GET /api/v1/admin/suppliers/filter-options | D23 附属 · 筛选器下拉（审核状态 / 合作状态 / 付款方式） | filterOptions() | supplierAdmin.detail | SupplierIdParamDto | apps\api-server\src\modules\supplier\supplier-admin.controller.ts:75
+POST /api/v1/admin/uploads/ | 后台 · 上传媒体文件（图片） | upload() |  |  | apps\api-server\src\modules\media\media.controller.ts:51
+GET /api/v1/admin/users/ | C 端用户名录（分页 · 关键词 / 办公楼 / 状态 / 绑楼状态过滤） | list() | userAdmin.list | AdminUsersQueryDto | apps\api-server\src\modules\user\user-admin.controller.ts:45
+GET /api/v1/admin/users/:id | 用户详情（档案 + 余额 + 最近 10 单） | detail() | userAdmin.detail | UserIdParamDto | apps\api-server\src\modules\user\user-admin.controller.ts:63
+PUT /api/v1/admin/users/:id | 修改 C 端用户（代绑 / 解绑办公楼 · 拉黑 / 恢复正常） | update() | userAdmin.update | UserIdParamDto,UpdateUserDto | apps\api-server\src\modules\user\user-admin.controller.ts:75
+GET /api/v1/admin/users/filter-options | 筛选器下拉（办公楼 / 账号状态 / 绑楼状态） | filterOptions() | userAdmin.filterOptions |  | apps\api-server\src\modules\user\user-admin.controller.ts:57
+GET /api/v1/building/ | U-B1 可选办公楼列表（仅营业中 · 含该楼在职团长） | list() | building.listSelectable |  | apps\api-server\src\modules\building\building.controller.ts:37
+PUT /api/v1/me/building | U-B2 自助绑定 / 更换办公楼（换楼即按新楼重算跟随团长） | bindBuilding() | userService.bindBuilding | BindBuildingDto | apps\api-server\src\modules\user\user.controller.ts:176
+GET /api/v1/me/referral | U-B3 我的推荐中心（非团长也可推荐）· USR 码 + 落地链接 + 推荐列表 | referral() |  | InviteListQueryDto | apps\api-server\src\modules\user\user.controller.ts:233
+POST /api/v1/pay/mock/paid | 调试：手动触发支付成功（仅 PROVIDER_MODE=mock；金额省略则取订单实付） | mockPaid() | paymentService.simulatePaid | MockPaidDto | apps\api-server\src\modules\payment\payment.controller.ts:71
+GET /api/v1/traceability/suppliers | 供应商资质墙 · 列表（免登录只读） | supplierList() | traceability.supplierList |  | apps\api-server\src\modules\traceability\traceability.controller.ts:50
+GET /api/v1/traceability/suppliers/:id | 供应商资质墙 · 详情（免登录只读） | supplierDetail() | traceability.supplierDetail |  | apps\api-server\src\modules\traceability\traceability.controller.ts:68
+POST /api/v1/track/page-duration | U15 上报页面停留时长（匿名批量） | record() | trackService.recordBatch | PageDurationBatchDto | apps\api-server\src\modules\track\track.controller.ts:33
+GET /api/v1/wecom/kb/callback | （无 summary） | verify() |  |  | apps\api-server\src\modules\wecom-kb\wecom-kb.controller.ts:24
+POST /api/v1/wecom/kb/callback | （无 summary） | handle() |  |  | apps\api-server\src\modules\wecom-kb\wecom-kb.controller.ts:32
+
+无 summary 的端点数 = 2
+  GET /api/v1/wecom/kb/callback  (apps\api-server\src\modules\wecom-kb\wecom-kb.controller.ts:24)
+  POST /api/v1/wecom/kb/callback  (apps\api-server\src\modules\wecom-kb\wecom-kb.controller.ts:32)

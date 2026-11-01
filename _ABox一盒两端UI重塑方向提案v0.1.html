@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 两端 UI 重塑方向提案 v0.1</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --surface:#FFFDF8; --text:#6E5435; --text-2:#796C57;
+    --gold:#C9A876; --border:#E4D8C3; --ok:#5B7C3A; --warn:#C44536; --info:#4A6FA5;
+    --r-md:10px; --r-lg:16px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:KaiTi,STKaiti,楷体,"Noto Serif SC",serif;
+    font-size:14px; line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:900px; margin:0 auto; padding:56px 28px 80px}
+  .doc-head{border-bottom:1px solid var(--border); padding-bottom:22px; margin-bottom:36px}
+  .kicker{font-size:12px; color:var(--text-2); letter-spacing:.14em; margin:0 0 10px}
+  h1{font-size:28px; font-weight:400; margin:0 0 12px; letter-spacing:.01em}
+  .meta{font-size:12px; color:var(--text-2); margin:0}
+  .meta b{font-weight:400; color:var(--text)}
+  h2{font-size:17px; font-weight:400; margin:44px 0 14px; padding-left:12px; border-left:3px solid var(--gold)}
+  h3{font-size:14px; font-weight:400; margin:24px 0 8px}
+  p{margin:0 0 12px}
+  .lead{font-size:15px; line-height:1.85}
+  strong{font-weight:400}
+  em{font-style:normal; border-bottom:1px solid var(--gold); padding-bottom:1px}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:20px 24px; margin:16px 0}
+  table{width:100%; border-collapse:collapse; margin:14px 0; font-size:13px; table-layout:fixed}
+  th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--border); vertical-align:top}
+  th{font-size:12px; color:var(--text-2); font-weight:400; background:#FBF6EC}
+  tr:last-child td{border-bottom:none}
+  code{font-family:Consolas,"Courier New",monospace; font-size:12.5px; background:#F2EADC; padding:1px 5px; border-radius:4px}
+  .swatch{display:inline-block; width:12px; height:12px; border-radius:3px; border:1px solid rgba(0,0,0,.12); vertical-align:-1px; margin-right:5px}
+  .tag{display:inline-block; font-size:11px; padding:1px 9px; border-radius:99px; border:1px solid; line-height:1.6}
+  .tag-ok{color:var(--ok); border-color:#BBCBA6; background:#F1F5EA}
+  .tag-bad{color:var(--warn); border-color:#E3BFB8; background:#FBF0EE}
+  .tag-fix{color:#896836; border-color:#DCC79C; background:#FBF4E6}
+  .dirs{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:18px 0}
+  .dir{background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:22px}
+  .dir.rec{border:2px solid var(--gold)}
+  .dir h3{margin:0 0 4px; font-size:16px}
+  .dir .sub{font-size:12px; color:var(--text-2); margin:0 0 14px}
+  .dir ul{margin:0; padding-left:18px}
+  .dir li{margin-bottom:7px}
+  .risk{font-size:12px; color:var(--text-2); border-top:1px solid var(--border); margin-top:14px; padding-top:12px}
+  .rec-badge{display:inline-block; font-size:11px; padding:1px 9px; border-radius:99px; background:#FBF4E6; color:#896836; border:1px solid #DCC79C; margin-left:8px; vertical-align:2px}
+  ol,ul{margin:0 0 12px; padding-left:22px}
+  li{margin-bottom:6px}
+  .quote{border-left:2px solid var(--gold); padding:2px 0 2px 16px; margin:18px 0; color:var(--text)}
+  footer{border-top:1px solid var(--border); margin-top:52px; padding-top:18px; font-size:12px; color:var(--text-2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="doc-head">
+  <p class="kicker">ABox 一盒 · 内部文档 · 待确认</p>
+  <h1>两端 UI 重塑方向提案 v0.1</h1>
+  <p class="meta">范围：用户端（23 页） + 运营后台（46 视图）&nbsp;·&nbsp;量级：B 档重塑 &nbsp;·&nbsp;日期：<b>2026-09-19</b> &nbsp;·&nbsp;状态：<b>待你决策</b><br>
+  依据：两端现状盘点（机械化扫描） + 用户端/后台对标调研 + 自算 WCAG 对比度实测</p>
+</div>
+
+<h2>一、结论先行</h2>
+<p class="lead">你选的四个痛点里，<em>有三个的根因不是「不好看」，而是「设计系统没被执行」</em>。</p>
+<p>两端的 token 文件都写了，后台甚至还专门覆盖了 Element Plus 主题（<code>--el-color-primary:#6e5435</code>）。但到了页面执行层：用户端 <strong>130 处裸写十六进制色值</strong>、<strong>约 20 个页面拿 emoji 当功能图标</strong>、状态徽标只有 2 页复用；后台 5 个通用组件<strong>全仓 0 引用</strong>、每页手写表格。也就是说，规则都在，没人守。</p>
+<div class="quote">
+  <p style="margin:0">如果这次只是「再画一套更好看的」，半年后必然漂移回今天这个样子 —— 因为漂移的原因一次都没被处理。<br>
+  <strong>重塑的重点 = 建「能被强制执行」的约束 + 补齐缺失的图标体系与组件层；视觉精修是配套，不是主体。</strong></p>
+</div>
+
+<h2>二、实测底账（全部来自脚本扫描，非印象）</h2>
+<table>
+  <colgroup><col style="width:23%"><col style="width:53%"><col style="width:24%"></colgroup>
+  <thead><tr><th>检查项</th><th>实测结果</th><th>判定</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>emoji 当功能图标</td>
+      <td>用户端<strong>约 20 个页面</strong>命中：<code>index.vue:19,34,68</code>（🍱📦🍴）、<code>mine.vue:36,66,77-109</code>（👑💰📤🏢📋🏠📞⚙️）、<code>order-detail.vue:23,61,122,125</code>、<code>pay-result.vue:9</code>、<code>leader/profile.vue:20</code>、<code>leader/workbench.vue:239-253</code>；<strong>并且 <code>utils/format.ts:44-53</code> 有一张菜品 emoji 映射表</strong>（属结构性，不是零散点缀）</td>
+      <td><span class="tag tag-bad">不达标</span><br>且是系统性的</td>
+    </tr>
+    <tr>
+      <td>后台 emoji</td>
+      <td>图标类 emoji <strong>0 处</strong>（仅注释里的 ⚠️）</td>
+      <td><span class="tag tag-ok">达标</span><br>但两端割裂</td>
+    </tr>
+    <tr>
+      <td>紫色→粉色渐变<br>弹跳缓动</td>
+      <td><strong>源码 0 命中</strong>（<code>#7C3AED/#A855F7/#EC4899/#6366F1/#4F46E5</code> 无匹配；<code>cubic-bezier(0.68</code> 无匹配）。构建产物 <code>dist/</code> 里的命中不算源码。用户端现有 24 处渐变全为金棕暖色系</td>
+      <td><span class="tag tag-ok">已达标</span><br>无需处理</td>
+    </tr>
+    <tr>
+      <td>硬编码色值</td>
+      <td>用户端<strong>约 130 处</strong>（20 个文件；<code>leader/commission.vue</code> 12、<code>order-detail.vue</code> 12、<code>index.vue</code> 11）<br>后台仅 <strong>14 处</strong>（6 个文件）</td>
+      <td><span class="tag tag-bad">不达标</span><br>反直觉：后台反而守规矩</td>
+    </tr>
+    <tr>
+      <td>通用组件复用</td>
+      <td>后台 5 个通用组件（table / search-form / chart / upload / editor）<strong>全仓 0 引用</strong>；<code>components/table/index.vue</code> 只是 <code>&lt;div&gt;&lt;slot/&gt;&lt;/div&gt;</code> 空壳</td>
+      <td><span class="tag tag-bad">缺失</span><br>后台「步骤多」的根因</td>
+    </tr>
+    <tr>
+      <td>表格规范</td>
+      <td>每页各自手写 <code>el-table</code>；列宽出现 130/140/150/160/170/180 <strong>六种无统一档</strong>；<code>leader/list.vue:116</code> 用 <code>stripe</code>、<code>finance/invoices.vue:163</code> 用 <code>border</code>、<code>meal/matrix.vue:63</code> 用 <code>size="small"</code></td>
+      <td><span class="tag tag-bad">无规范</span></td>
+    </tr>
+    <tr>
+      <td>状态徽标</td>
+      <td><code>ab-status-badge</code> 仅 <strong>2 个页面</strong>引用，其余自绘状态</td>
+      <td><span class="tag tag-bad">复用差</span></td>
+    </tr>
+    <tr>
+      <td>死组件</td>
+      <td><code>ab-countdown</code> / <code>ab-meal-card</code> / <code>ab-dish-card</code> <strong>0 引用</strong>。注意：仓库现有死文件扫描<strong>抓不到</strong>它们（只认 <code>export {}</code> 占位）</td>
+      <td><span class="tag tag-bad">需清理</span></td>
+    </tr>
+    <tr>
+      <td>后台占位页</td>
+      <td>3 个 20 行占位页（<code>dashboard/index.vue</code>、<code>supplier/edit.vue</code>、<code>supplier/dishes.vue</code>）会在菜单里露出</td>
+      <td><span class="tag tag-bad">会点到空白</span></td>
+    </tr>
+    <tr>
+      <td>移动端</td>
+      <td>后台<strong>全站仅 2 处 <code>@media</code></strong>；侧栏固定 <code>width="216px"</code>（<code>default-layout.vue:3</code>）无折叠无抽屉</td>
+      <td><span class="tag tag-bad">手机不可用</span><br>痛点④ 事实确认</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>三、三个真缺陷与修复色值</h2>
+<p>用 WCAG 2.1 公式自算了现有 token（普通文门槛 4.5，大字号 3.0）。<strong>结论是：主色系比想象中健康，坏的只是少数几处 —— 所以不需要换主色。</strong></p>
+<table>
+  <colgroup><col style="width:22%"><col style="width:20%"><col style="width:14%"><col style="width:44%"></colgroup>
+  <thead><tr><th>用途</th><th>现值</th><th>对比度</th><th>处置</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>主文字 / 背景</td>
+      <td><span class="swatch" style="background:#6E5435"></span><code>#6E5435</code> on <span class="swatch" style="background:#F6F0E5"></span><code>#F6F0E5</code></td>
+      <td><strong>6.21</strong></td>
+      <td><span class="tag tag-ok">达标</span> 不动</td>
+    </tr>
+    <tr>
+      <td>按钮字 on 暖棕底</td>
+      <td><span class="swatch" style="background:#FFFDF8"></span><code>#FFFDF8</code> on 暖棕</td>
+      <td><strong>6.93</strong></td>
+      <td><span class="tag tag-ok">达标</span> 不动</td>
+    </tr>
+    <tr>
+      <td>状态三色</td>
+      <td>成功 <code>#5B7C3A</code> / 警告 <code>#C44536</code> / 信息 <code>#4A6FA5</code></td>
+      <td>4.71 / 4.86 / 5.03</td>
+      <td><span class="tag tag-ok">达标</span> 不动</td>
+    </tr>
+    <tr>
+      <td>次文字</td>
+      <td><span class="swatch" style="background:#9A8B72"></span><code>#9A8B72</code> → <span class="swatch" style="background:#796C57"></span><code>#796C57</code></td>
+      <td>2.93 → <strong>4.51</strong></td>
+      <td><span class="tag tag-fix">需改</span> 加深（保色相，明度降 0.118）</td>
+    </tr>
+    <tr>
+      <td>金棕当文字用</td>
+      <td><span class="swatch" style="background:#C9A876"></span><code>#C9A876</code></td>
+      <td>1.98</td>
+      <td><span class="tag tag-bad">禁用</span> 文字位一律改用 <code>#6E5435</code>；金棕只做填充 / 描边 / 图标</td>
+    </tr>
+    <tr>
+      <td>等级四色当文字用</td>
+      <td>见习 <code>#8B7355</code> 4.41 · 首席 <code>#B8892F</code> 3.10（正式/金牌更低）</td>
+      <td>3.10 ~ 4.41</td>
+      <td><span class="tag tag-bad">禁用</span> 见下方说明</td>
+    </tr>
+  </tbody>
+</table>
+<div class="card">
+  <h3 style="margin-top:0">为什么「等级色不能用文字色修」</h3>
+  <p>我把四个等级色逐个加深到文字达标，结果是：正式 <code>#896836</code>、金牌 <code>#88692E</code>、首席 <code>#8B6824</code> —— <strong>四个等级全部塌成同一个深棕，等级就分不出来了</strong>。</p>
+  <p style="margin-bottom:0">说明这组色天生只适合承载<strong>色块、徽标底色、描边</strong>（UI 组件门槛 3.0，它们多数够用），不能承载文字。<br>
+  ⇒ 规则化为：<strong>等级信息靠「色块 + 文字标签」表达，不靠彩色文字；确需彩色文字时统一用 <code>#6E5435</code>。</strong>这条正好也解决了「低饱和暖色体系里状态色怎么救」的通用难题。</p>
+</div>
+
+<h2>四、两个方向</h2>
+<div class="dirs">
+  <div class="dir rec">
+    <h3>方向 A · 守品牌，补骨架<span class="rec-badge">推荐</span></h3>
+    <p class="sub">视觉语言不动，把缺失的骨架补齐</p>
+    <p><strong>保留（一律不动）：</strong>米色 <code>#F6F0E5</code> 底、暖棕 <code>#6E5435</code> 主文字、楷体、金棕强调 —— 实测 6.21 / 6.93 是健康的。</p>
+    <p><strong>新建五件事：</strong></p>
+    <ul>
+      <li>统一描边 <strong>SVG 图标体系</strong>，替换约 20 页 emoji，含菜品图标（把 <code>format.ts</code> 那张 emoji 映射表改成图标组件）</li>
+      <li>用户端<strong>组件层收敛</strong>：自绘状态 / 卡片归到现有 8 个组件，清 3 个死组件</li>
+      <li>后台<strong>组件层落地</strong>：让那 5 个 0 引用的组件真正被用起来，表格列宽收敛成 3~4 档</li>
+      <li><strong>token 执行纪律</strong>：裸写色值纳入 lint 拦截（用户端 130 处一次性归零）</li>
+      <li><strong>状态规范</strong>：空 / 错 / 载 / 禁用四态 + 描边 chip；截单与售罄用「蒙层 + 文案」而非消失（对齐瑞幸做法）</li>
+    </ul>
+    <p><strong>视觉精修：</strong>层级靠字重与间距分级、后台密度提供紧凑/宽松切换、数字右对齐等宽。</p>
+    <p class="risk"><strong>风险：低。</strong>主色不动 ⇒ 已产出的海报、快团团物料、包装<strong>全部不返工</strong>。<br>
+    <strong>代价：</strong>观感提升是「精致」而非「惊艳」，不会一眼变样。</p>
+  </div>
+  <div class="dir">
+    <h3>方向 B · 东方新装，气质重塑</h3>
+    <p class="sub">连视觉语言一起换</p>
+    <p><strong>动到主色：</strong>背景转暖近白、正文加深，引入材质与版式（宋式留白、低饱和矿物色点缀）。</p>
+    <p><strong>字体分层：</strong>楷体只留大标题与品牌字，正文换可读性更好的无衬线。</p>
+    <p><strong>收益：</strong>气质跳跃明显，品牌辨识度一次性拉起，可直接外延到物料。</p>
+    <p class="risk"><strong>风险：高。</strong><br>
+    ① 已产出的海报 / 快团团物料 / 包装<strong>需同步返工</strong>；<br>
+    ② 楷体分层会改动你此前定的「统一楷体」规范，必须你点头；<br>
+    ③ 工期约为 A 的 1.5~2 倍；<br>
+    ④ 调研称「楷体小字号可读性差」被其<strong>自己标注为推断</strong>，尚未实测 —— 不宜据此就换字体。</p>
+  </div>
+</div>
+
+<h2>五、我的推荐：A 为主线，B 的「字体分层」单独实测</h2>
+<p>B 里真正能大幅提升气质的是<strong>字体与版式</strong>，而不是换掉米 / 棕主色 —— 主色实测是健康的，动它只会牵连返工。所以把 B 里成本最高、收益最不确定的那部分（换主色）砍掉，只留字体 / 版式做小范围真机比对，是性价比最高的路径。</p>
+<table>
+  <thead><tr><th style="width:30%">组合</th><th>收益</th><th style="width:22%">返工风险</th></tr></thead>
+  <tbody>
+    <tr><td>A 全部</td><td>骨架补齐，漂移问题根治</td><td><span class="tag tag-ok">无</span></td></tr>
+    <tr><td>+ 字体分层实测</td><td>气质提升的主要来源，先小样验证可读性再决定铺开</td><td><span class="tag tag-fix">可控</span> 仅两三个页面</td></tr>
+    <tr><td>+ 换主色（建议不做）</td><td>收益不确定，气质提升并不主要来自这里</td><td><span class="tag tag-bad">高</span> 物料全返工</td></tr>
+  </tbody>
+</table>
+
+<h2>六、本轮明确不做</h2>
+<ul>
+  <li>不动订单 11 态等已验收的业务逻辑</li>
+  <li>不新增端（后台移动端按「关键路径」做，见待决策项 2）</li>
+  <li>不做 Figma 协作源文件（交付形态为可预览 HTML 稿 + 代码组件）</li>
+  <li>不做原创插画 / Logo 美术（需另配图像生成或你提供素材）</li>
+</ul>
+
+<h2>七、待你决策（三项）</h2>
+<ol>
+  <li><strong>方向选择</strong>：A（守品牌补骨架）／ B（连主色一起换）／ <strong>A + 字体分层实测</strong>（我推荐）</li>
+  <li><strong>后台移动端</strong>：确认按「只做关键路径」（供应商配外卖链接 / 团长看佣金），还是要做成全后台响应式</li>
+  <li><strong>楷体使用范围</strong>：是否允许「正文改用无衬线、楷体只留标题与品牌字」—— 这条改动的是你之前定的统一规范，必须你点头才动</li>
+</ol>
+<p>你定完这三项，我就出第一版设计 token 与关键页面稿；确认后再更新 Spec 与验收基线，最后才落码。</p>
+
+<footer>
+  本文档为 v0.1 待确认稿，文件名以 <code>_</code> 前缀标记为「易变产物」，不进《开发基线冻结清单》。<br>
+  所有数字均来自脚本扫描与自算，未采信任何「感觉」。调研中标注为推断的结论已单独标明，未被当作事实使用。
+</footer>
+
+</div>
+</body>
+</html>

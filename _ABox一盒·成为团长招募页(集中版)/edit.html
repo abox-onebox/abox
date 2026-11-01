@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>ABox 一盒 · 成为团长（册页式）</title>
+<style>
+  :root {
+    --bg-cream: #F6F0E5; --text-brown: #6E5435; --text-brown-light: #8B7355;
+    --accent-gold: #C9A876; --accent-gold-dark: #B8915C; --border-soft: #E6D9C0;
+    --shadow: 0 1px 2px rgba(110,84,53,.06), 0 4px 12px rgba(110,84,53,.07);
+    --font-kai: "KaiTi","STKaiti","楷体","Kaiti SC",serif;
+    --radius-pill: 24px; --sp-4: 20px; --sp-5: 28px; --fs-sm: 12px; --fs-md: 14px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: var(--font-kai); background:#2A2118; color:var(--text-brown); -webkit-font-smoothing:antialiased; }
+  .stage-flex { display:flex; justify-content:center; align-items:flex-start; padding:32px 16px 60px; }
+  .phone-shell { width:375px; max-width:100%; background:var(--bg-cream); border-radius:24px; box-shadow:0 2px 6px rgba(110,84,53,.08),0 12px 32px rgba(110,84,53,.14),0 0 0 2px rgba(201,168,118,.3); overflow:hidden; }
+  .scroll { max-height:820px; overflow-y:auto; }
+  .scroll::-webkit-scrollbar { width:6px; }
+  .scroll::-webkit-scrollbar-thumb { background:rgba(201,168,118,.45); border-radius:4px; }
+
+  /* ===== 册页头部：双细线 + 居中排印 ===== */
+  .head { padding:48px var(--sp-4) 6px; text-align:center; }
+  .head__eyebrow { font-size:11px; letter-spacing:4px; color:var(--accent-gold-dark); }
+  .head__title { margin-top:22px; font-size:27px; font-weight:bold; letter-spacing:4px; line-height:1.6; }
+  .head__title em { font-style:normal; color:var(--accent-gold-dark); }
+  .head__meta { margin-top:18px; font-size:var(--fs-sm); color:var(--text-brown-light); letter-spacing:3px; }
+  .head__rule { margin:26px auto 0; width:64px; height:1px; background:var(--accent-gold); position:relative; }
+  .head__rule::after { content:""; position:absolute; left:50%; top:-2.5px; transform:translateX(-50%); width:5px; height:5px; border-radius:50%; background:var(--accent-gold); }
+
+  /* ===== 板块：大序号 + 细线，杂志内页式 ===== */
+  .blocks { padding:var(--sp-4) var(--sp-4) 0; }
+  .block { display:grid; grid-template-columns:64px 1fr; gap:14px; padding:26px 0; }
+  .block + .block { border-top:1px solid var(--border-soft); }
+  .block__no { font-size:52px; font-weight:bold; line-height:1; color:rgba(110,84,53,.14); letter-spacing:0; }
+  .block__t { font-size:16px; font-weight:bold; letter-spacing:3px; }
+  .block__list { list-style:none; margin-top:14px; display:flex; flex-direction:column; gap:10px; }
+  .block__list li { font-size:var(--fs-md); line-height:1.5; color:var(--text-brown-light); letter-spacing:.5px; }
+  .block__list b { color:var(--text-brown); font-weight:bold; }
+  .block__list .hl { color:var(--accent-gold-dark); font-weight:bold; }
+
+  /* ===== CTA ===== */
+  .cta { padding:var(--sp-4) var(--sp-4) 0; }
+  .cta__btn { width:100%; height:48px; line-height:48px; text-align:center; background:var(--text-brown); color:var(--bg-cream); border-radius:var(--radius-pill); font-size:var(--fs-md); letter-spacing:2px; box-shadow:var(--shadow); border:none; font-family:var(--font-kai); }
+  .cta__btn--ghost { background:transparent; color:var(--accent-gold-dark); border:1px solid var(--accent-gold); box-shadow:none; margin-top:12px; }
+  .cta__note { font-size:var(--fs-sm); color:var(--text-brown-light); text-align:center; margin-top:12px; line-height:1.8; }
+  .foot { font-size:11px; color:var(--text-brown-light); padding:var(--sp-4) var(--sp-4) var(--sp-5); line-height:1.8; margin-top:16px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="stage-flex">
+  <div class="phone-shell">
+    <div class="scroll">
+
+      <header class="head">
+        <span class="head__eyebrow">ABox 一盒 · 团长招募</span>
+        <h1 class="head__title">好事做了，顺手带了<br><em>钱也赚了</em></h1>
+        <div class="head__meta">每天一次 · 不用费事 · 大家都省心</div>
+        <div class="head__rule"></div>
+      </header>
+
+      <section class="blocks">
+
+        <div class="block">
+          <div class="block__no">01</div>
+          <div>
+            <div class="block__t">钱，明明白白</div>
+            <ul class="block__list">
+              <li>每单按售价提 <span class="hl">8% – 12%</span></li>
+              <li>次日入账，<b>能抵消费，也能提现</b></li>
+              <li>每月<b>好几百</b>，饭钱就有了</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="block">
+          <div class="block__no">02</div>
+          <div>
+            <div class="block__t">事，不添麻烦</div>
+            <ul class="block__list">
+              <li>下班以后，<b>转发个链接</b></li>
+              <li>同事点开，<span class="hl">就进你的团</span></li>
+              <li>午休时间，<b>顺手带回来</b></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="block">
+          <div class="block__no">03</div>
+          <div>
+            <div class="block__t">人，记你的好</div>
+            <ul class="block__list">
+              <li>热心肠，<b>有了名分</b></li>
+              <li>你的单，<b>同事乐意跟</b></li>
+              <li>好人缘，<b>一次次的加深</b></li>
+            </ul>
+          </div>
+        </div>
+
+      </section>
+
+      <div class="cta">
+        <button class="cta__btn">申请成为团长</button>
+        <button class="cta__btn cta__btn--ghost">介绍给合适的同事</button>
+        <div class="cta__note">自己暂时不当也行——介绍他成为团长，你领 <b>5 元代金券</b>（仅单层）</div>
+      </div>
+
+      <div class="foot">金额为测算示例，以实际接单为准；介绍奖励仅单层，不涉及多级分销。</div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

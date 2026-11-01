@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 提审前最后一公里复核</title>
+<style>
+  :root{
+    --paper:#F6F0E5; --ink:#6E5435; --ink-soft:#8a7050; --line:#e0d5c2; --card:#fffdf8;
+    --warn-bg:#fdf3e3; --warn-line:#d9b382; --ok-bg:#eef5ea; --ok-line:#8fa97e;
+    --gap-bg:#fbe9e9; --gap-line:#b23b3b; --new-bg:#eaf1f7; --new-line:#5b7f9e;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;padding:32px 20px 64px;background:var(--paper);color:var(--ink);
+    font-family:"KaiTi","STKaiti","simkai","楷体",serif;font-size:16px;line-height:1.85;}
+  .wrap{max-width:1000px;margin:0 auto;}
+  header{border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:26px;}
+  h1{font-size:27px;margin:0 0 6px;letter-spacing:1px;}
+  .sub{color:var(--ink-soft);font-size:15px;}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:12px;font-size:14px;color:var(--ink-soft);}
+  .meta b{color:var(--ink);font-weight:normal;}
+  h2{font-size:21px;margin:36px 0 12px;padding-left:12px;border-left:5px solid var(--ink);}
+  p{margin:8px 0;} ul,ol{margin:8px 0;padding-left:24px;} li{margin:5px 0;}
+  code{background:#efe7d8;padding:1px 6px;border-radius:3px;font-family:Consolas,"Courier New",monospace;font-size:14px;}
+  .warn{background:var(--warn-bg);border:1px solid var(--warn-line);border-left:5px solid var(--warn-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .gap{background:var(--gap-bg);border:1px solid var(--gap-line);border-left:5px solid var(--gap-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .ok{background:var(--ok-bg);border:1px solid var(--ok-line);border-left:5px solid var(--ok-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .box-new{background:var(--new-bg);border:1px solid var(--new-line);border-left:5px solid var(--new-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .t{font-weight:bold;margin-bottom:6px;}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14.5px;background:var(--card);}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
+  th{background:#efe7d8;font-weight:normal;}
+  td.c,th.c{text-align:center;}
+  .b{display:inline-block;font-size:12px;padding:1px 7px;border-radius:10px;color:#fff;white-space:nowrap;}
+  .b-ok{background:#5f8a52;} .b-gap{background:#b23b3b;} .b-part{background:#b07d2b;} .b-new{background:#5b7f9e;}
+  footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:14px;}
+  .big{font-size:19px;font-weight:bold;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>提审前最后一公里复核</h1>
+  <div class="sub">2026-10-29 · 针对「改动引发连锁异常」与「逻辑通但没入口」两类风险</div>
+  <div class="meta">
+    <span><b>门禁 all</b> <b>31/31 全绿</b></span>
+    <span><b>深度 verify</b> <b>5/6</b>（e2e:m3 失败）</span>
+    <span><b>线上核心链路</b> <b>冒烟全通</b></span>
+    <span><b>新发现</b> <b class="big">3 项</b></span>
+  </div>
+</header>
+
+<div class="gap">
+  <div class="t">先回答你最担心的那个问题：是的，「有逻辑没入口」真的发生了 1 例</div>
+  这几天技术一口气把 P0 六条真缺口全补上了（P3 支付查单 / T1·T2 任务可观测 / H9 可退时限 / Q3 送达凭证 / E5 批量退款 / S5 对账）。
+  我把每条按「代码 → 接口 → 后台入口 → 端上入口 → 用户能否真的点到」逐段捋了一遍，<b>Q3 送达凭证断在最后一环</b>：表和接口都建好了，但团长端和后台<b>没有任何一处调用它</b>。
+  另外两条（H9、T1）能用，但各有「差最后一步」的坑。
+</div>
+
+<h2>一、Q3 送达凭证 —— 完整建好，但没有任何入口</h2>
+<table>
+  <tr><th style="width:20%">环节</th><th style="width:14%" class="c">状态</th><th>证据</th></tr>
+  <tr><td>数据表</td><td class="c"><span class="b b-ok">已建</span></td><td><code>ab_delivery_proof</code>，生产库实查<b>存在</b></td></tr>
+  <tr><td>服务端接口</td><td class="c"><span class="b b-ok">已建</span></td><td><code>delivery.controller.ts</code>：<code>:id/proofs</code> 的 GET / POST / DELETE 三个都在</td></tr>
+  <tr><td><b>团长小程序端</b></td><td class="c"><span class="b b-gap">零引用</span></td><td>全仓 vue/ts 搜 <code>proof</code> 与「凭证」——<b>零命中</b>（仅两处无关注释用词）</td></tr>
+  <tr><td><b>运营后台</b></td><td class="c"><span class="b b-gap">零引用</span></td><td><code>api/delivery.ts</code> 只有 3 个导出方法，<b>无一调 proofs</b>；全后台搜 <code>proofs</code> <b>零命中</b></td></tr>
+  <tr><td><b>谁来上传？</b></td><td class="c"><span class="b b-gap">没人能传</span></td><td>送餐的是团长，团长端没入口 ⇒ 凭证永远不会产生，<b>举证目的落空</b></td></tr>
+</table>
+<div class="warn">
+  <p style="margin:0"><b>建议：</b>团长端「配送/送达」加拍照上传（调 <code>POST :id/proofs</code>），后台配送详情加「查看凭证」列表（调 <code>GET :id/proofs</code>）。
+  补上才算闭环；<b>否则建议先把 Q3 从「已完成」里划掉</b>，别自我安慰。</p>
+</div>
+
+<h2>二、H9 完成后可退时限 —— 代码全通，但配置项没落库</h2>
+<table>
+  <tr><th style="width:24%">环节</th><th style="width:12%" class="c">状态</th><th>说明</th></tr>
+  <tr><td>判据纯函数 + 单测</td><td class="c"><span class="b b-ok">有</span></td><td><code>common/utils/refund-window.ts</code></td></tr>
+  <tr><td>错误码</td><td class="c"><span class="b b-ok">有</span></td><td><code>REFUND_WINDOW_EXPIRED = 40027</code>，文案完整</td></tr>
+  <tr><td>服务端消费</td><td class="c"><span class="b b-ok">有</span></td><td><code>refund.service.ts:200</code> 读配置、<code>:208</code> 抛错</td></tr>
+  <tr><td>后台规格登记</td><td class="c"><span class="b b-ok">有</span></td><td><code>config.specs.ts:290</code>，含 consumedBy</td></tr>
+  <tr><td><b>生产库是否有值</b></td><td class="c"><span class="b b-gap">没有</span></td><td>实查 <code>ab_config</code> 查无此键 ⇒ 取兜底值 <b>0 = 不限</b></td></tr>
+  <tr><td>对账门禁能否发现</td><td class="c"><span class="b b-gap">发现不了</span></td><td><code>lib/biz-config-baseline.mjs</code> <b>未登记此键</b> ⇒ parity 扫不到</td></tr>
+</table>
+<p>后台配置页会显示为「<b>尚未落库 · 当前取代码兜底值</b>」（<code>config.vue:170</code>），且<b>可编辑可保存</b>（页面只对「保存中」禁用，没锁死）。</p>
+<div class="warn">
+  <p style="margin:0"><b>⇒ 这不是缺陷，是一个必须做的运营动作：</b>兜底 0 = 不限，<b>H9 想防的「完成后无限期退款把余额扣成负数」依然敞开</b>。
+  建议上线前由运营在系统配置页把 <code>refund.completed_window_hours</code> 设成需要的值（如 24）并保存。<br>
+  ⚠️ 顺带建议把它<b>补进 <code>biz-config-baseline.mjs</code></b>，否则将来被覆盖或回滚，没有门禁会报警（与 D3 当年同一个坑）。</p>
+</div>
+
+<h2>三、T1/T2 任务可观测 —— 入口有，但「跑没跑过」重启就失忆</h2>
+<p>入口齐备：<code>admin/schedule</code> 提供任务清单 + 手动补跑，且已挂进后台菜单 <code>/system/schedule</code>（<code>constants/index.ts:419</code>）。线上实测 <b>9 个任务全部注册、<code>implemented=true</code></b>。</p>
+<table>
+  <tr><th style="width:28%">现象</th><th>解释</th></tr>
+  <tr><td>8/9 任务 <code>lastRun = null</code></td><td>API 容器<b>今天 17:33 才重启</b>（实查 StartedAt = 17:33，仅运行约 2 小时），每日任务触发点都早于重启 ⇒ 内存记录被清空</td></tr>
+  <tr><td><code>pay-reconcile</code> 有值</td><td>每 30 分钟跑一次，重启后已触发 ⇒ <b>证明动态注册机制健康</b>（排除了「静默不跑」）</td></tr>
+  <tr><td>留痕为何是内存</td><td><code>schedule.service.ts:81-88</code> 刻意不落库（「执行结果是派生值」）；但<b>失败告警会落操作日志</b>，真异常不会丢</td></tr>
+</table>
+<div class="warn">
+  <p style="margin:0">⚠️ <b>需留意</b>：<code>ab_supplier_share</code> 现有 4 行，<code>channel</code> 全是 <b>manual</b>、时间都是 <b>10-28 20:50</b> ⇒ <b>没有「自动执行」的持久证据</b>（那批是昨晚手工跑的）。
+  因执行记录不落库，<b>无法从数据反推定时任务是否真跑过</b>。<br>
+  ⇒ 建议上线后<b>盯一天</b>：确认凌晨 02:00 佣金结算、02:10 供应商结算单能自动产出。</p>
+</div>
+
+<h2>四、连锁反应检查：旧功能有没有被改坏</h2>
+<table>
+  <tr><th style="width:26%">检查项</th><th style="width:16%" class="c">结果</th><th>证据</th></tr>
+  <tr><td>门禁 all（31 道）</td><td class="c"><span class="b b-ok">31/31 全绿</span></td><td>含 tsc / 单测 / DI / 安全扫描</td></tr>
+  <tr><td>线上 health</td><td class="c"><span class="b b-ok">200 code=0</span></td><td>—</td></tr>
+  <tr><td>用户登录</td><td class="c"><span class="b b-ok">正常</span></td><td><code>dev:1001</code> 登录成功</td></tr>
+  <tr><td>明日套餐 <code>home/daily</code></td><td class="c"><span class="b b-ok">正常</span></td><td>可下单日期 <b>2026-10-30</b>、canOrder=true、3 个商品</td></tr>
+  <tr><td>余额账户</td><td class="c"><span class="b b-ok">未被改坏</span></td><td><code>balanceFen=519 / frozenFen=100 / totalInFen=619</code>，与 10-28 <b>逐位一致</b></td></tr>
+  <tr><td>订单列表</td><td class="c"><span class="b b-ok">正常</span></td><td>8 条</td></tr>
+  <tr><td>任务注册</td><td class="c"><span class="b b-ok">9/9</span></td><td>全部 implemented=true，含新增 pay-reconcile</td></tr>
+  <tr><td>表结构与上线一致</td><td class="c"><span class="b b-ok">36 = 36</span></td><td>生产库实查 37 项 = <b>36 张业务表</b> + TypeORM 自带的 <code>migrations</code> 记账表；<br>全 src 实体声明<b>恰好 36 张，双向差集为空</b>，无孤儿表、也无缺表</td></tr>
+</table>
+<p><b>结论：核心链路没有被这批改动连累。</b>余额三值与昨天逐位一致是最直接的证明。</p>
+
+<h2>五、e2e:m3 失败 50 条 —— 归因（不是新功能回归）</h2>
+<div class="box-new">
+  <p style="margin-top:0"><code>gate verify</code> = <b>5/6</b>，唯一失败 <code>e2e:m3</code>（50 条断言失败）。分布统计：</p>
+  <ul>
+    <li><b>集中在 D1/D2/S1/S2</b>（排期网格、套餐分配、生产计划、出餐打包）—— 全是<b>依赖种子数据</b>的断言</li>
+    <li><b>新增功能相关：H9 = 0、E5 = 0、schedule = 0、V1/V2/V3/C9/G7/R1 = 0</b></li>
+    <li>退款相关仅 2–3 条（日志见 mock 退款 FAIL、队列重试耗尽）</li>
+  </ul>
+  <p style="margin-bottom:0">⇒ <b>失败不落在本次新增代码路径上</b>，更像本地 e2e 库被前几轮残留污染（证据：断言里出现「该楼群已有套餐分配 #373」这类残留冲突、多处差 1 的计数偏差）。<br>
+  <b>诚实的定性</b>：本会话无法把本地 e2e 环境重置干净来最终证实，故标为「<b>需技术确认</b>」，<b>不构成本次改动的线上回归证据</b>，也不是提审阻断项（提审看功能，不看本地 e2e）。</p>
+</div>
+
+<h2>六、上线前建议动作（按优先级）</h2>
+<ol>
+  <li><b>补 Q3 入口</b>：团长端上传 + 后台查看；<b>不补就把 Q3 从「已完成」划掉</b>。</li>
+  <li><b>落库 H9 配置</b>：系统配置页设 <code>refund.completed_window_hours</code> 并保存；同时补进 <code>biz-config-baseline.mjs</code>。</li>
+  <li><b>盯一天定时任务</b>：确认次日 02:00 佣金结算、02:10 供应商结算单自动产出。</li>
+  <li>本地 e2e 环境重置后重跑 <code>gate verify</code>，确认 m3 的 50 条是环境问题而非真回归。</li>
+</ol>
+
+<footer>
+  ABox 一盒 · 提审前最后一公里复核 · 2026-10-29<br>
+  取证方式：生产服务器只读（<code>docker inspect</code> / <code>information_schema</code> / <code>ab_config</code> / <code>ab_supplier_share</code>）+ 线上 API 实调（health / 登录 / home/daily / 余额 / 订单 / admin/schedule）+ 全仓静态引用扫描 + 门禁实跑（all 31/31、verify 5/6）。<br>
+  凡属推断而非实测的结论，文中均已显式标注。
+</footer>
+
+</div>
+</body>
+</html>

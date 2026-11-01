@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 测试说明 v1.4 复核意见</title>
+<style>
+  :root{
+    --paper:#F6F0E5;
+    --ink:#6E5435;
+    --ink-soft:#8a7050;
+    --line:#e0d5c2;
+    --card:#fffdf8;
+    --warn-bg:#fdf3e3;
+    --warn-line:#d9b382;
+    --ok-bg:#eef5ea;
+    --ok-line:#8fa97e;
+    --gap-bg:#fbe9e9;
+    --gap-line:#b23b3b;
+    --new-bg:#eaf1f7;
+    --new-line:#5b7f9e;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;padding:32px 20px 64px;
+    background:var(--paper);color:var(--ink);
+    font-family:"KaiTi","STKaiti","simkai","楷体",serif;
+    font-size:16px;line-height:1.85;
+  }
+  .wrap{max-width:940px;margin:0 auto;}
+  header{border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:28px;}
+  h1{font-size:28px;margin:0 0 6px;letter-spacing:1px;}
+  .sub{color:var(--ink-soft);font-size:15px;}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 24px;margin-top:12px;font-size:14px;color:var(--ink-soft);}
+  .meta b{color:var(--ink);font-weight:normal;}
+  h2{font-size:21px;margin:38px 0 14px;padding-left:12px;border-left:5px solid var(--ink);}
+  h3{font-size:17px;margin:24px 0 8px;color:var(--ink);}
+  p{margin:8px 0;}
+  ul,ol{margin:8px 0;padding-left:24px;}
+  li{margin:5px 0;}
+  code{background:#efe7d8;padding:1px 6px;border-radius:3px;font-family:Consolas,"Courier New",monospace;font-size:14px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px 20px;margin:14px 0;}
+  .warn{background:var(--warn-bg);border:1px solid var(--warn-line);border-left:5px solid var(--warn-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .gap{background:var(--gap-bg);border:1px solid var(--gap-line);border-left:5px solid var(--gap-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .ok{background:var(--ok-bg);border:1px solid var(--ok-line);border-left:5px solid var(--ok-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .box-new{background:var(--new-bg);border:1px solid var(--new-line);border-left:5px solid var(--new-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .t{font-weight:bold;margin-bottom:6px;}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:15px;background:var(--card);}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top;}
+  th{background:#efe7d8;font-weight:normal;}
+  td.num{white-space:nowrap;}
+  pre{background:#efe7d8;border:1px solid var(--line);border-radius:6px;padding:10px 14px;font-family:Consolas,"Courier New",monospace;font-size:13px;overflow-x:auto;line-height:1.6;white-space:pre-wrap;}
+  footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:14px;}
+  .src{font-size:13px;color:var(--ink-soft);}
+  @media print{body{background:#fff;padding:0;}.card,table,pre{break-inside:avoid;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>ABox 一盒 · 测试说明 v1.4 复核意见</h1>
+  <div class="sub">第三轮回源复核 · 面向项目负责人 · 结论：<b>可以开测</b>，但先改三处</div>
+  <div class="meta">
+    <span><b>复核对象</b>《ABox一盒_本次变更测试说明_v1.4.html》</span>
+    <span><b>代码基线</b> main @ <code>fad970d</code></span>
+    <span><b>日期</b> 2026-10-27</span>
+    <span><b>方式</b> 回源码 + 实跑 + 线上实证</span>
+  </div>
+</header>
+
+<div class="ok">
+  <div class="t">一句话结论</div>
+  上一轮提的四项<b>全部改到位</b>，新增的盲盒终态修复<b>实现正确且链路真实可达</b>（不是纸面判据），
+  实跑 73/73 单测绿、依赖容器 202 处注入点无遗漏、服务器在线、<b>H5 也是新包</b>。<br>
+  发出去之前建议先改三处 —— 其中第一处会让多人同时开测时<b>互相踩踏</b>。
+</div>
+
+<h2>一、上一轮四项意见：全部回销</h2>
+<table>
+  <tr><th style="width:26%">上轮意见</th><th style="width:34%">v1.4 的处置</th><th>回源复核</th></tr>
+  <tr>
+    <td><b>判据自相矛盾（必修）</b><br><span class="src">「界面要能看到『由团长送到工位』」被写成停测判据，而该字段用户端不展示</span></td>
+    <td>降级为<b>响应体判据</b>（104-112 行），明示「界面上找不到这几个字是正常的，不是没部署」「不用报缺陷、不用停测」；停测判据只留盲盒一条</td>
+    <td class="ok">✅ 改对了。回源 <code>order.service.ts:609</code> 确为「{楼名} · 由团长送到工位」，降级后不再阻塞开工</td>
+  </tr>
+  <tr>
+    <td><b>版本号错位</b><br><span class="src">title 写 v1.2、正文写 v1.3</span></td>
+    <td>统一为 v1.4</td>
+    <td>✅ title 与正文、页脚三处一致。这个项目吃过「打开的不是最新版」的亏，统一是对的</td>
+  </tr>
+  <tr>
+    <td><b>盲盒终态仍挂占位行</b><br><span class="src">取消单永久挂「待揭晓」；已送达再退款会倒退回「待揭晓」</span></td>
+    <td>改代码并重部署（<code>fad970d</code>）：终态一律不展示盲盒</td>
+    <td>✅ 属实，且<b>链路可达</b>（证据见第二节）</td>
+  </tr>
+  <tr>
+    <td><b>建议抽纯函数 + 单测</b><br><span class="src">判据写在 order.service 里，改了没人拦</span></td>
+    <td>抽 <code>common/utils/blind-box.ts</code> + 新增 <code>blind-box.spec.ts</code></td>
+    <td>✅ 抽得<b>比建议的更好</b>（理由见第三节）</td>
+  </tr>
+</table>
+
+<h2>二、实跑证据（不是照文档念，是跑出来的）</h2>
+
+<div class="card">
+  <div class="t">① 本机实跑</div>
+  <ul>
+    <li>变更域 8 套单测：<b>73 / 73 全绿</b>（EXIT=0；上一轮是 65 —— 新增的 8 条正是 <code>blind-box.spec.ts</code> 的盲盒判据）</li>
+    <li>依赖容器检查：<b>202 处注入点全部有登记</b>（EXIT=0）—— 这次线上崩的就是这一型，没有第二颗雷</li>
+  </ul>
+  <div class="t">② 服务器实证（直接打服务器取回的真实响应）</div>
+  <ul>
+    <li><code>/api/v1/health/ready</code> → <code>"status":"ready"</code>，<code>uptimeSec:289</code>，与文档说的 13:57 部署<b>吻合</b></li>
+    <li><b>H5 是不是新包：</b>抓线上订单详情分包实测，<b>含新判据 <code>blindBoxPending</code></b> ⇒ 是新包 ✅
+      <br><span class="src">（这一步差点误判：我先用入口 chunk 去搜，得到 0 命中 —— 原因是 uni-app 页面是<b>懒加载分包</b>，入口包里只有路由表没有页面代码。补做对照题「订单详情已知文案是否可搜到」后才发现是探针没覆盖，不是包旧。）</span></li>
+  </ul>
+  <div class="t">③ 第 6 步「送达后退款」到底造不造得出来？（这决定新判据是不是空中楼阁）</div>
+  <ul>
+    <li>可退款状态包含「已送达」：<code>refund.service.ts:77-84</code>（PAID→DELIVERED→COMPLETED 都在集合内）</li>
+    <li>状态机有这条边：<code>order-state-machine.ts:63-68</code> <code>DELIVERED → REFUNDED</code></li>
+    <li>审批通过时订单<b>确实</b>被置为 <code>refunded</code>：<code>refund.service.ts:756</code>（原子占位，一次写）</li>
+  </ul>
+  <p>⇒ 三节都对得上，<b>这个场景真的能走到</b>，第 6 步不是纸面判据。</p>
+</div>
+
+<h2>三、这次有两处做得比要求的好，值得肯定</h2>
+<div class="card">
+  <p><b>1. 作废态从终态真源「派生」，没有抄第二份集合</b><br>
+  <code>VOID_STATUS</code> 是用 <code>ORDER_TERMINAL_STATUS.filter(s =&gt; s !== COMPLETED)</code> 算出来的
+  （<code>blind-box.ts:37-39</code>）。这正是本项目一直在治的「判据两份」—— 若照字面量抄一份
+  <code>['cancelled','refunded']</code>，将来终态新增时这边会静默停在旧集合里，而且<b>不会报错</b>。
+  他还把「为什么要排除 completed」的理由写进了注释（送达已完成＝正常揭晓，与「订单没下文了」是两回事）。</p>
+  <p><b>2. 遮蔽作用域没有误伤运营侧</b><br>
+  <code>blindBoxView()</code> 全仓<b>只被调用一次</b>（用户端详情 <code>order.service.ts:534</code>）；
+  后台与团长侧不出该字段。⇒ 不会出现「运营在后台也看不到内容」这种反向问题。</p>
+</div>
+
+<h2>四、发出去之前，建议先改这三处</h2>
+
+<div class="gap">
+  <div class="t">建议一（最要紧）：多人同测会互相踩踏 —— devCode=tom 是同一个身份</div>
+  文档第 144 行给的是 <code>?devCode=tom</code>。<b>同一个 devCode = 同一个人</b>
+  （<code>dev-identity.ts:47</code> 把它归一成 <code>dev:tom</code>，服务端按这个认身份）。<br>
+  于是所有用它的人共享一个用户的：<b>订单列表、代金券、余额、佣金、取消权限</b>。
+  3.3 第 6 步要求「把这一单取消」，别人同时也在同一批订单上操作 —— 现场会很乱，且分不清谁改的。<br>
+  <b>实测已经堵了：</b>现在打该账户的登录口，服务端直接回 <code>10005 请求过于频繁</code>。<br>
+  <b>改法：</b>给每人一个号（<code>tom1</code>/<code>tom2</code>/<code>tom3</code>…，白名单允许字母数字下划线），
+  并在文档加一句「<b>同一个 devCode 就是同一个人，请各用各的</b>」。
+</div>
+
+<div class="warn">
+  <div class="t">建议二（会误报缺陷）：第 6 步漏说了一个中间态</div>
+  <b>退款「申请中 / 退款中」不算终态</b>，此刻盲盒仍显示「待揭晓」—— 这是<b>有意设计</b>，
+  单测里专门钉死了（<code>blind-box.spec.ts:42-45</code>）。<br>
+  测试人员走完退款流程、看到「退款申请已提交」就跑去验，会发现占位行还在 ⇒ 判「没修好」报警。<br>
+  <b>实际上要等退款审批通过、订单状态真的变成「已退款</b>，整行才消失。<br>
+  <b>改法：</b>把第 6 步拆成 6a（用户取消 → 立即消失）/ 6b（送达后退款 → <b>必须走到「已退款」</b>才消失），
+  并写明「停在『退款中』不算，继续走完审批」。
+</div>
+
+<div class="warn">
+  <div class="t">建议三（判据精度）：唯一的停测判据，在界面上其实区分不了新旧版本</div>
+  v1.4 把停测判据收敛成一条 ——「未送达时不显示盲盒内容」。方向对，但这条在<b>界面上验不出来版本</b>：
+  旧前端自己也按 state 判过，界面上<b>同样</b>显示「待揭晓 · 送达后揭晓惊喜内容」占位行。
+  两者长得一模一样 ⇒ 测到旧代码也不会被发现，<b>停测判据等于失效</b>。<br>
+  真正能区分新旧版本的只有<b>第 5 步抓包</b>：旧版无条件下发（送达前就有值），新版是 <code>null</code>。<br>
+  <b>改法：</b>把停测判据换成「第 5 步抓 <code>blindBoxName</code> 应为 <code>null</code>」，
+  并补一句 H5 上的抓法（F12 → Network → 点订单详情那条请求 → Response 里搜 blindBoxName）。
+  第 2、3 步的界面表现仍要验，但不承担「判断版本」的职责。
+</div>
+
+<h2>五、知悉即可（不必改）</h2>
+<div class="card">
+  <p><b>1. 该环境处于 mock 逃逸形态，请确认这份文档的发放范围。</b><br>
+  实读 health：<code>providerMode:"mock"</code> + <code>mockEscaped:true</code>。
+  按 <code>prod-mock-gate.ts:6-14</code> 的自述，这意味着「<b>任意 code 免密登录任意身份</b>」以及
+  <code>/pay/mock/paid</code> 免鉴权改支付状态。测试环境这样做没问题，
+  但同一份文档里写着 <b>8080 管理后台地址</b>，建议确认外发对象，别连后台一起放出去。</p>
+  <p><b>2. 一处注释漂移（不影响测试，会误导排查的人）。</b><br>
+  <code>App.vue:44</code> 注释写「<code>?devCode=1002</code> → openid <code>mock_openid_1002</code>」，
+  而实现实际输出的是 <code>dev:1002</code>（<code>dev-identity.ts:47</code>），服务端也是按
+  <code>/^dev:(.+)$/</code> 认的。我这次就差点照这条过时的注释去找证据、反过来误判 H5 是旧包。</p>
+</div>
+
+<h2>六、给技术人员的一句话</h2>
+<div class="ok">
+  <b>上轮四项全部改到位，新增的终态修复三节链路都对得上，实测您可以放心。</b>
+  剩下三条都不是代码问题，是<b>测试组织与判据措辞</b>问题：多人同用一个 devCode 会互相踩（已经触发限流了）、
+  「退款中」这个中间态会让第 6 步被误报、停测判据要换到抓包那条才能真正分辨版本。
+  改完这三处，这份文档就可以直接发出去了。
+</div>
+
+<footer>
+  ABox 一盒 · 测试说明 v1.4 复核意见 · 2026-10-27 · 基线 main @ fad970d<br>
+  复核方式：回源码逐条核 ＋ jest 实跑（73/73）＋ 依赖容器检查（202 处）＋ 直连服务器取真实响应实证。<br>
+  本报告所有结论均可复现；如与实现不符请以代码为准并反馈。
+</footer>
+
+</div>
+</body>
+</html>

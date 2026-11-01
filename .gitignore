@@ -1,0 +1,41 @@
+# ═══════════════════════════════════════════════════════════
+# ABox 一盒 · 工作区根仓（文档真源 / 脚本 / 留痕）
+# 建仓：2026-11-01
+# ═══════════════════════════════════════════════════════════
+
+# ── 空壳 .git 备份（建仓时留下的零 commit 目录，仅本地留档）──
+/.git-empty-shell-bak-*/
+
+# ── 临时目录：整体忽略，仅保留知识助手生成链 _tmp/kb/ ──
+# _tmp 下 622MB 全是临时环境（k7-git 249MB / qa-env 173MB / icons 86MB）
+/_tmp/*
+!/_tmp/kb/
+
+# _tmp/kb 只留生成链脚本（scan.py / build2.py / audit.py 等）
+# out/ 是产物：corpus.json 5.4MB、audit.json 等，重跑脚本即再生，不入库
+/_tmp/kb/out/
+/_tmp/kb/__pycache__/
+
+# ── 构建产物备份（_tmp-admin-dist-bak3 等，可由构建再生）──
+/_tmp-*-bak*/
+/_stale-build/
+
+# ── 可再生大件 ──
+# generated-images：AI 出图 35MB，提示词在留痕里，可重生成
+# _shots：页面截图 1.5MB
+/generated-images/
+/_shots/
+
+# ── Python ──
+__pycache__/
+*.pyc
+*.pyo
+
+# ── Node ──
+node_modules/
+
+# ── 日志与系统文件 ──
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini

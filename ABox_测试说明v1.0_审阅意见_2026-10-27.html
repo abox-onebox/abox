@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox · 测试说明 v1.0 审阅意见</title>
+<style>
+  :root{
+    --brown:#6E5435; --brown-d:#4a3a22; --cream:#F6F0E5; --cream-2:#efe6d6;
+    --line:#d9cbb4; --ok:#3f7d4f; --part:#b07d2b; --gap:#b23b3b; --na:#7a7a7a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"楷体","KaiTi","STKaiti",simkai,serif;color:var(--brown-d);background:var(--cream);line-height:1.7;}
+  header{background:var(--brown);color:var(--cream);padding:22px 28px;}
+  header h1{margin:0 0 4px;font-size:23px;letter-spacing:2px;}
+  header p{margin:0;font-size:13.5px;opacity:.92;}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px 22px 60px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13.5px;}
+  .card h3{margin:0 0 10px;color:var(--brown);font-size:15px;}
+  .card h4{margin:14px 0 6px;color:var(--brown);font-size:13.5px;}
+  table{width:100%;border-collapse:collapse;font-size:12.8px;margin:10px 0;}
+  table th,table td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
+  table th{background:var(--cream-2);color:var(--brown);}
+  .v-ok{color:var(--ok);font-weight:bold;}
+  .v-part{color:var(--part);font-weight:bold;}
+  .v-gap{color:var(--gap);font-weight:bold;}
+  .code{font-family:Consolas,Monaco,monospace;font-size:11.8px;background:var(--cream-2);padding:1px 5px;border-radius:3px;color:#5a4326;word-break:break-all;}
+  .alert{background:#fceaea;border-left:4px solid var(--gap);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .warn{background:#fbf3e3;border-left:4px solid var(--part);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .good{background:#eaf3e8;border-left:4px solid var(--ok);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  ul{margin:6px 0 6px 18px;padding:0;}
+  li{margin:3px 0;}
+  .kpi{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0;}
+  .kpi div{flex:1;min-width:150px;background:var(--cream-2);border:1px solid var(--line);border-radius:8px;padding:10px 14px;text-align:center;}
+  .kpi b{display:block;font-size:19px;color:var(--brown);}
+  .kpi span{font-size:12px;color:var(--na);}
+  pre{background:var(--cream-2);border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-family:Consolas,Monaco,monospace;font-size:11.6px;overflow-x:auto;line-height:1.6;white-space:pre-wrap;}
+  footer{font-size:12px;color:var(--na);text-align:center;margin-top:30px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>《本次变更测试说明 v1.0》审阅意见</h1>
+  <p>2026-10-27 ｜ 审阅方式：回源码 + 实跑 <span class="code">decideSuspend</span> 取真实错误码 ｜ 基线 main @ <span class="code">0ed7e6f</span></p>
+</header>
+
+<div class="wrap">
+
+  <div class="kpi">
+    <div><b>34/34</b><span>本次相关单测实跑全绿（EXIT=0）</span></div>
+    <div><b>6</b><span>建议必修项（2 项会让整队判错）</span></div>
+    <div><b>2</b><span>实证打脸的文档预期（有运行输出）</span></div>
+    <div><b>1</b><span>最大遗漏：修复本体没让测</span></div>
+  </div>
+
+  <div class="card">
+    <h3>一、总体判断</h3>
+    <p><b>这份文档的工程水准高于常见的「差不多能测」水平</b>——第零节三条口径打底、错误码表 13 码齐全、第六节预先划出「不用报」的边界、第七节要求反馈带 <span class="code">code</span> 而不是只截提示语，都是懂行的人才会写的。</p>
+    <p>但它有一个<b>结构性风险</b>：<span class="code">3.2</span> 的步骤描述与代码的<b>求值顺序不一致</b>，且关键参数（停售日期区间、<span class="code">forceSuspend</span>、停用阈值）都没交代。后果不是「测漏了」，而是<b>测试队伍会集体把正常实现判成缺陷</b>，或者反过来。</p>
+    <div class="alert">
+      <b>最严重的一条：本次修复的核心没有被安排验收。</b><br>
+      本次提交 <span class="code">6b37218</span> 修的是 N1（<b>停用楼也拦不住下单</b>），我回源确认这次确实修好了（见第三节）。<br>
+      但错误码表列了 <span class="code">60010</span>（楼已停用不可下单）/ <span class="code">60011</span>（楼未归群），<b>第三节却没有一条步骤去验它们</b> —— 等于把这次最重要的修复，晾在了验收范围之外。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>二、必修清单（按严重度）</h3>
+    <table>
+      <tr><th style="width:5%">#</th><th style="width:15%">位置</th><th style="width:11%">级别</th><th>问题 · 建议改法</th></tr>
+      <tr>
+        <td>1</td><td>3.2 全节 / 五</td><td class="v-gap">必修</td>
+        <td>
+          <b>求值顺序没交代 ⇒ 四步里两步会判错。</b><br>
+          代码 <span class="code">suspend-gate.ts:110-116</span> 是全序：<b>A 组（已履约）&gt;0 → 60013</b>（最高优先）→ N=0 放行 → N&gt;阈值 → 60012 → 其余未 force → 60006/60007。<br>
+          ⚠️ 文档第 1 步写「有未完结订单 → 60006/60007」<b>只在订单都还没截单时成立</b>；只要有一笔进了履约阶段，拿到的是 <b>60013</b>。<br>
+          <b>改法</b>：把第 1 步改成「<b>造 1~2 笔未截单的订单</b>（待支付/已支付/退款中），停楼 → 60006」；并把第 3 步提到最前面，注明「这是优先级最高的一票否决」。
+        </td>
+      </tr>
+      <tr>
+        <td>2</td><td>3.2 第 2 步</td><td class="v-gap">必修</td>
+        <td>
+          <b>阈值没给 ⇒ 这一步造不出来。</b>阈值是配置 <span class="code">building.suspend_force_max_count</span>，<b>默认 20</b>（<span class="code">biz-config.service.ts:182-184</span>，后台配置页已上架）。<br>
+          <b>改法</b>：写明「默认 20；为便于构造，可临时在后台把该值调到 2」，并注明<b>必须全是未截单订单</b>——混进一笔已履约的就会被引到 60013。
+        </td>
+      </tr>
+      <tr>
+        <td>3</td><td>3.2 全节</td><td class="v-gap">必修</td>
+        <td>
+          <b>完全没提 <span class="code">forceSuspend</span>（强制停用）。</b>这是运营的逃生舱：<b>1 ≤ N ≤ 阈值时勾上它，停用会被放行</b>（<span class="code">allow_forced</span>，带审计+通知）。<br>
+          这是会真放行的分支，零覆盖。建议补一条：「在 1 ≤ N ≤ 阈值时勾选强制停用 → 应成功，且操作日志有记录」。
+        </td>
+      </tr>
+      <tr>
+        <td>4</td><td>3.1 第 1 步</td><td class="v-gap">必修</td>
+        <td>
+          <b>停售不是「即时开关」，是「按出餐日的区间」</b>，而文档只说「填原因并提交」，<b>没说要填起止日期</b>。<br>
+          后果很直接：测试人员停在<b>明天</b>，今天照常能下单，会立刻判成「停售无效」。代码是 <span class="code">mealDateFrom / mealDateTo 两端含首尾</span>。<br>
+          <b>改法</b>：步骤写成「填起止日期（含首尾，同一天=只停一天）+ 原因」，并加一句「<b>若停的是未来某天，当天仍可下单，属正常</b>」。
+        </td>
+      </tr>
+      <tr>
+        <td>5</td><td>五 / 第三节</td><td class="v-part">强烈建议</td>
+        <td>
+          <b>补 60010 / 60011 的验收步骤</b>（见下节第 3 条这是本次修复本体）。<br>
+          建议新增 3.7 节，手写「后台停用 A 楼 → 该楼用户下单 → 报 60010」「楼未归群 → 报 60011」。
+        </td>
+      </tr>
+      <tr>
+        <td>6</td><td>3.3</td><td class="v-part">强烈建议</td>
+        <td>
+          <b>「送达前不泄露」只验 UI，拦不住真泄露。</b>服务端 <span class="code">order.service.ts:540</span> 是 <span class="code">blindBoxName: order.blindBoxName ?? null</span> —— <b>无条件下发，没有按状态遮蔽</b>，「没泄露」完全靠小程序端不显示。<br>
+          这意味着任何人抓一次响应体就能提前知道内容（隐藏 ≠ 拦住）。<br>
+          <b>改法</b>：加一条「用任何抓包方式看订单详情响应体，送达前 <span class="code">blindBoxName</span> 应为 null」。<b>若确实要求保密，应由服务端在 DELIVERED 前不出参</b>——这条要不要改，请您拍板。
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>三、实证：按文档步骤，代码实际给什么码</h3>
+    <p>我没有靠推断。写了一个临时探针直接调 <span class="code">decideSuspend</span> 真跑（跑完已删除，工作区干净），输出如下：</p>
+    <pre>阈值=20，scope=building
+[订单状态=paid（未截单）]        total=1  A组=0  ⇒ 60006        ← 文档预期成立
+[订单状态=refunding（未截单）]   total=1  A组=0  ⇒ 60006        ← 成立
+[订单状态=cut_off（已履约）]     total=1  A组=1  ⇒ 60013  ⚠ 文档写的是 60006
+[订单状态=delivered（已履约）]   total=1  A组=1  ⇒ 60013  ⚠ 同上
+[21笔，全未截单]                total=21 A组=0  ⇒ 60012        ← 成立
+[21笔，含1笔已履约]             total=21 A组=1  ⇒ 60013  ⚠ 文档写的是 60012
+[5笔未截单 + force=true]        total=5  A组=0  ⇒ 放行(allow_forced)  ⚠ 文档零覆盖
+[无未完结订单]                  total=0        ⇒ 放行</pre>
+    <div class="warn">
+      一句话结论：<b>「楼里有订单」不等于会报 60006。判据是订单处在「未截单」还是「已履约」，而不是有没有订单。</b>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>四、我验过、确认没问题的部分（可以放心）</h3>
+    <table>
+      <tr><th style="width:22%">文档说</th><th style="width:12%">结论</th><th>回源证据</th></tr>
+      <tr><td>3.4 退券三路径齐全，<b>驳回不退</b></td><td class="v-ok">属实</td><td><span class="code">releaseForOrder</span> 三处：<span class="code">order.service.ts:680</span>（用户取消）· <span class="code">:863</span>（截单兜底）· <span class="code">refund.service.ts:798</span>，后者宿主是 <span class="code">settleRefundDb</span>（<b>审批通过</b>，非建单也非驳回）—— 与文档第 5 步预期一致</td></tr>
+      <tr><td>13 个错误码</td><td class="v-ok">全部登记</td><td><span class="code">error-code.ts:497-550</span>，60001–60013 一号不差</td></tr>
+      <tr><td>operator 只能看不能操作</td><td class="v-ok">属实</td><td><span class="code">sales-pause.controller.ts:46/62/75</span>：类级放开三角色可读，两个写端点收窄 super_admin/admin</td></tr>
+      <tr><td>N1 停用能拦下单</td><td class="v-ok">已修复</td><td><span class="code">orderability.ts:82-92</span> 按 <span class="code">buildingStatus / buildingGroupStatus</span> 全序判定，不再是「只看有没有排菜」</td></tr>
+      <tr><td>停售立刻生效</td><td class="v-ok">属实</td><td><span class="code">sales-pause.service.ts:35-40</span> 刻意不引缓存，绕开 <span class="code">BizConfigService</span> 的 60 秒缓存</td></tr>
+      <tr><td>本次相关单测</td><td class="v-ok">34/34 绿</td><td>实跑 <span class="code">suspend-gate</span> / <span class="code">sales-pause.service</span> / <span class="code">orderability</span> 三套，EXIT=0</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>五、建议直接补进去的用例（可整段贴）</h3>
+    <h4>补 3.7 · 停用后能否下单（本次修复本体，原文档缺失）</h4>
+    <pre>1. 后台停用办公楼 A
+2. 用 A 楼的用户账号下单 → 应被拦，报 60010（「该办公楼已暂停服务」）
+3. 恢复 A 楼 → 同用户可正常下单
+4. 造一栋「未配置楼群」的楼，用其用户下单 → 应报 60011
+5. 用 operator 账号调「创建停售」接口 → 应被拒（权限收窄，正向用例）</pre>
+    <h4>补 3.1 · 停售的两个低成本反向用例</h4>
+    <pre>6. 起始日晚于截止日 → 应报错（10001），且后台不应显示成功
+7. 对已恢复的区间再点一次「恢复」→ 应提示已恢复、无需重复操作（不应静默成功）</pre>
+    <h4>补 3.2 · 改写的四步</h4>
+    <pre>1'. 楼里有 1~2 笔「未截单」订单（待支付/已支付/退款中）→ 停用 → 60006
+2'. 楼里有 1 笔「已履约」订单（已截单及之后）→ 停用 → 60013（最高优先，force 也无效）
+3'. 后台把「building.suspend_force_max_count」临时调成 2（默认 20），造 3 笔未截单订单 → 停用 → 60012
+4'. 同上 1~2 笔未截单订单时「勾选强制停用」→ 应放行成功，且操作日志有记录</pre>
+  </div>
+
+  <div class="card">
+    <h3>六、另案处理（不要混进本次测试反馈）</h3>
+    <div class="warn">
+      <b>①「一楼大堂」自提口径遗留</b>：<span class="code">order.service.ts:559</span> 订单详情出参 <span class="code">pickup.point = 楼名 + " 1 楼大堂"</span>，与您定的「严禁自提字样、统一『团长送到你工位』」冲突。<br>
+      已 <span class="code">git blame</span> 确认：这是 <b>2026-09-15 的 M1 提交</b>引入的，<b>不是这次改动</b>，但属于口径红线。建议单独开一张卡处理，别算在本次回归里。
+    </div>
+    <div class="warn">
+      <b>② 一键停售的范围比原定 D2 小</b>：您先前拍板的一键停售是「拦新单 + 通知已下单用户 + 自动退款退券」三步。本次实现明确写了「<b>刻意不做</b>批量取消/退款，存量订单不受影响」（<span class="code">sales-pause.controller.ts:30-33</span>，依据 spec §7.6 第 5 条）。<br>
+      代码与文档是一致的，不是 bug —— 但要请您确认：<b>是有意的一期范围，还是漏了后面两步</b>。
+    </div>
+  </div>
+
+  <footer>
+    ABox 一盒 · 测试说明 v1.0 审阅意见 ｜ 2026-10-27 ｜ 每条结论均可按「文件:行」回源；2 处硬发现附带真跑输出
+  </footer>
+
+</div>
+</body>
+</html>

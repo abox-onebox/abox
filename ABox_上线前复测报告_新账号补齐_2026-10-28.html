@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 上线前复测报告 · 新账号补齐（2026-10-28）</title>
+<style>
+  :root{
+    --cream:#F6F0E5; --brown:#6E5435; --ink:#2E2822; --line:#D9CDB8;
+    --ok:#3B6B4B; --warn:#8A6A1F; --bad:#9B3226; --muted:#7A6E5E;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:36px 20px 60px; background:var(--cream); color:var(--ink);
+    font-family:"Kaiti SC","KaiTi","STKaiti",simkai,"Songti SC",serif;
+    line-height:1.75; font-size:16px;
+  }
+  .wrap{max-width:1000px;margin:0 auto}
+  header{border-bottom:2px solid var(--brown);padding-bottom:18px;margin-bottom:28px}
+  h1{font-size:27px;margin:0 0 8px;color:var(--brown);letter-spacing:1px}
+  .sub{font-size:14px;color:var(--muted)}
+  h2{font-size:20px;color:var(--brown);margin:34px 0 12px;padding-left:11px;border-left:4px solid var(--brown)}
+  h3{font-size:17px;color:var(--brown);margin:22px 0 8px}
+  p{margin:9px 0}
+  table{width:100%;border-collapse:collapse;margin:12px 0 18px;font-size:14.5px;background:#FFFDF8}
+  th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+  th{background:#EFE6D4;color:var(--brown);font-weight:600;white-space:nowrap}
+  td.num{text-align:center;white-space:nowrap}
+  .tag{display:inline-block;padding:1px 8px;border-radius:3px;font-size:12.5px;color:#fff}
+  .t-ok{background:var(--ok)} .t-warn{background:var(--warn)} .t-bad{background:var(--bad)} .t-mut{background:var(--muted)}
+  .box{border:1px solid var(--line);border-left:4px solid var(--brown);background:#FFFDF8;padding:14px 16px;margin:16px 0}
+  .box.bad{border-left-color:var(--bad)} .box.ok{border-left-color:var(--ok)} .box.warn{border-left-color:var(--warn)}
+  .box h3{margin-top:0}
+  code{font-family:Consolas,Menlo,monospace;background:#EFE6D4;padding:1px 5px;border-radius:3px;font-size:13.5px}
+  pre{background:#EFE6D4;padding:11px 13px;overflow-x:auto;font-size:13px;line-height:1.6;border-radius:4px;
+      font-family:Consolas,Menlo,monospace}
+  .kv{font-size:14px;color:var(--muted)}
+  ul,ol{margin:8px 0 8px 22px;padding:0}
+  li{margin:5px 0}
+  .foot{margin-top:40px;border-top:1px solid var(--line);padding-top:14px;font-size:13px;color:var(--muted)}
+  .lead{font-size:16.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>ABox 上线前复测报告 · 新账号补齐</h1>
+  <div class="sub">测试时间：2026-10-28 18:26 – 18:55（北京时间）　·　测试人：AI 测试（微信小程序测试专家）<br>
+  账号：admin（super_admin，menus = *）　·　被测：线上 154.8.164.180（8080 后台 / 8081 H5）+ 本地仓库门禁</div>
+</header>
+
+<p class="lead"><strong>结论先行：仍不建议明早直接上线。</strong>
+上一轮标记的 3 项阻断<strong>一项都没修复</strong>（8081 闸门 / 门禁未清 / 事故根因未提交未部署）。
+本轮用新账号补齐了昨天因口令失效没测到的后台动作，<strong>功能侧基本全通</strong>，
+但新查出 <strong>8 项问题</strong>，其中 <strong>3 项会在明早真实用户面前直接暴露</strong>（小程序打不开、商品图空白、团长提不到钱）。</p>
+
+<h2>一、上一轮 3 项阻断：复查结果</h2>
+
+<table>
+<tr><th style="width:30%">阻断项</th><th style="width:12%">上轮</th><th style="width:12%">本轮</th><th>实测证据</th></tr>
+<tr>
+  <td><strong>B1 · 8081 Cookie 闸门挡住 <code>/api/</code></strong><br><span class="kv">小程序整端不可用</span></td>
+  <td class="num"><span class="tag t-bad">阻断</span></td>
+  <td class="num"><span class="tag t-bad">未修</span></td>
+  <td><code>GET 8081/api/v1/home/today</code> → HTTP 401（nginx 原生页）。<br>
+      根因：<code>apps/miniprogram/nginx.conf:113-115</code> 的闸门写成 <strong>server 级</strong> <code>if ($abox_gate_pass = 0) { return 401; }</code>，
+      覆盖全端口所有 location，<code>/api/</code> 与 <code>/static/</code> 一并被挡。</td>
+</tr>
+<tr>
+  <td><strong>B2 · 门禁未清</strong></td>
+  <td class="num"><span class="tag t-bad">阻断</span></td>
+  <td class="num"><span class="tag t-bad">未修</span></td>
+  <td><code>gate all</code> = <strong>30/31</strong>（失败：<code>format</code>）；<code>gate verify</code> = <strong>4/6</strong>（失败：<code>e2e:m3</code>、<code>e2e:coupon-blindbox</code>）。与昨天完全一致。</td>
+</tr>
+<tr>
+  <td><strong>B3 · 事故根因修复未提交未部署</strong></td>
+  <td class="num"><span class="tag t-bad">阻断</span></td>
+  <td class="num"><span class="tag t-bad">未部署</span></td>
+  <td>仓库分支 <code>ops/guardrails-20261027</code>，<strong>5 改 + 2 新文件零提交</strong>。<br>
+      线上实测：<code>GET 8080/api/v1/health</code> 带非法体 → 仍返 <strong>code 10001</strong>（应照新策略忽略体）。</td>
+</tr>
+</table>
+
+<div class="box ok">
+<h3>B3 的好消息：技术改对了，只是没提交</h3>
+<p>回源看了这轮改动的 diff，方向<strong>完全正确</strong>，是本轮唯一实质进展：</p>
+<ul>
+<li><code>apps/api-server/src/main.ts</code>：<code>NestFactory.create(..., { rawBody: true, <strong>bodyParser: false</strong> })</code> —— 关掉 Nest 默认解析器，改由新中间件接管（默认解析器挂在 <code>configure()</code> <strong>之前</strong>，业务层拿不到更靠前的位置，只能从源头接管）。</li>
+<li>新增 <code>common/http/request-body.policy.ts</code> + <code>common/middleware/request-body.middleware.ts</code> + <code>test/unit/request-body.spec.ts</code>（单测随本次 <strong>189/189</strong> 全过）。</li>
+<li><code>apps/miniprogram/src/api/request.ts</code>：GET / HEAD / OPTIONS 一律 <code>data: undefined</code>，端上掐掉源头；顺带修了 2 条 TS2367（方法联合类型缺 HEAD/OPTIONS）。</li>
+</ul>
+<p class="kv">⇒ 差的就是「提交 + 部署」这一步。</p>
+</div>
+
+<h2>二、本轮补齐的后台动作（昨天因口令失效未测）</h2>
+
+<table>
+<tr><th style="width:22%">测试项</th><th style="width:10%">结果</th><th>实测过程与判据</th></tr>
+<tr><td>后台登录</td><td class="num"><span class="tag t-ok">通过</span></td><td><code>POST /auth/admin-login</code> → 201，role=super_admin，menus=<code>["*"]</code>，<code>mustChangePassword=0</code>。</td></tr>
+<tr><td>一键停售 + 恢复</td><td class="num"><span class="tag t-ok">通过</span></td><td>建区间（用<strong>未来日期 11-30</strong>避免影响今日下单）→ 201，createdAt 正确、中文原因往返无损；<code>resume</code> → 201；<strong>重复 resume 已恢复区间 → 10001「无需重复操作」</strong>（幂等保护到位）。全表复核：无遗留生效区间。</td></tr>
+<tr><td>下单主流程</td><td class="num"><span class="tag t-ok">通过</span></td><td><code>POST /orders</code>（明日 10-29 · 1 份）→ <code>AB2026102846824285</code>，¥25.80，<code>pending_pay</code>；<code>POST /orders/:no/pay</code> → prepay；2.5s 后 <code>pay-result</code> → <strong>paid</strong>。</td></tr>
+<tr><td>支付幂等</td><td class="num"><span class="tag t-ok">通过</span></td><td>同一 <code>Idempotency-Key</code> 重放 → <strong>10006 + 首次结果</strong>（未重复扣款）。端点缺幂等头 → 10001（契约要求，端上已在 request 层统一注入）。</td></tr>
+<tr><td>退款申请 → 审批</td><td class="num"><span class="tag t-ok">通过</span></td><td>团长代退 → <code>applying</code> 且 <strong>fundsMoved=false</strong>（资金零变动）；后台审批通过 → <code>refunded</code>，<code>wxRefundedFen=2580</code>，auditorId 留痕；订单转终态，<strong>盲盒占位正确移除</strong>（<code>blindBoxPending=false</code>）。冲销逻辑正确：未计佣则无冲销。</td></tr>
+<tr><td>停用团长拦单</td><td class="num"><span class="tag t-ok">通过</span></td><td>停前下单成功 → <code>suspend</code>（status 置 2）→ 下单被拦 → <code>restore</code>（status 置 1，<strong>未重置等级</strong>）→ 下单恢复成功。</td></tr>
+<tr><td>提现金额地板</td><td class="num"><span class="tag t-ok">通过</span></td><td>0.001 元 / -5 元 → 10001「提现金额需大于 0」（D3 地板 0.01 生效）。</td></tr>
+</table>
+
+<div class="box warn">
+<h3>一处口径差异（非缺陷，但要知会）</h3>
+<p>停用团长后下单返回的是 <strong>30007「未绑定团长，请通过团长邀请链接进入」</strong>，不是预期里的 60010。</p>
+<p>原因：<code>suspend</code> 会<strong>清掉用户归属团长</strong>（<code>user.team_leader_id</code>），用户因此落到「未绑定团长」分支，而非「团长已停用」分支。功能上拦住了，但<strong>文案对老用户不友好</strong>——昨天还下过单的人，今天突然被要求"通过邀请链接进入"。</p>
+<p class="kv">建议：停用属例外处置（违规），频率低。若要改，应在「用户曾有归属团长但团长已停用」时给单独文案；可列为上线后优化项，不阻断。</p>
+</div>
+
+<h2>三、本轮新查出的问题（8 项）</h2>
+
+<table>
+<tr><th style="width:5%">#</th><th style="width:24%">问题</th><th style="width:10%">等级</th><th>说明与证据</th></tr>
+<tr>
+  <td class="num">N1</td><td><strong>商品图片全部 401</strong></td><td class="num"><span class="tag t-bad">P0</span></td>
+  <td><code>home/daily</code> 的 <code>imageUrl</code> 全部指向 <strong>8081</strong>（如 <code>/static/snack-03-liangpinpuzi.png</code>）。实测：8081 → <strong>401</strong>；8080 → 200 image/png。<br>
+      ⇒ 小程序里套餐图、菜品图<strong>一张都加载不出来</strong>。这是 B1 的连带伤害，修 B1 即一并解决。</td>
+</tr>
+<tr>
+  <td class="num">N2</td><td><strong>团长提不到钱（余额全为 0）</strong></td><td class="num"><span class="tag t-bad">P0</span></td>
+  <td>后台名录显示李明累计佣金 <code>totalCommissionFen=57586</code>（¥575.86），但团长端 <strong>balanceFen=0 / 本月 earnedFen=0 / 余额流水 0 笔</strong>，五个团长全为 0。<br>
+      ⇒ 佣金<strong>从未结算入账</strong>。<code>commission.settle_hour=02:00</code>、<code>auto_confirm_time=14:00</code> 的跑批是否真的跑过，无法从接口判定。<br>
+      ⇒ 上线后团长看到"有佣金却提不出"，是<strong>信任事故</strong>。建议在测服完整跑一次：下单→出餐→送达→确认→佣金入账→提现。</td>
+</tr>
+<tr>
+  <td class="num">N3</td><td>提现被「未绑卡」卡死</td><td class="num"><span class="tag t-warn">P1</span></td>
+  <td>任何金额提现均返回 <strong>40007「请先在团长资料中绑定收款方式」</strong>，且该校验<strong>早于余额校验</strong>。<code>payoutChannel=FLEX_MANUAL</code>（灵活用工代发）确需收款账号，逻辑合理。<br>
+      ⇒ 但<strong>上线前必须确认团长绑卡入口可用且已走通一次</strong>，否则第一个团长提现就卡在这里。</td>
+</tr>
+<tr>
+  <td class="num">N4</td><td>D3 两个新配置项线上「没登记」</td><td class="num"><span class="tag t-warn">P1</span></td>
+  <td><code>commission.withdraw_daily_limit</code> / <code>commission.withdraw_daily_count</code> 状态为 <strong><code>src=fallback</code>、value 空白、updatedAt=null</strong> —— 即 <code>ab_config</code> 表里<strong>没有这两行</strong>，全靠代码默认值（2000 / 1）兜底。<br>
+      ⇒ 后果：后台配置页<strong>显示空白</strong>，运营以为没配、想改也改不了；且单测日志明确告警「缺键…回落缺省…它会在任何人看不到的时候悄悄等于缺省值」。<br>
+      ⇒ 修法：在后台系统配置页显式写入 2000 / 1 并确认生效（改后需 invalidate）。</td>
+</tr>
+<tr>
+  <td class="num">N5</td><td>非法日期脏数据 <code>2026-10-27</code></td><td class="num"><span class="tag t-warn">P2</span></td>
+  <td>昨天 <code>pm_admin</code> 创建的停售记录与退款记录，<code>createdAt/resumedAt/refundedAt</code> 全部是 <strong><code>2026-10-27</code></strong>（7 月 32 日，不存在）。<br>
+      <strong>已定性：不是当前代码缺陷</strong> —— 本轮新建记录的 <code>createdAt</code> 为 <code>2026-10-28T10:33:45Z</code>（正确），<code>admin.lastLoginAt</code> 亦正确；仅历史数据脏。<br>
+      ⇒ 建议上线前清理这几行测试脏数据，否则后台列表会显示莫名其妙的日期。</td>
+</tr>
+<tr>
+  <td class="num">N6</td><td>后台账号名乱码</td><td class="num"><span class="tag t-mut">P2</span></td>
+  <td><code>pm_admin</code> 的 <code>name</code> 返回 <code>æµ‹è¯•ç®¡ç†å‘˜</code>（"测试管理员"被双重编码）。其余种子账号中文正常，说明是<strong>该条记录写入时连接字符集不对</strong>。低危，但后台页面会显示乱码。</td>
+</tr>
+<tr>
+  <td class="num">N7</td><td>后台账号仍是种子明文口令</td><td class="num"><span class="tag t-bad">P0</span></td>
+  <td>e2e 日志反复告警：<code>后台账号 admin 仍是种子明文口令（dev_plain:），上线前必须改为 scrypt 哈希</code>（<code>AuthService</code> 主动打的错误级日志）。<br>
+      且本次登录 <code>mustChangePassword=0</code>，无强制改密。<br>
+      ⇒ <strong>上线前必须把 admin / sanweiwu / finance 三个后台账号改成强口令 + scrypt 哈希</strong>。后台是能停售、能退款审批、能改配置的最高权限入口。</td>
+</tr>
+<tr>
+  <td class="num">N8</td><td>接口文档文案与 D3 定稿不符</td><td class="num"><span class="tag t-mut">P2</span></td>
+  <td>提现接口摘要仍写 <strong>「L12 提现申请（≥ ¥10.00，走灵活用工代发）」</strong>，而 D3 已定稿<strong>起提金额不限</strong>（线上 <code>min_withdraw=0.00</code> 已生效，<code>minWithdrawFen=0</code> 实测确认）。<br>
+      ⇒ 文案会误导技术与运营。顺手改。</td>
+</tr>
+</table>
+
+<h2>四、静态门禁：本轮实跑结果</h2>
+
+<table>
+<tr><th style="width:26%">项目</th><th style="width:14%">结果</th><th>明细</th></tr>
+<tr><td>后端单测（jest）</td><td class="num"><span class="tag t-ok">189/189</span></td><td>20 个套件全过，含新增 <code>request-body.spec.ts</code>；含「生产环境拒绝 /pay/mock/paid」的反向用例。</td></tr>
+<tr><td><code>gate all</code></td><td class="num"><span class="tag t-bad">30/31</span></td><td>失败：<strong>format</strong>。其余 30 道全绿（shared:types / lint / typecheck api·admin·mp / schema:parity / index:parity / state:audit / errcode:message / security:scan / nav:consistency / doc:tables / gate:parity / icons:lock / order:edges / design:spec / build api·admin·mp / mp:no-font / mp:ux-terms）。</td></tr>
+<tr><td><code>gate verify</code></td><td class="num"><span class="tag t-bad">4/6</span></td><td>失败：<strong>e2e:m3</strong>（1351 条中 24 条）、<strong>e2e:coupon-blindbox</strong>（30 条中 1 条）。</td></tr>
+</table>
+
+<h3>三处失败的可操作修法（已定位到行）</h3>
+
+<div class="box">
+<p><strong>① format（1 分钟可修）</strong> —— 只有两个新文件没跑 Prettier：</p>
+<pre>[warn] apps/api-server/src/common/http/request-body.policy.ts
+[warn] apps/api-server/test/unit/request-body.spec.ts</pre>
+<p>执行：<code>npx prettier --write apps/api-server/src/common/http/request-body.policy.ts apps/api-server/test/unit/request-body.spec.ts</code></p>
+</div>
+
+<div class="box">
+<p><strong>② e2e:m3 —— 用例过时，不是代码缺陷</strong>（<code>scripts/e2e-m3.mjs:724</code>）</p>
+<p>断言文案：<code>D52 operator 菜单 = 运营菜单去掉 /system/*，仅保留刻意放行的 /system/queue</code><br>
+而 <code>common/constants/admin-role.ts:153</code> 现在是：<code>OPERATOR_EXTRA_MENUS = ['/system/queue', <strong>'/system/sales-pause'</strong>]</code></p>
+<p>sales-pause 是<strong>刻意</strong>放行给 operator 的（一线客服要能回答用户"为什么订不了"）。<br>
+⇒ 修法：把该断言的期望改成「放行 queue 与 sales-pause 两项」。</p>
+</div>
+
+<div class="box">
+<p><strong>③ e2e:coupon-blindbox —— 用例断言写错</strong>（<code>scripts/e2e-coupon-blindbox.mjs:205</code>）</p>
+<pre>const bb = detail?.blindBoxName;
+assert(!!bb &amp;&amp; DEFAULT_BLIND_BOX_POOL.includes(bb), 'X盲盒·落库且为内容池成员', ...)</pre>
+<p>但按遮蔽口径，<strong>未送达时 <code>blindBoxName</code> 必须为 null</strong>（送达后才揭晓）。该用例在<strong>未送达</strong>状态下断言"名字已落库且属于内容池"，与真源 <code>blind-box.ts::blindBoxView()</code> 相反。<br>
+⇒ 修法：此处改判 <code>blindBoxPending === true &amp;&amp; blindBoxName === null</code>；内容池校验移到"送达后"那一步。</p>
+</div>
+
+<h2>五、B1 的修复方案（二选一，建议 A）</h2>
+
+<div class="box bad">
+<h3>方案 A · 修 nginx（推荐，治本）</h3>
+<p>把闸门生效点从 <strong>server 级</strong> 挪进 <code>location /</code>，让 <code>/api/</code> 与 <code>/static/</code> 不再受它管辖（安全性仍由 JWT 保证）：</p>
+<ol>
+<li>删除 <code>apps/miniprogram/nginx.conf</code> 第 <strong>113–115</strong> 行：<br><code>if ($abox_gate_pass = 0) { return 401; }</code></li>
+<li>在 <code>location /</code> 块（第 <strong>220–231</strong> 行）内，<code>if ($abox_gate_grant = 1)</code> 之后、<code>try_files</code> 之前，补一句：<br><code>if ($abox_gate_pass = 0) { return 401; }</code></li>
+</ol>
+<p class="kv">副作用核对：<code>location ~* ^/api/v1/pay/mock/paid</code> 是<strong>正则</strong> location，优先级高于前缀 <code>location /</code>，因此 mock/paid 的 404 拦截<strong>不受影响</strong>（反而更干净——原先 401 盖住了 404，等于告诉探测者"这里有东西"）。</p>
+</div>
+
+<div class="box warn">
+<h3>方案 B · 改小程序基址（止血快，但有尾巴）</h3>
+<p>把小程序 <code>apiBaseUrl</code> 从 8081 改到 <strong>8080</strong>（8080 与 8081 同样反代 <code>/api/</code> → api:3000，本轮全部接口实测走 8080 均通），重新构建并上传体验版。</p>
+<p class="kv">代价：商品图 URL 仍写死 8081（<code>imageUrl</code> 由后端下发），方案 B <strong>解决不了 N1</strong>，图片依旧 401。故只建议作为临时止血。</p>
+</div>
+
+<h2>六、上线前处置清单（按优先级）</h2>
+
+<table>
+<tr><th style="width:6%">序</th><th style="width:34%">动作</th><th style="width:12%">等级</th><th style="width:16%">责任</th><th>验收判据</th></tr>
+<tr><td class="num">1</td><td>修 8081 闸门（方案 A）</td><td class="num"><span class="tag t-bad">P0</span></td><td>技术</td><td>8081 上 <code>GET /api/v1/home/daily</code> 与 <code>/static/*.png</code> 均非 401；H5 页面无凭据仍 401。</td></tr>
+<tr><td class="num">2</td><td>提交并部署事故根因修复（B3）</td><td class="num"><span class="tag t-bad">P0</span></td><td>技术</td><td>线上 <code>GET /api/v1/health</code> 带非法体 → <strong>不再返回 10001</strong>。</td></tr>
+<tr><td class="num">3</td><td>三个后台账号改强口令 + scrypt 哈希</td><td class="num"><span class="tag t-bad">P0</span></td><td>技术 + 祝总</td><td>启动日志不再出现「仍是种子明文口令」；登录响应 <code>mustChangePassword</code> 符合预期。</td></tr>
+<tr><td class="num">4</td><td>跑通一次佣金结算全链路</td><td class="num"><span class="tag t-bad">P0</span></td><td>技术 + 运营</td><td>下单→出餐→送达→确认→<strong>余额入账</strong>→提现成功；团长端余额与流水非 0。</td></tr>
+<tr><td class="num">5</td><td>format：prettier --write 两个新文件</td><td class="num"><span class="tag t-warn">P1</span></td><td>技术</td><td><code>gate all</code> → <strong>31/31</strong>。</td></tr>
+<tr><td class="num">6</td><td>修两条过时 e2e 断言（m3:724 / blindbox:205）</td><td class="num"><span class="tag t-warn">P1</span></td><td>技术</td><td><code>gate verify</code> → <strong>6/6</strong>。</td></tr>
+<tr><td class="num">7</td><td>后台显式写入 D3 两项配置（2000 / 1）</td><td class="num"><span class="tag t-warn">P1</span></td><td>运营</td><td>配置页 <code>src</code> 由 fallback 变 db，value 非空白。</td></tr>
+<tr><td class="num">8</td><td>确认团长绑卡入口可用</td><td class="num"><span class="tag t-warn">P1</span></td><td>技术</td><td>绑卡后提现不再返回 40007。</td></tr>
+<tr><td class="num">9</td><td>清理测试脏数据（07-32 日期行、乱码账号名）</td><td class="num"><span class="tag t-mut">P2</span></td><td>技术</td><td>后台列表无非法日期、无乱码。</td></tr>
+<tr><td class="num">10</td><td>订正提现接口文案「≥ ¥10.00」</td><td class="num"><span class="tag t-mut">P2</span></td><td>技术</td><td>Swagger 摘要与 D3 定稿一致。</td></tr>
+</table>
+
+<h2>七、本轮未能实测的部分（如实标注）</h2>
+
+<ul>
+<li><strong>D3 提现限额（单日 ¥2000 / 当日 1 笔）</strong>：因所有团长余额为 0 且未绑卡，无法发起真实提现，<strong>未能线上实测</strong>。仅验证了金额地板（0.01）与 40007 绑卡校验。限额规则有代码默认值与单测兜底，但<strong>端到端未跑通</strong>。</li>
+<li><strong>佣金结算入账</strong>：同上，因无余额，第 4 项清单未完成前无法验证。</li>
+<li><strong>8081 的 H5 页面本体</strong>：无闸门凭据，无法验证 H5 页面渲染；仅验证了 <code>/api/</code> 与 <code>/static/</code> 被挡。</li>
+<li><strong>停用阈值 <code>building.suspend_force_max_count</code></strong>：线上该键 <code>src=fallback</code>（默认 20，DB 未登记），触发需整楼 20+ 单，本轮未造量。沿用上一轮结论：<strong>默认 20 而非 0</strong>。</li>
+</ul>
+
+<div class="box">
+<h3>自我纠错（本轮踩坑，留档避免重犯）</h3>
+<ul>
+<li>本轮初测 <code>GET /home/today</code> 返回 10004，一度疑为"首页数据取不到"。回源核对 <code>meal.controller.ts</code> 后确认：<strong>该路由根本不存在</strong>（只有 <code>/home/daily</code> 与 <code>/home/history</code>），10004 是路由不存在的正常返回。判 FAIL 前先确认端点是否存在。</li>
+<li>初测 <code>GET /me</code> 同样 10004，实为用户资料端点是 <code>/auth/me</code>（<code>@Controller('me')</code> 下只有 support/balance/balance-logs/building/cancel/referral）。</li>
+<li>本轮创建停售区间时刻意选<strong>未来日期 11-30</strong>，避免切断今日下单；仍在测完后 3 分钟内 resume 并复核全表，确认无遗留生效区间。</li>
+<li>第一版脚本曾误用手搓 JWT 当 admin token（会静默 401）。已改为从上一步登录响应原样复制，并逐文件核对 token 前缀一致。</li>
+</ul>
+</div>
+
+<h2>八、一句话给祝总</h2>
+<div class="box bad">
+<p><strong>明早上线前，至少要看到这四件事落地：</strong></p>
+<ol>
+<li>8081 闸门改完（否则小程序打开就是白屏，商品图全空）；</li>
+<li>事故根因修复提交 + 部署（否则线上仍会间歇性 10001，且无人报警）；</li>
+<li>后台三个账号改强口令 + 哈希（否则最高权限入口是明文口令）；</li>
+<li>佣金结算全链路跑通一次（否则团长看到"有佣金却提不出"，第一天就伤信任）。</li>
+</ol>
+<p>其余（门禁 2 条、配置登记 2 项、脏数据清理）可排在上线后 3 天内收口，但 <strong>P1 的门禁最好也在发版前清干净</strong>——带着红灯发版，下次出事分不清是老问题还是新改动。</p>
+</div>
+
+<div class="foot">
+本报告基于线上真实接口实测（154.8.164.180:8080 / 8081）与本地仓库门禁实跑（node v22.22.2 · jest 189/189 · gate all 30/31 · gate verify 4/6）。<br>
+测试产生的订单 <code>AB2026102846824285</code>（已退款）、<code>AB2026102807444360</code>、<code>AB2026102875468472</code>（待支付，30 分钟后自动过期）与停售记录 id=2（已撤回）均为测试残留，上线前建议一并清理。<br>
+生成时间：2026-10-28 18:55 · 北京
+</div>
+
+</div>
+</body>
+</html>

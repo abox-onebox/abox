@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 小程序备案判定与备案后上线清单 · 2026-10-28</title>
+<style>
+  :root{
+    --ink:#3A2E1F; --brown:#6E5435; --cream:#F6F0E5; --cream2:#FBF7EF;
+    --line:#D9CEB8; --red:#B03A2E; --green:#3E6B4F; --amber:#8A6A1F;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:48px 32px 80px;
+    background:var(--cream); color:var(--ink);
+    font-family:"KaiTi","STKaiti","simkai",serif; font-size:17px; line-height:1.85;
+  }
+  .wrap{max-width:940px; margin:0 auto}
+  header{border-bottom:2px solid var(--brown); padding-bottom:20px; margin-bottom:36px}
+  h1{font-size:29px; color:var(--brown); margin:0 0 8px; letter-spacing:1px}
+  .sub{font-size:15px; color:#7A6A52; letter-spacing:.5px}
+  h2{font-size:21px; color:var(--brown); margin:40px 0 14px;
+     padding-left:12px; border-left:5px solid var(--brown)}
+  h3{font-size:18px; color:var(--brown); margin:26px 0 10px}
+  p{margin:10px 0}
+  .lead{
+    background:var(--cream2); border:1px solid var(--line);
+    border-left:5px solid var(--brown); padding:20px 24px; margin:22px 0; line-height:1.9;
+  }
+  .verdict{font-size:22px; color:var(--brown); font-weight:700; margin-bottom:6px}
+  table{width:100%; border-collapse:collapse; margin:18px 0; font-size:16px}
+  th{background:var(--brown); color:var(--cream); text-align:left;
+     padding:11px 13px; font-weight:600; letter-spacing:.5px}
+  td{border:1px solid var(--line); padding:11px 13px; vertical-align:top; background:var(--cream2)}
+  td.c,th.c{text-align:center}
+  .ok{color:var(--green); font-weight:600}
+  .no{color:var(--red); font-weight:600}
+  .warn{color:var(--amber); font-weight:600}
+  code{background:#EFE6D3; padding:2px 6px; border-radius:3px;
+       font-family:Consolas,Monaco,monospace; font-size:14.5px; color:#5A452A}
+  pre{background:#EFE6D3; border:1px solid var(--line); padding:14px 16px;
+      overflow-x:auto; font-family:Consolas,Monaco,monospace; font-size:14px; line-height:1.7}
+  ol,ul{padding-left:26px; margin:12px 0}
+  li{margin:8px 0}
+  .step{border:1px solid var(--line); background:var(--cream2);
+        padding:16px 20px; margin:14px 0; border-left:4px solid var(--brown)}
+  .step .t{font-weight:700; color:var(--brown); margin-bottom:6px}
+  .src{font-size:14px; color:#7A6A52; margin-top:6px}
+  .box-danger{border:1px solid var(--red); border-left:5px solid var(--red);
+              background:#FBF0EE; padding:18px 22px; margin:22px 0}
+  .box-warn{border:1px solid var(--amber); border-left:5px solid var(--amber);
+            background:#FBF6E8; padding:18px 22px; margin:22px 0}
+  .box-ok{border:1px solid var(--green); border-left:5px solid var(--green);
+          background:#EFF5F0; padding:18px 22px; margin:22px 0}
+  footer{margin-top:52px; padding-top:18px; border-top:1px solid var(--line);
+         font-size:14px; color:#7A6A52}
+  .tag{display:inline-block; padding:1px 9px; border-radius:3px; font-size:13.5px;
+       border:1px solid currentColor; margin-right:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>小程序备案判定 · 与备案后上线清单</h1>
+  <div class="sub">ABox 一盒 · 2026-10-28 · 依据：微信官方文档实证 + 生产服务器现状 + 代码回源</div>
+</header>
+
+<div class="lead">
+  <div class="verdict">结论：现在可以提交小程序备案，但它过了也上线不了。</div>
+  <p><strong>「能不能提交备案」</strong>和<strong>「备案过了能不能上线」</strong>是两件事。备案这道门，
+  <strong>跟小程序现在有没有 bug、后台能不能用、代码写得对不对，基本没关系</strong> ——
+  因为备案本来就在提审之前，跑这套流程时小程序<strong>压根还没发布过任何版本</strong>。</p>
+  <p>真正会卡住的是后面那道：现在这套部署<strong>不满足微信的服务器域名硬规则</strong>，
+  域名备案落地后必须再做一轮改造，否则就算备案号批下来，小程序打开依然一张图都请求不到。</p>
+</div>
+
+<h2>一、三道门，分别看什么</h2>
+
+<table>
+  <tr><th style="width:16%">环节</th><th style="width:16%">谁审</th><th>卡什么</th><th style="width:15%" class="c">现在的状态</th></tr>
+  <tr>
+    <td><strong>门 1</strong><br>能不能提交</td>
+    <td>微信 / 工信部<br>服务商文案</td>
+    <td>四项前置：<br>① 名称 / 头像 / 简介已完善且与实际一致<br>② <strong>至少 1 个已通过的服务类目</strong><br>③ 企业主体已完成微信认证（300 元/年）<br>④ 法人人脸核验环境（白墙、无遮挡）</td>
+    <td class="c warn"><strong>未知</strong><br><span style="font-size:13px">需你在后台逐项确认</span></td>
+  </tr>
+  <tr>
+    <td><strong>门 2</strong><br>能不能批下来</td>
+    <td>微信平台初审<br>→ 短信核验<br>→ 北京通管局</td>
+    <td>主体材料一致性：营业执照逐字 / 法人身份证 / 人脸核验 / <strong>12381 短信 24 小时内核验</strong>（超时整套作废重提）</td>
+    <td class="c warn">取决于材料<br><span style="font-size:13px">1–3 + 3–20 工作日</span></td>
+  </tr>
+  <tr>
+    <td><strong>门 3</strong><br>批了能不能上线</td>
+    <td>微信 request<br>域名白名单</td>
+    <td>接口域名必须 <strong>https</strong> + <strong>不是 IP</strong> + <strong>已 ICP 备案</strong></td>
+    <td class="c no"><strong>不满足</strong><br><span style="font-size:13px">下面详述</span></td>
+  </tr>
+</table>
+
+<div class="box-ok">
+  <p style="margin:0"><strong>好消息</strong>：域名 ICP 备案已到最后一步 ⇒ 门 3 里最慢、最不可控的那一环已经在收敛了。
+  剩下全是<strong>几小时就能干完的技术活</strong>（证书 + nginx + 重构建），不用再等任何人。</p>
+</div>
+
+<h2>二、为什么现在「上线不了」——贴证据</h2>
+
+<h3>2.1 微信小程序侧三条硬规则（官方原文）</h3>
+<p>来源：微信开放文档《小程序 · 开发 · 基础能力 · 网络 · 使用说明》：</p>
+<ul>
+  <li>域名<strong>只支持 https</strong>（<code>wx.request</code> 明文 http 一律不行）</li>
+  <li>域名<strong>不能使用 IP 地址</strong>（局域网 IP 除外）或 <code>localhost</code></li>
+  <li><strong>域名必须经过 ICP 备案</strong></li>
+</ul>
+<p class="src">⚠️ 一条容易搞错的：官方明确<strong>允许带端口</strong>（<code>https://myserver.com:8080</code> 可以配），
+所以 <code>8081</code> 本身<strong>不是</strong>问题。真问题是「IP」和「http」这两条。</p>
+
+<h3>2.2 当前代码怎么写的</h3>
+<pre><code>apps/miniprogram/.env:13
+VITE_API_BASE_URL=http://154.8.164.180:8081/api/v1
+                 ^^^^  ^^^^^^^^^^^^^^  ^^^^
+                 明文   裸 IP           （端口其实合规）
+
+src/constants/env.ts:3  兜底 localhost:3000（同上，也是 IP/localhost + 明文）</code></pre>
+<p><strong>三条里犯了两条</strong>：http 明文 + 裸 IP。现在能在真机跑，是因为开发者工具勾选了
+「不校验合法域名」—— 那个开关只对开发态有效，<strong>正式版完全不适用</strong>。</p>
+
+<h3>2.3 服务器侧还没准备好</h3>
+<table>
+  <tr><th style="width:30%">检查项</th><th>实测结果</th><th class="c" style="width:13%">判定</th></tr>
+  <tr><td>SSL 证书文件</td><td><code>find /opt/abox-onebox -iname "*.pem" -o "*.crt" -o "*.key"</code> → <strong>零命中</strong></td><td class="c no">无</td></tr>
+  <tr><td>nginx server_name</td><td><code>apps/miniprogram/nginx.conf:93</code> → <code>server_name _;</code>（未配域名）</td><td class="c no">无域名</td></tr>
+  <tr><td>443 端口</td><td><code>docker-compose.prod.yml:148/203</code> → 只有 <code>8080:80</code> 和 <code>8081:80</code>，<strong>没有 443 映射</strong></td><td class="c no">未开</td></tr>
+  <tr><td>技术是否早有规划</td><td>compose:147 注释原文写了「<code># 上线时前置 HTTPS（见《部署运维手册》§5.3）</code>」</td><td class="c warn">有规划未执行</td></tr>
+</table>
+<p class="src">说明这是已知待办、不是漏掉的坑 —— 但要等人推它。</p>
+
+<h3>2.4 域名解析状态：我这边核不了，需要你确认</h3>
+<div class="box-warn">
+  <p style="margin:0 0 6px"><strong>诚实声明</strong>：我在本机查 <code>xunlizhinian.cn</code>，
+  本地 DNS 返回 <code>192.168.88.1</code>（内网 bogon 劫持），换 <code>8.8.8.8</code> 又超时 ——
+  <strong>所以我无法从这里判断解析是否已经生效</strong>，不能据此说「备案失败」或「已生效」。</p>
+  <p style="margin:0"><strong>请以腾讯云控制台 / 工信部备案查询系统为准。</strong>
+  顺手用手机流量 ping 一下 <code>api.xunlizhinian.cn</code>，或用站长工具的 DNS 检测查多地解析。</p>
+</div>
+
+<h2>三、备案批下来后，必须做的 7 步（缺一步就白等）</h2>
+
+<div class="step">
+  <div class="t">第 1 步 · DNS 加 A 记录</div>
+  <p><code>api.xunlizhinian.cn</code> → <code>154.8.164.180</code>；<code>admin.xunlizhinian.cn</code> 同样指向。</p>
+  <p class="src">注意官方另一个限制：<strong>不支持配置父域名</strong>，必须用子域名 —— 正好符合规划。</p>
+</div>
+
+<div class="step">
+  <div class="t">第 2 步 · 申请 SSL 证书</div>
+  <p>腾讯云免费 DV 证书即可（单域名证书申两张，或一张泛域名 <code>*.xunlizhinian.cn</code>）。</p>
+  <p class="src">⚠️ 证书必须由<strong>受信任 CA 签发</strong>，自签证书小程序一律不认；<strong>证书链必须完整</strong>
+  （漏中间证书会出现「浏览器正常但小程序报 SSL handshake failed」）；TLS 版本 ≥ 1.2。</p>
+</div>
+
+<div class="step">
+  <div class="t">第 3 步 · nginx 加 443 server</div>
+  <p>新增一个监听 443 的 server，把现有 <code>location /api/</code>、<code>/static/</code>、<code>/assets/</code>
+  以及<strong>已下沉到 <code>location /</code> 的 Cookie 闸门</strong>原样搬过去（<code>nginx.conf:91</code> 起那一整套），
+  别只转发 API 却把闸门丢了。</p>
+  <p class="src">保留 80 端口并做 <code>return 301 https://$host$request_uri;</code> 即可。</p>
+</div>
+
+<div class="step">
+  <div class="t">第 4 步 · compose 开 443</div>
+  <pre><code>h5-prod:
+  ports:
+    - '${H5_PORT:-8081}:80'
+    - '443:443'          # ← 新增</code></pre>
+</div>
+
+<div class="step">
+  <div class="t">第 5 步 · 改小程序端地址</div>
+  <pre><code>apps/miniprogram/.env:13
+VITE_API_BASE_URL=https://api.xunlizhinian.cn/api/v1</code></pre>
+  <p class="src">⚠️ 走 443 标准端口时，<strong>后台配置里不能带端口，代码里也不能写 <code>:443</code></strong> ——
+  官方原文：「如果不配置端口，那么请求的 URL 中也不能包含端口，甚至是默认的 443 端口也不可以」。
+  直接写不带端口的形式最安全。</p>
+</div>
+
+<div class="step">
+  <div class="t">第 6 步 · 重新构建并重传</div>
+  <p>⚠️ 项目纪律里记着：<code>deploy.sh</code> <strong>只 build api/admin</strong>，
+  小程序必须单独构建，否则端上还是旧包。且上线要用 <code>--mode production</code>，
+  别拿 development 包提审。</p>
+</div>
+
+<div class="step">
+  <div class="t">第 7 步 · 微信后台配 request 合法域名</div>
+  <p>小程序后台 → 开发 → 开发设置 → 服务器域名 → 填 <code>https://api.xunlizhinian.cn</code>（不带路径、不带端口）。</p>
+  <p class="src">💡 <strong>这一步不用等备案完成也能提前做</strong>：备案前置检出的是<strong>域名是否已 ICP 备案</strong>，
+  你这个已经有了，可以先配进去预热。</p>
+</div>
+
+<h2>四、提审前还得补的合规缺口（不阻备案，但阻巡检）</h2>
+
+<div class="box-danger">
+  <p style="margin-top:0"><strong>① 主页面资质公示被改掉了（124 号令要求）</strong></p>
+  <p><code>pages/index/index.vue:97</code> 的注释原文写着：</p>
+  <pre><code>&lt;!-- ⭐ 2026-10-24 整改（用户要求）：不再写「查看资质」，
+     与餐饮套餐口径一致写「来自：X」 --&gt;</code></pre>
+  <p>而《网络食品安全违法行为查处办法》等要求入网食品经营者<strong>在店铺主页显著位置持续公示
+  许可证（或备案凭证）及可查验链接</strong>，明确覆盖「线上小程序」。
+  「来自：X」是供应商展示，<strong>不是资质公示</strong>，两者不能互相替代。
+  这一条和项目既有的合规待办（2026-05-20 施行的 124 号令）是同一件事，目前仍未收口。</p>
+
+  <p style="margin-bottom:0"><strong>② 销售页没有任何食品标签</strong></p>
+  <p style="margin-bottom:0">全仓 <code>.vue</code> 检索「配料 / 保质期 / 生产日期 / SC 号」<strong>零命中</strong>。
+  预包装食品售卖需要展示配料表、净含量、生产日期、保质期、生产者信息、产品标准代号等信息。
+  这一项建议与「仅销售预包装食品备案编号」一并补上。</p>
+</div>
+
+<h2>五、需要你确认的三件事</h2>
+
+<table>
+  <tr><th style="width:26%">事项</th><th>为什么重要</th></tr>
+  <tr>
+    <td><strong>四前置是否已齐</strong></td>
+    <td>① 名称/头像/简介<br>② 是否已有<strong>审核通过</strong>的服务类目（注意类目是独立的、排在备案之前）<br>③ 微信认证是否已过<br>④ 法人人脸核验环境备好没<br><span class="warn">这四项在后台能看到，我这边看不到 —— 建议截图给我逐项对</span></td>
+  </tr>
+  <tr>
+    <td><strong>服务类目选哪个</strong></td>
+    <td>走预包装路线应选「<strong>食品销售 / 商家自营-食品</strong>」，<span class="warn">类目资质看的是小程序主体</span>，
+    即必须是<strong>北京巡礼之年科技有限公司名下</strong>的备案凭证或食品经营许可证 —— 「资质是供应商的」在微信侧不成立。</td>
+  </tr>
+  <tr>
+    <td><strong>真实收款何时启用</strong></td>
+    <td>生产现在是 <code>PROVIDER_MODE=mock</code>（800ms 假支付）。真收款需要<strong>微信支付商户号</strong>，
+    且小程序认证主体 / 商户号主体 / 结算户名须一致。这与备案无关但同样在上线的关键路径上。</td>
+  </tr>
+</table>
+
+<div class="box-warn">
+  <p style="margin:0">另外你提到「保证金」，这部分上下文我这边没有跟上 ——
+  如果是指某个资质或类目环节的资金准备，把具体项告诉我，我一并核进待办清单。</p>
+</div>
+
+<footer>
+  本文所有结论均基于：微信开放文档《网络 · 使用说明》原文三条硬规则 · 生产服务器实查（证书零命中 / server_name _ / 无 443）·
+  仓库代码回源（<code>.env:13</code> · <code>nginx.conf:91-93</code> · <code>docker-compose.prod.yml:148,203</code> · <code>index.vue:97</code>）。<br>
+  域名解析与备案状态以腾讯云控制台及工信部备案系统为准 —— 本机 DNS 受内网劫持，未能验证，已如实标注。
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>ABox 一盒 · 真人操作实录 · B9</title><style>
+*{box-sizing:border-box}
+body{margin:0;background:#F6F0E5;color:#3A2E20;
+ font-family:"KaiTi","楷体","STKaiti","Kaiti SC",serif;line-height:1.75}
+.wrap{max-width:1280px;margin:0 auto;padding:30px 24px 70px}
+h1{font-size:27px;color:#6E5435;margin:0 0 6px;letter-spacing:1px}
+.sub{color:#796C57;font-size:14.5px;margin-bottom:20px;line-height:1.9}
+.toc{background:#FFFDF8;border:1px solid #E4D9C6;border-radius:12px;padding:14px 20px;margin-bottom:22px}
+.toc a{color:#6E5435;text-decoration:none;margin-right:16px;font-size:15px}
+.toc a:hover{text-decoration:underline}
+table.sum{width:100%;border-collapse:collapse;font-size:13.5px;background:#FFFDF8;
+ border:1px solid #E4D9C6;border-radius:12px;overflow:hidden;margin-bottom:24px}
+table.sum th{background:#F1E7D4;color:#6E5435;font-weight:400;text-align:left;padding:8px 10px}
+table.sum td{padding:7px 10px;border-top:1px solid #EFE6D4;vertical-align:top}
+table.sum td.no{width:96px;color:#6E5435}
+table.sum a{color:#6E5435;text-decoration:none;border-bottom:1px dotted #C9A876}
+.card{background:#FFFDF8;border:1px solid #E4D9C6;border-radius:14px;
+ padding:18px 22px;margin:0 0 20px;box-shadow:0 1px 3px rgba(110,84,53,.06)}
+.card h2{font-size:20px;color:#6E5435;margin:0 0 6px}
+.card h2 .code{font-family:Consolas,Menlo,monospace;font-size:16px;background:#F1E7D4;
+ border-radius:6px;padding:2px 9px;margin-right:9px}
+.facts{display:flex;gap:8px;flex-wrap:wrap;font-size:13.5px;color:#796C57;margin:4px 0 10px}
+.facts b{color:#8A7452;font-weight:400}
+.guide{background:#F3EADA;border-left:4px solid #C9A876;border-radius:0 8px 8px 0;
+ padding:9px 14px;font-size:14px;color:#6B5B42;margin-top:10px;line-height:1.8}
+.scene{font-size:14.5px;color:#5B4C38;margin:6px 0 2px}
+h3.sec{font-size:16px;color:#8A7452;font-weight:400;margin:18px 0 4px;
+ border-bottom:1px dashed #DCCFB8;padding-bottom:6px}
+.step{display:flex;gap:20px;padding:16px 0;border-bottom:1px dashed #E7DCC8}
+.step:last-child{border-bottom:0}
+.shot{flex:0 0 296px}
+.shot img{width:296px;border:1px solid #D9CBB2;border-radius:12px;display:block;
+ box-shadow:0 2px 10px rgba(110,84,53,.10)}
+.shot .cap{font-size:12px;color:#9A8B72;margin-top:6px;text-align:center;word-break:break-all}
+.noshot{width:296px;height:80px;border:1px dashed #D9CBB2;border-radius:12px;
+ color:#B4441F;font-size:13px;display:flex;align-items:center;justify-content:center}
+.act{flex:1;min-width:0}
+.act .hd{display:flex;align-items:baseline;gap:9px;margin-bottom:7px;flex-wrap:wrap}
+.no{background:#6E5435;color:#FBF7EF;border-radius:50%;width:25px;height:25px;
+ flex:0 0 25px;text-align:center;line-height:25px;font-size:13px}
+.at{color:#A08A63;font-size:13px;font-variant-numeric:tabular-nums}
+.tag{font-size:12px;padding:1px 9px;border-radius:20px;background:#EFE6D4;color:#7A6543}
+.tag.open{background:#E8EFE6;color:#4B6B45}
+.tag.tap{background:#FBE7DF;color:#B4441F}
+.tag.result{background:#E8EFE6;color:#4B6B45}
+.tag.see{background:#E6EDF3;color:#3D6480}
+.tag.bad{background:#FBE0DC;color:#A32C1B}
+.tag.api{background:#EFE7F3;color:#6B4A80}
+.dbev{margin:10px 0 0;font-size:13px;color:#5B4C38;background:#FBF7EE;
+ border:1px solid #E7DCC8;border-radius:10px;padding:9px 13px;line-height:1.7}
+.dbev b{color:#6E5435;font-weight:400}
+.dbev table{border-collapse:collapse;margin-top:6px;width:100%}
+.dbev th,.dbev td{border:1px solid #E7DCC8;padding:3px 8px;font-size:12.5px;text-align:left;
+ font-family:Consolas,Menlo,monospace;color:#4A3D2C}
+.dbev th{background:#F3EADA;font-weight:400;color:#6E5435}
+.dbev .null{color:#A08A63}
+.desc{font-size:15.5px;margin:0 0 8px}
+.frag{margin:0 0 6px;font-size:14.5px;color:#5B4C38;
+ background:#FAF6EE;border:1px solid #EDE3D0;border-radius:9px;padding:7px 12px;line-height:1.7}
+.frag em{font-style:normal;color:#6E5435;background:#F3E7CE;border-radius:4px;padding:0 4px}
+.reads{margin-top:7px;font-size:13px;color:#796C57;font-variant-numeric:tabular-nums}
+.reads code,.api code{background:#F1E9DA;border-radius:5px;padding:1px 7px;margin-right:6px;
+ font-family:Consolas,Menlo,monospace;font-size:12px;color:#5C4A31}
+.api{margin-top:5px;font-size:12.5px;color:#796C57;font-variant-numeric:tabular-nums}
+.ok{color:#3F7A38}
+.bad{color:#B4441F;font-weight:bold}
+.miss{color:#B4441F}
+footer{margin-top:30px;color:#9A8B72;font-size:13px;text-align:center;line-height:1.9}
+</style></head><body><div class="wrap"><h1>ABox 一盒 · 人工测试「真人操作」实录 · B9 后台其余页面逐页</h1><div class="sub">这一批卡太多、单文件太重（25 卡 / 295 步，压完仍近 20 MB），按**后台左侧导航的实际分组**拆成了下面几个子卷 —— 一份文件里只放一块功能，翻动才快。</div><table class="sum"><tr><th>子卷</th><th>内容</th><th style="text-align:right">卡数</th><th>文件</th></tr><tr><td class="no"><a href="_ABox一盒真人操作实录-B9a_套餐·订单·配送.html">B9a</a></td><td>套餐·订单·配送</td><td style="text-align:right">6</td><td>_ABox一盒真人操作实录-B9a_套餐·订单·配送.html</td></tr><tr><td class="no"><a href="_ABox一盒真人操作实录-B9b_团长与楼宇.html">B9b</a></td><td>团长与楼宇</td><td style="text-align:right">5</td><td>_ABox一盒真人操作实录-B9b_团长与楼宇.html</td></tr><tr><td class="no"><a href="_ABox一盒真人操作实录-B9c_供应商与出餐.html">B9c</a></td><td>供应商与出餐</td><td style="text-align:right">3</td><td>_ABox一盒真人操作实录-B9c_供应商与出餐.html</td></tr><tr><td class="no"><a href="_ABox一盒真人操作实录-B9d_财务.html">B9d</a></td><td>财务</td><td style="text-align:right">6</td><td>_ABox一盒真人操作实录-B9d_财务.html</td></tr><tr><td class="no"><a href="_ABox一盒真人操作实录-B9e_系统与权限.html">B9e</a></td><td>系统与权限</td><td style="text-align:right">5</td><td>_ABox一盒真人操作实录-B9e_系统与权限.html</td></tr><tr><td class="no"><b>合计</b></td><td>后台其余页面逐页</td><td style="text-align:right"><b>25</b></td><td></td></tr></table><footer>留痕真源：_tmp/qa-env/uisim/trace/*.json 与 shots/*（本页为只读派生物）</footer></div></body></html>

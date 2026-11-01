@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 123 条探针进展台账</title>
+<style>
+  :root{
+    --paper:#F6F0E5; --ink:#6E5435; --ink-soft:#8a7050; --line:#e0d5c2; --card:#fffdf8;
+    --warn-bg:#fdf3e3; --warn-line:#d9b382; --ok-bg:#eef5ea; --ok-line:#8fa97e;
+    --gap-bg:#fbe9e9; --gap-line:#b23b3b; --new-bg:#eaf1f7; --new-line:#5b7f9e;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;padding:32px 20px 64px;background:var(--paper);color:var(--ink);
+    font-family:"KaiTi","STKaiti","simkai","楷体",serif;font-size:16px;line-height:1.85;}
+  .wrap{max-width:1000px;margin:0 auto;}
+  header{border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:26px;}
+  h1{font-size:27px;margin:0 0 6px;letter-spacing:1px;}
+  .sub{color:var(--ink-soft);font-size:15px;}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:12px;font-size:14px;color:var(--ink-soft);}
+  .meta b{color:var(--ink);font-weight:normal;}
+  h2{font-size:21px;margin:36px 0 12px;padding-left:12px;border-left:5px solid var(--ink);}
+  h3{font-size:17px;margin:22px 0 8px;}
+  p{margin:8px 0;} ul,ol{margin:8px 0;padding-left:24px;} li{margin:5px 0;}
+  code{background:#efe7d8;padding:1px 6px;border-radius:3px;font-family:Consolas,"Courier New",monospace;font-size:14px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px 20px;margin:14px 0;}
+  .warn{background:var(--warn-bg);border:1px solid var(--warn-line);border-left:5px solid var(--warn-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .gap{background:var(--gap-bg);border:1px solid var(--gap-line);border-left:5px solid var(--gap-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .ok{background:var(--ok-bg);border:1px solid var(--ok-line);border-left:5px solid var(--ok-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .box-new{background:var(--new-bg);border:1px solid var(--new-line);border-left:5px solid var(--new-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .t{font-weight:bold;margin-bottom:6px;}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14.5px;background:var(--card);}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
+  th{background:#efe7d8;font-weight:normal;}
+  td.num{white-space:nowrap;}
+  .b{display:inline-block;font-size:12px;padding:1px 7px;border-radius:10px;color:#fff;white-space:nowrap;}
+  .b-ok{background:#5f8a52;} .b-gap{background:#b23b3b;} .b-part{background:#b07d2b;}
+  .b-na{background:#7a7a7a;} .b-new{background:#5b7f9e;}
+  footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:14px;}
+  .src{font-size:13px;color:var(--ink-soft);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>ABox 一盒 · 123 条探针 进展台账</h1>
+  <div class="sub">截至 2026-10-27 14:40 · 数字由脚本从源文件实提，非印象估算</div>
+  <div class="meta">
+    <span><b>整表</b> 核实 <b>20 / 123</b>（16%）</span>
+    <span><b>P0</b> 核实 <b>20 / 25</b>（80%）</span>
+    <span><b>P1＋P2＋未定</b> <b>98 条基本没动</b></span>
+    <span><b>数据出处</b> <code>ABox功能完整性探针问询表_123条.html</code> + 9 份结论文档</span>
+  </div>
+</header>
+
+<div class="gap">
+  <div class="t">先说最重要的一句：123 条从来没有变成「台账」</div>
+  它是一份<b>可筛选的 HTML 表格</b>，每条带下拉框和备注框，勾选结果存在<b>填表人自己浏览器的 localStorage 里</b>
+  （页脚写着「不会上传」）。<br>
+  ⇒ 也就是说：<b>谁勾了什么、留在谁的电脑上，从不回流</b>。
+  所以今天没有任何一个地方能一眼看到「123 条各自什么状态」—— 进展是<b>散落在 9 份结论文档里</b>的。<br>
+  这份台账是我把那些文档回源翻了一遍、逐条对齐编号后整理出来的；<b>「未核」不是说它没问题，是从来没人验过</b>。
+</div>
+
+<div class="warn">
+  <div class="t">⚠️ 一个必须先讲清的坑：三套编号在打架，别混着看</div>
+  走查过程中出现过两次扩张，编号和探针表的字母+数字长得很像，<b>但根本不是同一个东西</b>：<br>
+  <ul>
+    <li><b>走查新发现</b>（X1–X6、T8/T9、以及被称作「N1/N2/N3」的三条）<b>在 123 条里根本不存在</b>
+      —— 它们是核的过程中新挖出的问题。例：探针表里的 <code>N1</code> 是「门户·系统入口」，跟「canOrder 两份判定」那条新发现毫无关系。</li>
+    <li><b>派工包的 A/B/C/D 档</b>是另一套。派工包的 <b>D1＝非营业日、D2＝一键停售、D3＝提现规则、D4＝批量退款、D5＝楼宇停用</b>；
+      而探针表的 <b>D1–D5 是「订单与取消」模块的五条</b>（状态机/用户取消/团长取消…）。<b>完全两回事。</b></li>
+  </ul>
+  ⇒ 以后听到「X5 修好了」「D3 定稿了」，先问一句：<b>这是哪一套编号？</b>
+</div>
+
+<h2>一、全表构成（脚本实提）</h2>
+<table>
+  <tr><th style="width:18%">优先级</th><th style="width:12%">条数</th><th>状态</th></tr>
+  <tr><td><b>P0</b> 资金/合规/安全</td><td class="num">25</td><td>已核 <b>20</b>，<b>未核 5</b>（见第二节）</td></tr>
+  <tr><td><b>P1</b> 闭环</td><td class="num">26</td><td class="num"><b>全部未核</b></td></tr>
+  <tr><td><b>P2</b> 完善</td><td class="num">5</td><td class="num"><b>全部未核</b></td></tr>
+  <tr><td><b>未定</b>（v1 遗留）</td><td class="num">67</td><td class="num">基本未核</td></tr>
+  <tr><td><b>合计</b></td><td class="num"><b>123</b></td><td>另有 <b>67 条缺「判定标准」</b>——正是 v1 遗留的那批，填表人无法判断什么叫「已实现」</td></tr>
+</table>
+<p class="src">覆盖 22 个模块：后台管理 13 · 代金券 11 · 团长体系 11 · 下单与支付 9 · 配送与送达 7 · 安全与越权 7 · 其余各 1–5 条。</p>
+
+<h2>二、P0 二十五条：逐条状态</h2>
+
+<h3>2.1 已闭环 / 已有明确结论（20 条）</h3>
+<table>
+  <tr><th style="width:6%">条目</th><th style="width:16%">问的是什么</th><th style="width:12%">结论</th><th>说明</th></tr>
+  <tr><td class="num">W1</td><td>一键停售</td><td><span class="b b-ok">已上线</span></td><td>本次变更主功能之一。<code>ab_sales_pause</code> 独立表 + <code>60009</code>，按出餐日区间拦新单</td></tr>
+  <tr><td class="num">R1</td><td>楼宇停用</td><td><span class="b b-ok">已上线</span></td><td>停用闸门 <code>60006/60007/60012/60013</code> + 强制停用逃生舱（带审计与通知）</td></tr>
+  <tr><td class="num">S1</td><td>提现申请</td><td><span class="b b-ok">已落码</span></td><td>五值已定稿<b>且已实现</b>：起提不限（地板 ¥0.01）· T+1 · 免手续费 · 单日 ¥2000 · 当日 1 笔。有《D3落码回执》</td></tr>
+  <tr><td class="num">S3</td><td>提现并发超扣</td><td><span class="b b-ok">已防住</span></td><td>乐观锁 <code>version+1</code>。我一度误判为缺口，回源后撤回</td></tr>
+  <tr><td class="num">S2</td><td>审核与打款</td><td><span class="b b-ok">已防住</span></td><td>并发与回滚都兜住了（一期是人工打款）</td></tr>
+  <tr><td class="num">T3</td><td>手动补跑幂等</td><td><span class="b b-ok">天然幂等</span></td><td>同我上一条，属误判撤回</td></tr>
+  <tr><td class="num">V1</td><td>水平越权 IDOR</td><td><span class="b b-ok">已防住</span></td><td>—</td></tr>
+  <tr><td class="num">V2</td><td>垂直越权</td><td><span class="b b-ok">已防住</span></td><td>—</td></tr>
+  <tr><td class="num">V3</td><td>金额与数量篡改</td><td><span class="b b-ok">已防住</span></td><td>—</td></tr>
+  <tr><td class="num">Q1</td><td>配送单生成</td><td><span class="b b-na">刻意不做</span></td><td>不覆盖是为了保护人工录入，判定为正确设计</td></tr>
+  <tr><td class="num">Q2</td><td>配送状态推进</td><td><span class="b b-part">降为 P1</span></td><td>锚点是 T 日 14:00 任务</td></tr>
+  <tr><td class="num">F10</td><td>券超发与预算</td><td><span class="b b-part">降为 P2</span></td><td>因单笔上限仅 ¥25.80，非百万级风险；<b>但残余缺口未修</b>（见第三节）</td></tr>
+  <tr><td class="num">B5</td><td>非营业日</td><td><span class="b b-na">一期人工</span></td><td>周末/法定节假日休市不开放下单；系统侧暂不开发，靠人工提前编排</td></tr>
+  <tr><td class="num">P3</td><td>支付单边账</td><td><span class="b b-gap">真缺口</span></td><td><b>P0 里唯一确认漏做的功能</b>：回调丢失无对账补齐（<code>wxpay</code> 无 <code>queryOrder</code>）</td></tr>
+  <tr><td class="num">T1</td><td>任务清单与在跑证明</td><td><span class="b b-gap">真缺口</span></td><td>9 个定时任务无执行记录表、无心跳。已并入派工 A5</td></tr>
+  <tr><td class="num">T2</td><td>任务失败告警</td><td><span class="b b-gap">真缺口</span></td><td>同上</td></tr>
+  <tr><td class="num">H9</td><td>团长佣金冲正</td><td><span class="b b-gap">有洞</span></td><td>扎实，但<b>可退状态含 COMPLETED 且无时限</b> ⇒ 已提现后退款会把余额扣成负数</td></tr>
+  <tr><td class="num">S5</td><td>对账自动化</td><td><span class="b b-gap">缺口</span></td><td>无任务执行记录表</td></tr>
+  <tr><td class="num">E5</td><td>批量退款</td><td><span class="b b-gap">未实现</span></td><td>口径已定（按配送日/楼宇，须支持断点续退 + 明确提醒），代码未做</td></tr>
+  <tr><td class="num">Q7</td><td>日结对平</td><td><span class="b b-part">名不副实</span></td><td>实为<b>本地三头</b>（非五方），<code>local_only</code></td></tr>
+</table>
+
+<h3>2.2 ★ P0 里还有 5 条从未核实</h3>
+<div class="gap">
+  <table>
+    <tr><th style="width:7%">条目</th><th style="width:20%">问的是什么</th><th>为什么这条值得优先</th></tr>
+    <tr><td class="num"><b>C9</b></td><td>并发重复下单</td><td>同一个人 1 秒内两次「不同幂等键」的下单，会不会生成两笔并扣两次款。<b>这是能直接造成资损的一条</b>，而 <code>order/finance</code> 全仓未见悲观锁</td></tr>
+    <tr><td class="num"><b>H8</b></td><td>佣金计提与补跑</td><td>钱的第二条出口。H9（冲正）核过了，计提这一侧还没</td></tr>
+    <tr><td class="num"><b>L13</b></td><td>高危操作审批与二次确认</td><td>后台能改金额、能强制退款、能停用楼——有没有二次确认与留痕</td></tr>
+    <tr><td class="num"><b>Q3</b></td><td>送达凭证缺失</td><td>团长点「送达」没有任何凭证 ⇒ 用户说没收到时无法举证</td></tr>
+    <tr><td class="num"><b>R2</b></td><td>用户归属楼宇</td><td>R1（楼宇停用）已上线，但「用户怎么归属到楼」没验 ⇒ 停用的拦单可能拦错人</td></tr>
+  </table>
+  <b>建议：这 5 条是 P0 里剩下的最后一公里，做完 P0 就真正闭环了。</b>
+</div>
+
+<h2>三、走查中新挖出、不在 123 条里的问题</h2>
+<p>这些<b>不属于 123 条</b>，但如果不单列，很容易被误当成「表里某条已经闭环」：</p>
+<table>
+  <tr><th style="width:16%">发现</th><th style="width:12%">状态</th><th>内容</th></tr>
+  <tr><td>canOrder 两份判定</td><td><span class="b b-ok">已修</span></td><td>后台按 <code>status</code> 判定、用户端只看 <code>assignment</code> ⇒ <b>停用楼仍能下单</b>。本次提交的修复本体</td></tr>
+  <tr><td>op-blocklist 零留痕</td><td><span class="b b-ok">已修</span></td><td>解除黑名单是<b>物理删除</b>，没有任何留痕。已补操作日志与操作人</td></tr>
+  <tr><td>Redis 抖动致幂等失效</td><td><span class="b b-ok">已修</span></td><td>降级路径让 <code>setNx</code> 永久失效 ⇒ 重复扣款放行。已改 fail-closed，并配 13 条断言的自检脚本</td></tr>
+  <tr><td>配送边界 T8/T9</td><td><span class="b b-ok">已修</span></td><td>状态机边缘用例，已配机械门禁</td></tr>
+  <tr><td>incr 降级连坐</td><td><span class="b b-ok">已修</span></td><td>影响限流与登录锁定，非只影响计数</td></tr>
+  <tr><td>日志失败仅告警</td><td><span class="b b-gap">未做</span></td><td>写日志失败只打 WARN ⇒ 审计可能静默丢失，建议加监控</td></tr>
+  <tr><td>日志无清理任务</td><td><span class="b b-gap">未做</span></td><td>未设保留期与归档</td></tr>
+  <tr><td>换楼无佣金重算</td><td><span class="b b-part">已改注释</span></td><td>判定为可接受，按建议只改注释说明</td></tr>
+</table>
+
+<h2>四、今天刚发生的事（14:30）</h2>
+<div class="box-new">
+  <b>技术人员已交 v1.5 版测试说明</b>（代码未再动，只改测试组织与措辞），把我上午提的三条建议<b>全部采纳</b>：<br>
+  ① 每位测试人员用自己的编号（避免多人共用一个身份互相踩踏、触发登录限流）；<br>
+  ② 盲盒第 6 步拆成 6a / 6b，写明「退款中」占位仍在是<b>有意设计</b>，须走到「已退款」才消失；<br>
+  ③ 停测判据换成<b>抓包</b>（旧的界面判据分辨不出新旧版本），并附了 H5 上的具体抓法。<br>
+  ⇒ 这份 v1.5 可以直接发出去开测了。同一份文档明确写着「请以本版为准（v1.4 未发出）」。
+</div>
+
+<h2>五、建议接下来怎么走</h2>
+<ol>
+  <li><b>先把这 123 条变成真台账。</b>现在最大的问题不是「还有多少没核」，而是<b>没有一处能看到全貌</b>。
+      最小改法：给每条加「状态 / 处置 / 负责人 / 证据文件」四列，结论回写进文件本身（不再存本机浏览器）。</li>
+  <li><b>P0 收口：还剩 5 条。</b>C9（并发重复下单，可直接资损）、H8、L13、Q3、R2 —— 做完 P0 就真正闭环。</li>
+  <li><b>已确认的真缺口排期</b>：P3 支付单边账（唯一 P0 功能缺口）、T1/T2 任务可观测性、H9 的时限漏洞、E5 批量退款。</li>
+  <li><b>P1 之前先把 67 条「缺判定标准」补出来。</b>没有判定标准就去勾状态，等于凭感觉填——这 67 条现在填了也不可信。</li>
+  <li><b>P1 26 条 + P2 5 条建议在开测之后做。</b>先把测试队伍跑出来的真实缺陷吃掉，再回头核它们。</li>
+</ol>
+
+<footer>
+  ABox 一盒 · 123 条探针进展台账 · 2026-10-27<br>
+  数据取得方式：解析问询表源文件的 <code>PROBES</code> 数组（实提 123 条），与 9 份结论文档及项目日志逐条比对编号。<br>
+  「已核」以有回源码/实跑证据为准；「未核」指未留下可复核结论，<b>不等于该功能无问题</b>。
+</footer>
+
+</div>
+</body>
+</html>

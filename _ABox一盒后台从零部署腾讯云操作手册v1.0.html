@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 后台从零部署腾讯云操作手册 v1.0</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --card:#FFFFFF;
+    --ink:#2E2924; --ink-2:#796C57; --ink-3:#9A8B72;
+    --brown:#6E5435; --brown-soft:#E8DDC9; --line:#DCD2C0; --line-2:#EDE5D6;
+    --red:#9A3412; --red-bg:#FBEDE4; --red-line:#E8C9B4;
+    --amber:#8A6A12; --amber-bg:#FBF3DD; --amber-line:#E8D8A8;
+    --green:#3F6B4A; --green-bg:#EAF1EA; --green-line:#C3D6C5;
+    --code-bg:#FAF6EE;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+    font-size:15px;line-height:1.78;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:44px 26px 100px}
+  .kai{font-family:KaiTi,"STKaiti",simkai,"楷体",serif}
+
+  header{border-bottom:2px solid var(--brown);padding-bottom:20px;margin-bottom:8px}
+  h1{font-family:KaiTi,"STKaiti",simkai,"楷体",serif;font-size:29px;font-weight:700;
+     margin:0 0 8px;letter-spacing:.06em;color:var(--brown)}
+  .sub{color:var(--ink-2);font-size:13.5px}
+  .ver{display:inline-block;margin-left:10px;padding:1px 9px;border:1px solid var(--brown-soft);
+       border-radius:99px;font-size:12px;color:var(--brown);background:#FFF}
+
+  .prog{position:sticky;top:0;z-index:20;background:rgba(246,240,229,.95);
+    backdrop-filter:blur(6px);border-bottom:1px solid var(--line);
+    padding:10px 0;margin:0 0 24px;font-size:13px;color:var(--ink-2)}
+  .prog b{color:var(--brown);font-variant-numeric:tabular-nums}
+  .bar{display:inline-block;width:150px;height:7px;background:#E3D8C4;border-radius:99px;
+       vertical-align:1px;margin:0 10px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:var(--brown);transition:width .25s}
+
+  .toc{background:#FFF;border:1px solid var(--line);border-radius:3px;padding:16px 20px;margin:0 0 30px}
+  .toc .tt{font-weight:700;font-size:13px;color:var(--ink-2);letter-spacing:.1em;margin-bottom:9px}
+  .toc ol{margin:0;padding-left:22px;font-size:14px;columns:2;column-gap:34px}
+  @media(max-width:760px){.toc ol{columns:1}}
+  .toc li{margin:3px 0;break-inside:avoid}
+  .toc a{color:var(--brown);text-decoration:none}
+  .toc a:hover{text-decoration:underline}
+
+  section{margin:0 0 40px;scroll-margin-top:70px}
+  h2{font-family:KaiTi,"STKaiti",simkai,"楷体",serif;font-size:21px;font-weight:700;
+     color:var(--brown);margin:0 0 6px;padding-left:12px;border-left:4px solid var(--brown);
+     letter-spacing:.04em}
+  .lead{color:var(--ink-2);font-size:13.5px;margin:0 0 16px;padding-left:16px}
+  h3{font-size:15px;font-weight:700;margin:22px 0 9px;color:var(--ink)}
+  p{margin:0 0 12px}
+
+  .step{background:#FFF;border:1px solid var(--line);border-radius:3px;
+        padding:0;margin:14px 0;overflow:hidden}
+  .step-h{display:flex;align-items:center;gap:10px;padding:11px 15px;
+          background:#FBF8F2;border-bottom:1px solid var(--line-2)}
+  .step-h .sn{font-family:KaiTi,"STKaiti",simkai,"楷体",serif;font-size:15px;font-weight:700;
+              color:var(--brown);white-space:nowrap}
+  .step-h .st{font-size:14px;font-weight:700}
+  .step-h .who{margin-left:auto;font-size:11.5px;color:var(--ink-2);white-space:nowrap}
+  .step-b{padding:15px 17px}
+  .step-b > p:last-child{margin-bottom:0}
+
+  .badge{display:inline-block;padding:1px 8px;border-radius:99px;font-size:11.5px;
+         font-weight:700;letter-spacing:.03em;white-space:nowrap;border:1px solid}
+  .b-you{background:var(--red-bg);color:var(--red);border-color:var(--red-line)}
+  .b-me{background:var(--green-bg);color:var(--green);border-color:var(--green-line)}
+  .b-warn{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-line)}
+  .b-ok{background:var(--green-bg);color:var(--green);border-color:var(--green-line)}
+  .b-key{background:var(--brown-soft);color:var(--brown);border-color:var(--brown-soft)}
+
+  .cmdbox{margin:10px 0;position:relative}
+  .cmd{background:var(--code-bg);border:1px solid var(--line);border-left:3px solid var(--brown);
+       border-radius:2px;padding:11px 46px 11px 13px;margin:0;
+       font-family:Consolas,"Courier New",monospace;font-size:12.7px;line-height:1.72;
+       color:#3A3227;white-space:pre-wrap;word-break:break-all;overflow-x:auto}
+  .cp{position:absolute;top:6px;right:6px;background:#FFF;border:1px solid var(--line);
+      border-radius:2px;font-size:11px;padding:2px 8px;cursor:pointer;color:var(--brown);
+      font-family:inherit}
+  .cp:hover{background:var(--brown);color:#F6F0E5;border-color:var(--brown)}
+  .cp.done{background:var(--green);color:#FFF;border-color:var(--green)}
+  .cmdlab{font-size:12px;color:var(--ink-2);margin:12px 0 3px;letter-spacing:.03em}
+
+  .chkline{display:flex;gap:9px;align-items:flex-start;padding:9px 0;
+           border-top:1px solid var(--line-2);font-size:14px}
+  .chkline:first-of-type{border-top:0}
+  .chkline input{width:16px;height:16px;accent-color:var(--brown);cursor:pointer;margin-top:4px;flex:none}
+  .chkline span{flex:1}
+  .chkline.on span{opacity:.45;text-decoration:line-through;text-decoration-color:var(--ink-3)}
+
+  .callout{border:1px solid var(--line);border-left:4px solid var(--amber);
+    background:var(--amber-bg);border-radius:3px;padding:14px 18px;margin:14px 0}
+  .callout.danger{border-left-color:var(--red);background:var(--red-bg)}
+  .callout.ok{border-left-color:var(--green);background:var(--green-bg)}
+  .callout .ct{font-weight:700;margin-bottom:6px;font-size:14px}
+  .callout p:last-child{margin-bottom:0}
+
+  table{width:100%;border-collapse:separate;border-spacing:0;background:#FFF;
+        border:1px solid var(--line);border-radius:3px;overflow:hidden;font-size:14px;margin:12px 0}
+  th{background:var(--brown);color:#F6F0E5;text-align:left;padding:9px 12px;
+     font-weight:600;font-size:13px;letter-spacing:.04em}
+  td{padding:9px 12px;border-top:1px solid var(--line-2);vertical-align:top}
+  tbody tr:nth-child(even) td{background:#FDFBF7}
+  td.k{width:150px;white-space:nowrap;font-weight:700;font-size:13px;color:var(--brown)}
+  code{font-family:Consolas,"Courier New",monospace;background:#F1E9DA;border:1px solid #E3D8C4;
+       border-radius:2px;padding:1px 5px;font-size:12.5px;color:#5A4526}
+  .ph{background:#FFF3D6;border:1px solid #E8D8A8;border-radius:2px;padding:0 4px;
+      font-family:Consolas,monospace;font-size:12.5px;color:#8A6A12}
+
+  .kv{display:grid;grid-template-columns:150px 1fr;gap:0;font-size:14px;
+      border:1px solid var(--line);border-radius:3px;overflow:hidden;background:#FFF;margin:12px 0}
+  .kv > div{padding:9px 12px;border-top:1px solid var(--line-2)}
+  .kv > div:nth-child(-n+2){border-top:0}
+  .kv > div:nth-child(odd){background:#FBF8F2;font-weight:700;font-size:13px;color:var(--brown)}
+  @media(max-width:700px){.kv{grid-template-columns:1fr}.kv>div:nth-child(odd){border-top:1px solid var(--line-2)}}
+
+  footer{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);
+         color:var(--ink-2);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>后台从零部署 · 腾讯云操作手册<span class="ver">v1.0</span></h1>
+  <div class="sub">ABox 一盒 · 从「打开腾讯云官网」到「后台能用 HTTPS 打开」 · 2026-09-28 · 全部命令取自本项目真实脚本与编排，非通用模板</div>
+</header>
+
+<div class="prog" id="prog">
+  执行进度 <b><span id="pv">0</span> / <span id="pt">0</span></b>
+  <span class="bar"><i id="pbar"></i></span>
+  勾选状态存在本机浏览器，换设备不共享
+</div>
+
+<div class="toc">
+  <div class="tt">目 录</div>
+  <ol>
+    <li><a href="#s0">开工前：先定三件事</a></li>
+    <li><a href="#s1">买服务器</a></li>
+    <li><a href="#s2">开防火墙（最容易错的一步）</a></li>
+    <li><a href="#s3">登录服务器 + 装 Docker</a></li>
+    <li><a href="#s4">把代码弄到服务器上</a></li>
+    <li><a href="#s5">写 .env.prod（高危一步）</a></li>
+    <li><a href="#s6">跑部署脚本</a></li>
+    <li><a href="#s7">验收三条判据</a></li>
+    <li><a href="#s8">装 HTTPS 证书</a></li>
+    <li><a href="#s9">备份 · 回滚演练 · 定时任务</a></li>
+    <li><a href="#s10">卡住了怎么排查</a></li>
+  </ol>
+</div>
+
+<!-- ============================ 第 0 步 ============================ -->
+<section id="s0">
+  <h2>第 0 步 · 开工前：先定三件事</h2>
+  <p class="lead">这三件不定就动手，后面大概率返工。每件都只要一个答案。</p>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">0.1</span><span class="st">这次部署是给谁用的？</span><span class="who"><span class="badge b-you">你决定</span></span></div>
+    <div class="step-b">
+      <div class="kv">
+        <div>内部联调</div><div>只让你自己和测试人员访问 → <b>可以暂不装 HTTPS</b>，先用 <code>http://IP:8080</code>，第 8 步以后再做</div>
+        <div>对外服务</div><div>团长 / 供应商要访问 → <b>必须走 HTTPS</b>，且<b>必须有已备案域名</b>（微信侧强制要求）</div>
+      </div>
+      <p>本手册默认按<b>对外服务</b>写（完整路径）。若只做内部联调，跳过第 8 步即可，其余完全相同。</p>
+      <div class="callout">
+        <div class="ct">为什么内部联调也建议早做 HTTPS</div>
+        <p>后台是高权限面（能看到金额、佣金、供应商结算）。HTTP 明文传输 = 同一 WiFi 下任何人都可能截获登录凭据。<b>内部联调只是"可以缓"，不是"不需要"。</b></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">0.2</span><span class="st">域名有没有、备了没</span><span class="who"><span class="badge b-you">你去查</span></span></div>
+    <div class="step-b">
+      <p>只有你能查（在你的域名注册商 / 备案系统里）。查两件事：</p>
+      <div class="chkline"><input type="checkbox"><span>域名的<b>当前接入商</b>是谁（阿里云？腾讯云？其他？）</span></div>
+      <div class="chkline"><input type="checkbox"><span>备案<b>是否仍然有效</b>（不是"曾经备过"）</span></div>
+      <div class="callout danger">
+        <div class="ct">这条是唯一不可加急的一段</div>
+        <p>备案绑定实际接入商。若域名当前接入商<b>不是腾讯云</b>，换过来必须办<b>接入备案</b>，管局终审 <b>1–20 个工作日</b>；若原备案已失效，会被注销、需重新备案。</p>
+        <p><b>没有已备案域名 = 第 8 步的证书装不了、小程序也配不了服务器域名。</b>所以：如果答案是"没域名"或"接入商不是腾讯云"，<b>今天就先把备案提交掉</b>，让它和部署并行跑 —— 这是整个上线周期里唯一不能靠加班压缩的一段。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">0.3</span><span class="st">命令谁来敲</span><span class="who"><span class="badge b-me">我可以代劳</span></span></div>
+    <div class="step-b">
+      <p>这台电脑上实测已装 <code>OpenSSH 10.3p1</code> + <code>scp</code> + <code>git</code>。所以有两条路：</p>
+      <div class="kv">
+        <div>你敲</div><div>照本手册逐条复制粘贴（第 3 步起每步都有现成命令）</div>
+        <div>我敲</div><div>你在服务器上配一次免密登录，把 IP 给我 —— 第 3 步之后全部我来跑，报错我自己查自己修</div>
+      </div>
+      <p>效果一样，区别只是省不省你的手。你说了算。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 第 1 步 ============================ -->
+<section id="s1">
+  <h2>第 1 步 · 买服务器</h2>
+  <p class="lead">腾讯云控制台 → 轻量应用服务器 → 新建。只有这一页要填，按下面抄。</p>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">1.1</span><span class="st">配置照抄</span><span class="who"><span class="badge b-you">你 · 付款</span></span></div>
+    <div class="step-b">
+      <table>
+        <thead><tr><th style="width:150px">选项</th><th>选什么</th><th>为什么是这个</th></tr></thead>
+        <tbody>
+          <tr><td class="k">地域</td><td>中国境内（如 北京 / 上海）</td><td>境外节点无法备案</td></tr>
+          <tr><td class="k">镜像</td><td><b>Ubuntu 22.04 纯系统镜像</b></td><td>不要选"应用镜像"（Docker 版/宝塔版）—— 它们预装的东西会和我们自己的编排抢端口</td></tr>
+          <tr><td class="k">套餐</td><td><b>4 核 8G</b></td><td>见下方"为什么不能省"</td></tr>
+          <tr><td class="k">计费</td><td><b>包年包月</b>，时长 <b>≥ 3 个月</b></td><td>按量/试用/竞价<b>不支持备案</b>，买了也不给备</td></tr>
+          <tr><td class="k">带宽</td><td>≥ 3 Mbps（不能为 0）</td><td>带宽 0 不支持备案，也访问不了</td></tr>
+          <tr><td class="k">系统盘</td><td>默认 SSD 即可（80G 量级）</td><td>MySQL + Redis + 两个镜像，够用</td></tr>
+        </tbody>
+      </table>
+      <div class="callout danger">
+        <div class="ct">不要为了省几百块选 2C4G</div>
+        <p>这台机器上要同时跑 MySQL 8 + Redis 7 + API + nginx，<b>而且还要在它上面构建两个 Node 镜像</b> —— 构建阶段的内存峰值才是真正的压力点，不是运行时。实测经验：4G 内存跑 <code>pnpm install</code> + <code>nest build</code> 会被 OOM 掉，而 OOM 的表现是<b>构建进程被静默杀掉、报错信息完全看不出是内存问题</b>，能卡很久。</p>
+        <p>差价是一次性的（新用户首单 4C8G 约 ¥450/年，日常价约 ¥1,500–2,500/年）。<b>选 4C8G。</b></p>
+      </div>
+      <h3>买完你会拿到三样东西</h3>
+      <div class="chkline"><input type="checkbox"><span><b>公网 IP</b>（形如 <span class="ph">1.2.3.4</span>）—— 本手册后面用 <span class="ph">&lt;IP&gt;</span> 代指</span></div>
+      <div class="chkline"><input type="checkbox"><span><b>root 密码</b>（控制台设置或短信下发）</span></div>
+      <div class="chkline"><input type="checkbox"><span>实例状态 = <b>运行中</b></span></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">1.2</span><span class="st">顺手别买的东西</span><span class="who"><span class="badge b-warn">防顺手加购</span></span></div>
+    <div class="step-b">
+      <table>
+        <thead><tr><th style="width:180px">不买</th><th>原因</th></tr></thead>
+        <tbody>
+          <tr><td class="k">云数据库 MySQL / 云 Redis</td><td>编排里已经自托管了这两个，再买是双份钱</td></tr>
+          <tr><td class="k">负载均衡 CLB</td><td>项目硬约束：一期<b>只允许一个 API 实例</b>（时间线是进程级单例）。CLB 会引入未验证的多实例形态，症状是"同一分钟下单，一台过一台不过，两边都不报错"，极难排查</td></tr>
+          <tr><td class="k">COS 对象存储</td><td>现在 <code>STORAGE_DRIVER=local</code> 就能跑，nginx 已配好 <code>/static/</code>。等图片量真上来了再迁，配置项都是现成的</td></tr>
+          <tr><td class="k">CDN / 云监控</td><td>单楼灰度体量用不上；项目已有自建巡检脚本</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 第 2 步 ============================ -->
+<section id="s2">
+  <h2>第 2 步 · 开防火墙</h2>
+  <p class="lead">腾讯云控制台 → 轻量应用服务器 → 你的实例 → 防火墙。这一步最容易犯错，错了后面全乱。</p>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">2.1</span><span class="st">只开这三个端口</span><span class="who"><span class="badge b-you">你 · 控制台</span></span></div>
+    <div class="step-b">
+      <table>
+        <thead><tr><th style="width:90px">端口</th><th style="width:110px">协议</th><th>用途</th><th>来源</th></tr></thead>
+        <tbody>
+          <tr><td class="k">22</td><td>TCP</td><td>SSH 登录（或控制台 WebShell）</td><td>建议限制为你的 IP</td></tr>
+          <tr><td class="k">80</td><td>TCP</td><td>HTTP（证书签发校验要用，之后跳转 443）</td><td>全部</td></tr>
+          <tr><td class="k">443</td><td>TCP</td><td>HTTPS —— 后台真正对外的人口</td><td>全部</td></tr>
+        </tbody>
+      </table>
+      <div class="callout danger">
+        <div class="ct">绝对不要把 8080 放到公网</div>
+        <p>项目的后台容器对宿主暴露的是 <code>8080</code> 端口，那是<b>给宿主机 nginx 内部反代用的</b>，不是给公网用的。直接开 8080 等于：<br>
+        ① 绕过了 HTTPS，明文传输管理员凭据；<br>
+        ② 绕过了第 8 步要装的证书与安全头；<br>
+        ③ 一旦 <code>PROVIDER_MODE</code> 配错（见第 5 步），任何人可免密登录任意身份。</p>
+        <p><b>正确形态：公网 443 → 宿主机 nginx → 127.0.0.1:8080。</b>8080 只在服务器内部可见。</p>
+      </div>
+      <div class="callout ok">
+        <div class="ct">如果你的 22 端口不想对全网开</div>
+        <p>腾讯云控制台提供「一键登录（WebShell）」功能，走网页直连，<b>不需要开 22 端口、不需要配密钥</b>。第 3 步用它最省事。等你要让我代劳时再开 22 并限制来源 IP。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 第 3 步 ============================ -->
+<section id="s3">
+  <h2>第 3 步 · 登录服务器 + 装 Docker</h2>
+  <p class="lead">从这里开始是命令行。每条命令都可直接复制。</p>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">3.1</span><span class="st">登录（两种方式选一）</span><span class="who"><span class="badge b-you">你</span></span></div>
+    <div class="step-b">
+      <div class="cmdlab">方式 A · 控制台 WebShell（最简单，推荐第一次用）</div>
+      <p>腾讯云控制台 → 实例 → <b>一键登录</b> → 弹出黑框即可直接敲命令，不用装任何东西。</p>
+      <div class="cmdlab">方式 B · 本机 SSH（Windows 10/11 自带，打开 PowerShell 或 CMD 即可）</div>
+      <div class="cmdbox"><pre class="cmd">ssh root@<span class="ph">&lt;IP&gt;</span></pre><button class="cp">复制</button></div>
+      <p>首次连接会问 <code>Are you sure you want to continue connecting (yes/no)?</code> —— 输入 <code>yes</code> 回车，再输密码（输入时屏幕不显示，正常的，敲完直接回车）。</p>
+      <div class="callout">
+        <div class="ct">判据</div>
+        <p>出现 <code>root@&lt;主机名&gt;:~#</code> 提示符即登录成功。若提示 <code>Connection timed out</code> → 回第 2 步确认 22 端口；若 <code>Permission denied</code> → 密码不对，去控制台重置。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">3.2</span><span class="st">固定时区（别跳，它影响钱）</span><span class="who"><span class="badge b-key">关键</span></span></div>
+    <div class="step-b">
+      <div class="cmdbox"><pre class="cmd">timedatectl set-timezone Asia/Shanghai &amp;&amp; timedatectl | grep "Time zone"</pre><button class="cp">复制</button></div>
+      <div class="callout">
+        <div class="ct">为什么要单独做这一步</div>
+        <p>项目的 MySQL 容器启用了 <code>--default-time-zone=+08:00</code>，应用侧连接也写死 <code>timezone='+08:00'</code>。<b>若宿主机是 UTC，日切跑批（T-1 24:00 截单、次日 02:00 结算）会算错日子</b> —— 表现为"订单明明在截单前下的却被判超时"这类极难归因的问题，而且<b>不报错</b>。</p>
+        <p>判据：输出应含 <code>Time zone: Asia/Shanghai (CST, +0800)</code>。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">3.3</span><span class="st">加 2G 交换空间（防构建 OOM）</span><span class="who"><span class="badge b-warn">强烈建议</span></span></div>
+    <div class="step-b">
+      <div class="cmdbox"><pre class="cmd">fallocate -l 2G /swapfile &amp;&amp; chmod 600 /swapfile &amp;&amp; mkswap /swapfile &amp;&amp; swapon /swapfile &amp;&amp; echo '/swapfile none swap sw 0 0' &gt;&gt; /etc/fstab &amp;&amp; free -h | grep -i swap</pre><button class="cp">复制</button></div>
+      <p>判据：<code>Swap:</code> 一行显示约 <code>2.0Gi</code>。</p>
+      <p class="note" style="color:var(--ink-2);font-size:13px">4C8G 跑两个 Node 镜像的构建，加 swap 是保险。代价是磁盘换内存，构建慢一点，但<b>不会莫名其妙被杀进程</b>。</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">3.4</span><span class="st">装 Docker</span><span class="who"><span class="badge b-me">或我</span></span></div>
+    <div class="step-b">
+      <div class="cmdbox"><pre class="cmd">curl -fsSL https://get.docker.com | sh</pre><button class="cp">复制</button></div>
+      <div class="cmdlab">装完验证（两条都要过）</div>
+      <div class="cmdbox"><pre class="cmd">docker --version
+docker compose version</pre><button class="cp">复制</button></div>
+      <div class="callout danger">
+        <div class="ct">判据必须是两条都出版本号</div>
+        <p><code>docker compose version</code> 必须输出形如 <code>Docker Compose version v2.x.x</code>。<b>只装到 Docker 引擎、没有 Compose V2 插件是常见情况</b> —— 此时 <code>docker compose</code> 会报"command not found"，而 <code>deploy.sh</code> 会在"1/7 预检"那一步直接中止（脚本带 <code>set -euo pipefail</code>，不会静默）。</p>
+        <p>若第二条失败：<code>apt-get update &amp;&amp; apt-get install -y docker-compose-plugin</code></p>
+      </div>
+      <div class="cmdlab">把 Docker 设为开机自启</div>
+      <div class="cmdbox"><pre class="cmd">systemctl enable --now docker</pre><button class="cp">复制</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 第 4 步 ============================ -->
+<section id="s4">
+  <h2>第 4 步 · 把代码弄到服务器上</h2>
+  <p class="lead">推荐用 git 直接拉，最省事也最不容易出错。</p>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">4.1</span><span class="st">克隆仓库</span><span class="who"><span class="badge b-me">或我</span></span></div>
+    <div class="step-b">
+      <div class="cmdbox"><pre class="cmd">cd /opt &amp;&amp; git clone <span class="ph">&lt;你的仓库地址&gt;</span> abox-onebox &amp;&amp; cd abox-onebox</pre><button class="cp">复制</button></div>
+      <div class="callout ok">
+        <div class="ct">先确认远端是最新的</div>
+        <p>已核实：<code>origin/main</code> 已与本地 HEAD 对齐（commit <code>1a0710e</code>，含注销功能、通知矩阵、口味评价、资金闸门、28 道门禁、部署前置）。<b>所以直接从远端拉即可，不用从你本机传。</b></p>
+      </div>
+      <p>如果仓库是私有的、服务器上没配 SSH key，就退回方案 B：在你本机执行 <code>scp -r abox-onebox root@&lt;IP&gt;:/opt/</code>（较慢，但不用配权限）。</p>
+      <h3>判据</h3>
+      <div class="cmdbox"><pre class="cmd">ls docker-compose.prod.yml scripts/deploy.sh .env.example</pre><button class="cp">复制</button></div>
+      <p>三个文件名都列出来（不报 <code>No such file</code>）才算到位。<b>注意 <code>docker-compose.prod.yml</code> 必须在仓库根目录</b> —— 所有脚本都是按"在根目录执行"写的。</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">4.2</span><span class="st">确认脚本有执行权限</span><span class="who"><span class="badge b-key">易漏</span></span></div>
+    <div class="step-b">
+      <div class="cmdbox"><pre class="cmd">chmod +x scripts/*.sh</pre><button class="cp">复制</button></div>
+      <p>git 通常会保留权限位，但 Windows 上打过包的仓库有时会丢。若后面执行 <code>./scripts/deploy.sh</code> 报 <code>Permission denied</code>，就是这一步没做。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 第 5 步 ============================ -->
+<section id="s5">
+  <h2>第 5 步 · 写 .env.prod</h2>
+  <p class="lead">整个部署里唯一"配错了不报错、但后果最严重"的一步。请逐条核对。</p>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">5.1</span><span class="st">先复制样例</span><span class="who"><span class="badge b-me">或我</span></span></div>
+    <div class="step-b">
+      <div class="cmdbox"><pre class="cmd">cp .env.example .env.prod &amp;&amp; chmod 600 .env.prod</pre><button class="cp">复制</button></div>
+      <div class="callout danger">
+        <div class="ct">照抄样例上线 = 裸奔</div>
+        <p>样例文件是为本地开发写的，里面有<b>三个必须改掉的值</b>。直接拿去部署，服务<b>照常起来、不报任何错</b>，但后果如下。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">5.2</span><span class="st">三个必须改的（缺一不可）</span><span class="who"><span class="badge b-you">你填值</span></span></div>
+    <div class="step-b">
+      <table>
+        <thead><tr><th style="width:190px">变量</th><th>必须改成</th><th>不改的后果</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="k">PROVIDER_MODE</td>
+            <td><b>显式写 <code>real</code></b>（对外服务时）</td>
+            <td><span class="badge b-you">最危险</span> 留 <code>mock</code> 的后果是：<b>任意 code 可免密登录任意身份 + 支付自动置为已支付</b>，且服务照常起、无任何报错</td>
+          </tr>
+          <tr>
+            <td class="k">JWT_SECRET</td>
+            <td>真随机长串</td>
+            <td>留 <code>change_me_before_go_live</code> → 任何人可以自签一个超管 token</td>
+          </tr>
+          <tr>
+            <td class="k">MYSQL_ROOT_PASSWORD<br>DB_PASSWORD</td>
+            <td>强口令</td>
+            <td><code>DB_PASSWORD</code> 生产<b>无内置兜底</b>，漏配即连不上库</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout ok">
+        <div class="ct">关于 PROVIDER_MODE 的两道保险</div>
+        <p>项目在 <code>main.ts</code> 里有 <code>REQUIRED_IN_PROD</code> 检查：<b>生产环境漏配该项会直接启动中止</b>。这是第二道保险 —— 但它的作用是"防漏配"，<b>防不了"配成了 mock"</b>。所以仍需你显式写 <code>real</code>。</p>
+        <p>若这次只是内部联调、暂时没有微信账号：可以留 <code>mock</code>，但<b>务必不要开 8080 到公网</b>（回到第 2 步）。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">5.3</span><span class="st">在服务器上生成强密钥（推荐这样）</span><span class="who"><span class="badge b-me">或我</span></span></div>
+    <div class="step-b">
+      <div class="cmdlab">生成两个随机串，打印出来</div>
+      <div class="cmdbox"><pre class="cmd">openssl rand -base64 32
+openssl rand -base64 32</pre><button class="cp">复制</button></div>
+      <div class="cmdlab">用编辑器改（把上面两条输出分别贴进对应位置）</div>
+      <div class="cmdbox"><pre class="cmd">nano /opt/abox-onebox/.env.prod</pre><button class="cp">复制</button></div>
+      <p>改完按 <code>Ctrl+O</code> 回车保存，<code>Ctrl+X</code> 退出。</p>
+      <div class="callout">
+        <div class="ct">为什么推荐在服务器上生成，而不是让我给你一个</div>
+        <p>① 密钥<b>不经过聊天记录</b>，减少留痕面；② 手打的密码几乎都是弱密码；③ 生成完请<b>顺手抄进你的密码管理器</b> —— 丢了它只能重来一遍，数据库里的密码哈希是用它签的。</p>
+        <p>如果你希望我来做这一步：我会在服务器本地生成并直接写入文件，<b>不把密钥内容打进对话</b>，只告诉你已写入。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">5.4</span><span class="st">核对清单</span><span class="who"><span class="badge b-key">逐条勾</span></span></div>
+    <div class="step-b">
+      <div class="chkline"><input type="checkbox"><span><code>PROVIDER_MODE</code> 已按你的场景显式写 <code>real</code>（或确认只做内部联调）</span></div>
+      <div class="chkline"><input type="checkbox"><span><code>JWT_SECRET</code> 已换成随机串（不是 <code>change_me_before_go_live</code>）</span></div>
+      <div class="chkline"><input type="checkbox"><span><code>MYSQL_ROOT_PASSWORD</code> 和 <code>DB_PASSWORD</code> 已改（<b>两者都用同一个新密码</b>最省事）</span></div>
+      <div class="chkline"><input type="checkbox"><span><code>MYSQL_ROOT_PASSWORD</code> 已填 —— 这是编排里的<b>硬失败项</b>，缺了 compose 直接拒绝启动</span></div>
+      <div class="chkline"><input type="checkbox"><span><code>DB_DRIVER=mysql</code>、<code>QUEUE_DRIVER=redis</code>（不是 sqlite / memory）</span></div>
+      <div class="chkline"><input type="checkbox"><span>文件权限已是 <code>600</code>（<code>ls -l .env.prod</code> 看到 <code>-rw-------</code>）</span></div>
+      <div class="callout">
+        <div class="ct">关于 MYSQL_ROOT_PASSWORD 的一个坑</div>
+        <p>编排里写的是 <code>${MYSQL_ROOT_PASSWORD:?缺少 MYSQL_ROOT_PASSWORD}</code> —— 带 <code>:?</code> 的写法表示<b>变量缺失时 compose 直接拒绝启动，不会用默认值悄悄起来</b>。这是好事（防裸奔），但代价是：如果你漏填，报错信息会很明确，看到"缺少 MYSQL_ROOT_PASSWORD"就知道是第 5 步没做完。</p>
+        <p>其它变量多是 <code>${VAR:-默认值}</code> 形式（有兜底），所以只有这一个会硬拦你。<b>但"能启动"不等于"配对了"</b> —— 所以 5.4 的清单要逐条勾。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 第 6 步 ============================ -->
+<section id="s6">
+  <h2>第 6 步 · 跑部署脚本</h2>
+  <p class="lead">项目自带 <code>deploy.sh</code>，7 个阶段全自动。先空跑一遍看它会做什么，再真跑。</p>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">6.1</span><span class="st">先空跑（不真的动任何东西）</span><span class="who"><span class="badge b-key">强烈建议</span></span></div>
+    <div class="step-b">
+      <div class="cmdbox"><pre class="cmd">./scripts/deploy.sh --dry-run</pre><button class="cp">复制</button></div>
+      <p>会打印出它打算执行的每一条命令，不实际执行。看一遍，确认没有意外（比如路径不对、tag 不对）。</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">6.2</span><span class="st">真跑</span><span class="who"><span class="badge b-me">或我</span></span></div>
+    <div class="step-b">
+      <div class="cmdbox"><pre class="cmd">./scripts/deploy.sh</pre><button class="cp">复制</button></div>
+      <p>首次部署约 <b>8–15 分钟</b>（主要是拉基础镜像 + 构建两个 Node 镜像）。你会看到 7 个阶段依次推进：</p>
+      <table>
+        <thead><tr><th style="width:70px">阶段</th><th>做什么</th><th>这一步卡住意味着</th></tr></thead>
+        <tbody>
+          <tr><td class="k">1/7 预检</td><td>检查 docker / compose / 编排文件 / .env.prod，确定镜像 tag</td><td>Docker 没装好，或不在仓库根目录</td></tr>
+          <tr><td class="k">2/7 备份</td><td>备份数据库</td><td><b>首次部署时报"备份失败"是正常的</b>（库还是空的），脚本会警告后继续</td></tr>
+          <tr><td class="k">3/7 起依赖</td><td>启动 MySQL + Redis，等 MySQL 就绪</td><td>MySQL 起不来（多半是密码或内存）</td></tr>
+          <tr><td class="k">4/7 构建</td><td>构建 api + admin 两个镜像</td><td><b>最耗时也最容易 OOM 的一步</b>；报 <code>Killed</code> 基本就是内存不够（回第 3.3 步）</td></tr>
+          <tr><td class="k">5/7 迁移</td><td>执行数据库迁移（建表）</td><td>见第 7 步的专门判据，<b>这里显示"已执行"不代表表真的建好了</b></td></tr>
+          <tr><td class="k">6/7 起应用</td><td>启动 api + admin 容器</td><td>—</td></tr>
+          <tr><td class="k">7/7 健康验证</td><td>轮询健康检查，最多 90 秒</td><td>API 没起来，看下一步的排查命令</td></tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <div class="ct">失败时脚本不会自动回滚，这是故意的</div>
+        <p>脚本在失败时会<b>打印出明确的回滚命令然后停下</b>，把决定权交给人。原因是：迁移可能已经执行了，此时自动把代码退回旧版、而表结构停在新版，会形成<b>半新半旧</b>状态 —— 那往往比"新版本 + 已知故障"更难判断。这与项目"不做静默降级"的一贯取舍一致。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 第 7 步 ============================ -->
+<section id="s7">
+  <h2>第 7 步 · 验收三条判据</h2>
+  <p class="lead">脚本打印"部署成功"不代表可以收工。这三条要亲眼看到。</p>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">7.1</span><span class="st">容器都在跑</span><span class="who"><span class="badge b-me">或我</span></span></div>
+    <div class="step-b">
+      <div class="cmdbox"><pre class="cmd">docker compose -f docker-compose.prod.yml --env-file .env.prod ps</pre><button class="cp">复制</button></div>
+      <div class="callout ok">
+        <div class="ct">判据</div>
+        <p>四个服务（<code>mysql</code> / <code>redis</code> / <code>api</code> / <code>admin</code>）状态都要是 <code>Up</code> 或 <code>Up (healthy)</code>。<br>
+        <span class="badge b-warn">注意</span> <code>api</code> <b>没有配 healthcheck</b>（编排里刻意没加，避免依赖故障引发重启风暴），所以它只显示 <code>Up</code> 是正常的，<b>不能用"是不是 healthy"判断 API 好坏</b> —— 要靠 7.3。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">7.2</span><span class="st">迁移真的建表了</span><span class="who"><span class="badge b-key">最容易蒙混过关</span></span></div>
+    <div class="step-b">
+      <div class="cmdbox"><pre class="cmd">docker compose -f docker-compose.prod.yml --env-file .env.prod run --rm --no-deps --entrypoint sh api -c \
+  'node node_modules/typeorm/cli.js migration:show -d apps/api-server/dist/database/data-source.js'</pre><button class="cp">复制</button></div>
+      <div class="callout danger">
+        <div class="ct">唯一有效判据：两支都要是 [X]</div>
+        <p>输出必须<b>同时</b>列出 <code>Init1700000000000</code> 和 <code>ParityFix1700000000001</code>，且<b>两个后面都是 <code>[X]</code></b>。少一支，或者任何一支是 <code>[ ]</code>，都等于<b>表没建全</b>。</p>
+        <p><b>为什么不能只看部署脚本"5/7 迁移已执行"那行 OK</b>：TypeORM 在找不到任何迁移文件时<b>不报错</b>，只输出一行 <code>No migrations are found</code> 就正常退出 0。于是部署流水线显示全绿，而所有建表语句从未执行 —— 等到第一个写请求打进来，才会炸在"列不存在"上，而那时已经是线上故障了。</p>
+      </div>
+      <div class="callout">
+        <div class="ct">已核实的现状（避免你白担心）</div>
+        <p>迁移的 glob 配置实测为 <code>migrations/*.{ts,js}</code> —— <b>已同时包含 .js</b>，所以在 <code>dist/</code> 下能匹配到编译产物，配置本身没问题。<br>
+        但这<b>不等于可以跳过这条判据</b>：最终有没有 <code>.js</code> 落在 <code>dist/database/migrations/</code> 里，取决于构建时的编译范围 —— 这属于"只有真机跑一遍才知道"的事。所以第 7.2 步必须真跑一次、亲眼看两支都是 <code>[X]</code>。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">7.3</span><span class="st">探针能通</span><span class="who"><span class="badge b-me">或我</span></span></div>
+    <div class="step-b">
+      <div class="cmdbox"><pre class="cmd">curl -s http://127.0.0.1:8080/api/v1/health/ready; echo
+curl -s http://127.0.0.1:8080/api/v1/health; echo</pre><button class="cp">复制</button></div>
+      <div class="callout ok">
+        <div class="ct">判据</div>
+        <p>两条都返回 JSON。<code>/health/ready</code> 会额外检查 MySQL / Redis 连通性；<code>/health</code> 是存活性探针（不检依赖）。<br>
+        如果 <code>/health/ready</code> 返回非 200，说明应用起来了但<b>连不上库</b> —— 90% 是 <code>.env.prod</code> 里数据库密码和 <code>MYSQL_ROOT_PASSWORD</code> 不一致。</p>
+        <p>另外：<code>/health</code> 的返回里带 <code>version</code> 字段，用它可确认"现在跑的到底是哪一版"（镜像构建时注入的 git sha）。</p>
+      </div>
+      <div class="cmdlab">顺手确认后台页面能打开</div>
+      <div class="cmdbox"><pre class="cmd">curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8080/</pre><button class="cp">复制</button></div>
+      <p>返回 <code>200</code> 即可。此时你在浏览器里访问 <code>http://&lt;IP&gt;:8080</code> 也应该能看到后台登录页 —— <b>但请先确认你已经把 8080 关在公网外</b>（第 2 步），否则就用控制台 WebShell 里的 <code>curl</code> 测。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 第 8 步 ============================ -->
+<section id="s8">
+  <h2>第 8 步 · 装 HTTPS 证书</h2>
+  <p class="lead">前置条件：已有域名、且已解析到这台服务器的 IP。没有域名就先回第 0.2 步。</p>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">8.1</span><span class="st">解析先生效</span><span class="who"><span class="badge b-you">你 · 控制台</span></span></div>
+    <div class="step-b">
+      <p>在域名解析商处加一条 A 记录：<code>@</code>（或你要的子域名，如 <code>admin</code>）→ <code>&lt;IP&gt;</code>。</p>
+      <div class="cmdlab">在服务器上确认解析已生效（看到你的 IP 才行）</div>
+      <div class="cmdbox"><pre class="cmd">ping -c 1 <span class="ph">&lt;你的域名&gt;</span></pre><button class="cp">复制</button></div>
+      <div class="callout">
+        <div class="ct">不要跳过这条</div>
+        <p>解析没生效就去申请证书，certbot 会失败，而失败信息是"DNS 解析不到"这类容易误判成别的问题。先确认这一步，省很多事。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">8.2</span><span class="st">装宿主机 nginx</span><span class="who"><span class="badge b-me">或我</span></span></div>
+    <div class="step-b">
+      <div class="cmdbox"><pre class="cmd">apt-get update &amp;&amp; apt-get install -y nginx certbot python3-certbot-nginx</pre><button class="cp">复制</button></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">8.3</span><span class="st">写站点配置（反代 8080）</span><span class="who"><span class="badge b-me">或我</span></span></div>
+    <div class="step-b">
+      <div class="cmdbox"><pre class="cmd">cat &gt; /etc/nginx/sites-available/abox-admin &lt;&lt;'EOF'
+server {
+    listen 80;
+    server_name <span class="ph">&lt;你的域名&gt;</span>;
+
+    client_max_body_size 20m;
+
+    location / {
+        proxy_pass         http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # 微信支付 V3 回调要拿原始报文验签，不能缓冲
+        proxy_request_buffering off;
+        proxy_read_timeout 60s;
+        proxy_send_timeout 60s;
+    }
+}
+EOF
+ln -sf /etc/nginx/sites-available/abox-admin /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/default
+nginx -t &amp;&amp; systemctl reload nginx</pre><button class="cp">复制</button></div>
+      <div class="callout danger">
+        <div class="ct">两个必须保留的细节</div>
+        <p>① <code>client_max_body_size 20m</code> —— 后台要传商品图 / 凭证图，nginx 默认 1m 会直接 <b>413</b>，且报错只在上传时出现。<br>
+        ② <code>proxy_request_buffering off</code> —— 微信支付 V3 回调要拿<b>原始报文</b>验签（应用侧开了 rawBody）。缓冲会引入时序/大小差异，导致签名校验失败，而症状是"支付成功了但回调验签不过"，很难往 nginx 上想。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">8.4</span><span class="st">申请证书</span><span class="who"><span class="badge b-you">填邮箱</span></span></div>
+    <div class="step-b">
+      <div class="cmdbox"><pre class="cmd">certbot --nginx -d <span class="ph">&lt;你的域名&gt;</span> -m <span class="ph">&lt;你的邮箱&gt;</span> --agree-tos -n</pre><button class="cp">复制</button></div>
+      <p>certbot 会自动改配置、装证书、并配好自动续期。它还会问是否把 HTTP 重定向到 HTTPS —— <b>选重定向（2）</b>。</p>
+      <div class="cmdlab">验证</div>
+      <div class="cmdbox"><pre class="cmd">certbot renew --dry-run</pre><button class="cp">复制</button></div>
+      <div class="callout">
+        <div class="ct">为什么一定要跑一次 dry-run</div>
+        <p>免费证书 <b>90 天</b>过期。certbot 装完会注册自动续期任务，但<b>那个任务从未被验证过</b>。<code>renew --dry-run</code> 不消耗申请额度、却能证明续期链路是通的 —— 不验的话，三个月后你会在一个毫无征兆的早上发现全站证书过期。</p>
+      </div>
+      <h3>最终判据</h3>
+      <div class="cmdbox"><pre class="cmd">curl -s -o /dev/null -w "%{http_code}\n" https://<span class="ph">&lt;你的域名&gt;</span>/</pre><button class="cp">复制</button></div>
+      <p>返回 <code>200</code>，且浏览器地址栏是<b>锁头图标</b>。到此，后台可以用 HTTPS 正常访问了。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 第 9 步 ============================ -->
+<section id="s9">
+  <h2>第 9 步 · 备份 · 回滚演练 · 定时任务</h2>
+  <p class="lead">这三件事决定"出事之后有没有退路"。建议第一次就做，别等出事。</p>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">9.1</span><span class="st">备份</span><span class="who"><span class="badge b-me">或我</span></span></div>
+    <div class="step-b">
+      <div class="cmdbox"><pre class="cmd">./scripts/backup-db.sh &amp;&amp; ls -lh backups/ | tail -5</pre><button class="cp">复制</button></div>
+      <div class="callout">
+        <div class="ct">备份文件在容器所在机器上是"假备份"</div>
+        <p>机器挂了 / 被误删，备份也一起没。第一台机器上线后，请务必把 <code>backups/</code> 同步到别处（哪怕是你本机硬盘，或者腾讯云 COS 的一个低频存储桶）。这件事不做的后果是"有备份，但和数据库一起丢了"。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">9.2</span><span class="st">回滚演练</span><span class="who"><span class="badge b-key">必须做一次</span></span></div>
+    <div class="step-b">
+      <div class="cmdbox"><pre class="cmd">./scripts/rollback.sh</pre><button class="cp">复制</button></div>
+      <div class="callout danger">
+        <div class="ct">为什么"没出事也要演练一次"</div>
+        <p>回滚脚本和备份脚本一样，<b>从未在真机执行过</b>。真出事的那天，如果你第一次跑它就发现有问题（比如路径不对、tag 取不到），那就是"明知有退路却走不了"的最坏局面。<b>在没有压力的时候跑通一次，是唯一能确认退路可用的办法。</b></p>
+        <p><span class="badge b-you">硬禁忌</span> 生产机上<b>永远不要执行 <code>docker image prune -a</code></b> —— 它会把上一版镜像一起删掉，等于亲手销毁回滚能力。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">9.3</span><span class="st">注册定时任务</span><span class="who"><span class="badge b-me">或我</span></span></div>
+    <div class="step-b">
+      <div class="cmdbox"><pre class="cmd">./scripts/install-cron.sh --dry-run
+./scripts/install-cron.sh</pre><button class="cp">复制</button></div>
+      <p>先 <code>--dry-run</code> 看它会写什么，再真装。项目的时间线是运行时注册 + 热重载（不是 <code>@Cron</code> 装饰器），所以定时任务装好之后，日切、结算、巡检才会真的跑。</p>
+      <div class="callout">
+        <div class="ct">一个前提约束</div>
+        <p>项目的时间线是<b>进程级单例</b>，因此一期<b>只允许一个 API 实例</b>。定时任务装在这台机器上即可；不要为了"高可用"再起第二个实例，那会引入双份跑批（同一笔结算跑两次）。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 第 10 步 ============================ -->
+<section id="s10">
+  <h2>第 10 步 · 卡住了怎么排查</h2>
+  <p class="lead">按现象查，不用通读日志。</p>
+
+  <table>
+    <thead><tr><th style="width:230px">现象</th><th>先看什么</th><th>大概率是什么</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="k">docker compose 报<br>"缺少 MYSQL_ROOT_PASSWORD"</td>
+        <td><code>grep MYSQL_ROOT_PASSWORD .env.prod</code></td>
+        <td>第 5 步没填。这是编排里的硬失败项（<code>:?</code> 语法），缺了直接拒绝启动</td>
+      </tr>
+      <tr>
+        <td class="k">构建阶段报 <code>Killed</code><br>（没有其它报错）</td>
+        <td><code>free -h</code>、<code>dmesg | grep -i oom</code></td>
+        <td><b>内存不足被 OOM 杀掉</b>，不是代码问题。回第 3.3 步加 swap，或升到 4C8G</td>
+      </tr>
+      <tr>
+        <td class="k">"No migrations are found"</td>
+        <td>第 7.2 步的命令</td>
+        <td>编译产物里没有迁移文件。<b>不要放过</b> —— 它会正常退出 0 而表没建</td>
+      </tr>
+      <tr>
+        <td class="k"><code>/health/ready</code> 非 200<br>但 <code>/health</code> 正常</td>
+        <td><code>docker compose logs --tail=100 api</code></td>
+        <td>应用起来了但连不上库 —— 检查 <code>DB_PASSWORD</code> 与 <code>MYSQL_ROOT_PASSWORD</code> 是否一致</td>
+      </tr>
+      <tr>
+        <td class="k">后台能开，但上传图片<br>报 413</td>
+        <td>nginx 配置里的 <code>client_max_body_size</code></td>
+        <td>宿主机 nginx 那层没设（容器里已设 20m，宿主机默认只有 1m）</td>
+      </tr>
+      <tr>
+        <td class="k">网页能开，接口 502</td>
+        <td><code>docker compose ps</code></td>
+        <td>api 容器没起来，或还在启动中（首次要等 MySQL 健康检查通过）</td>
+      </tr>
+      <tr>
+        <td class="k">支付回调验签失败</td>
+        <td>宿主机 nginx 的 <code>proxy_request_buffering</code></td>
+        <td>没关缓冲（第 8.3 步）。容器内的 nginx 已关，宿主机那层容易漏</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <div class="ct">通用排查命令（三条就够）</div>
+    <div class="cmdbox"><pre class="cmd">docker compose -f docker-compose.prod.yml --env-file .env.prod ps
+docker compose -f docker-compose.prod.yml --env-file .env.prod logs --tail=100 api
+docker compose -f docker-compose.prod.yml --env-file .env.prod logs --tail=100 admin</pre><button class="cp">复制</button></div>
+    <p>把报错贴给我，我能定位到具体文件和行 —— 项目的 Dockerfile 里带了 <code>--enable-source-maps</code>，线上堆栈能直接对应到 TS 源码行号。</p>
+  </div>
+</section>
+
+<footer>
+  ABox 一盒 · 后台从零部署腾讯云操作手册 v1.0 · 2026-09-28<br>
+  配套：《腾讯云开通与首次部署执行手册 v1.0》（云厂商侧的坑与选购）·《上线分工与执行看板 v1.0》（谁做什么）·《明日部署行动清单 v1.0》（上线前检查项）<br>
+  本手册所有命令与路径均取自本项目真实文件：docker-compose.prod.yml · scripts/deploy.sh · apps/api-server/Dockerfile · apps/admin-web/nginx.conf · .env.example<br>
+  勾选状态保存在本机浏览器 localStorage，不上传。
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var KEY='abox_deploy_fromzero_v1', saved={};
+  try{ saved=JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){ saved={}; }
+
+  // 勾选行
+  Array.prototype.slice.call(document.querySelectorAll('.chkline')).forEach(function(el,i){
+    var input=el.querySelector('input'), id='k'+i;
+    if(!input) return;
+    if(saved[id]) input.checked=true;
+    function paint(){ el.classList.toggle('on', input.checked); }
+    paint();
+    input.addEventListener('change', function(){
+      saved[id]=input.checked;
+      try{ localStorage.setItem(KEY, JSON.stringify(saved)); }catch(e){}
+      paint();
+    });
+  });
+
+  // 复制按钮
+  Array.prototype.slice.call(document.querySelectorAll('.cp')).forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var pre=btn.parentNode.querySelector('.cmd');
+      if(!pre) return;
+      var txt=pre.innerText;
+      var done=function(){
+        var old=btn.textContent;
+        btn.textContent='已复制'; btn.classList.add('done');
+        setTimeout(function(){ btn.textContent=old; btn.classList.remove('done'); },1400);
+      };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(done, function(){ fallback(txt, done); });
+      } else { fallback(txt, done); }
+    });
+  });
+  function fallback(txt, cb){
+    var ta=document.createElement('textarea');
+    ta.value=txt; ta.style.position='fixed'; ta.style.left='-9999px';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); cb(); }catch(e){}
+    document.body.removeChild(ta);
+  }
+})();
+</script>
+</body>
+</html>

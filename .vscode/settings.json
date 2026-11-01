@@ -1,0 +1,68 @@
+{
+  // ─────────────────────────────────────────────────────────────
+  //  本工作区专属编辑器配置（2026-09-23 加）
+  //  背景：多份契约文档存在「把几万字塞进一个表格单元格」的写法，
+  //        单行最长 31,168 字符（冻结清单）/ 16,656（接口规范）。
+  //        卡顿主因 = 编辑器对超长行做逐行 tokenize + 高亮，
+  //        **与文件体积无关**（指引 311KB/2984 行、最长行 717 ⇒ 不卡）。
+  //  本文件只影响编辑器体验，不触碰任何文档字节，不影响任何门禁。
+  // ─────────────────────────────────────────────────────────────
+
+  // ── 1. 超长行止血（最关键的一条）────────────────────────────
+  // VS Code 默认对 ≤20000 字符的行着色；调低到 2000 后，
+  // 那些 1 万~3 万字符的行会被直接跳过 tokenize ⇒ 打开/滚动立刻顺畅。
+  // 代价：超长行不再有语法高亮（这类行本就不需要）。
+  "editor.maxTokenizationLineLength": 2000,
+
+  "editor.wordWrap": "off",
+  "editor.minimap.enabled": false,
+  "editor.bracketPairColorization.enabled": false,
+  "editor.largeFileOptimizations": true,
+  "editor.renderWhitespace": "none",
+  "editor.selectionHighlight": false,
+  "editor.occurrencesHighlight": "off",
+  "editor.codeLens": false,
+  "editor.matchBrackets": "near",
+
+  // 中文文档里全角标点会被「可疑字符高亮」逐字标记 ⇒ 额外开销，关掉。
+  "editor.unicodeHighlight.nonBasicASCII": false,
+  "editor.unicodeHighlight.ambiguousCharacters": false,
+  "editor.unicodeHighlight.invisibleCharacters": false,
+
+  // ── 2. Markdown 专属减负 ───────────────────────────────────
+  "[markdown]": {
+    "editor.quickSuggestions": {
+      "other": false,
+      "comments": false,
+      "strings": false
+    },
+    "editor.wordBasedSuggestions": "off",
+    "editor.folding": false,
+    "editor.occurrencesHighlight": "off",
+    "editor.matchBrackets": "never",
+    "editor.suggestOnTriggerCharacters": false
+  },
+
+  // ⚠️ 注意：Markdown **预览面板**（Ctrl+Shift+V）会走 markdown-it 全量渲染，
+  //    3 万字符的单行表格仍会卡。看这类文件建议用「源码视图」，
+  //    或按下节方案生成只读阅读副本。
+
+  // ── 3. 文件监视 / 全局搜索减负 ─────────────────────────────
+  // _tmp/ 有 1200+ 文件、monorepo 有 node_modules 与多份 dist 产物，
+  // 文件监视器与全局搜索会持续争抢主线程。
+  "files.watcherExclude": {
+    "**/_tmp/**": true,
+    "**/node_modules/**": true,
+    "**/dist*/**": true,
+    "**/unpackage/**": true,
+    "**/.git/objects/**": true
+  },
+  "search.exclude": {
+    "**/_tmp/**": true,
+    "**/node_modules/**": true,
+    "**/dist*/**": true,
+    "**/unpackage/**": true,
+    "**/*.map": true,
+    "**/*.log": true
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "ABox 一盒 · 原型",
+  "short_name": "ABox 一盒",
+  "description": "办公楼白领盒饭团购小程序原型 · 37 页 MVP 完整版",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#F6F0E5",
+  "background_color": "#F6F0E5",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "categories": ["food", "lifestyle", "business"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

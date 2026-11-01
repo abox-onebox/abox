@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ABox 一盒 · 经营驾驶舱（空跑版）</title>
+<style>
+/* ── token 真源（生成注入，禁手改）── */
+:root{
+  --bg: #F6F0E5;
+  --surface: #FFFDF8;
+  --surface2: #F7F1E4;
+  --surface3: #FBF6EC;
+  --text: #6E5435;
+  --text2: #796C57;
+  --text-disabled: #A79A85;
+  --gold: #C9A876;
+  --gold-deep: #936F3A;
+  --gold-deepest: #8A6620;
+  --border: #E4D8C3;
+  --border-strong: #D6CBB8;
+  --ok: #5B7C3A;
+  --warn: #C44536;
+  --info: #4A6FA5;
+  --ok-bg: #F1F5EA;
+  --ok-bd: #BBCBA6;
+  --warn-bg: #FBF0EE;
+  --warn-bd: #E3BFB8;
+  --info-bg: #EDF1F8;
+  --info-bd: #B4C4DA;
+  --mut-bg: #F7F2E8;
+  --mut-bd: #E4D8C3;
+  --gold-bg: #FBF4E6;
+  --gold-bd: #DCC79C;
+  --ok-fg: #597939;
+  --warn-fg: #C24436;
+  --info-fg: #4A6FA5;
+  --gold-fg: #8D6A38;
+  --from: #FFF6E0;
+  --to: #FFEED5;
+  --brand-meituan: #FFD400;
+  --brand-meituan-text: #000000;
+  --brand-taobao: #FF6A00;
+  --brand-taobao-text: #000000;
+  --brand-jd: #E1251B;
+  --brand-jd-text: #FFFFFF;
+  --font-display: 'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif;
+  --font-body: -apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif;
+  --font-num: 'SF Mono','Roboto Mono',Consolas,monospace;
+  --r-sm: 4px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --sp-1: 6px;
+  --sp-2: 10px;
+  --sp-3: 14px;
+  --sp-4: 20px;
+  --sp-5: 28px;
+}
+/* ── 共享外壳 ── */
+/* ─────────────────────────────────────────────────────────────
+   P0 工具集 · 共享页面外壳
+   ⚠️ 本文件**零颜色字面量**：一切颜色只能来自 `:root` token（由生成器注入）。
+      构建期断言这一条（搜不到 # / rgb( / hsl( ），否则品牌必然各写各的。
+   ⚠️ 字体分层：楷体只用于**标题 / 品牌字 / 金额大字**，正文与表格用无衬线栈。
+   ───────────────────────────────────────────────────────────── */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--gold-deep); }
+
+/* ── 顶栏 ── */
+.top {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 20;
+}
+.top .logo {
+  font-family: var(--font-display);
+  font-size: 19px; letter-spacing: .04em; color: var(--text);
+}
+.top .sub { font-size: 12px; color: var(--text2); }
+.top .spacer { flex: 1; }
+.top .ver { font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); }
+
+/* ── 页头 ── */
+.hero { padding: var(--sp-4) var(--sp-4) 0; }
+.hero h1 {
+  font-family: var(--font-display); font-size: 25px; font-weight: 400;
+  margin: 0 0 4px; letter-spacing: .02em;
+}
+.hero p { margin: 0; color: var(--text2); font-size: 13px; max-width: 78ch; }
+
+/* ── 布局 ── */
+.wrap {
+  display: flex; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4) var(--sp-5);
+  align-items: flex-start;
+}
+/* ⚠️ 侧栏必须**自己能滚**（`max-height` + `overflow-y: auto`），这不是装饰：
+   `position: sticky` 的元素一旦高于视口可用高度，底部会被**钉住不动** ——
+   滚动页面也带不上来（必须滚到**整页最底**才够得到，因为那时 sticky 才脱离钉住）。
+   实测（1440×900 笔记本，最常见的办公尺寸）：6 个带侧栏的工具里有 5 个的
+   「筛选 / 操作（导出 · 导入 · 重置）」整组够不到；G1/G2/F3 在 1080 下也够不到。
+   附带好处：对 sticky 元素 `scrollIntoView` 是无效的（滚动页面它不动），
+   给侧栏自己的滚动区之后，控件才可能被自动带进视野（自动化探针同理）。
+   62px = `.top` 的实际高度（与 `top` 一致，改一处要一起改）。 */
+.side {
+  width: 310px; flex: 0 0 310px; position: sticky; top: 62px;
+  max-height: calc(100vh - 62px - var(--sp-3));
+  overflow-y: auto; overscroll-behavior: contain;
+}
+.main { flex: 1; min-width: 0; }
+
+/* ── 卡片 ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-3);
+}
+.card > h2 {
+  font-family: var(--font-display); font-size: 16px; font-weight: 400;
+  margin: 0 0 var(--sp-2); letter-spacing: .02em;
+  display: flex; align-items: center; gap: 8px;
+}
+.card > h2 .n { font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); }
+.hint { font-size: 12px; color: var(--text2); margin: 0 0 var(--sp-2); }
+
+/* ── 表格 ── */
+.tw { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left; font-weight: 500; color: var(--text2);
+  font-size: 11.5px; letter-spacing: .04em;
+  padding: 7px 9px; border-bottom: 1px solid var(--border-strong);
+  white-space: nowrap; background: var(--surface2);
+}
+td { padding: 8px 9px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: var(--surface3); }
+td.num, th.num { text-align: right; font-family: var(--font-num); }
+td.mono { font-family: var(--font-num); font-size: 12px; }
+.big {
+  font-family: var(--font-display); font-size: 22px; line-height: 1.2;
+}
+
+/* ── 徽标 ── */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 8px; border-radius: 999px;
+  font-size: 11.5px; white-space: nowrap;
+  border: 1px solid var(--mut-bd); background: var(--mut-bg); color: var(--text2);
+}
+.pill.ok { border-color: var(--ok-bd); background: var(--ok-bg); color: var(--ok-fg); }
+.pill.warn { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.pill.info { border-color: var(--info-bd); background: var(--info-bg); color: var(--info-fg); }
+.pill.gold { border-color: var(--gold-bd); background: var(--gold-bg); color: var(--gold-fg); }
+.pill.dim { color: var(--text-disabled); }
+
+/* ── 表单 ── */
+label.f { display: block; margin-bottom: var(--sp-2); }
+label.f > span {
+  display: block; font-size: 11.5px; color: var(--text2);
+  letter-spacing: .04em; margin-bottom: 3px;
+}
+input, select, textarea {
+  width: 100%; padding: 6px 9px;
+  background: var(--surface3); color: var(--text);
+  border: 1px solid var(--border-strong); border-radius: var(--r-md);
+  font-family: var(--font-body); font-size: 13px;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--gold); background: var(--surface);
+}
+input[type=number] { font-family: var(--font-num); }
+.row2 { display: flex; gap: var(--sp-2); }
+.row2 > * { flex: 1; min-width: 0; }
+
+/* ── 按钮 ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 13px; border-radius: var(--r-md);
+  border: 1px solid var(--border-strong); background: var(--surface);
+  color: var(--text); font-size: 13px; cursor: pointer;
+}
+.btn:hover { background: var(--surface2); border-color: var(--gold); }
+.btn.primary {
+  background: var(--text); border-color: var(--text); color: var(--surface);
+  font-weight: 500;
+}
+.btn.primary:hover { background: var(--gold-deep); border-color: var(--gold-deep); }
+.btn.sm { padding: 3px 9px; font-size: 12px; }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--text2); }
+.btn.ghost:hover { background: var(--surface2); }
+.btnbar { display: flex; flex-wrap: wrap; gap: var(--sp-1); margin-bottom: var(--sp-2); }
+
+/* ── 指标格 ── */
+/* ⚠️ 阈值要按**实际可用宽度**定：侧栏 310px − 卡片左右 padding 40px = 270px，
+       minmax 定 132px 时 2×132+10(gap)=274 > 270 ⇒ 永远只排 1 列（看着像没生效）。 */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(116px, 1fr)); gap: var(--sp-1); }
+.kpi {
+  background: var(--surface3); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 9px 11px;
+}
+.kpi .k { font-size: 11.5px; color: var(--text2); letter-spacing: .04em; }
+.kpi .v { font-family: var(--font-display); font-size: 21px; line-height: 1.3; }
+.kpi .u { font-size: 12px; color: var(--text2); font-family: var(--font-body); }
+.kpi.warn { border-color: var(--warn-bd); background: var(--warn-bg); }
+.kpi.ok { border-color: var(--ok-bd); background: var(--ok-bg); }
+
+/* ── 提示条 ──
+   ⚠️ 必须是**块级正常流**，绝不能写 `display: flex`：
+      提示条文案里普遍有行内 <b> / <br> / <span class="mono">。容器一旦是 flex，
+      这些行内片段就各自变成**独立的 flex 子项**，被挤成一条条窄列、每个子项还自己
+      内部换行 —— 长文案整段会散开（G2 概览那两条实测就是 9 个子项排一行，字距被拉满、
+      末行也被撑开）。**副作用迟发**：文案短、能挤进一行时看着完全正常（G1/M1 就是这样
+      过关的），所以这个坑很晚才露头。
+      原来是 flex + `gap: 8px`；块级子元素之间的留白改由下面两条规则承担。 */
+.note {
+  display: block;
+  padding: 8px 11px; border-radius: var(--r-md);
+  border: 1px solid var(--mut-bd); background: var(--mut-bg);
+  font-size: 12.5px; color: var(--text2); margin-bottom: var(--sp-3);
+}
+.note.warn { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.note.ok { border-color: var(--ok-bd); background: var(--ok-bg); color: var(--ok-fg); }
+.note.info { border-color: var(--info-bd); background: var(--info-bg); color: var(--info-fg); }
+.note b { color: inherit; }
+/* 块级子元素之间留白（替代原来的 flex gap: 8px）—— 行内元素不受影响 */
+.note > div + div { margin-top: 6px; }
+/* 药丸横排（原来靠 flex 的 gap 撑开，块级流下要自己给左边距） */
+.note > .pill + .pill { margin-left: 4px; }
+
+/* ── 分段控件（tab）── */
+.seg { display: flex; gap: 2px; padding: 3px; background: var(--surface2); border-radius: var(--r-md); border: 1px solid var(--border); }
+.seg button {
+  border: 0; background: transparent; color: var(--text2);
+  padding: 5px 13px; border-radius: var(--r-sm); cursor: pointer; font: inherit; font-size: 13px;
+}
+.seg button.on { background: var(--surface); color: var(--text); font-weight: 500; }
+
+/* ── 条形图 ── */
+.bar { height: 8px; border-radius: 999px; background: var(--surface2); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--gold); }
+.bar.warn > i { background: var(--warn); }
+.bar.ok > i { background: var(--ok); }
+
+/* ── 自检条 ── */
+.gate {
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--surface3); padding: 8px 11px; font-size: 12.5px;
+}
+.gate .g { display: flex; gap: 7px; align-items: baseline; padding: 1px 0; }
+.gate .g i { font-style: normal; font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); flex: 0 0 auto; }
+.gate .g .t { color: var(--text2); }
+.gate .g.bad .t { color: var(--warn-fg); }
+
+/* ── 页脚 ── */
+.foot {
+  padding: var(--sp-4); color: var(--text-disabled); font-size: 11.5px;
+  border-top: 1px solid var(--border); margin-top: var(--sp-5);
+}
+
+/* ── 窄屏：单列堆叠（断点与项目后台一致，避免出现第二份断点表述）── */
+@media (max-width: 768px) {
+  .wrap { flex-direction: column; padding: var(--sp-2); }
+  /* ⚠️ 落到单列后必须**解除**侧栏的自身滚动区：否则手机上会出现一个 1/4 屏高的小滚动盒，
+        里面的卡片被裁掉一半 —— 那是「为修一个坑造一个新坑」。 */
+  .side { width: 100%; flex: auto; position: static; max-height: none; overflow-y: visible; }
+  .hero { padding: var(--sp-3) var(--sp-2) 0; }
+  table { font-size: 12px; }
+}
+
+/* ── 本系统 ── */
+/* ─────────────────────────────────────────────────────────────
+   M1 经营驾驶舱（空跑版）· 本系统专属样式（零颜色字面量）
+   ───────────────────────────────────────────────────────────── */
+
+/* 早报预览用正文字体（等宽会让中文看着别扭），行距放宽便于逐行核对 */
+#pushText { tab-size: 2; }
+
+/* 异常清单里的订单号徽标排布更紧凑 */
+.card .note .pill { margin-bottom: 4px; }
+
+/* 看板三张表之间空格自然一点 */
+.tw + .tw { margin-top: 12px; }
+
+</style></head><body>
+<header class="top"><div class="logo">ABox 一盒</div><div class="sub">经营驾驶舱（空跑版）· 内部工具</div><div class="spacer"></div><div class="ver">版本 <span id="ver"></span> · 基准日 <span id="date"></span></div></header>
+<div class="hero"><h1>经营驾驶舱</h1><p>不用查就能看到昨天有没有掉 —— 指标口径与统计模块同源，数据用真实种子数据跑通，每天早上产出一条可直接发群里的早报。</p></div>
+<div class="wrap"><aside class="side" id="side"></aside><main class="main" id="main"></main></div>
+<footer class="foot" id="foot">ABox 一盒 · M1 经营驾驶舱（空跑版）v1.0 · 指标口径取自 modules/stats/stats.constants.ts，数据取自 seed:demo（34 单） · 推送内容在本机生成，不上传任何数据</footer>
+<script>
+window.TOOL_VERSION = "v1.0";
+window.SPEC = {"_generated_by":"_tmp/p0/m1/extract.py","_doctrine":"口径只声明一次：指标口径取自 stats.constants.ts，数据取自 seed:demo，禁手改。","brand":{"name":"ABox 一盒","company":"北京巡礼之年科技有限公司"},"tokens":{"value":{"bg":"#F6F0E5","surface":"#FFFDF8","surface2":"#F7F1E4","surface3":"#FBF6EC","text":"#6E5435","text2":"#796C57","text-disabled":"#A79A85","gold":"#C9A876","gold-deep":"#936F3A","gold-deepest":"#8A6620","border":"#E4D8C3","border-strong":"#D6CBB8","ok":"#5B7C3A","warn":"#C44536","info":"#4A6FA5","ok-bg":"#F1F5EA","ok-bd":"#BBCBA6","warn-bg":"#FBF0EE","warn-bd":"#E3BFB8","info-bg":"#EDF1F8","info-bd":"#B4C4DA","mut-bg":"#F7F2E8","mut-bd":"#E4D8C3","gold-bg":"#FBF4E6","gold-bd":"#DCC79C","ok-fg":"#597939","warn-fg":"#C24436","info-fg":"#4A6FA5","gold-fg":"#8D6A38","from":"#FFF6E0","to":"#FFEED5","brand-meituan":"#FFD400","brand-meituan-text":"#000000","brand-taobao":"#FF6A00","brand-taobao-text":"#000000","brand-jd":"#E1251B","brand-jd-text":"#FFFFFF","font-display":"'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif","font-body":"-apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif","font-num":"'SF Mono','Roboto Mono',Consolas,monospace","r-sm":"4px","r-md":"10px","r-lg":"16px","sp-1":"6px","sp-2":"10px","sp-3":"14px","sp-4":"20px","sp-5":"28px"},"_src":"_ABox一盒设计token真源v2.1/design-tokens.css"},"env":{"unitPrice":25.8,"supplierTotal":14.0,"distributionCenter":5.0,"cutoffHour":24,"commission":{"trainee":0.08,"formal":0.09,"gold":0.1,"chief":0.12},"_src":"abox-onebox/.env.example"},"timeline":{"value":{"publish":"14:00","cutoff":"24:00","arrival":"11:30","autoConfirm":"14:00","deliveryGenerate":"00:30"},"_src":"abox-onebox/apps/api-server/src/common/utils/order-timeline.ts","_note":"截单 24:00 是合法值（= 次日 0 点），不是笔误"},"buildingGroups":{"list":[{"id":1,"name":"国贸三期组","city":"北京","district":"朝阳区","status":1},{"id":2,"name":"建外 SOHO 组","city":"北京","district":"朝阳区","status":1},{"id":3,"name":"银泰中心组","city":"北京","district":"朝阳区","status":1},{"id":4,"name":"华贸组","city":"北京","district":"朝阳区","status":1},{"id":5,"name":"远洋光华组","city":"北京","district":"朝阳区","status":1}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts"},"buildings":{"list":[{"id":1,"groupId":1,"name":"国贸三期 A 座","address":"建国门外大街 1 号 A 座","city":"北京","district":"朝阳区","population":520,"status":1},{"id":2,"groupId":1,"name":"国贸三期 B 座","address":"建国门外大街 1 号 B 座","city":"北京","district":"朝阳区","population":480,"status":1},{"id":3,"groupId":1,"name":"国贸三期 C 座","address":"建国门外大街 1 号 C 座","city":"北京","district":"朝阳区","population":310,"status":2},{"id":4,"groupId":1,"name":"国贸三期 D 座","address":"建国门外大街 1 号 D 座","city":"北京","district":"朝阳区","population":250,"status":1},{"id":5,"groupId":2,"name":"建外 SOHO 北区","address":"东三环中路 39 号","city":"北京","district":"朝阳区","population":480,"status":1},{"id":6,"groupId":3,"name":"银泰中心 1 栋","address":"建国门外大街 2 号 1 栋","city":"北京","district":"朝阳区","population":360,"status":1},{"id":7,"groupId":3,"name":"银泰中心 2 栋","address":"建国门外大街 2 号 2 栋","city":"北京","district":"朝阳区","population":320,"status":1},{"id":8,"groupId":4,"name":"华贸 1 号楼","address":"建国路 79 号 1 号楼","city":"北京","district":"朝阳区","population":380,"status":1},{"id":9,"groupId":4,"name":"华贸 2 号楼","address":"建国路 79 号 2 号楼","city":"北京","district":"朝阳区","population":280,"status":1},{"id":10,"groupId":4,"name":"华贸 3 号楼","address":"建国路 79 号 3 号楼","city":"北京","district":"朝阳区","population":260,"status":3},{"id":11,"groupId":5,"name":"远洋光华 AB 座","address":"光华路 9 号 AB 座","city":"北京","district":"朝阳区","population":320,"status":1},{"id":12,"groupId":5,"name":"远洋光华 C 座","address":"光华路 9 号 C 座","city":"北京","district":"朝阳区","population":200,"status":1}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts","_note":"status 三态：1 营业中 / 2 待开通 / 3 已暂停；population 是运营估算覆盖人数，非实时统计"},"setMeals":{"list":[{"id":1,"name":"红烧肉套餐","price":25.8,"bom":[{"dishId":1,"supplierId":1,"slot":1,"amount":7.5},{"dishId":6,"supplierId":3,"slot":2,"amount":1.5},{"dishId":4,"supplierId":2,"slot":3,"amount":3.0},{"dishId":7,"supplierId":4,"slot":4,"amount":2.0}],"bomTotal":14.0},{"id":2,"name":"东坡肉套餐","price":29.8,"bom":[{"dishId":2,"supplierId":1,"slot":1,"amount":8.5},{"dishId":6,"supplierId":3,"slot":2,"amount":1.5},{"dishId":4,"supplierId":2,"slot":3,"amount":3.0},{"dishId":7,"supplierId":4,"slot":4,"amount":2.0}],"bomTotal":15.0},{"id":3,"name":"宫保鸡丁套餐","price":25.8,"bom":[{"dishId":9,"supplierId":1,"slot":1,"amount":6.5},{"dishId":6,"supplierId":3,"slot":2,"amount":1.5},{"dishId":4,"supplierId":2,"slot":3,"amount":3.0},{"dishId":8,"supplierId":4,"slot":4,"amount":2.0}],"bomTotal":13.0},{"id":4,"name":"清真牛肉套餐","price":28.8,"bom":[{"dishId":10,"supplierId":1,"slot":1,"amount":8.5},{"dishId":4,"supplierId":2,"slot":3,"amount":3.0},{"dishId":8,"supplierId":4,"slot":4,"amount":2.0}],"bomTotal":13.5},{"id":5,"name":"番茄鱼套餐","price":28.8,"bom":[{"dishId":11,"supplierId":1,"slot":1,"amount":8.0},{"dishId":6,"supplierId":3,"slot":2,"amount":1.5},{"dishId":4,"supplierId":2,"slot":3,"amount":3.0},{"dishId":7,"supplierId":4,"slot":4,"amount":2.0}],"bomTotal":14.5},{"id":6,"name":"啤酒鸭套餐","price":27.8,"bom":[{"dishId":3,"supplierId":1,"slot":1,"amount":8.0},{"dishId":6,"supplierId":3,"slot":2,"amount":1.5},{"dishId":4,"supplierId":2,"slot":3,"amount":3.0},{"dishId":7,"supplierId":4,"slot":4,"amount":2.0}],"bomTotal":14.5},{"id":7,"name":"咖喱鸡套餐","price":25.8,"bom":[{"dishId":12,"supplierId":1,"slot":1,"amount":6.0},{"dishId":6,"supplierId":3,"slot":2,"amount":1.5},{"dishId":4,"supplierId":2,"slot":3,"amount":3.0},{"dishId":8,"supplierId":4,"slot":4,"amount":2.0}],"bomTotal":12.5}],"ricePerServing":2.0,"_src":"abox-onebox/.../seeds/seed.ts","_note":"米 ¥2.0/份 由集散中心统一供，不计入供应商菜品成本，故不建 item"},"leaders":{"list":[{"key":"L1","buildingId":8,"name":"演示·华贸一号团长","floor":"6F","level":"formal","rate":0.09,"status":1,"monthOrders":26,"totalOrders":212,"invitedFormalCount":1,"agreedDaysAgo":96},{"key":"L2","buildingId":9,"name":"演示·华贸二号团长","floor":"11F","level":"gold","rate":0.1,"status":1,"monthOrders":61,"totalOrders":380,"invitedFormalCount":3,"agreedDaysAgo":210},{"key":"L3","buildingId":8,"name":"演示·国贸四号团长（已停职）","floor":"6F","level":"gold","rate":0.1,"status":2,"monthOrders":9,"totalOrders":154,"invitedFormalCount":0,"agreedDaysAgo":300}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed-demo.ts","_note":"rate 是等级费率快照（与 ab_config 真源一致）；invitedFormalCount 只作组织信息展示，**不参与任何计酬**（合规红线）"},"orders":{"list":[{"seq":1,"dayOffset":-2,"groupId":4,"buildingId":8,"userKey":"u01","leaderKey":"L1","setMealId":1,"quantity":2,"status":"cut_off"},{"seq":2,"dayOffset":-2,"groupId":4,"buildingId":9,"userKey":"u02","leaderKey":"L2","setMealId":1,"quantity":3,"status":"cut_off"},{"seq":3,"dayOffset":-2,"groupId":4,"buildingId":8,"userKey":"u06","leaderKey":"L1","setMealId":1,"quantity":4,"status":"cut_off"},{"seq":4,"dayOffset":-2,"groupId":4,"buildingId":9,"userKey":"u05","leaderKey":"L2","setMealId":1,"quantity":1,"status":"pending_pay"},{"seq":5,"dayOffset":-2,"groupId":4,"buildingId":8,"userKey":"u07","leaderKey":"L1","setMealId":1,"quantity":1,"status":"paid"},{"seq":6,"dayOffset":-2,"groupId":5,"buildingId":11,"userKey":"u03","leaderKey":null,"setMealId":1,"quantity":2,"status":"refund_applying"},{"seq":7,"dayOffset":-2,"groupId":5,"buildingId":12,"userKey":"u04","leaderKey":null,"setMealId":2,"quantity":1,"status":"completed"},{"seq":8,"dayOffset":-2,"groupId":5,"buildingId":11,"userKey":"u08","leaderKey":null,"setMealId":1,"quantity":1,"status":"cancelled"},{"seq":9,"dayOffset":-3,"groupId":4,"buildingId":8,"userKey":"u01","leaderKey":"L1","setMealId":1,"quantity":2,"status":"completed"},{"seq":10,"dayOffset":-3,"groupId":4,"buildingId":9,"userKey":"u02","leaderKey":"L2","setMealId":1,"quantity":1,"status":"completed"},{"seq":11,"dayOffset":-3,"groupId":4,"buildingId":8,"userKey":"u06","leaderKey":"L1","setMealId":1,"quantity":1,"status":"refunded"},{"seq":12,"dayOffset":-3,"groupId":4,"buildingId":8,"userKey":"u07","leaderKey":"L1","setMealId":1,"quantity":1,"status":"refund_applying"},{"seq":13,"dayOffset":-3,"groupId":5,"buildingId":12,"userKey":"u03","leaderKey":null,"setMealId":1,"quantity":1,"status":"completed"},{"seq":14,"dayOffset":-4,"groupId":4,"buildingId":8,"userKey":"u01","leaderKey":"L1","setMealId":1,"quantity":2,"status":"delivered"},{"seq":15,"dayOffset":-4,"groupId":4,"buildingId":9,"userKey":"u02","leaderKey":"L2","setMealId":1,"quantity":1,"status":"delivered"},{"seq":16,"dayOffset":-4,"groupId":5,"buildingId":11,"userKey":"u04","leaderKey":null,"setMealId":1,"quantity":2,"status":"delivering"},{"seq":17,"dayOffset":-5,"groupId":4,"buildingId":8,"userKey":"u01","leaderKey":"L1","setMealId":1,"quantity":2,"status":"cooked"},{"seq":18,"dayOffset":-5,"groupId":4,"buildingId":9,"userKey":"u05","leaderKey":"L2","setMealId":1,"quantity":20,"status":"paid"},{"seq":19,"dayOffset":-5,"groupId":5,"buildingId":11,"userKey":"u07","leaderKey":null,"setMealId":1,"quantity":1,"status":"refunding"},{"seq":20,"dayOffset":-6,"groupId":4,"buildingId":8,"userKey":"u06","leaderKey":"L1","setMealId":1,"quantity":2,"status":"completed"},{"seq":21,"dayOffset":-6,"groupId":4,"buildingId":8,"userKey":"u01","leaderKey":"L1","setMealId":1,"quantity":8,"status":"completed"},{"seq":28,"dayOffset":-6,"groupId":4,"buildingId":9,"userKey":"u05","leaderKey":"L2","setMealId":1,"quantity":5,"status":"completed"},{"seq":22,"dayOffset":-6,"groupId":5,"buildingId":12,"userKey":"u08","leaderKey":null,"setMealId":3,"quantity":3,"status":"completed"},{"seq":23,"dayOffset":-7,"groupId":4,"buildingId":8,"userKey":"u06","leaderKey":"L1","setMealId":1,"quantity":6,"status":"completed"},{"seq":24,"dayOffset":-7,"groupId":4,"buildingId":8,"userKey":"u01","leaderKey":"L1","setMealId":1,"quantity":3,"status":"completed"},{"seq":29,"dayOffset":-7,"groupId":4,"buildingId":9,"userKey":"u02","leaderKey":"L2","setMealId":1,"quantity":4,"status":"completed"},{"seq":25,"dayOffset":-7,"groupId":5,"buildingId":12,"userKey":"u03","leaderKey":null,"setMealId":4,"quantity":1,"status":"completed"},{"seq":26,"dayOffset":-9,"groupId":4,"buildingId":8,"userKey":"u01","leaderKey":"L3","setMealId":1,"quantity":4,"status":"completed"},{"seq":27,"dayOffset":-9,"groupId":4,"buildingId":8,"userKey":"u06","leaderKey":"L3","setMealId":1,"quantity":3,"status":"completed"},{"seq":30,"dayOffset":0,"groupId":4,"buildingId":8,"userKey":"u01","leaderKey":"L1","setMealId":1,"quantity":3,"status":"completed"},{"seq":31,"dayOffset":0,"groupId":4,"buildingId":9,"userKey":"u02","leaderKey":"L2","setMealId":1,"quantity":2,"status":"completed"},{"seq":32,"dayOffset":0,"groupId":4,"buildingId":8,"userKey":"u06","leaderKey":"L1","setMealId":1,"quantity":1,"status":"delivered"},{"seq":33,"dayOffset":0,"groupId":5,"buildingId":11,"userKey":"u03","leaderKey":null,"setMealId":1,"quantity":2,"status":"cooked"},{"seq":34,"dayOffset":0,"groupId":5,"buildingId":12,"userKey":"u04","leaderKey":null,"setMealId":1,"quantity":1,"status":"cooked"}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed-demo.ts","_note":"dayOffset 一律 ≤ 0（今天可以有单，**明天不给订单** —— 留给人工测试现场下单）"},"orderStatus":{"enum":{"PENDING_PAY":"pending_pay","PAID":"paid","CUT_OFF":"cut_off","COOKED":"cooked","DELIVERING":"delivering","DELIVERED":"delivered","COMPLETED":"completed","CANCELLED":"cancelled","REFUND_APPLYING":"refund_applying","REFUNDING":"refunding","REFUNDED":"refunded"},"label":{"PENDING_PAY":"待支付","PAID":"待出餐","CUT_OFF":"待出餐","COOKED":"待出餐","DELIVERING":"配送中","DELIVERED":"待取餐","COMPLETED":"已完成","CANCELLED":"已取消","REFUND_APPLYING":"退款申请中","REFUNDING":"退款中","REFUNDED":"已退款"},"_src":"abox-onebox/packages/shared-types/src/enums/order-status.ts"},"stats":{"ranges":["today","7d","30d"],"rangeDays":{"today":1,"7d":7,"30d":30},"rangeLabels":{"today":"今日","7d":"近 7 日","30d":"近 30 日"},"gmvValidStatuses":["PAID","CUT_OFF","COOKED","DELIVERING","DELIVERED","COMPLETED","REFUND_APPLYING","REFUNDING"],"refundStatuses":["REFUND_APPLYING","REFUNDING","REFUNDED"],"formula":{"gmv":"Σ 有效订单 unitPriceFen × quantity","grossProfit":"GMV − 半成品采购款(净额) − 履约成本(场所摊销 + 打包人工 + 配送费×份数) − 佣金(净额)","refundRate":"退款三态订单数 ÷ 总订单数","commission":"Σ ab_commission.amount（normal 正项 + reversal 负项，cancelled 剔除）"},"_src":"abox-onebox/apps/api-server/src/modules/stats/stats.constants.ts","_note":"口径唯一真相；端上文案是本口径的投影，改这里文案才跟着改"},"settlement":{"defaults":{"supplierTotal":14.0,"siteFee":0.0,"packingLaborFee":0.0,"deliveryFee":0.0},"configKeys":{"siteFee":"settlement.site_fee","packingLaborFee":"settlement.packing_labor_fee","deliveryFee":"settlement.delivery_fee"},"labels":{"siteFee":"场所摊销","packingLaborFee":"打包人工","deliveryFee":"配送费"},"registeredRule":"> 0（0 / 空 / 非数字一律视为「尚未登记」）","_src":"abox-onebox/packages/shared-utils/src/biz.ts","_note":"毛利 = 售价 −（供价 + 场所摊销 + 打包人工 + 配送费）− 佣金；三项履约成本未登记时毛利仅为**上限值**"},"today":"2026-09-24","_srcs":{"tokens":"_ABox一盒设计token真源v2.1/design-tokens.css","biz":"abox-onebox/packages/shared-utils/src/biz.ts","seed":"abox-onebox/apps/api-server/src/database/seeds/seed.ts","stats":"abox-onebox/apps/api-server/src/modules/stats/stats.constants.ts"}};
+/* ─────────────────────────────────────────────────────────────
+   P0 工具集 · 共享工具函数（纯函数为主，不碰业务）
+   ⚠️ 必须以「普通脚本」形式可被 eval（构建期启动冒烟要用），
+      故不使用 ESM 语法，只挂 `window.U`。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var U = {};
+
+  /* ── DOM ── */
+  U.$ = function (sel, root) { return (root || document).querySelector(sel); };
+  U.$$ = function (sel, root) {
+    return Array.prototype.slice.call((root || document).querySelectorAll(sel));
+  };
+  /** 绑定事件：一律挂到 document，用 closest 分发（兄弟节点挂错容器是本项目踩过的坑） */
+  U.on = function (evt, sel, fn) {
+    document.addEventListener(evt, function (e) {
+      var t = e.target && e.target.closest ? e.target.closest(sel) : null;
+      if (t) fn(e, t);
+    });
+  };
+
+  /* ── 文本 ── */
+  U.esc = function (s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  };
+  /** 数值格式化；null/undefined/NaN 一律回显 '—'（不要显示 NaN） */
+  U.num = function (v, d) {
+    if (v == null || v === '' || !isFinite(Number(v))) return '—';
+    return Number(v).toFixed(d == null ? 2 : d);
+  };
+  /** 金额：¥ + 两位小数 */
+  U.y = function (v, d) {
+    if (v == null || v === '' || !isFinite(Number(v))) return '—';
+    return '¥' + Number(v).toFixed(d == null ? 2 : d);
+  };
+  /** 分 → 元（项目内金额一律「存分、显示元」，避免浮点） */
+  U.fen2y = function (fen, d) {
+    if (fen == null || !isFinite(Number(fen))) return '—';
+    return '¥' + (Number(fen) / 100).toFixed(d == null ? 2 : d);
+  };
+  U.y2fen = function (y) { return Math.round(Number(y || 0) * 100); };
+  /** 归一两位小数（复刻 biz.ts 的 round2 语义：先乘后再四舍五入） */
+  U.round2 = function (n) { return Math.round((Number(n) + Number.EPSILON) * 100) / 100; };
+
+  /* ── 日期（一律 YYYY-MM-DD 字符串 · 本地时区 · 不碰 UTC）── */
+  U.pad2 = function (n) { return (n < 10 ? '0' : '') + n; };
+  U.today = function (d) {
+    d = d || new Date();
+    return d.getFullYear() + '-' + U.pad2(d.getMonth() + 1) + '-' + U.pad2(d.getDate());
+  };
+  /** 字符串 → Date（本地零点）；非法返回 null —— 绝不返回 Invalid Date 让它往下跑 */
+  U.dt = function (s) {
+    if (!s) return null;
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s).trim());
+    if (!m) return null;
+    var d = new Date(+m[1], +m[2] - 1, +m[3]);
+    return isNaN(d.getTime()) ? null : d;
+  };
+  U.addDays = function (s, n) {
+    var d = U.dt(s); if (!d) return null;
+    d.setDate(d.getDate() + n);
+    return U.today(d);
+  };
+  /** b − a 的天数（两个 YYYY-MM-DD）；任一非法返回 null */
+  U.diffDays = function (a, b) {
+    var x = U.dt(a), y2 = U.dt(b);
+    if (!x || !y2) return null;
+    return Math.round((y2.getTime() - x.getTime()) / 86400000);
+  };
+  /** 校验：是不是合法的 YYYY-MM-DD（且日期真实存在，如 2026-02-30 判非法） */
+  U.isDate = function (s) {
+    var d = U.dt(s);
+    return !!d && U.today(d) === String(s).trim();
+  };
+
+  /* ── 本地存储（file:// 下 localStorage 可能直接抛异常，必须容错）── */
+  U.store = {
+    get: function (k, dflt) {
+      try {
+        var v = g.localStorage.getItem(k);
+        return v == null ? dflt : JSON.parse(v);
+      } catch (e) { return dflt; }
+    },
+    set: function (k, v) {
+      try { g.localStorage.setItem(k, JSON.stringify(v)); return true; }
+      catch (e) { return false; }
+    },
+    del: function (k) {
+      try { g.localStorage.removeItem(k); return true; } catch (e) { return false; }
+    },
+    /** 存储是否可用（不可用时页面要提示「本次改动不会保存」） */
+    ok: function () {
+      try {
+        g.localStorage.setItem('__t', '1'); g.localStorage.removeItem('__t');
+        return true;
+      } catch (e) { return false; }
+    },
+  };
+
+  /* ── 导出 / 导入 ── */
+  U.download = function (name, text, mime) {
+    var blob = new Blob([text], { type: (mime || 'text/plain') + ';charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 0);
+  };
+  U.pickFile = function (accept, fn) {
+    var i = document.createElement('input');
+    i.type = 'file'; i.accept = accept || '.json';
+    i.onchange = function () {
+      var f = i.files && i.files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function () { fn(String(r.result), f); };
+      r.readAsText(f, 'utf-8');
+    };
+    i.click();
+  };
+  /** CSV：单元格内的引号/逗号/换行都要转义，否则 Excel 打开就串列 */
+  U.toCSV = function (rows) {
+    return rows.map(function (r) {
+      return r.map(function (c) {
+        var s = c == null ? '' : String(c);
+        return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      }).join(',');
+    }).join('\r\n');
+  };
+
+  /* ── 数组 ── */
+  U.groupBy = function (arr, keyFn) {
+    var out = {};
+    (arr || []).forEach(function (x) {
+      var k = keyFn(x);
+      (out[k] = out[k] || []).push(x);
+    });
+    return out;
+  };
+  U.sum = function (arr, fn) {
+    return (arr || []).reduce(function (s, x) { return s + (Number(fn ? fn(x) : x) || 0); }, 0);
+  };
+  U.sortBy = function (arr, fn, dir) {
+    var d = dir === 'desc' ? -1 : 1;
+    return (arr || []).slice().sort(function (a, b) {
+      var x = fn(a), y2 = fn(b);
+      if (x == null && y2 == null) return 0;
+      if (x == null) return 1;        /* 空值恒排末尾，不参与方向翻转 */
+      if (y2 == null) return -1;
+      return x < y2 ? -d : x > y2 ? d : 0;
+    });
+  };
+
+  g.U = U;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ─────────────────────────────────────────────────────────────
+   M1 经营驾驶舱（空跑版）· 纯逻辑层
+
+   ⭐ 「空跑」= 指标口径与推送链路**现在就跑通**，数据用真实种子数据。
+      上线后把数据源换成接口，口径一处不用改。
+   ⚠️ 指标口径只有一个真源：`modules/stats/stats.constants.ts`。本文件是它的投影：
+      · 有效订单 = 11 态 − 未支付 − 已取消 − 已退款（**在途退款计入**）
+      · GMV = Σ unitPriceFen × quantity
+      · 经营毛利 = GMV − 采购款(净额) − 履约成本 − 佣金(净额)
+      · 退款率 = 退款三态**订单数** ÷ 总订单数
+      改口径必须回那份文件改，然后再回来改这里。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var U = g.U, SPEC = g.SPEC;
+  var ST = SPEC.stats;
+
+  /* 索引 */
+  var MEAL = {}, LEADER = {}, BLD = {}, GRP = {};
+  (SPEC.setMeals.list || []).forEach(function (m) { MEAL[m.id] = m; });
+  (SPEC.leaders.list || []).forEach(function (l) { LEADER[l.key] = l; });
+  (SPEC.buildings.list || []).forEach(function (b) { BLD[b.id] = b; });
+  (SPEC.buildingGroups.list || []).forEach(function (x) { GRP[x.id] = x; });
+
+  var VALID = ST.gmvValidStatuses || [];      // OrderStatus 枚举**名**（大写）
+  var REFUND = ST.refundStatuses || [];
+  var ENUM = SPEC.orderStatus.enum || {};     // 名 → 值（'PAID' → 'paid'）
+  var STATUS_LABEL = SPEC.orderStatus.label || {};
+
+  function statusValue(name) { return ENUM[name] || name.toLowerCase(); }
+  var VALID_VALUES = VALID.map(statusValue);
+  var REFUND_VALUES = REFUND.map(statusValue);
+
+  function isGmvValid(status) { return VALID_VALUES.indexOf(status) >= 0; }
+  function isRefunding(status) { return REFUND_VALUES.indexOf(status) >= 0; }
+  function statusText(status) { return STATUS_LABEL[status] || status; }
+
+  /* ── 日期 ── */
+  function dayOf(dayOffset, today) { return U.addDays(today, dayOffset); }
+
+  function dayList(orders, today) {
+    var m = {};
+    (orders || []).forEach(function (o) {
+      var d = dayOf(o.dayOffset, today);
+      if (!m[d]) m[d] = { date: d, offset: o.dayOffset, orders: 0, qty: 0, raw: [] };
+      m[d].orders += 1; m[d].qty += o.quantity; m[d].raw.push(o);
+    });
+    return Object.keys(m).map(function (k) { return m[k]; })
+      .sort(function (a, b) { return a.date < b.date ? 1 : -1; });   // 最近的在前
+  }
+
+  /* ── 单笔派生 ── */
+  /** 复刻 seed-demo.ts 的 commissionFen：(qty, unitPriceYuan, rate) → 分 */
+  function commissionFen(qty, unitPriceYuan, rate) {
+    return Math.round(qty * unitPriceYuan * rate * 100);
+  }
+  function orderDerive(o) {
+    var meal = MEAL[o.setMealId] || { price: SPEC.env.unitPrice, bomTotal: 0, name: '未知套餐' };
+    var priceFen = Math.round(meal.price * 100);
+    var gmvFen = priceFen * o.quantity;
+    var purchaseFen = Math.round(meal.bomTotal * 100) * o.quantity;              // 供应商菜品
+    var riceFen = Math.round((SPEC.setMeals.ricePerServing || 0) * 100) * o.quantity;
+    var leader = o.leaderKey ? LEADER[o.leaderKey] : null;
+    var rate = leader ? leader.rate : 0;
+    var commFen = leader ? commissionFen(o.quantity, meal.price, rate) : 0;
+    return {
+      meal: meal, priceFen: priceFen, gmvFen: gmvFen, purchaseFen: purchaseFen,
+      riceFen: riceFen, leader: leader, rate: rate, commFen: commFen,
+      building: BLD[o.buildingId] || null, valid: isGmvValid(o.status),
+      refunding: isRefunding(o.status), statusText: statusText(o.status),
+    };
+  }
+
+  /** 指标（严格按 stats 口径；采购款与佣金同样只算**有效订单** —— 与 GMV 同集合才配得平等式） */
+  function metrics(orders, costParams) {
+    var m = {
+      orders: 0, validOrders: 0, qty: 0, validQty: 0,
+      gmvFen: 0, purchaseFen: 0, riceFen: 0, commFen: 0, fulfilFen: 0, grossFen: 0,
+      refundOrders: 0, refundRate: 0, avgOrderFen: 0,
+      byStatus: {}, byBuilding: {}, byLeader: {}, byMeal: {}, detail: [],
+    };
+    /* ⚠️ 防线二：即便调用方塞进来负数（防御性编程 —— 成本口径不该接受负值），
+       这里也不让「负成本」把毛利反向抬高。見 app.js 的同批修复说明。 */
+    var cp = costParams || { siteFee: 0, packingLaborFee: 0, deliveryFee: 0 };
+    var fulfilPerServingFen = Math.round((Math.max(0, Number(cp.siteFee || 0))
+      + Math.max(0, Number(cp.packingLaborFee || 0))
+      + Math.max(0, Number(cp.deliveryFee || 0))) * 100);
+
+    (orders || []).forEach(function (o) {
+      var d = orderDerive(o);
+      m.orders += 1;
+      /* ⚠️ qty 是**全量**份数（含未支付/已取消/已退款），validQty 才是计入 GMV 的份数 —— 两回事 */
+      m.qty += o.quantity;
+      m.byStatus[o.status] = (m.byStatus[o.status] || 0) + 1;
+      if (isRefunding(o.status)) m.refundOrders += 1;
+      m.detail.push({ order: o, d: d });
+      if (!d.valid) return;
+      m.validOrders += 1; m.validQty += o.quantity;
+      m.gmvFen += d.gmvFen; m.purchaseFen += d.purchaseFen;
+      m.riceFen += d.riceFen; m.commFen += d.commFen;
+
+      var bk = o.buildingId;
+      if (!m.byBuilding[bk]) {
+        m.byBuilding[bk] = { buildingId: bk, orders: 0, qty: 0, gmvFen: 0, purchaseFen: 0,
+                             riceFen: 0, commFen: 0, fulfilFen: 0, grossFen: 0 };
+      }
+      var bb = m.byBuilding[bk];
+      bb.orders += 1; bb.qty += o.quantity;
+      bb.gmvFen += d.gmvFen;
+      bb.purchaseFen += d.purchaseFen; bb.riceFen += d.riceFen; bb.commFen += d.commFen;
+      bb.fulfilFen += fulfilPerServingFen * o.quantity;
+
+      var lk = o.leaderKey || '(无团长)';
+      if (!m.byLeader[lk]) m.byLeader[lk] = { leaderKey: lk, orders: 0, qty: 0, gmvFen: 0, commFen: 0 };
+      m.byLeader[lk].orders += 1; m.byLeader[lk].qty += o.quantity;
+      m.byLeader[lk].gmvFen += d.gmvFen; m.byLeader[lk].commFen += d.commFen;
+
+      var mk = o.setMealId;
+      if (!m.byMeal[mk]) m.byMeal[mk] = { setMealId: mk, meal: d.meal, orders: 0, qty: 0, gmvFen: 0 };
+      m.byMeal[mk].orders += 1; m.byMeal[mk].qty += o.quantity; m.byMeal[mk].gmvFen += d.gmvFen;
+    });
+
+    m.fulfilFen = fulfilPerServingFen * m.validQty;
+    m.grossFen = m.gmvFen - m.purchaseFen - m.riceFen - m.fulfilFen - m.commFen;
+    m.refundRate = m.orders ? m.refundOrders / m.orders : 0;
+    m.avgOrderFen = m.validOrders ? Math.round(m.gmvFen / m.validOrders) : 0;
+    m.grossRate = m.gmvFen ? m.grossFen / m.gmvFen : 0;
+    m.costFen = m.purchaseFen + m.riceFen + m.fulfilFen + m.commFen;
+
+    /* 楼栋毛利：各楼栋自己的四项成本都留痕，毛利是**减出来的**（可逐项复核） */
+    Object.keys(m.byBuilding).forEach(function (k) {
+      var x = m.byBuilding[k];
+      x.grossFen = x.gmvFen - x.purchaseFen - x.riceFen - x.fulfilFen - x.commFen;
+    });
+
+    m.listBuilding = U.sortBy(Object.keys(m.byBuilding).map(function (k) { return m.byBuilding[k]; }),
+      function (x) { return x.qty; }, 'desc');
+    m.listLeader = U.sortBy(Object.keys(m.byLeader).map(function (k) { return m.byLeader[k]; }),
+      function (x) { return x.qty; }, 'desc');
+    m.listMeal = U.sortBy(Object.keys(m.byMeal).map(function (k) { return m.byMeal[k]; }),
+      function (x) { return x.qty; }, 'desc');
+    return m;
+  }
+
+  /* ── 异常规则（每条都要能指向**具体订单**，否则运营无法行动）──────── */
+  var RULES = [
+    { key: 'A1', label: '未支付订单滞留', tone: 'warn',
+      hit: function (o) { return o.status === 'pending_pay'; },
+      why: '下单后一直未支付；系统不会自动取消，会长期占位' },
+    { key: 'A2', label: '已支付但未截单', tone: 'warn',
+      hit: function (o) { return o.status === 'paid'; },
+      why: '截单跑批漏跑 ⇒ 该单履约链不会自动推进' },
+    { key: 'A3', label: '退款待审批', tone: 'warn',
+      hit: function (o) { return o.status === 'refund_applying' || o.status === 'refunding'; },
+      why: '钱已在路上，审批卡住会让用户两天收不到退款' },
+    { key: 'A4', label: '无团长楼栋出单', tone: 'gold',
+      hit: function (o) { return !o.leaderKey && ['completed', 'delivered', 'delivering', 'cooked', 'cut_off'].indexOf(o.status) >= 0; },
+      why: '楼栋没有团长 ⇒ 没人催取餐、没人代退，佣金也没人拿' },
+  ];
+
+  function anomalies(orders) {
+    var out = [];
+    RULES.forEach(function (r) {
+      var hit = (orders || []).filter(r.hit);
+      if (hit.length) out.push({ rule: r, orders: hit, count: hit.length });
+    });
+    return out;
+  }
+
+  /* ── 指标位的「有没有数据源」清单（空跑版必须说清哪几个指标还接不上）── */
+  var PENDING_METRICS = [
+    { key: '报量偏差', reason: '需要「计划量 vs 实收量」（ab_supplier_dish_daily）', source: 'S1 报量 / 出餐确认' },
+    { key: '损耗', reason: '需要损耗与临期处置记录（P3 系统）', source: 'S5 损耗与临期处置' },
+    { key: '投诉', reason: '需要客服工单数据（P1 系统）', source: 'F4 客服工单' },
+  ];
+
+  /* ── 推送文案（每天早上 8:00 发这一条）────────────────────────── */
+  function fmtY(fen) { return '¥' + (fen / 100).toFixed(2); }
+
+  function pushText(date, m, costParams, extra) {
+    var lines = [];
+    lines.push('【ABox 一盒 · 经营早报】');
+    lines.push('出餐日 ' + date + '（' + (extra && extra.weekday ? extra.weekday : '') + '）');
+    lines.push('');
+    lines.push('· 有效单量：' + m.validQty + ' 份 / ' + m.validOrders + ' 单');
+    lines.push('· GMV：' + fmtY(m.gmvFen));
+    lines.push('· 经营毛利：' + fmtY(m.grossFen) + '（' + (m.grossRate * 100).toFixed(1) + '%）'
+      + ((extra && extra.fulfilMissing) ? '  ⚠️ 仅上限值（履约成本未登记）' : ''));
+    lines.push('· 客单价：' + fmtY(m.avgOrderFen));
+    lines.push('· 退款率：' + (m.refundRate * 100).toFixed(1) + '%（' + m.refundOrders + ' / ' + m.orders + ' 单）');
+    lines.push('');
+    if (m.listBuilding.length) {
+      lines.push('楼栋 TOP' + Math.min(3, m.listBuilding.length) + '：'
+        + m.listBuilding.slice(0, 3).map(function (b) {
+          return ((BLD[b.buildingId] || {}).name || '—') + ' ' + b.qty + ' 份';
+        }).join(' · '));
+    }
+    if (m.listLeader.length) {
+      lines.push('团长产能：' + m.listLeader.slice(0, 3).map(function (l) {
+        var name = l.leaderKey === '(无团长)' ? '无团长' : ((LEADER[l.leaderKey] || {}).name || l.leaderKey);
+        return name + ' ' + l.qty + ' 份';
+      }).join(' · '));
+    }
+    var an = (extra && extra.anomalies) || [];
+    if (an.length) {
+      lines.push('');
+      lines.push('⚠️ 需关注 ' + an.reduce(function (s, a) { return s + a.count; }, 0) + ' 单 / ' + an.length + ' 类：');
+      an.forEach(function (a, i) {
+        lines.push((i + 1) + '. ' + a.rule.label + ' ×' + a.count + ' —— ' + a.rule.why);
+      });
+    } else {
+      lines.push('');
+      lines.push('✔ 今日无异常订单');
+    }
+    return lines.join('\n');
+  }
+
+  g.Model = {
+    MEAL: MEAL, LEADER: LEADER, BLD: BLD, GRP: GRP,
+    VALID_VALUES: VALID_VALUES, REFUND_VALUES: REFUND_VALUES,
+    isGmvValid: isGmvValid, isRefunding: isRefunding, statusText: statusText,
+    dayOf: dayOf, dayList: dayList, commissionFen: commissionFen, orderDerive: orderDerive,
+    metrics: metrics, anomalies: anomalies, RULES: RULES, PENDING_METRICS: PENDING_METRICS,
+    pushText: pushText, fmtY: fmtY,
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ─────────────────────────────────────────────────────────────
+   M1 经营驾驶舱 · 判据层（纯函数 · 一份实现）
+
+   ⚠️ 判据的**作用域**必须按其含义定（踩过「跨作用域 ⇒ 恒红」的坑）：
+      · 公式类（⑤–⑨）跑 **全量种子**（34 单）—— 数据最全、11 态都能被压到；
+        跑单个出餐日只有 5 单，覆盖不到退款，等于没测。
+      · 视图与全量的一致性由 ④ + ⑪ 两条绑住 ⇒ 页面上的数**传递地**被验过。
+      · 推送文案类（⑬⑭）跑**当前出餐日** —— 早报就是按日出。
+      · 数据源完整性（①②③）是**资料集级**的，与选哪一天无关。
+
+   ⚠️ 凡是验「某个数算得对不对」，都在这里**独立再算一遍**，且**不复用 Model 的
+      派生函数**（只读 SPEC 真源建自己的索引）—— 共享同一个 helper 就不是独立验算：
+      实测「独立复算」若仍调 `Model.commissionFen`，那么把它改成常量两侧一起变，
+      判据照样恒绿。故 ⑦ 直接内联公式。
+      ⑭ 更是**从文案里把数字反解出来**再对拷，而不是字符串包含
+      （`indexOf('9')` 这种判据形同虚设 —— 文案里随便一个 9 都能让它变绿）。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  function run(ctx) {
+    var SPEC = g.SPEC, M = g.Model;
+    var rows = [];
+    var add = function (name, ok, detail) { rows.push({ name: name, ok: !!ok, detail: detail || '' }); };
+
+    var view = ctx.orders || [];
+    var all = ctx.allOrders || view;
+    var days = ctx.dayList || [];
+    var cp = ctx.costParams || {};
+    var date = ctx.date || '';
+    var mv = M.metrics(view, cp);      // 视图指标
+    var ma = M.metrics(all, cp);       // 全量指标（公式类判据的基准）
+
+    /* 判据自己的索引 —— 直读 SPEC 真源，不走 Model 的索引与派生函数 */
+    var SPM = {}, SPL = {};
+    (SPEC.setMeals.list || []).forEach(function (x) { SPM[x.id] = x; });
+    (SPEC.leaders.list || []).forEach(function (x) { SPL[x.key] = x; });
+    var RICE_FEN = Math.round((SPEC.setMeals.ricePerServing || 0) * 100);
+
+    /* ── 资料集级 ─────────────────────────────────────────── */
+    add('① 种子订单数据非空', all.length > 0, all.length + ' 单 / ' + ma.qty + ' 份');
+
+    var allStatuses = Object.keys(SPEC.orderStatus.enum || {}).map(function (k) { return SPEC.orderStatus.enum[k]; });
+    var missing = allStatuses.filter(function (s) { return !ma.byStatus[s]; });
+    add('② 11 态全覆盖', missing.length === 0,
+      missing.length ? '缺：' + missing.join('、') : Object.keys(ma.byStatus).length + ' 态出现');
+
+    var NOT_VALID = ['pending_pay', 'cancelled', 'refunded'];
+    var badValid = all.filter(function (o) {
+      return M.isGmvValid(o.status) === (NOT_VALID.indexOf(o.status) >= 0);
+    });
+    add('③ 计入 GMV 的口径正确（在途退款计入）', badValid.length === 0 && M.VALID_VALUES.length === 8,
+      M.VALID_VALUES.length + ' 态计入' + (badValid.length ? '，判错 ' + badValid.length + ' 单' : ''));
+
+    /* ── 视图 ⊆ 全量 ──────────────────────────────────────── */
+    var allSeq = {};
+    all.forEach(function (o) { allSeq[o.seq] = true; });
+    var viewOk = view.length > 0 && view.length <= all.length
+      && mv.qty <= ma.qty && view.every(function (o) { return allSeq[o.seq]; });
+    add('④ 当前出餐日是资料集子集', viewOk,
+      view.length + ' 单 / ' + mv.qty + ' 份 ⊆ ' + all.length + ' 单 / ' + ma.qty + ' 份');
+
+    /* ── 公式类（全量 · 独立复算）─────────────────────────── */
+    var gmv = 0, purchase = 0, rice = 0, comm = 0, fulfilQty = 0;
+    all.forEach(function (o) {
+      if (!M.isGmvValid(o.status)) return;
+      var meal = SPM[o.setMealId]; if (!meal) return;
+      gmv += Math.round(meal.price * 100) * o.quantity;
+      purchase += Math.round(meal.bomTotal * 100) * o.quantity;
+      rice += RICE_FEN * o.quantity;
+      fulfilQty += o.quantity;
+      var led = o.leaderKey ? SPL[o.leaderKey] : null;
+      if (led) comm += Math.round(o.quantity * meal.price * led.rate * 100);   // ← 内联公式，不调 Model
+    });
+    add('⑤ GMV = Σ 单价 × 份数', gmv === ma.gmvFen, M.fmtY(gmv) + ' vs ' + M.fmtY(ma.gmvFen));
+    add('⑥ 采购款 = Σ 套餐 BOM × 份数（米另计）', purchase === ma.purchaseFen && rice === ma.riceFen,
+      M.fmtY(purchase) + ' + 米 ' + M.fmtY(rice) + ' vs ' + M.fmtY(ma.purchaseFen) + ' + ' + M.fmtY(ma.riceFen));
+    add('⑦ 佣金 = Σ round(份数 × 单价 × 费率 × 100)', comm === ma.commFen,
+      M.fmtY(comm) + ' vs ' + M.fmtY(ma.commFen));
+    /* ⚠️ 2026-09-26：这里要与 model.js 的 fulfilPerServingFen **同口径夹紧**（Math.max(0, …)）。
+       原先判据不夹紧而模型夹紧后，只要 costParams 里出现负数，⑧ 就会假红
+       （「判据与被测实现口径不同」—— 与恒绿一样属于判据缺陷）。
+       「模型到底夹紧没夹紧」交给新增的 ⑯ 去测，不要在 ⑧ 里混着验。 */
+    var fulfil = Math.round((Math.max(0, Number(cp.siteFee || 0))
+      + Math.max(0, Number(cp.packingLaborFee || 0))
+      + Math.max(0, Number(cp.deliveryFee || 0))) * 100) * fulfilQty;
+    var gross = gmv - purchase - rice - fulfil - comm;
+    add('⑧ 经营毛利 = GMV − 采购 − 米 − 履约 − 佣金', gross === ma.grossFen,
+      M.fmtY(gross) + ' vs ' + M.fmtY(ma.grossFen));
+    var refN = all.filter(function (o) { return M.isRefunding(o.status); }).length;
+    var rate = all.length ? refN / all.length : 0;
+    add('⑨ 退款率 = 退款三态订单数 ÷ 总订单数', Math.abs(rate - ma.refundRate) < 1e-12,
+      refN + '/' + all.length + ' = ' + (rate * 100).toFixed(1) + '%');
+
+    /* ── 交叉自证：分项之和必须回到总数 ───────────────────── */
+    var bgSum = Object.keys(ma.byBuilding).reduce(function (s, k) { return s + ma.byBuilding[k].grossFen; }, 0);
+    add('⑩ 楼栋毛利之和 = 全量毛利（成本无遗漏）', bgSum === ma.grossFen,
+      M.fmtY(bgSum) + ' vs ' + M.fmtY(ma.grossFen));
+
+    var sGmv = 0, sQty = 0, sComm = 0, sOrders = 0;
+    days.forEach(function (d) {
+      var dm = M.metrics(d.raw || [], cp);
+      sGmv += dm.gmvFen; sQty += dm.validQty; sComm += dm.commFen; sOrders += dm.validOrders;
+    });
+    add('⑪ 各出餐日指标之和 = 全量指标（分桶无遗漏）',
+      days.length > 0 && sGmv === ma.gmvFen && sQty === ma.validQty
+      && sComm === ma.commFen && sOrders === ma.validOrders,
+      days.length + ' 天：' + M.fmtY(sGmv) + ' / ' + sQty + ' 份 vs 全量 ' + M.fmtY(ma.gmvFen) + ' / ' + ma.validQty + ' 份');
+
+    /* ── 视图级 ───────────────────────────────────────────── */
+    var an = M.anomalies(view);
+    var anBad = an.filter(function (a) { return !a.orders.length || !a.orders.every(function (o) { return o.seq > 0; }); });
+    add('⑫ 异常规则命中到具体订单', an.length > 0 && anBad.length === 0,
+      an.map(function (a) { return a.rule.key + '×' + a.count; }).join(' ') || '无异常');
+
+    var txt = M.pushText(date, mv, cp, { anomalies: an, weekday: ctx.weekday || '', fulfilMissing: !ctx.allRegistered });
+    var labels = ['有效单量：' + mv.validQty + ' 份', 'GMV：' + M.fmtY(mv.gmvFen),
+                  '经营毛利：' + M.fmtY(mv.grossFen), '退款率：' + (mv.refundRate * 100).toFixed(1) + '%',
+                  '客单价：' + M.fmtY(mv.avgOrderFen)];
+    var lack = labels.filter(function (k) { return txt.indexOf(k) < 0; });
+    add('⑬ 推送文案含核心指标（带标签）', lack.length === 0, lack.length ? '缺：' + lack.join('、') : txt.split('\n')[1]);
+
+    /* ⑭ 反解：把文案里的数字抽出来，转回分/份，与指标逐一对拷 */
+    function money(txt2, label) {
+      var m = new RegExp(label + '：(¥[\\d,]+\\.\\d\\d)').exec(txt2);
+      return m ? Math.round(Number(m[1].replace(/[¥,]/g, '')) * 100) : null;
+    }
+    function num(txt2, re) { var m = re.exec(txt2); return m ? Number(m[1]) : null; }
+    var tGmv = money(txt, 'GMV'), tGross = money(txt, '经营毛利'), tAvg = money(txt, '客单价');
+    var tQty = num(txt, /有效单量：(\d+) 份/), tRef = num(txt, /退款率：([\d.]+)%/);
+    add('⑭ 文案数字反解 = 指标值（防文案另算一套）',
+      tGmv === mv.gmvFen && tGross === mv.grossFen && tQty === mv.validQty
+      && tRef === Number((mv.refundRate * 100).toFixed(1)) && tAvg === mv.avgOrderFen,
+      '反解 ' + M.fmtY(tGmv || 0) + ' / ' + M.fmtY(tGross || 0) + ' / ' + tQty + ' 份 / ' + tRef + '%'
+      + ' / ' + M.fmtY(tAvg || 0));
+
+    /* ── 诚实底线 ─────────────────────────────────────────── */
+    var pm = M.PENDING_METRICS || [];
+    var pmOk = pm.length > 0 && pm.every(function (x) { return x.key && x.reason && x.source; });
+    add('⑮ 无数据源指标已显式标注', pmOk,
+      pm.map(function (x) { return x.key + '←' + x.source; }).join(' · '));
+
+    /* ── ⑯ ⭐ 2026-09-26 新增：负履约成本不得把毛利「反向上抬」──
+       起因（实测 bug）：履约成本直接 `Number(cp.siteFee || 0)` 未做下界，
+       于是填入 -5 时 fulfilFen = -14100（负的「成本」被减进毛利），
+       34 单毛利由 ¥310.86 变 ¥874.86 —— 虚增 ¥564.00，
+       而这段数字正会以「经营毛利」进入**复制早报与试推**。
+       `<input min="0">` 只做表单校验，拦不住 input.value ⇒ 模型必须自守。 */
+    var cpNeg16 = { siteFee: -5, packingLaborFee: -5, deliveryFee: -5 };
+    var cpZero16 = { siteFee: 0, packingLaborFee: 0, deliveryFee: 0 };
+    var mNeg = M.metrics(all, cpNeg16), mZero = M.metrics(all, cpZero16);
+    add('⑯ 履约成本为负时毛利不得被抬高（负成本＝ 0）',
+      mNeg.fulfilFen >= 0 && mNeg.fulfilFen === mZero.fulfilFen && mNeg.grossFen === mZero.grossFen,
+      '负三项 ⇒ fulfil ' + M.fmtY(mNeg.fulfilFen) + ' / 毛利 ' + M.fmtY(mNeg.grossFen)
+      + '（应与全 0 相同：' + M.fmtY(mZero.grossFen) + '）');
+
+    var bad = rows.filter(function (r) { return !r.ok; }).length;
+    return { rows: rows, bad: bad, ok: bad === 0, metrics: mv, allMetrics: ma };
+  }
+
+  g.SelfCheck = { run: run };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ─────────────────────────────────────────────────────────────
+   M1 经营驾驶舱（空跑版）· DOM 壳
+   ⚠️ 交互监听一律挂 document（挂在容器上会漏兄弟节点里的控件）。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var SPEC = g.SPEC, U = g.U, M = g.Model, SC = g.SelfCheck;
+  var KEY = 'abox.m1.dashboard.v1';
+  var VERSION = g.TOOL_VERSION;
+
+  var ST = { costParams: {}, pickIdx: 0, webhook: '', channel: 'wecom', today: '', pushMsg: '' };
+
+  function load() {
+    var saved = U.store.get(KEY, null) || {};
+    ST.costParams = saved.costParams || { siteFee: null, packingLaborFee: null, deliveryFee: null };
+    ST.webhook = saved.webhook || '';
+    ST.channel = saved.channel || 'wecom';
+    ST.pickIdx = saved.pickIdx || 0;
+    ST.today = U.today();
+    var days = M.dayList(SPEC.orders.list, ST.today);
+    if (ST.pickIdx >= days.length) ST.pickIdx = 0;
+  }
+  function save() { return U.store.set(KEY, ST); }
+
+  function cpResolved() {
+    return {
+      siteFee: Number(ST.costParams.siteFee || 0),
+      packingLaborFee: Number(ST.costParams.packingLaborFee || 0),
+      deliveryFee: Number(ST.costParams.deliveryFee || 0),
+    };
+  }
+  function days() { return M.dayList(SPEC.orders.list, ST.today); }
+  function curDay() { var d = days(); return d[Math.min(ST.pickIdx, d.length - 1)] || { date: '', offset: 0, orders: 0, qty: 0, raw: [] }; }
+  function curOrders() { return curDay().raw || []; }
+  function weekdays() { return ['周日', '周一', '周二', '周三', '周四', '周五', '周六']; }
+  function weekdayOf(date) { var d = U.dt(date); return d ? weekdays()[d.getDay()] : ''; }
+  function fulfilMissing() {
+    var cp = cpResolved();
+    return !(cp.siteFee > 0 && cp.packingLaborFee > 0 && cp.deliveryFee > 0);
+  }
+  function missingLabels() {
+    var cp = cpResolved(), out = [];
+    if (!(cp.siteFee > 0)) out.push('场所摊销');
+    if (!(cp.packingLaborFee > 0)) out.push('打包人工');
+    if (!(cp.deliveryFee > 0)) out.push('配送费');
+    return out;
+  }
+  function ctxOf() {
+    /* ⚠️ 必须把**全量**与**分日桶**一并交给判据 —— 公式类判据跑全量（覆盖最全），
+       视图与全量的一致性靠 ④/⑪ 两条把住。只传当前日出餐日的单，11 态判据会恒红。 */
+    return {
+      orders: curOrders(), allOrders: SPEC.orders.list, dayList: days(),
+      costParams: cpResolved(), date: curDay().date,
+      weekday: weekdayOf(curDay().date), allRegistered: !fulfilMissing(),
+    };
+  }
+  function buildPush() {
+    var c = ctxOf();
+    return M.pushText(c.date, M.metrics(c.orders, c.costParams), c.costParams,
+      { anomalies: M.anomalies(c.orders), weekday: c.weekday, fulfilMissing: !c.allRegistered });
+  }
+
+  /* ── 左栏 ── */
+  function sideHTML() {
+    var ds = days();
+    var missing = missingLabels();
+    return ''
+      + '<div class="card"><h2>出餐日 <span class="n">共 ' + ds.length + ' 天有数据</span></h2>'
+      + '<label class="f"><span>选择要看的出餐日（默认最近）</span><select data-param="pickIdx">'
+      + ds.map(function (d, i) {
+        return '<option value="' + i + '"' + (i === ST.pickIdx ? ' selected' : '') + '>'
+          + d.date + '（' + weekdayOf(d.date) + ' · ' + d.qty + ' 份）</option>';
+      }).join('') + '</select></label>'
+      + '<p class="hint">数据源：<span class="mono">seed:demo</span> 的 34 单真实种子数据'
+      + '（出餐日 −9 ~ 今天）。上线后换接口即可，口径不动。</p>'
+      + '</div>'
+
+      + '<div class="card"><h2>履约成本 <span class="n">'
+      + (missing.length ? '未登记 ' + missing.length + ' 项' : '已登记') + '</span></h2>'
+      + ['siteFee|场所摊销', 'packingLaborFee|打包人工', 'deliveryFee|配送费'].map(function (x) {
+        var k = x.split('|')[0], lb = x.split('|')[1];
+        var v = ST.costParams[k];
+        return '<label class="f"><span>' + lb + '（元/份）</span>'
+          + '<input data-param="' + k + '" type="number" step="0.01" min="0" value="'
+          + (v == null ? '' : v) + '" placeholder="未登记"></label>';
+      }).join('')
+      + (missing.length ? '<div class="note warn">' + missing.join(' / ')
+        + ' 未登记 ⇒ 经营毛利只是<b>上限值</b>，会被系统性高估。</div>' : '')
+      + '</div>'
+
+      + '<div class="card"><h2>推送通道</h2>'
+      + '<label class="f"><span>通道</span><select data-param="channel">'
+      + '<option value="wecom"' + (ST.channel === 'wecom' ? ' selected' : '') + '>企业微信机器人</option>'
+      + '<option value="generic"' + (ST.channel === 'generic' ? ' selected' : '') + '>通用 JSON</option>'
+      + '</select></label>'
+      + '<label class="f"><span>Webhook 地址（本机保存，不上传）</span>'
+      + '<input data-param="webhook" value="' + U.esc(ST.webhook) + '" placeholder="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=…"></label>'
+      + '<div class="btnbar">'
+      + '<button class="btn primary" data-act="push">试推一条</button>'
+      + '<button class="btn" data-act="copy">复制早报</button>'
+      + '<button class="btn" data-act="dl-txt">下载 .txt</button>'
+      + '</div>'
+      + '<div class="hint">⚠️ 浏览器直连 webhook <b>基本一定会被拦</b> —— '
+      + '跨域 POST 会先发 OPTIONS 预检，企业微信 webhook 不返回 CORS 头（已实测）。'
+      + '「试推一条」用于自检链路（本地/自建服务端）；真实每天发早报请用「复制早报」贴到群里，'
+      + '或上线后由服务端定时任务发送（一期用本工具产出内容 + 人工发）。</div>'
+      + (ST.pushMsg ? '<div class="note ' + (ST.pushMsg.ok ? 'ok' : 'warn') + '">'
+        + U.esc(ST.pushMsg.text) + '</div>' : '')
+      + '</div>';
+  }
+
+  /* ── 主区 ── */
+  function kpiHTML(m) {
+    var k = function (label, val, unit, tone) {
+      return '<div class="kpi' + (tone ? ' ' + tone : '') + '"><div class="k">' + label + '</div>'
+        + '<div class="v">' + val + (unit ? '<span class="u">' + unit + '</span>' : '') + '</div></div>';
+    };
+    return '<div class="card"><h2>当日概览 <span class="n">' + curDay().date + ' · '
+      + weekdayOf(curDay().date) + '</span></h2>'
+      + '<div class="kpis">'
+      + k('有效单量', m.validQty, '份')
+      + k('有效订单', m.validOrders, '单')
+      + k('GMV', M.fmtY(m.gmvFen), '', '')
+      + k('经营毛利', M.fmtY(m.grossFen), '', fulfilMissing() ? 'warn' : 'ok')
+      + k('毛利率', (m.grossRate * 100).toFixed(1), '%')
+      + k('客单价', M.fmtY(m.avgOrderFen), '')
+      + k('退款率', (m.refundRate * 100).toFixed(1), '%', m.refundRate > 0 ? 'warn' : '')
+      + k('总订单', m.orders, '单')
+      + '</div>'
+      + (fulfilMissing() ? '<div class="note warn" style="margin-top:10px">履约成本未登记（'
+        + missingLabels().join(' / ') + '）⇒ 毛利为<b>上限值</b>。</div>' : '')
+      + '</div>';
+  }
+
+  function boardHTML(m) {
+    var bRows = m.listBuilding.map(function (b) {
+      var bl = M.BLD[b.buildingId] || { name: '—', status: 1 };
+      var st = { 1: ['营业中', 'ok'], 2: ['待开通', 'gold'], 3: ['已暂停', 'dim'] }[bl.status] || ['?', 'dim'];
+      return '<tr><td><b>' + U.esc(bl.name) + '</b></td>'
+        + '<td><span class="pill ' + st[1] + '">' + st[0] + '</span></td>'
+        + '<td class="num mono">' + b.orders + '</td><td class="num mono">' + b.qty + '</td>'
+        + '<td class="num mono">' + M.fmtY(b.gmvFen) + '</td>'
+        + '<td class="num mono">' + M.fmtY(b.grossFen) + '</td></tr>';
+    }).join('');
+    var lRows = m.listLeader.map(function (l) {
+      var nm = l.leaderKey === '(无团长)' ? '（无团长楼栋）'
+        : ((M.LEADER[l.leaderKey] || {}).name || l.leaderKey);
+      var lv = M.LEADER[l.leaderKey];
+      var st = lv ? (lv.status === 1 ? ['在职', 'ok'] : ['停职', 'warn']) : ['—', 'dim'];
+      return '<tr><td><b>' + U.esc(nm) + '</b></td>'
+        + '<td>' + (lv ? '<span class="pill ' + st[1] + '">' + st[0] + '</span> '
+          + Math.round(lv.rate * 100) + '%' : '—') + '</td>'
+        + '<td class="num mono">' + l.orders + '</td><td class="num mono">' + l.qty + '</td>'
+        + '<td class="num mono">' + M.fmtY(l.commFen) + '</td></tr>';
+    }).join('');
+    var mRows = m.listMeal.map(function (x) {
+      return '<tr><td><b>' + U.esc(x.meal.name) + '</b></td>'
+        + '<td class="num mono">' + x.meal.price.toFixed(2) + '</td>'
+        + '<td class="num mono">' + x.meal.bomTotal.toFixed(2) + '</td>'
+        + '<td class="num mono">' + x.qty + '</td><td class="num mono">' + M.fmtY(x.gmvFen) + '</td></tr>';
+    }).join('');
+    return '<div class="card"><h2>楼栋 / 团长 / 套餐</h2>'
+      + '<div class="tw"><table><thead><tr><th>楼栋（按份数）</th><th style="width:88px">状态</th>'
+      + '<th class="num" style="width:66px">订单</th><th class="num" style="width:66px">份数</th>'
+      + '<th class="num" style="width:96px">GMV</th><th class="num" style="width:96px">毛利</th>'
+      + '</tr></thead><tbody>' + bRows + '</tbody></table></div>'
+      + '<div class="tw" style="margin-top:12px"><table><thead><tr><th>团长产能</th><th style="width:130px">等级</th>'
+      + '<th class="num" style="width:66px">订单</th><th class="num" style="width:66px">份数</th>'
+      + '<th class="num" style="width:96px">佣金</th></tr></thead><tbody>' + lRows + '</tbody></table></div>'
+      + '<div class="tw" style="margin-top:12px"><table><thead><tr><th>套餐结构</th>'
+      + '<th class="num" style="width:82px">售价</th><th class="num" style="width:82px">供价</th>'
+      + '<th class="num" style="width:66px">份数</th><th class="num" style="width:96px">GMV</th>'
+      + '</tr></thead><tbody>' + mRows + '</tbody></table></div></div>';
+  }
+
+  function anomalyHTML() {
+    var an = M.anomalies(curOrders());
+    if (!an.length) {
+      return '<div class="card"><h2>异常订单</h2><div class="note ok">✔ 当日无异常订单</div></div>';
+    }
+    return '<div class="card"><h2>异常订单 <span class="n">'
+      + an.reduce(function (s, a) { return s + a.count; }, 0) + ' 单 / ' + an.length + ' 类</span></h2>'
+      + '<p class="hint">每条规则都点到<b>具体订单</b>，否则运营没法行动。</p>'
+      + an.map(function (a) {
+        return '<div class="note ' + (a.rule.tone === 'warn' ? 'warn' : '') + '" style="margin-bottom:8px">'
+          + '<div><b>' + a.rule.key + ' ' + a.rule.label + ' ×' + a.count + '</b>'
+          + '<div class="hint" style="margin:2px 0 4px">' + U.esc(a.rule.why) + '</div>'
+          + a.orders.map(function (o) {
+            var bl = M.BLD[o.buildingId] || { name: '—' };
+            var meal = M.MEAL[o.setMealId] || { name: '—' };
+            return '<span class="pill" style="margin:0 4px 4px 0">#' + o.seq + ' · '
+              + U.esc(bl.name) + ' · ' + U.esc(meal.name) + ' ×' + o.quantity + '</span>';
+          }).join('')
+          + '</div></div>';
+      }).join('') + '</div>';
+  }
+
+  function pushPreviewHTML() {
+    var txt = buildPush();
+    return '<div class="card"><h2>早报预览 <span class="n">每天 8:00 发这一条</span></h2>'
+      + '<pre id="pushText" style="white-space:pre-wrap;background:var(--surface3);'
+      + 'border:1px solid var(--border);border-radius:var(--r-md);padding:12px;margin:0;'
+      + 'font-family:var(--font-body);font-size:13px;line-height:1.8">' + U.esc(txt) + '</pre></div>';
+  }
+
+  function pendingHTML() {
+    return '<div class="card"><h2>待接数据源的指标 <span class="n">空跑版如实说明</span></h2>'
+      + '<p class="hint">这几个指标位已经留好，但<b>当前没有数据源</b> —— '
+      + '不假装有数，也不留空，而是写清接哪个系统。</p>'
+      + '<div class="tw"><table><thead><tr><th style="width:120px">指标</th>'
+      + '<th>为什么还没有</th><th style="width:190px">接哪个系统</th></tr></thead><tbody>'
+      + M.PENDING_METRICS.map(function (x) {
+        return '<tr><td><b>' + U.esc(x.key) + '</b></td><td>' + U.esc(x.reason) + '</td>'
+          + '<td>' + U.esc(x.source) + '</td></tr>';
+      }).join('') + '</tbody></table></div></div>';
+  }
+
+  function gateHTML() {
+    var r = SC.run(ctxOf());
+    return '<div class="card"><h2>自检 <span class="n">' + (r.ok ? '全绿' : r.bad + ' 项不符') + '</span></h2>'
+      + '<div class="gate">' + r.rows.map(function (x, i) {
+        return '<div class="g' + (x.ok ? '' : ' bad') + '"><i>' + String(i + 1).padStart(2, '0') + '</i>'
+          + '<span class="t">' + (x.ok ? '✔ ' : '✗ ') + U.esc(x.name)
+          + (x.detail ? ' —— ' + U.esc(x.detail) : '') + '</span></div>';
+      }).join('') + '</div></div>';
+  }
+
+  function render() {
+    var m = M.metrics(curOrders(), cpResolved());
+    U.$('#side').innerHTML = sideHTML();
+    U.$('#main').innerHTML = kpiHTML(m) + boardHTML(m) + anomalyHTML() + pushPreviewHTML()
+      + pendingHTML() + gateHTML();
+  }
+
+  /* ── 交互 ── */
+  function onClick(e, t) {
+    var act = t.getAttribute('data-act');
+    if (!act) return;
+    if (act === 'copy' || act === 'dl-txt') {
+      var txt = buildPush();
+      if (act === 'copy') {
+        var done = function (okFlag) { ST.pushMsg = { ok: okFlag, text: okFlag ? '已复制到剪贴板' : '复制失败，请手动选中文本复制' }; render(); };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(txt).then(function () { done(true); }, function () { done(false); });
+        } else { done(false); }
+      } else {
+        U.download('ABox经营早报-' + curDay().date + '.txt', txt, 'text/plain');
+      }
+    } else if (act === 'push') {
+      var url = (ST.webhook || '').trim();
+      if (!url) { ST.pushMsg = { ok: false, text: '请先填 Webhook 地址' }; render(); return; }
+      var body = ST.channel === 'wecom'
+        ? JSON.stringify({ msgtype: 'text', text: { content: buildPush() } })
+        : JSON.stringify({ text: buildPush(), date: curDay().date });
+      ST.pushMsg = { ok: true, text: '正在发送…' }; render();
+      fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
+        .then(function (r) { return r.text().then(function (x) { return { ok: r.ok, status: r.status, tx: x }; }); })
+        .then(function (r) {
+          /* ⚠️ 状态码要用返回的 r.status，别写死 200 —— 否则非 2xx 时反馈文案会撒谎 */
+          ST.pushMsg = { ok: r.ok, text: (r.ok ? '已发送（HTTP ' + r.status + '）：' : '发送失败（HTTP ' + r.status + '）：')
+            + r.tx.slice(0, 140) };
+          render();
+        })
+        .catch(function (e) {
+          ST.pushMsg = { ok: false, text: '发送被拦（浏览器 CORS / 网络）：' + e.message
+            + ' —— 请改用「复制早报」贴到群里' };
+          render();
+        });
+    }
+  }
+
+  function onInput(e, t) {
+    var k = t.getAttribute('data-param');
+    if (!k) return;
+    if (k === 'pickIdx') ST.pickIdx = Number(t.value) || 0;
+    else if (k === 'webhook') ST.webhook = t.value;
+    else if (k === 'channel') ST.channel = t.value;
+    /* ⚠️ 2026-09-26 修复：原先直接 `Number(t.value)` —— 负数被当成合法成本，
+       于是「场所摊销 -5」会让毛利被**反向抬高**（实测 34 单毛利 ¥310.86 ⇒ ¥874.86，
+       虚增 ¥564.00），而这块数字正是要经「复制早报 / 试推」发出去的内容。
+       `<input min="0">` 只作用于表单校验，**拦不住 input.value**，必须自己判。
+       ⇒ 负数 / 非数一律回落 null（视为「尚未登记」），与 g1/g2 的空值纪律一致。 */
+    else {
+      var num = Number(t.value);
+      ST.costParams[k] = (t.value !== '' && isFinite(num) && num >= 0) ? num : null;
+    }
+    save();
+    if (k === 'webhook' || k === 'channel') { ST.pushMsg = ''; return; }
+    render();
+    var back = U.$('[data-param="' + k + '"]');
+    if (back && k !== 'pickIdx' && k !== 'channel') back.focus();
+  }
+
+  function boot() {
+    load();
+    var v = U.$('#ver'); if (v) v.textContent = VERSION;
+    var d = U.$('#date'); if (d) d.textContent = ST.today;
+    U.on('click', '[data-act]', onClick);
+    U.on('input', 'input, select', onInput);
+    U.on('change', 'input, select', onInput);
+    render();
+    document.documentElement.setAttribute('data-tool-ready', '1');
+  }
+
+  g.M1 = {
+    state: function () { return ST; },
+    days: days, currentDay: curDay, orders: curOrders,
+    /* ctx 是判据的**唯一输入面**：构建期自检与运行期探针都拿它（避免两份 ctx 口径漂移） */
+    ctx: ctxOf,
+    metrics: function () { return M.metrics(curOrders(), cpResolved()); },
+    anomalies: function () { return M.anomalies(curOrders()); },
+    pushText: buildPush,
+    selfcheck: function () { return SC.run(ctxOf()); },
+    allMetrics: function () { return M.metrics(SPEC.orders.list, cpResolved()); },
+    render: render,
+  };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script></body></html>

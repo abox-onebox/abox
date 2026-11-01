@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 线上部署验收单 v1.0</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --card:#FFFFFF;
+    --ink:#2E2924; --ink-2:#796C57; --ink-3:#9A8B72;
+    --brown:#6E5435; --brown-soft:#E8DDC9; --line:#DCD2C0; --line-2:#EDE5D6;
+    --red:#9A3412; --red-bg:#FBEDE4; --red-line:#E8C9B4;
+    --amber:#8A6A12; --amber-bg:#FBF3DD; --amber-line:#E8D8A8;
+    --green:#3F6B4A; --green-bg:#EAF1EA; --green-line:#C3D6C5;
+    --code-bg:#FAF6EE;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+    font-size:15px;line-height:1.78;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:44px 26px 100px}
+
+  header{border-bottom:2px solid var(--brown);padding-bottom:20px;margin-bottom:26px}
+  h1{font-family:KaiTi,"STKaiti",simkai,"楷体",serif;font-size:29px;font-weight:700;
+     margin:0 0 8px;letter-spacing:.06em;color:var(--brown)}
+  .sub{color:var(--ink-2);font-size:13.5px}
+  .ver{display:inline-block;margin-left:10px;padding:1px 9px;border:1px solid var(--brown-soft);
+       border-radius:99px;font-size:12px;color:var(--brown);background:#FFF}
+
+  section{margin:0 0 38px;scroll-margin-top:70px}
+  h2{font-family:KaiTi,"STKaiti",simkai,"楷体",serif;font-size:21px;font-weight:700;
+     color:var(--brown);margin:0 0 6px;padding-left:12px;border-left:4px solid var(--brown);
+     letter-spacing:.04em}
+  .lead{color:var(--ink-2);font-size:13.5px;margin:0 0 16px;padding-left:16px}
+  h3{font-size:15px;font-weight:700;margin:22px 0 9px;color:var(--ink)}
+  p{margin:0 0 12px}
+
+  table{width:100%;border-collapse:collapse;background:#FFF;font-size:14px;
+        border:1px solid var(--line);margin:12px 0}
+  th{background:#FBF8F2;text-align:left;padding:10px 13px;font-weight:700;
+     border-bottom:1px solid var(--line);color:var(--brown);font-size:13px;white-space:nowrap}
+  td{padding:10px 13px;border-bottom:1px solid var(--line-2);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td.k{font-weight:700;white-space:nowrap;color:var(--ink)}
+  code{font-family:ui-monospace,Consolas,"Courier New",monospace;background:var(--code-bg);
+       border:1px solid var(--line-2);border-radius:2px;padding:1px 5px;font-size:13px;
+       color:var(--brown);word-break:break-all}
+
+  .box{border:1px solid var(--line);border-left:4px solid var(--brown);background:#FFF;
+       border-radius:3px;padding:14px 18px;margin:14px 0}
+  .box.ok{border-left-color:var(--green);background:var(--green-bg);border-color:var(--green-line)}
+  .box.warn{border-left-color:var(--amber);background:var(--amber-bg);border-color:var(--amber-line)}
+  .box.danger{border-left-color:var(--red);background:var(--red-bg);border-color:var(--red-line)}
+  .box .bt{font-weight:700;margin-bottom:6px;display:block}
+  .box.ok .bt{color:var(--green)}
+  .box.warn .bt{color:var(--amber)}
+  .box.danger .bt{color:var(--red)}
+  .box p:last-child{margin-bottom:0}
+
+  .copyrow{display:flex;align-items:center;gap:8px;background:var(--code-bg);
+    border:1px solid var(--line);border-radius:3px;padding:9px 11px;margin:8px 0}
+  .copyrow code{flex:1;background:none;border:none;padding:0;font-size:13px;user-select:all}
+  .btn{flex:none;border:1px solid var(--brown-soft);background:#FFF;color:var(--brown);
+    border-radius:2px;padding:3px 10px;font-size:12px;cursor:pointer;font-family:inherit}
+  .btn:hover{background:var(--brown);color:#fff;border-color:var(--brown)}
+  .btn.done{background:var(--green);color:#fff;border-color:var(--green)}
+
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:14px}
+  .kv dt{color:var(--ink-2);white-space:nowrap}
+  .kv dd{margin:0;font-weight:600}
+
+  ol.steps{padding-left:22px;margin:10px 0}
+  ol.steps li{margin:9px 0}
+  ul{margin:10px 0;padding-left:22px}
+  ul li{margin:6px 0}
+
+  .pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:700;
+    border:1px solid var(--green-line);background:var(--green-bg);color:var(--green)}
+  .pill.amber{border-color:var(--amber-line);background:var(--amber-bg);color:var(--amber)}
+  .pill.red{border-color:var(--red-line);background:var(--red-bg);color:var(--red)}
+
+  .mono{background:var(--code-bg);border:1px solid var(--line-2);border-radius:3px;
+    padding:11px 13px;font-family:ui-monospace,Consolas,monospace;font-size:12.5px;
+    color:var(--ink);white-space:pre-wrap;word-break:break-all;line-height:1.7;margin:10px 0}
+
+  footer{margin-top:50px;padding-top:18px;border-top:1px solid var(--line);
+    color:var(--ink-3);font-size:12.5px}
+  @media(max-width:760px){ .wrap{padding:28px 16px 70px} h1{font-size:23px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>ABox 一盒 · 线上部署验收单<span class="ver">v1.0</span></h1>
+  <div class="sub">
+    服务器 154.8.164.180 · 部署完成 2026-10-01 16:56 · 北京巡礼之年科技有限公司（自营）
+  </div>
+</header>
+
+<section id="s1">
+  <h2>一、现在线上有什么</h2>
+  <p class="lead">后端 + 运营后台已全部跑起来，公网可直连。小程序端还差你本机改一行。</p>
+  <table>
+    <tr><th style="width:150px">项</th><th>值</th></tr>
+    <tr><td class="k">公网地址</td><td><code>http://154.8.164.180:8080</code></td></tr>
+    <tr><td class="k">运营后台</td><td><code>http://154.8.164.180:8080/</code> —— 浏览器直接开，HTTP 200</td></tr>
+    <tr><td class="k">接口基址</td><td><code>http://154.8.164.180:8080/api/v1</code></td></tr>
+    <tr><td class="k">健康检查</td><td><code>/api/v1/health/ready</code> → <span class="pill">status: ready</span></td></tr>
+    <tr><td class="k">系统账号</td><td>ubuntu（腾讯云 Ubuntu 镜像默认用户，root 口令登录默认关闭）</td></tr>
+  </table>
+  <div class="box warn">
+    <span class="bt">为什么是 IP + 端口，不是域名</span>
+    <p>域名备案还没做。国内服务器用 IP 访问<b>不需要备案</b>，所以现在这条路径是通的；
+       微信小程序侧靠「体验版 + 打开调试」绕开域名白名单校验，也不需要备案。
+       <b>同事不在同一 WiFi 也能用</b>，这是本次部署要解决的第一件事 —— 现在它已经解决了。</p>
+  </div>
+</section>
+
+<section id="s2">
+  <h2>二、验收结果（6 项全绿）</h2>
+  <p class="lead">以下都是实跑输出，不是推断。</p>
+  <table>
+    <tr><th style="width:52px">#</th><th style="width:200px">验收项</th><th>实测</th><th style="width:70px">结论</th></tr>
+    <tr><td>1</td><td class="k">四个容器状态</td>
+        <td>admin / api / mysql / redis 全部 <code>Up (healthy)</code>；<code>8080→80</code> 是唯一对外端口</td>
+        <td><span class="pill">通过</span></td></tr>
+    <tr><td>2</td><td class="k">公网可达</td>
+        <td>本地 curl 公网 IP：<code>admin页 HTTP=200</code>，ready 接口返回 <code>db ok / queue ok</code></td>
+        <td><span class="pill">通过</span></td></tr>
+    <tr><td>3</td><td class="k">数据库迁移</td>
+        <td>4 支全部 <code>[X]</code>：Init / ParityFix / IndexCommissionMeal / DishRating</td>
+        <td><span class="pill">通过</span></td></tr>
+    <tr><td>4</td><td class="k">队列</td>
+        <td>driver=redis，consumers 3/3 全部在跑</td>
+        <td><span class="pill">通过</span></td></tr>
+    <tr><td>5</td><td class="k">种子数据</td>
+        <td>29 张表导入成功；锚点 昨日 09-30 / 今日 10-01 / 明日 10-02</td>
+        <td><span class="pill">通过</span></td></tr>
+    <tr><td>6</td><td class="k">后台账号口令</td>
+        <td>3 个账号全部 scrypt 强口令，<code>--scan</code> 输出「无 dev_plain 账号」</td>
+        <td><span class="pill">通过</span></td></tr>
+  </table>
+</section>
+
+<section id="s3">
+  <h2>三、后台账号（三个，已重设并回读复验）</h2>
+  <p class="lead">原先是 <code>dev_plain</code> —— 生产环境一律登不进。现在已改为随机强口令，并逐条回读校验通过。</p>
+  <table>
+    <tr><th style="width:120px">账号</th><th style="width:130px">角色</th><th>口令</th><th style="width:80px"></th></tr>
+    <tr><td class="k">admin</td><td>super_admin 超管</td>
+        <td><div class="copyrow"><code id="p1">jHA2NSUmPRPF6fgDwWXj</code><button class="btn" onclick="cp('p1',this)">复制</button></div></td>
+        <td></td></tr>
+    <tr><td class="k">finance</td><td>finance 财务</td>
+        <td><div class="copyrow"><code id="p2">f8aj2umYTaZQymxDRigj</code><button class="btn" onclick="cp('p2',this)">复制</button></div></td>
+        <td></td></tr>
+    <tr><td class="k">sanweiwu</td><td>supplier 供应商</td>
+        <td><div class="copyrow"><code id="p3">z8dRC7D9pAEErgXNVUQu</code><button class="btn" onclick="cp('p3',this)">复制</button></div></td>
+        <td></td></tr>
+  </table>
+  <div class="box danger">
+    <span class="bt">口令只在这一份里，请自己另存一份</span>
+    <p>我没有留可解密的明文，重设走的是直连 MySQL 改哈希，之后用 <code>verifyPassword</code> 回读复验。
+       忘了我可以再跑一次脚本重设，但<b>读不回原来这串</b>。另外这份 HTML 在工作区里，转发给同事前记得删掉这一节。</p>
+  </div>
+  <h3>小程序端测试账号</h3>
+  <p>不需要注册，直接用 dev code 登录：</p>
+  <div class="copyrow"><code id="p4">POST http://154.8.164.180:8080/api/v1/auth/login   {"code":"dev:1001"}</code><button class="btn" onclick="cp('p4',this)">复制</button></div>
+  <p class="lead"><code>dev:1001</code> 登录出来是 <b>李明（首席团长）</b>。</p>
+</section>
+
+<section id="s4">
+  <h2>四、你要做的：小程序端改一行（三步）</h2>
+  <p class="lead">后台我全包了；小程序必须你本机做 —— 构建产物在你电脑上，我够不着微信开发者工具。</p>
+  <ol class="steps">
+    <li><b>改文件</b>：<code>abox-onebox/apps/miniprogram/.env</code>，把这一行原文粘进去：
+      <div class="copyrow"><code id="p5">VITE_API_BASE_URL=http://154.8.164.180:8080/api/v1</code><button class="btn" onclick="cp('p5',this)">复制</button></div>
+    </li>
+    <li><b>重新构建</b>：在 <code>abox-onebox/</code> 下执行 <code>pnpm run build:mp</code><br>
+      <span class="pill amber">必做</span> <code>VITE_*</code> 是<b>构建期注入</b>的，改完不重新构建等于没改 —— 这是小程序端和后台最大的不对称：后台 <code>baseURL</code> 走相对路径 + 容器 nginx 反代，零改动；小程序写死了 <code>http://localhost:3000</code>，必须换。</li>
+    <li><b>上传体验版</b>：微信开发者工具 → 上传 → 填版本号与备注 → 到 mp.weixin.qq.com 把这次上传<b>设为体验版</b>。</li>
+  </ol>
+</section>
+
+<section id="s5">
+  <h2>五、同事怎么进（不在同一 WiFi 也能用）</h2>
+  <ol class="steps">
+    <li>微信公众平台 → 管理 → 成员管理 → <b>体验成员</b>，把同事加进去（企业主体未发布小程序：30–60 人；二维码 7 天有效）。</li>
+    <li>同事微信里打开体验版小程序 → 右上角 <b>…</b> → <b>打开调试</b>。<br>
+      <span class="pill amber">每次进都要开一次</span> 这是绕开域名白名单/备案校验的唯一办法，代价就是同事每次要手动点一下。关掉小程序再进就要重开。</li>
+    <li>他那边能下单、你能在这台机器的后台看到订单，联调就成了。</li>
+  </ol>
+  <div class="box">
+    <span class="bt">如果同事打不开，按这个顺序排查</span>
+    <p>① 他是不是体验成员 → ② 有没有开调试 → ③ 后台 <code>http://154.8.164.180:8080</code> 你自己现在还打得开吗（打得开说明服务没挂，问题在小程序侧）。</p>
+  </div>
+</section>
+
+<section id="s6">
+  <h2>六、上线前必须复核的三件事</h2>
+  <div class="box ok">
+    <span class="bt">① PROVIDER_MODE 已写 real（已确认）</span>
+    <p>这一项最容易出事：留 <code>mock</code> 的话，<b>任意验证码免密登录任意身份 + 支付自动置为已支付，且全程零报错</b>。
+       系统自带的 <code>REQUIRED_IN_PROD</code> 只防「漏配」，防不了「配成 mock」。已在 <code>.env.prod</code> 里显式写成 <code>real</code>。</p>
+  </div>
+  <div class="box warn">
+    <span class="bt">② 8080 只给后台，别当公网 API 用</span>
+    <p>mysql / redis <b>没有映射宿主端口</b>，只有 8080 对外。这个口现在只该给宿主机 nginx 反代用；
+       真上线要走「域名 + HTTPS + nginx 反代 8080」，届时把 8080 的公网放行规则收回。</p>
+  </div>
+  <div class="box danger">
+    <span class="bt">③ 税务非正常户 还没确认</span>
+    <p>你确认的「经营异常解除」是 <b>工商</b> 那条线（gsxt）；<b>税务非正常户是独立的一条线</b>，解除与否目前没人确认过。
+       不影响现在联调，但<b>正式卖餐前必须确认已解除</b>，否则影响开票与对公收款。</p>
+  </div>
+</section>
+
+<section id="s7">
+  <h2>七、本次真机暴露的一个仓库缺陷（待修）</h2>
+  <p class="lead">不影响现在用，但下次重新构建镜像还会撞上，最好修掉。</p>
+  <div class="mono">根 package.json 有  "prepare": "node scripts/setup-husky.mjs"
+Dockerfile 只 COPY 了 package.json，没 COPY scripts/
+  ⇒ 容器内 pnpm install 报 Cannot find module '/app/scripts/setup-husky.mjs' 直接退出</div>
+  <p>本次是我在部署副本上把 <code>scripts.prepare</code> 摘掉后重建才过的。根治两条路，选一：</p>
+  <ul>
+    <li><b>推荐</b>：Dockerfile 里补 <code>COPY scripts/ ./scripts/</code>；</li>
+    <li>或让 <code>prepare</code> 判断文件存在性 / 只在有 .git 时跑 husky。</li>
+  </ul>
+  <p class="lead">顺带说明：这类缺陷本地永远测不出来 —— 本地 <code>scripts/</code> 就在那儿。这也是为什么真机首次部署必须真跑一遍，不能只在本地 <code>gate.mjs</code> 全绿就以为完事。</p>
+</section>
+
+<footer>
+  ABox 一盒 · 线上部署验收单 v1.0 · 2026-10-01 · 北京巡礼之年科技有限公司<br>
+  口令章节含敏感信息，对外转发前请先删除第三节。
+</footer>
+
+</div>
+<script>
+function cp(id,btn){
+  var t=document.getElementById(id).innerText;
+  var done=function(){var o=btn.innerText;btn.innerText='已复制';btn.classList.add('done');
+    setTimeout(function(){btn.innerText=o;btn.classList.remove('done');},1400);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(done,function(){fb();});
+  } else { fb(); }
+  function fb(){var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';
+    ta.style.left='-9999px';document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');done();}catch(e){btn.innerText='复制失败';}
+    document.body.removeChild(ta);}
+}
+</script>
+</body>
+</html>

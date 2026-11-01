@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 交付物门户</title>
+<style>
+:root{
+  --bg: #F6F0E5;
+  --surface: #FFFDF8;
+  --surface2: #F7F1E4;
+  --surface3: #FBF6EC;
+  --text: #6E5435;
+  --text2: #796C57;
+  --text-disabled: #A79A85;
+  --gold: #C9A876;
+  --gold-deep: #936F3A;
+  --gold-deepest: #8A6620;
+  --border: #E4D8C3;
+  --border-strong: #D6CBB8;
+  --ok: #5B7C3A;
+  --warn: #C44536;
+  --info: #4A6FA5;
+  --ok-bg: #F1F5EA;
+  --ok-bd: #BBCBA6;
+  --warn-bg: #FBF0EE;
+  --warn-bd: #E3BFB8;
+  --info-bg: #EDF1F8;
+  --info-bd: #B4C4DA;
+  --mut-bg: #F7F2E8;
+  --mut-bd: #E4D8C3;
+  --gold-bg: #FBF4E6;
+  --gold-bd: #DCC79C;
+  --ok-fg: #597939;
+  --warn-fg: #C24436;
+  --info-fg: #4A6FA5;
+  --gold-fg: #8D6A38;
+  --from: #FFF6E0;
+  --to: #FFEED5;
+  --brand-meituan: #FFD400;
+  --brand-meituan-text: #000000;
+  --brand-taobao: #FF6A00;
+  --brand-taobao-text: #000000;
+  --brand-jd: #E1251B;
+  --brand-jd-text: #FFFFFF;
+  --font-display: 'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif;
+  --font-body: -apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif;
+  --font-num: 'SF Mono','Roboto Mono',Consolas,monospace;
+  --r-sm: 4px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --sp-1: 6px;
+  --sp-2: 10px;
+  --sp-3: 14px;
+  --sp-4: 20px;
+  --sp-5: 28px;
+}
+/* 交付物门户 · 样式
+   ⚠️ 本文件零颜色字面量：一切颜色只能来自 :root（由生成器注入 token 真源）。
+      构建期会断言这一条 —— 颜色一旦写死，门户就会跟 12 件工具的视觉分叉。
+   ⚠️ 字体分层：楷体只用于标题 / 品牌字 / 数字大字，正文与表格走无衬线栈。
+*/
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px 60px; }
+
+/* ── 头 ── */
+.hero {
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--from), var(--to));
+  margin-bottom: 22px;
+}
+.hero-in { max-width: 1180px; margin: 0 auto; padding: 26px 20px 22px; }
+.brand {
+  font-family: var(--font-display);
+  font-size: 26px;
+  letter-spacing: 1px;
+  margin: 0;
+}
+.brand small {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text2);
+  letter-spacing: 0;
+  margin-left: 10px;
+}
+.sub { color: var(--text2); font-size: 13px; margin: 6px 0 0; }
+
+/* 汇总条 */
+.stats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 13px;
+  min-width: 84px;
+}
+.stat b {
+  display: block;
+  font-family: var(--font-num);
+  font-size: 19px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.stat span { font-size: 11px; color: var(--text2); }
+
+/* ── 工具栏 ── */
+.bar {
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  margin-bottom: 18px;
+}
+#q {
+  flex: 1 1 240px;
+  min-width: 180px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+}
+#q:focus { outline: 2px solid var(--gold-bd); outline-offset: 0; }
+.chip {
+  padding: 6px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text2);
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+.chip:hover { border-color: var(--gold-bd); }
+.chip.on { background: var(--gold-bg); border-color: var(--gold-bd); color: var(--gold-fg); }
+.toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); cursor: pointer; }
+
+/* ── 域分组 ── */
+.grp { margin-bottom: 28px; }
+.grp-hd {
+  display: flex; align-items: baseline; gap: 10px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 7px; margin-bottom: 14px;
+}
+.grp-hd h2 {
+  font-family: var(--font-display);
+  font-size: 17px; margin: 0; font-weight: 500;
+}
+.grp-hd .cnt { font-size: 12px; color: var(--text2); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
+
+/* ── 卡片 ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 15px 12px;
+  display: flex; flex-direction: column;
+}
+.card:hover { border-color: var(--border-strong); }
+.card.fail { border-color: var(--warn-bd); background: var(--warn-bg); }
+
+.c-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.code {
+  font-family: var(--font-num);
+  font-size: 12px; font-weight: 700;
+  background: var(--gold-bg); color: var(--gold-fg);
+  border: 1px solid var(--gold-bd);
+  border-radius: 5px; padding: 1px 7px;
+}
+.c-name { font-family: var(--font-display); font-size: 16px; flex: 1; }
+.pri {
+  font-size: 11px; padding: 1px 7px; border-radius: 5px;
+  background: var(--mut-bg); border: 1px solid var(--mut-bd); color: var(--text2);
+}
+.pri.p0 { background: var(--gold-bg); border-color: var(--gold-bd); color: var(--gold-fg); }
+
+/* 状态灯 */
+.lamp { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.lamp.ok .dot { background: var(--ok); }
+.lamp.ok { color: var(--ok-fg); }
+.lamp.fail .dot { background: var(--warn); }
+.lamp.fail { color: var(--warn-fg); }
+.lamp.noprobe .dot, .lamp.probefail .dot { background: var(--gold); }
+.lamp.noprobe, .lamp.probefail { color: var(--gold-fg); }
+.lamp.missing .dot { background: var(--text-disabled); }
+.lamp.missing { color: var(--text-disabled); }
+
+.c-what {
+  color: var(--text2); font-size: 12.5px; margin: 0 0 8px;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.c-who { font-size: 12px; color: var(--text2); margin: 0 0 10px; }
+.c-who b { color: var(--text); font-weight: 600; }
+
+.meta {
+  border-top: 1px dashed var(--border);
+  padding-top: 9px; margin-top: auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 3px 10px;
+  font-size: 11.5px; color: var(--text2);
+}
+.meta i { font-style: normal; font-family: var(--font-num); color: var(--text); }
+
+.c-go {
+  display: block; text-align: center; margin-top: 11px; padding: 7px;
+  border-radius: 7px; border: 1px solid var(--gold-bd);
+  background: var(--gold-bg); color: var(--gold-fg);
+  text-decoration: none; font-size: 13px;
+}
+.c-go:hover { background: var(--from); }
+.c-go.off { pointer-events: none; opacity: .45; }
+
+/* ── 图例 / 页脚 ── */
+.legend {
+  display: flex; flex-wrap: wrap; gap: 14px;
+  font-size: 12px; color: var(--text2);
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px; margin-bottom: 24px;
+}
+.foot { color: var(--text2); font-size: 12px; border-top: 1px solid var(--border); padding-top: 14px; }
+.foot code { font-family: var(--font-num); font-size: 11.5px; }
+.empty { color: var(--text2); padding: 30px 0; text-align: center; }
+
+@media (max-width: 700px) {
+  .grid { grid-template-columns: 1fr; }
+  .meta { grid-template-columns: 1fr; }
+}
+
+</style>
+</head>
+<body>
+<header class="hero"><div class="hero-in">
+  <h1 class="brand">ABox 一盒 · 交付物门户<small>已交付系统的总入口</small></h1>
+  <p class="sub">12 件单文件工具的总入口 —— 状态由各工具自己的门禁真跑得出，这里只呈现，不判断。按 <code>/</code> 可聚焦搜索。</p>
+  <div class="stats">
+    <div class="stat"><b id="c-ok">0</b><span>全绿</span></div>
+    <div class="stat"><b id="c-bad">0</b><span>异常</span></div>
+    <div class="stat"><b id="c-neg">0</b><span>负控点火</span></div>
+    <div class="stat"><b id="shown">0 / 0</b><span>当前显示</span></div>
+  </div>
+</div></header>
+<div class="wrap">
+  <div class="bar">
+    <input id="q" type="search" placeholder="搜系统名 / 代号 / 用途（例：合规、留样、毛利）">
+    <div id="chips" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    <label class="toggle"><input id="onlyBad" type="checkbox"> 只看异常</label>
+  </div>
+  <div class="legend">
+    <span class="lamp ok"><i class="dot"></i>全绿：构建期自检 + 浏览器探针都通过</span>
+    <span class="lamp fail"><i class="dot"></i>有不符：自检出现不符项</span>
+    <span class="lamp noprobe"><i class="dot"></i>未跑探针</span>
+    <span class="lamp missing"><i class="dot"></i>产物缺失</span>
+    <span>门禁 = 各工具 selfcheck 的冒烟与判据（构成各工具自定）· 负控 = 把实现改回旧版后必须转红</span>
+  </div>
+  <div id="grid"></div>
+  <div class="foot">
+    <div>采集时间：<code>2026-09-26 19:28:46</code> · 门禁合计 <code>231</code> 条 · 负控点火 <code>187</code> 条</div>
+    <div>真源：<code>extract.py</code> 从《创业系统地图》与 token 真源抽登记册 → <code>spec.json</code>；<code>collect.py</code> 真跑 12 件自检 → <code>status.json</code>。</div>
+    <div>刷新状态：<code>python collect.py &amp;&amp; python build.py</code>（改了系统地图或登记册则先跑 <code>extract.py</code>）。</div>
+    <div>状态一律由自检真跑得出、不手写 —— 门户上每个数字都能追到某件工具自己的自检输出。</div>
+  </div>
+</div>
+<script>window.DATA = {"meta": {"collectedAt": "2026-09-26 19:28:46", "counts": {"ok": 12}, "negTotal": 187, "judgeTotal": 231, "version": "1.0"}, "domains": [{"key": "G", "name": "G 域 · 增长与获客"}, {"key": "M", "name": "M 域 · 资金与经营"}, {"key": "S", "name": "S 域 · 供给与产能"}, {"key": "E", "name": "E 域 · 内部效率"}, {"key": "F", "name": "F 域 · 履约与体验"}, {"key": "R", "name": "R 域 · 风险与合规"}], "systems": [{"code": "G1", "name": "楼宇拓展作战地图", "pri": "P0", "domain": "G", "domainName": "G 域 · 增长与获客", "what": "一张可筛选的写字楼线索库 + 打分模型 + 拓展漏斗看板：楼名/地址/层数/入驻公司数/周边餐饮均价/已进楼层，自动算「密度潜力分」，并按「线索 → 接触 → 试吃 → 签约 → 上线」记录每一步。", "who": "你（BD 期天天用）· 未来给拓展岗", "product": "_ABox一盒楼宇拓展地图v1.0.html", "file": {"bytes": 102312, "sha256": "7a7895a8f88fdb49", "mtime": "2026-09-25 00:37"}, "build": {"checksOk": 23, "checks": 23, "negFired": 16, "neg": 16, "fails": [], "rc": 0}, "probe": {"ok": 55, "total": 55, "negFired": null, "neg": null, "pageErrors": null, "at": "2026-09-26 18:51", "file": "_tmp/qa-env/uisim/_auc_g1.json", "form": "json"}, "verdict": "ok"}, {"code": "G2", "name": "团长招募与运营 CRM", "pri": "P0", "domain": "G", "domainName": "G 域 · 增长与获客", "what": "团长从「线索 → 沟通 → 培训 → 试跑 → 在职 → 停职/淘汰」的全生命周期台账，含：画像标签（写字楼前台 / 行政 / 便利店 / 宝妈）、产能看板（人均带单量、复购率）、收入模拟器（用真实历史数据算\"你在这个楼大概能赚多少\"）、连续 N 天 0 单自动预警。", "who": "你（招募与陪跑期）· 未来给团长运营岗", "product": "_ABox一盒团长招募CRMv1.0.html", "file": {"bytes": 132404, "sha256": "09f78e6b087c87fd", "mtime": "2026-09-26 18:24"}, "build": {"checksOk": 29, "checks": 29, "negFired": 20, "neg": 20, "fails": [], "rc": 0}, "probe": {"ok": 78, "total": 78, "negFired": null, "neg": null, "pageErrors": null, "at": "2026-09-26 18:51", "file": "_tmp/qa-env/uisim/_auc_g2.json", "form": "json"}, "verdict": "ok"}, {"code": "S2", "name": "成本卡与毛利测算", "pri": "P0", "domain": "S", "domainName": "S 域 · 供给与产能", "what": "每个套餐的 BOM（一饭四菜 → 每道菜的食材 → 供应商报价），自动算：单份食材成本、毛利率、按楼/按天/按 SKU 的毛利看板，以及调价与换料模拟器（\"把红烧肉换成鸡腿会怎样\"\"涨到 26.8 会怎样\"）。", "who": "你（定价与选品时）· 财务", "product": "_ABox一盒成本卡与毛利测算v1.0.html", "file": {"bytes": 71961, "sha256": "802bc248dc3f9021", "mtime": "2026-09-26 18:35"}, "build": {"checksOk": 14, "checks": 14, "negFired": 11, "neg": 11, "fails": [], "rc": 0}, "probe": {"ok": 20, "total": 20, "negFired": null, "neg": null, "pageErrors": 0, "at": "2026-09-26 18:51", "file": "_tmp/qa-env/uisim/_auc_s2.json", "form": "json"}, "verdict": "ok"}, {"code": "M1", "name": "经营驾驶舱（日清日结）", "pri": "P0", "domain": "M", "domainName": "M 域 · 资金与经营", "what": "每日一份经营快照：单量 · GMV · 毛利率 · 客单价 · 各楼排名 · 团长产能 · 报量偏差 · 损耗 · 投诉 · 异常订单。\n        形态建议：后台有页面，但更重要的是每天早上 8:00 推一条消息给你（企微/微信），异常项标红。", "who": "你（每天 1 分钟看完）", "product": "_ABox一盒经营驾驶舱v1.0.html", "file": {"bytes": 75462, "sha256": "f2ea92465f27ce6f", "mtime": "2026-09-26 18:33"}, "build": {"checksOk": 22, "checks": 22, "negFired": 17, "neg": 17, "fails": [], "rc": 0}, "probe": {"ok": 50, "total": 50, "negFired": null, "neg": null, "pageErrors": null, "at": "2026-09-26 18:53", "file": "_tmp/qa-env/uisim/_auc_m1.json", "form": "json"}, "verdict": "ok"}, {"code": "R1", "name": "证照与资质台账", "pri": "P0", "domain": "R", "domainName": "R 域 · 风险与合规", "what": "一张带到期提醒的台账：营业执照 · 食品经营许可证 · 健康证（每人）· 小程序主体认证 · 类目资质 · 平台准入材料 · 供应商资质（营业执照/食品流通许可）。\n        外加一条：公司经营状态跟踪（异常名录 / 税务状态 / 年报截止）。", "who": "你（看提醒）· 系统自动提醒", "product": "_ABox一盒证照资质台账v1.0.html", "file": {"bytes": 62839, "sha256": "4eeff058bcab8d07", "mtime": "2026-09-26 18:37"}, "build": {"checksOk": 15, "checks": 15, "negFired": 8, "neg": 8, "fails": [], "rc": 0}, "probe": {"ok": 17, "total": 17, "negFired": null, "neg": null, "pageErrors": 0, "at": "2026-09-26 18:51", "file": "_tmp/qa-env/uisim/_auc_r1.json", "form": "json"}, "verdict": "ok"}, {"code": "E3", "name": "AI 内容工厂", "pri": "P0", "domain": "E", "domainName": "E 域 · 内部效率", "what": "把\"每样物料都要现想\"变成\"填空出图\"：每日菜单海报 · 朋友圈文案（早中晚三条）· 团长招募包（话术 + 收入模拟 + 物料）· 楼群接龙文案 · 活动海报 · 节日物料。\n        要求只有一个：模板化 + 批量 + 品牌一致（米色 #F6F0E5 / 暖棕 #6E5435 / 楷体）。", "who": "你 · 团长（每天要发的东西）", "product": "_ABox一盒内容工厂v1.0.html", "file": {"bytes": 83634, "sha256": "2da81b187adfb70a", "mtime": "2026-09-26 18:23"}, "build": {"checksOk": 10, "checks": 10, "negFired": 8, "neg": 8, "fails": [], "rc": 0}, "probe": {"ok": 26, "total": 26, "negFired": null, "neg": null, "pageErrors": null, "at": "2026-09-26 18:53", "file": "_tmp/qa-env/uisim/_auc_factory.json", "form": "text"}, "verdict": "ok"}, {"code": "F3", "name": "食安留样与全链追溯", "pri": "P1", "domain": "F", "domainName": "F 域 · 履约与体验", "what": "每批次留样记录（菜品 + 时间 + 留样人 + 照片 + 保存温度与到期时间）· 供应商资质与健康证到期 · 出餐环境自检 · 与已有 traceability 模块打通，形成\"这一份饭从哪来、谁做的、谁送的\"完整链。", "who": "加工场所 / 出餐人（留样登记）· 你（看异常）", "product": "_ABox一盒食安留样追溯台账v1.0.html", "file": {"bytes": 108495, "sha256": "03339c35fb21b48b", "mtime": "2026-09-26 18:44"}, "build": {"checksOk": 32, "checks": 32, "negFired": 19, "neg": 19, "fails": [], "rc": 0}, "probe": {"ok": 35, "total": 35, "negFired": null, "neg": null, "pageErrors": 0, "at": "2026-09-26 18:51", "file": "_tmp/qa-env/uisim/_auc_f3.json", "form": "json"}, "verdict": "ok"}, {"code": "M2", "name": "现金流与账期预测", "pri": "P1", "domain": "M", "domainName": "M 域 · 资金与经营", "what": "滚动现金流表：用户预收（下单即付）· 采购款支出（日结 T+1）· 佣金（月结/自动）· 提现流出 · 固定成本（场所/人力/服务器）。\n        核心输出一句话：\"按现在的速度，钱还能撑 XX 天\"，以及\"如果下月砍掉某栋楼会怎样\"。", "who": "你（每周看一次，紧张时每天看）", "product": "_ABox一盒现金流与账期预测v1.0.html", "file": {"bytes": 81456, "sha256": "5044b5adb2a4e1bd", "mtime": "2026-09-26 18:28"}, "build": {"checksOk": 10, "checks": 10, "negFired": 20, "neg": 20, "fails": [], "rc": 0}, "probe": {"ok": 18, "total": 18, "negFired": null, "neg": null, "pageErrors": 0, "at": "2026-09-26 18:53", "file": "_tmp/qa-env/uisim/_auc_m2.json", "form": "json"}, "verdict": "ok"}, {"code": "E4", "name": "SOP 与培训系统", "pri": "P1", "domain": "E", "domainName": "E 域 · 内部效率", "what": "把\"怎么干\"变成可考核的卡片：团长上岗 SOP（含话术、发起接龙、处理售后、取餐组织）· 出餐人 SOP · 配送 SOP ·\n        新人 7 天陪跑清单 · 完成后打卡 + 抽检。", "who": "新团长 / 新员工（照着做）· 你（看谁没完成）", "product": "_ABox一盒SOP与新人陪跑v1.0.html", "file": {"bytes": 79253, "sha256": "a2e5da31539f86f2", "mtime": "2026-09-26 18:41"}, "build": {"checksOk": 13, "checks": 13, "negFired": 21, "neg": 21, "fails": [], "rc": 0}, "probe": {"ok": 20, "total": 20, "negFired": null, "neg": null, "pageErrors": 0, "at": "2026-09-26 18:51", "file": "_tmp/qa-env/uisim/_auc_e4.json", "form": "json"}, "verdict": "ok"}, {"code": "R2", "name": "食安自检与巡检", "pri": "P2", "domain": "R", "domainName": "R 域 · 风险与合规", "what": "每日开餐前检查表（照片留证）· 每周深度巡检 · 整改项跟踪闭环 · 历史检查记录可导出（应对监管检查）。", "who": "加工场所 / 出餐人（填写）· 你（看整改）", "product": "_ABox一盒食安自检与巡检v1.0.html", "file": {"bytes": 93955, "sha256": "7c574e3752c1011b", "mtime": "2026-09-26 18:17"}, "build": {"checksOk": 35, "checks": 35, "negFired": 22, "neg": 22, "fails": [], "rc": 0}, "probe": {"ok": 22, "total": 22, "negFired": null, "neg": null, "pageErrors": 0, "at": "2026-09-26 18:52", "file": "_tmp/qa-env/uisim/_auc_r2.json", "form": "json"}, "verdict": "ok"}, {"code": "R4", "name": "合同与协议管理", "pri": "P2", "domain": "R", "domainName": "R 域 · 风险与合规", "what": "供应商 / 团长 / 物业 / 企业客户 四类合同的台账：期限 · 关键条款（价格、账期、违约金、排他）· 到期续签提醒 · 电子附件归档。", "who": "你（续签与纠纷时）", "product": "_ABox一盒合同与协议管理v1.0.html", "file": {"bytes": 86287, "sha256": "d3f31674ee1c2632", "mtime": "2026-09-26 18:49"}, "build": {"checksOk": 12, "checks": 12, "negFired": 21, "neg": 21, "fails": [], "rc": 0}, "probe": {"ok": 21, "total": 21, "negFired": null, "neg": null, "pageErrors": 0, "at": "2026-09-26 18:52", "file": "_tmp/qa-env/uisim/_auc_r4.json", "form": "json"}, "verdict": "ok"}, {"code": "E1", "name": "AI 内部助手（知识库 + 问数）", "pri": "P0", "domain": "E", "domainName": "E 域 · 内部效率", "what": "两个能力合体：① 问文档 —— 把已有的 40+ 份文档（PRD、接口规范、执行手册、测试指引、各版方案）喂进去，用大白话提问：\"退款的钱怎么走\"\"团长佣金什么时候到账\"\"供应商结算是日结还是月结\"，直接给答案 + 出处。\n        ② 问数据 —— \"上周哪栋楼掉单最多\"\"这道菜被投诉几次\"\"哪家供应商准时率最低\"，自然语言出结果。", "who": "你 · 未来的新同事 / 新团长 / 外包财务", "product": "_ABox一盒知识助手v4.0.html", "file": {"bytes": 1795463, "sha256": "130f81da685ce766", "mtime": "2026-09-26 19:07"}, "build": {"checksOk": 16, "checks": 16, "negFired": 4, "neg": 4, "fails": [], "rc": 0}, "probe": {"ok": 14, "total": 14, "negFired": 4, "neg": 4, "pageErrors": 0, "at": "2026-09-26 19:12", "file": "_tmp/qa-env/uisim/_auc_kbcalc.json", "form": "json"}, "verdict": "ok"}]};</script>
+<script>
+/* 交付物门户 · 交互层
+   ⭐ 本文件不产生任何判断 —— 状态一律读 window.DATA（由 collect.py 真跑得出）。
+      门户的职责只有两个：导航（打开产物）与呈现（把已有结论摆清楚）。
+*/
+(function () {
+  'use strict';
+
+  var D = window.DATA;
+  if (!D) { document.getElementById('grid').innerHTML = '<p class="empty">数据没注入</p>'; return; }
+
+  var LAMP = {
+    ok:        { cls: 'ok',        txt: '全绿' },
+    fail:      { cls: 'fail',      txt: '有不符' },
+    noprobe:   { cls: 'noprobe',   txt: '未跑探针' },
+    probefail: { cls: 'probefail', txt: '探针有红' },
+    missing:   { cls: 'missing',   txt: '产物缺失' }
+  };
+
+  var state = { q: '', domain: 'ALL', onlyBad: false };
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function nn(v) { return (v === null || v === undefined) ? '—' : String(v); }
+
+  /* 体积：≥1MB 用 MB，否则 KB */
+  function size(b) {
+    if (b === null || b === undefined) return '—';
+    if (b >= 1048576) return (b / 1048576).toFixed(1) + ' MB';
+    return Math.round(b / 1024) + ' KB';
+  }
+
+  function lamp(v) {
+    var L = LAMP[v] || LAMP.missing;
+    return '<span class="lamp ' + L.cls + '"><i class="dot"></i>' + L.txt + '</span>';
+  }
+
+  /* 一件 → 一张卡 */
+  function card(s) {
+    var b = s.build || {}, p = s.probe, f = s.file;
+    var fails = (b.fails || []).slice(0, 3).map(function (x) {
+      return '<div class="c-fail">' + esc(x) + '</div>';
+    }).join('');
+
+    var meta = ''
+      + '<div>门禁 <i>' + nn(b.checksOk) + '/' + nn(b.checks) + '</i></div>'
+      + '<div>负控 <i>' + nn(b.negFired) + '/' + nn(b.neg) + '</i></div>'
+      + '<div>探针 <i>' + (p ? nn(p.ok) + '/' + nn(p.total) : '—') + '</i></div>'
+      + '<div>更新 <i>' + (f ? esc(f.mtime) : '—') + '</i></div>';
+
+    var href = f ? esc(encodeURI(s.product)) : '#';
+    return '<div class="card' + (s.verdict === 'fail' ? ' fail' : '') + '" data-code="' + esc(s.code) + '">'
+      + '<div class="c-top">'
+      +   '<span class="code">' + esc(s.code) + '</span>'
+      +   '<span class="c-name">' + esc(s.name) + '</span>'
+      +   '<span class="pri ' + s.pri.toLowerCase() + '">' + esc(s.pri) + '</span>'
+      + '</div>'
+      + '<div class="c-top">' + lamp(s.verdict)
+      +   '<span style="flex:1"></span>'
+      +   '<span style="font-size:11.5px;color:var(--text2)">' + size(f ? f.bytes : null) + '</span>'
+      + '</div>'
+      + '<p class="c-what">' + esc(s.what) + '</p>'
+      + '<p class="c-who"><b>谁用</b> ' + esc(s.who || '—') + '</p>'
+      + fails
+      + '<div class="meta">' + meta + '</div>'
+      + '<a class="c-go' + (f ? '' : ' off') + '" target="_blank" href="' + href + '">'
+      +   (f ? '打开 ' + esc(s.product.replace(/^_?ABox一盒/, '').replace(/v[\d.]+\.html$/, '')) : '产物不存在')
+      + '</a>'
+      + '</div>';
+  }
+
+  /* 命中筛选的系统 */
+  function matched() {
+    var q = state.q.trim().toLowerCase();
+    return D.systems.filter(function (s) {
+      if (state.domain !== 'ALL' && s.domain !== state.domain) return false;
+      if (state.onlyBad && s.verdict === 'ok') return false;
+      if (!q) return true;
+      var hay = (s.code + ' ' + s.name + ' ' + s.what + ' ' + s.who + ' ' + s.domainName)
+        .toLowerCase();
+      return hay.indexOf(q) >= 0;
+    });
+  }
+
+  function render() {
+    var list = matched();
+    var html = '';
+    D.domains.forEach(function (g) {
+      var rows = list.filter(function (s) { return s.domain === g.key; });
+      if (!rows.length) return;
+      html += '<section class="grp"><div class="grp-hd"><h2>' + esc(g.name) + '</h2>'
+        + '<span class="cnt">' + rows.length + ' 件</span></div>'
+        + '<div class="grid">' + rows.map(card).join('') + '</div></section>';
+    });
+    if (!html) html = '<p class="empty">没有命中的系统 —— 换个词，或把「只看异常」关掉</p>';
+    document.getElementById('grid').innerHTML = html;
+
+    var c = D.meta.counts;
+    document.getElementById('shown').textContent = list.length + ' / ' + D.systems.length;
+    document.getElementById('c-ok').textContent = c.ok || 0;
+    document.getElementById('c-bad').textContent =
+      (c.fail || 0) + (c.probefail || 0) + (c.missing || 0);
+    document.getElementById('c-neg').textContent = D.meta.negTotal || 0;
+  }
+
+  /* ── 工具栏 ── */
+  var chips = document.getElementById('chips');
+  var allChip = '<span class="chip on" data-d="ALL">全部 ' + D.systems.length + '</span>';
+  chips.innerHTML = allChip + D.domains.map(function (g) {
+    var n = D.systems.filter(function (s) { return s.domain === g.key; }).length;
+    return '<span class="chip" data-d="' + esc(g.key) + '">' + esc(g.key) + ' 域 ' + n + '</span>';
+  }).join('');
+
+  chips.addEventListener('click', function (e) {
+    var t = e.target.closest('.chip');
+    if (!t) return;
+    Array.prototype.forEach.call(chips.querySelectorAll('.chip'), function (c) {
+      c.classList.toggle('on', c === t);
+    });
+    state.domain = t.getAttribute('data-d');
+    render();
+  });
+
+  document.getElementById('q').addEventListener('input', function (e) {
+    state.q = e.target.value;
+    render();
+  });
+
+  document.getElementById('onlyBad').addEventListener('change', function (e) {
+    state.onlyBad = e.target.checked;
+    render();
+  });
+
+  /* 「/」聚焦搜索 —— 顺手，不引入依赖 */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '/' && document.activeElement !== document.getElementById('q')) {
+      e.preventDefault();
+      document.getElementById('q').focus();
+    }
+  });
+
+  render();
+  document.documentElement.setAttribute('data-hub-ready', '1');
+})();
+
+</script>
+</body>
+</html>

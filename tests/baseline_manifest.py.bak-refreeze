@@ -1,0 +1,1020 @@
+# -*- coding: utf-8 -*-
+"""生成《开发基线冻结清单 v1.0》（文件清单 + 版本 + 字节 + SHA-256）"""
+import os, hashlib
+
+ROOT = r"C:\Users\herma\WorkBuddy\ABox小程序"
+OUT = os.path.join(ROOT, "ABox一盒开发基线冻结清单v1.0.md")
+SCAFFOLD = os.path.join(ROOT, "abox-onebox")
+ARCHIVE = os.path.join(ROOT, "archive")
+
+# 角色分类：现行 / 废弃
+ROLE = {
+    # ── 现行 ──
+    "ABox一盒业务运作理解v2.0.md":      ("现行", "业务时序与关键事实（已最终确认）"),
+    "ABox一盒PRDv2.1.md":              ("现行", "产品需求文档 · 已回填 C1–C11 + M01-04 + §6.4 结算与出款通道定案"),
+    "ABox一盒数据库ER设计v2.1.md":      ("现行", "数据模型 · 26 张表（2026-09-15 补 ab_withdraw 提现单 + ab_balance_log 出款字段 + ab_team_leader 收款方式/floor + ab_refund.order_status_before）· 2026-09-16 M3-5 后台团长管理零 DDL（§5.4）· M3-6 ab_supplier 补 7 列（§5.5：资质审核四列 + license_expire_at + invoice_title + takeout_links）· M3-7 ab_building 增 population + 状态三态（§5.6，唯一 DDL、无新表）· **M3-8 新增 ab_supplier_dish_center_daily**（§3.6.1，供应商出餐确认分中心明细）· **M3-12 新增 ab_message_template**（§3.9，通知模板 5 场景 —— 场景定义留在代码里，库表只存可编辑部分；**合计 27 张表**）· ⭐ **M5-2 两处更正**（《缺陷与陷阱》#76）：**§5.3 `ab_refund.order_status_before` 类型 `tinyint` → `VARCHAR(16)`**（原文档记录**与代码不符** —— 代码写入的是 `order.status` 字符串；**文档比代码更错的场合，机械对账的源必须是代码**）+ 新增 **§5.8 迁移↔实体结构对齐**（缺口 2 表 9 列 1 索引 / 为何长期未发现 / 增量补法 / `schema:parity` 门禁 / ⚠️ **边界：ER 仍是三份结构表述里唯一无自动校验的一份**）+ 表数总览补警示「**表数对齐 ≠ 结构对齐**」"),
+    "ABox一盒项目目录结构v2.0.md":       ("现行", "Monorepo 布局 · 端页模块映射 · ⭐ v2.0.19（2026-09-18 **M5-11 三处挂账缺陷收口**落点：§四 `common/services/` **此前整批未入树**（`LeaderMoneyService` M4-4 起就缺），本批一并补上并登记新服务 **`leader-lookup.service.ts`**（「邀请码 → 团长」的全仓唯一实现 · 缺陷 #92 修复载体）；§四 `seeds/seed-demo.ts` 自检 **12 → 13** 项（⑬ = 演示单号过读取侧校验）· **零 DDL · 零新增错误码 · 门禁仍 20 道 · 表数仍 27**）· ⭐ v2.0.18（2026-09-18 **M5-10 批次三**落点：**P11–P20 团长端十页对齐原型**（工作台/本楼概况/订单明细/异常订单总览/取餐确认/佣金中心/佣金流水/提现申请/分享中心/团长资料 —— 纯前端排版、零接口变更、零新增文件；P14「本月历史汇总」因 L4 仅支持单日口径**如实降级为当日两段式**并脚注裁定；P12「未下单同事」需楼栋成员名册未实装，以「下单人数/人均份数」替代）· ⭐ **修同名不同义陷阱（缺陷 #94）**：L16 `mine.level` 是按本月业绩反推的「应处等级」，与 L11/L14 的实际生效等级不是同一个东西（首席本月 7 单会同时命中 chief 与 trainee）→ 等级展示一律取 L11/L14，「下一级/进度」按生效等级在阶梯上推导（阶梯顺序取 L16 `levels[]` 出参顺序 · 门槛取 `LEADER_LEVEL_META` 与服务端同源），已达最高等级恒 100% · CDP 390×844 原型↔实装并排截图十页全对齐（`_shots/reshot-batch3.sh`；⚠️ 原型 PAGES 下标按**数组元素**数 = 页码−2，按行号会因数组内注释行错位 3 格）· `gate.mjs all verify` **20/20**）· ⭐ v2.0.17（2026-09-18 **M5-10 批次二**落点：**P5/P6/P8/P9/P10 五页对齐原型**（订单详情 6 步状态机时间线 + 金额拆单 / 订单列表分段筛选带计数 / 个人中心多源统计 / 余额明细按原型重排 / 团长邀请落地页实装）· **后端补 U13/U14 读侧**（`GET /me/balance`、`GET /me/balance/logs` —— 规范早已登记、实现长期缺失，P8/P9 一直是占位页的根因）· U13/U14 **复用 `LeaderMoneyService`**（`logsOf()` 与 L19 同一实现，防「个人中心与余额明细两个余额」的 #69 形分叉）· **余额口径修正**：`ab_balance` 主键是 `user_id`，用户与团长**共用同一账户** —— 原型 P9「用户余额仅来自退款、团长佣金是独立账户」为**过时文案**，`note` 由服务端下发正确口径且 P9 不做类型过滤（否则大卡总额与流水对不上）· A2 补派生只读 `buildingName`/`leaderName`（U12 裁定由 A2 承担、不另设端点）· **修一处 UX 竞态**：`mine.vue` onShow 五个取数并发、而月佣金/待分发以 `leaderStore.isLeader` 为闸门（该标志恰由并发的 loadProfile 置位）→ 冷启动必显「—」，改**先 await loadProfile 再发其余** · CDP 390×844 原型↔实装并排截图五页全对齐 · `gate.mjs all verify` **20/20** · ⚠️ 收尾机械比对抓出 `user.controller.ts` **M2 起漏登** SCAFFOLD_KEY，随本批补登 3 项）· ⭐ v2.0.16（2026-09-18 **M5-10 原型逐页对齐 · 批次一**落点：**裁定 prototype v4.10.0 为 19 页版式验收基准**；P1 首页按 `renderP1` 全量重排（倒计时深棕横幅/概念大卡/团长身份横幅/一饭四菜逐道/P1 选份数带入 P3）· P3 按 `renderP3` 重排（警示红倒计时/套餐清单/取餐信息/确认支付，备注保留）· P4 按 `renderP4` 重排（大 ✅ + 信息卡，三态保留）· `pages.json` 22 处标题换原型产品名；纯前端排版、零接口变更，CDP 手机参数逐页截图比对）· ⭐ v2.0.15（2026-09-18 M5-9 **收尾二**落点：**手机端字体失真修复** —— 实装字体栈整条是电脑字体、手机上一个都没有 → 回退黑体即「失真」；对策 = `scripts/make-font-subset.py` 生成楷体 woff2 子集（3907 字 / 583KB）进 `src/static/fonts/`，`tokens.scss` 头插 `@font-face 'ABoxKai'`（H5 条件编译）；顺带修 `lib/local-server.mjs` 的 `/static` 前缀冲突（uni 前端静态目录与 API 上传目录同名 → 改「文件优先、代理兜底」）· 实测 `document.fonts` ABoxKai loaded + 手机参数渲染零溢出；⚠️ 生产前须把 simkai 换成可分发开源字体）· ⭐ v2.0.14（2026-09-18 M5-9 **收尾**落点：§一 `scripts/` 补 **`make-qr.mjs`**（人工测试**入口卡**生成器 —— 四个入口的二维码 + 后台链接 → 一页 A4 内联 SVG + 4 张 PNG · ⭐ **生成后反解校验**（jimp + qrcode-reader 把 PNG 解回来比对 URL）· ⚠️ 端口默认值**必须与 `local-test.mjs` 一致** · ⚠️ 交付物**刻意带 `_` 前缀**故**不进本冻结清单**（含 IP 与生成时刻、内容易变，一进就重生成一次飘红一次））· ⚠️ **修 `local-test.mjs --build` 一处真缺陷**（H5 产物 `dist-h5/assets` 超 50 文件 → vite `emptyOutDir` 撞沙箱 bulk-delete 守卫 → 汇总成「Build failed」而**代码一行没错**；`build:mp`/`build:admin` 走 `gate.mjs` 自带保护、**H5 没有 gate 兜底**；修法与 `gate.mjs` 的 `swapAwayOutDir` 同源 = 构建前把 outDir **rename 到系统临时目录**）· ⭐ `SCAFFOLD_KEY` **补登 2 项**（`scripts/local-test.mjs` 系 **M5-4 引入时整批漏登**，属既有判据「验证路径…含**起服务托管**」）· 实测经**局域网 IP**（非 127.0.0.1）四入口全通 + 同源代理**真实登录 201**）· ⭐ v2.0.13（2026-09-18 M5-9 落点：§四 `database/seeds/` 登记 **`seed-demo.ts`**（演示 / 边界数据集 · 在基础种子之上**叠加**的一层，刻意不并进 `seed.ts`）· §一 `gate.mjs` 新增门禁名 **`seed:demo`**（非新增道数，与 `seed` 同为种子层）· ⚠️ 新增 `tests/_probe-demo-data.mjs`（**页面可用性**探针 · 77 项 · 刻意**不进**门禁））· ⭐ v2.0.12（2026-09-18 M5-8 落点：§四 `modules/delivery/` 补 **D63 `PATCH /admin/deliveries/{id}/status`**（T8/T9 **唯一写入点** · `state:audit` 可判）· `order-state-machine.ts` 删掉不可达边 `refund_applying → refunding` + 新增 `ORDER_INITIAL_STATUS` / `ORDER_RESERVED_STATUSES` · §三 `admin-web` 配送页补「推进到 X」入口 · 错误码 **`30018`**）· ⭐ v2.0.11（2026-09-18 M5-7 落点：§四 `modules/order/` 补 **`order-state-audit.ts`**（状态机声明 ↔ 生产写入点机械对账 · 门禁 `state:audit`）· §一 `gate.mjs` **19 道 → 20 道**）· ⭐ v2.0.10（2026-09-17 M5-6 落点：§四 `database/` 补 **`index-parity.ts`**（索引对账 · 门禁 `index:parity`）+ `migrations/` 由**两支改三支**（+ `1700000000002-index-commission-meal.ts`）· §四 `common/middleware/rate-limit.middleware.ts` 由占位改**实装**（且注明注册点必须是 `AppModule.configure()`）· §一 `gate.mjs` 18 道 → **19 道**）· ⭐ v2.0.9（2026-09-17 M5-4 落点：§一 `scripts/` 补 **`local-test.mjs`** —— 云服务器就绪前的内部测试入口，一键起「API + 用户端 H5 + 运营后台」并打印手机扫码地址）· ⭐ v2.0.8（2026-09-17 M5-3 落点：§四 `common/utils/` 补 **`order-timeline.ts`**（业务时刻唯一真相）/ **`tz.ts`** · 新增 **`common/security/`**（`route-audit.ts` 越权全量机械对账 / `security-scan.ts` 密钥+日志扫描）· `tasks/` 补 **`schedule.registrar.ts`**（cron 运行时注册 + 热重载）并标注「8 个任务类均不含 `@Cron`」；§一 `gate.mjs` 16 道 → **18 道**）· v2.0.7（2026-09-17 M5-2 落点：§四 `database/` 补 **`schema-parity.ts`**（迁移↔实体机械对账 · 门禁名 `schema:parity`）+ `migrations/` 登记为**两支**并标注「**两支合并推演才等于实体**」；§一 `gate.mjs` 15 道 → **16 道**）· v2.0.6 M5-1 落点（§四 `modules/delivery/` 由占位改**实装**说明 + §三 `views/order/delivery.vue` / `api/delivery.ts` + §五 `enums/delivery-status.ts`（收敛两处重复映射）+ §10.3 补 P39 与配送单管理两行；⚠️ 同时更正 v2.0.5 的一处事实错误 —— `db-migrate.sh` / `db-seed.sh` **确实存在**，只是 `pnpm --filter` 的薄包装且本机 pnpm 不可用，实际走 `gate.mjs`）· v2.0.5 M5-0 部署落点（`docker-compose.prod.yml` / 双 Dockerfile / nginx.conf / `.dockerignore` / 五个运维脚本）· v2.0.2 补 leader-expire.task · ⭐ **v2.0.20（2026-09-20 M5-18）**：§四 端页映射 **`webview/` → `agreement/`** —— 协议阅读页判定为**原生页**（不是 H5 容器），原 `pages/webview/webview.vue` 占位页删除并改名改造；入口写在「我的 → 设置"),
+    "ABox一盒设计token规范v1.0.html":    ("现行", "设计与实现共用视觉变量"),
+    "ABox一盒接口规范v1.0.md":           ("现行", "⭐ **2026-09-25 P1-U2 口味评价与菜品迭代闭环**：§三 新增 **U20 `POST /orders/{orderNo}/rating`**（逐菜三键 · 一次定稿不可改 · 新码 `30020`/`30021`）+ §6.6 新增 **D69 `GET /admin/stats/dish-rating`**（口味红黑榜 · P35 菜品热度页第二 Tab）+「U2 实现口径」表（28 项）+ 文档信息表新增「最近修订（U2）」行 + §九 新增错误码 **`30020`**/**`30021`** + 扩展码登记 · **表数 27 → 28**（新增 `ab_dish_rating`）· §八 P35/P5-P7 行更新 · ⭐ `badCount`（区间）与 `monthBadCount`（锚点月）**分道**；e2e m1 **88 → 105** / m3 **1092 → 1110**。· ⭐ **2026-09-25 F5 通知触达矩阵**：§6.7 新增 **D67 `GET /admin/messages/reach`**（到达率回看）+ **D68 `POST /admin/messages/orchestrate`**（按人按场景编排）+「F5 实现口径」表（23 项）+ 文档信息表新增「最近修订（F5）」行 · **场景清单 6 → 7**（新增 `cutoff_remind`「截单提醒」，`requestSubscribe=true` / `wiring=live`，**追加在末尾**以保住「前 5 行 = 原型」的可核对性 —— 该结构被 e2e §24 锚定）· `NOTIFY_PAGES` 新增 `orderCreate` · §八 P36 行补 `D67–D68` · ⚠️ **顺手校正一处文档漂移**：§6.7「实现状态」行原写「`D59–D60` 待后续批次」，与**同文档 M3-12 小节**及实装（`admin.controller.ts` 的 `@Get('templates')` / `@Put('templates/:id')`）自相矛盾（M3-12 落地时未回改）；e2e **§39 · 26 条断言**（m3 **1066 → 1092**）· **零 DDL · 零新增错误码 · 表数仍 27**。· ⭐ **2026-09-23 M5-20**：§3.5 新增 **U19 `POST /me/cancel`**（账号注销自助）+「U19 一期口径」小节 + 出参示例 · §八 映射表补「账号注销（无 P 编号）」行 · §九 新增错误码 **`20014`**（该账号已注销）/ **`20015`**（存在未结清事项，暂不能注销）+ 扩展码登记 + 前端契约补 `20014` 分支 · 新增「最近修订（M5-20）」行。· ⭐ **2026-09-19 M5-14**：**§3.2 U5 溯源整节重写为实装契约**（原节是**未实现时的设计稿**，与实装三处不一致已逐条纠正：**资质三项 → 两项**（删 `health_cert` —— 自营下健康证主体是 ABox 自有加工人员、且 `ab_supplier` 无该列，照抄即**虚报资质**）· **`takeoutLinks` 由顶层字段 → 挂 `dish.supplier` 下** · **补 `setName` / `recommended` / `configured`**）+ §八 **P38 行「主要表」纠正**（原写 `ab_supplier_dish_daily` —— 那是**出餐确认**用的表；实装读的是套餐侧）+ 新增「最近修订（M5-14）」行 · 接口契约（阶段二）· 60+ 端点 / 错误码 / 幂等 · 2026-09-17 **M5-1 加 D61 `GET /admin/deliveries` + D62 `PUT /admin/deliveries/{id}`（配送单人工修正）+ 错误码 30016/30017** · 2026-09-16 S9 应付结算改「采购应付」口径 · 2026-09-17 **M5-3 #49 接线**（§6.7 五个时刻键 `unwired`→`live` + 新增「业务时刻」组 6→7 + D58 接受 **`24:00`** + **跨键自洽校验**「开团必须早于截单」；§6.8 S1 出参增 `registeredCron` / `effectiveAt` / `summary.registered`，`dateKind` 改为**由时间轴派生**）—— **零新增错误码** · ⭐ **2026-09-18 M5-11 两处校正**（均为「同一件事两份表述」同族，零新增错误码）：① §1.5 & A1 **登录链路校正** —— 原写 `POST /auth/wx-login {leaderCode?}`，**该路径与字段名都不存在**，真实契约是 `POST /auth/login {code, nickname?, avatarUrl?, inviteCode?}`；并补「**登录时邀请码绑定语义**」表（未带 / 码无效 / 无归属 / 同团长 / 换团长 / 自荐 六种情形 —— 缺陷 #92 修复的对外承诺）；② §4.6 L16 出参示例改含 **`effectiveLevel` + `derivedLevel`**（旧 `mine.level` 删除）—— 该字段原与 L11/L14 的实际生效等级**同名不同义**（缺陷 #94），并补三字段语义表 · ⭐ **2026-09-20 M5-15**：§1.5 新增**「身份模型」表**（主体只有 `ab_user` / `ab_admin_user` 两个；**团长是 `ab_user` 的叠加身份**；一期**「切换身份」= 切换登录用户**，**不是**同一账号的多角色视图）+ **`leaderName` 不回退**口径 + **本地联调身份切换 `?devCode=`（仅 demo 模式 · 生产构建不生效）**；§6.1 新增 **D7b `PUT /admin/meal/templates/{id}`** 行 + **「D7b 实现口径」表**（引用冻结 / 不传=不改 / `items` 整组替换 / `usedCount` 与 D6 同口径）+ **一饭四菜机械校验**（真源 `SET_MEAL_COMPOSITION`；校验序 ①重复 `10001` → ②不存在/下架 `30008` → ③构成 `10001`）+ 档位映射补 `required`/`isStaple`；§九新增错误码 **`30019` `MEAL_TEMPLATE_IN_USE`**；§八 映射表 P27–P29 行补 **D7b**；并**修掉一处表格结构缺陷**（「最近修订（M5-14）」行原被**粘在 M5-8 行尾**，同表行内出现两个「最近修订」⇒ 该行在渲染时多出两列） · ⭐ **2026-09-20 M5-16**：§6.7 新增 **D66 `GET /admin/dashboard/todos`**（登录落点 `/dashboard` 的唯一数据源：4 条固定 key 待办计数 + `brief` + 双日期；**零新状态**全复用既有状态机 · `count=0` 也下发 · `deliveriesLate` 带送达时刻闸门 · **含 `viewer`** · GET 只读不写日志）+ 新增「最近修订（M5-16）」行；e2e **§38 · 20 条**（m3 **1035 → 1055**）· ⭐ **2026-09-20 M5-17**：§3.1 **U1 出参补 `dishes[].supplierId` 与 `leader.source`** + 新增「U1 出参口径（M5-17 新增两字段）」表（`supplierId` 恒为正整数、**端上按 id 定位而非按 `supplierName`** —— `ab_supplier.name` **无唯一约束**，按名定位会跳错家；`leader.source` = `bound` / `building_default`；⭐ **`leader` 归属判据必须与 U6 `OrderService.resolveLeader` 同判据**（缺陷⑫ 收口 —— 此前 U1 第一级不看在职，停职团长会被显示却收不到佣金））；§3.2 入出参示例补 **U5 `supplier.id`** + 新增 `supplier.id` 口径行（供端上按 id 定位 + 说明其**不属于 C8 任一项禁忌**）；U2 行加注「端上首页已不展示（M5-17），接口保留」；+ 新增「最近修订（M5-17）」行 · ⭐ **2026-09-20 M5-18**：**U16 行改口径** —— §1.8 与 §3.1 均改为「**本端点不设**（改由端上内置原生页承担）」（原文写的是设计稿里的 `GET /me/agreements`）；一期**未实装清单仍 14 条**（U4/U12/U15/**U16** · S4-S8 · S10-S14），`tests/tools/audit-contract.mjs` 的 `DECLARED` 豁免继续命中 ⇒ 对账仍 **0 未声明缺口**；**零新增错误码** · ⭐ **2026-09-21 M5-19**：**U1 / U3 出参新增 `deliverAt`、U10 `pickup` 新增 `expectAt`**（三者均由**服务端**按生效时间轴派生后下发，与同响应里既有的 `cutoffAt` / `expectAtIso` **同源**；端上只展示、不自造）；U10 时间线 `delivered` 节点示例 `text` 由 `预计 11:30 送达` 更正为 **`待取餐`** —— 原文案实为**死代码**（`ORDER_STATUS_VIEW` 11 态全覆盖把 `pendingText` 恒短路），照抄等于把**不可达文案**写进对外契约；⚠️ **并纠正一处口径误判**：`set_meal.delivery_arrival_time` 的 `wiring` 实为 **`live`**（一期后台即可在线改），「一期不可配」的说法**不成立** ⇒ 送达时刻的漂移**可达而非潜伏**，这正是必须收口到 `order-timeline.ts` 的 `DEFAULT_TIMELINE.arrival` 单点派生的原因"),
+    "ABox一盒订单状态机与全链路流转v1.0.md": ("现行", "订单域行为契约（阶段二）· 11 态 / 8 定时任务 / C6 退款三段式 / C11 出款通道"),
+    "ABox一盒表结构评审意见v1.0.md":      ("现行", "ER 评审结论（阶段二）· P0×6 + 4 张补齐 DDL"),
+    "ABox一盒种子数据清单v1.0.md":        ("现行", "开发初始数据（阶段二）+ **演示 / 边界数据集**（M5-9）· 12 楼 / 5 团长 / 4 供应商 · 2026-09-17 **M5-3**：`set_meal.cutoff_time` 由 `23:59` 更正为 **`24:00`**（#49 —— 模型缺 `24:00` 这个值，把「配置 23:59 / cron 00:00」的 1 分钟偏差固化了下来）· ⭐ **2026-09-18 M5-9**：确立**两层种子纪律** —— `seed`（基础主数据 · **零订单** · e2e 前置）与 `seed:demo`（**34 单**演示数据集：订单 11 态全覆盖 · 退款四态 · 提现五态 · 佣金两段式 · 发票三态 · 配送四态 · 套餐三档单价），§九 按**实际实现**重写（原列的 `AB202609150001…` 六单样例**从未落地**，已删）；§9.1 说明为何**刻意不并进 `seed.ts`**（e2e:m3 多处绝对值断言依赖「库里只有基础主数据」）；§9.4 记 3 条「打开就是空 / 对不上」的**预期**行为（对账锚支付日 / 供应商结算锚 T+1 / 今日佣金 pending）；§9.5 页面可用性探针 `tests/_probe-demo-data.mjs`（**83 项**）· ⭐ **2026-09-18 M5-11（缺陷 #93）**：演示订单前缀 `ABDEMO` → **`AB0000`** —— 原前缀含字母、长度 14，不满足**自家读取侧**校验 `^AB\\d{16}$` → **端上点开任何演示订单都 `10001`**；新前缀 = `AB` + 年份位 `0000`（真实单号年份来自 `todayBj()`，「0000 年」永不生成 ⇒ 不撞真实单号、仍是清理键）+ `MMDD` + 8 位序号（提现/退款/余额调整三类单号不受该正则约束，保留 `…DEMO`）；自检 **13** 项（补 ⑬ 演示单号过读取侧校验，**用生产函数 `isOrderNo()` 而非重抄正则**）"),
+
+    "ABox一盒账号资源与密钥清单v1.0.md":   ("现行", "外部资源核对表（阶段三）· 含 C10/C11 结算与出款通道定案"),
+    "ABox一盒合规资质与协议清单v1.0.md":   ("现行", "资质与协议要点（阶段三）· 资金定性=自营 + 佣金个税走灵活用工 · 2026-09-16 结算改采购应付口径 · ⭐ **2026-09-20 M5-18**：新增 **§3.3 协议正文落点与状态**（正文真源文件 / 端上入口 / 草案状态）；§七 协议行由「待开发」改为「**已上线（草案）**」，⚠️ **账号注销入口**（§七 row 2）**仍待开发**且为**提审前置** —— 与 U16 同属「提审阻塞对」，本批只完成其一"),
+    "ABox一盒协作规范v1.0.md":           ("现行", "分支 / 提交 / 评审 / 配置纪律 / 文档变更流程 / DoD（阶段四）"),
+    "ABox一盒开发里程碑计划v1.0.md":      ("现行", "⭐ **2026-09-23 M5-20 账号注销入口（提审阻塞项收口）**：新增 **U19 `POST /me/cancel`** + 端上原生页（**三闸门 fail-closed**：在职团长 / 有余额或冻结 / 有未终态订单 · 新错误码 **`20014`**（与黑名单 `20006` **分码**）/ **`20015`** · **注销 = 匿名化 + 停用**（`openid` 刻意保留）· ⚠️ 自查当场修掉一处「读-再写」并发形状）；**文档修为 v1.1.30** · **21 个子批次（M5-0 ~ M5-20）**；⚠️ **编号调整**：M5-19 ⑧ 行登记的「待裁定剩余项」占位由 M5-20 **顺延为 M5-21**。· M1–M5 里程碑 + W1–W10 甘特 + 验收标准 + 风险登记册（阶段四）· ⭐ v1.1.27（2026-09-20）M5 段**十八个子批次**（M5-0 ~ M5-17）：**M5-0 部署运维基座** + **M5-1 配送单人工修正**（D61/D62 · 收口挂账 #61）+ **M5-2 生产迁移补齐 + 结构对账门禁**（收口 #76 · 补 2 表 9 列 1 索引 + `schema:parity`）+ **M5-3 试运营交付 + 安全自检 + #49 时间类配置接调度**（收口 #49 · **关单** · `gate.mjs` 16 → **18 道**）+ **M5-4 云前内部测试环境**（`local-test.mjs` 一键起环境 + 同源代理 + 端上自检 11 项）+ **M5-5 / M5-6 两份面向执行者的操作清单**（内部测试 38 步 · 供应商侧 22 步 · 可打印 A4）+ **M5-7 代码审查修复批次**（资金链并发收口 + 安全默认值闭环 + 新增 `state:audit` → 门禁 **20 道** · 新增 `40018`/`40019`）+ **M5-8 履约链 T7/T8/T9 补实现**（**收口 P0 缺陷 #79** · 新增 `30018` · m3 980 → 1007）+ **M5-9 演示 / 边界数据集 + 人工测试入口卡 + 手机端字体修复**（`seed:demo` 34 单 + 页面可用性探针 83 项 + `ABoxKai` woff2 子集）+ **M5-10 原型逐页对齐**（用户端 + 团长端 19 页对齐 `prototype/index.html` v4.10.0 · 盘出 #94）+ **M5-11 三处挂账缺陷收口**（#92 邀请码绑定 / #93 演示单号 `AB0000` / #94 等级字段拆分）+ **M5-12 运维与门禁类待办清理**（日巡检进 cron + 三处时刻黑盒对账 `e2e §36` + 跑批时刻表页 D64/D65 + 多实例前提 R10/R11）+ **M5-13 两处「两个真相」收口 + 结构对账补尺寸维度**（「等级 → 费率」由 **2 来源 × 4 消费点** 收口为 `BizConfigService.commissionRate()` 唯一口 · `schema:parity` 补长度 / 精度标度 / 小数秒精度对账并带真实反证 · `e2e §37` 9 条断言 · m3 1017 → **1026**）+ **M5-14 溯源实装 + 底部 tab 改名「供应商」**（**收口《全面检查报告》P1-5** —— P38 此前**三处全空**（后端 `TraceabilityController` **零路由空类** / 端上 `api/traceability.ts` 是 `export {}` / 页面是占位），按需求方口径实装为「**不喜欢套餐时能直接跳去这家店的外卖**」；顺带收口 `takeout_links` 的**唯一读取口** `common/utils/takeout.ts`（后台 D33 与 U5 共用 —— 此前两个消费方各解析一遍，正是「后台显示已入驻、端上却是灰的」且**两边都不报错**的成因）；⚠️ 原型卡片的**第三项「健康证」刻意不输出**（自营下其主体是 ABox 自有持证场所、且 `ab_supplier` 无该列 —— 照抄即**在食品安全叙事上虚报资质**）；⚠️ **真机跳转降级**（`wx.navigateToMiniProgram` 需 appId 白名单，一期未取得 ⇒ 复制店铺名/链接 + 引导，**不假装能跳**）；⚠️ **缓存一期未实装**（Redis 仅作队列驱动、无缓存层）；e2e **m1 45 → 54**（+9 = U5 溯源九条，含 **C8 反泄露**断言））· **M5-15 三处「严重问题」排查修复**（人工测试当场发现 · 零 DDL · 新增 `30019` · **门禁 20 → 22 道**（新增菜单「授权 ↔ 入口」一致性门禁 `nav:consistency`，**首跑即抓出 5 处历史遗留**）+ **文档表格完整性门禁** `doc:tables`（首跑扫出**表格空行截断 5 处存量**，分布在里程碑计划 / 接口规范 / 项目目录结构三份契约文档）· 身份一致性三处收口 + **测试环境身份切换根因** `?devCode=` · **D7b 套餐模板编辑**（引用冻结 → `30019`）· **「一饭四菜」由文案升为机械校验**（真源 `@abox/shared-utils` `SET_MEAL_COMPOSITION`）· 停职复职改名留痕 · m3 **1026 → 1035**）+ **M5-16 后台工作台实装 + 侧边栏 6 → 8 组归域**（2026-09-20 · 人工测试反馈「工作台还没有任何内容」+「侧边栏一堆栏目没归类」· 零 DDL · 零新增错误码 · **零新状态** · 门禁仍 22 道 · 表数仍 27）：① ⭐⭐ **「工作台空」的真相 = 环境旧产物 + 页面无内容** —— M5-15 已把 `el-empty` 换成「按账号可见菜单渲染的导航页」，但它**没有任何业务内容** ⇒ 打开仍是一片卡片墙、**看着像占位**；② ⭐⭐ **新增 D66 `GET /admin/dashboard/todos`**（`modules/admin/dashboard/` 三个文件 + 端上 `api/dashboard.ts` + 重写 `views/dashboard/index.vue`）：出参 `items[]`（**4 条固定 key、顺序即界面顺序**）+ `brief` + `businessDate`/`tomorrowDate`，**零新状态**（全部复用既有状态机：`refund.applying` / `withdraw.pending` / 「在营楼群 减 明日有未取消分配」/ `delivery_record.status != 'arrived'`）；⭐ `count=0` 也下发（端上按「有活 / 已清空」两态渲染，**不是整卡消失**）· ⭐ `hint` 服务端下发（端上不复制第二份文案）· ⭐ `deliveriesLate` 带**送达时刻闸门**（送达前恒 0 且不发 SQL —— 每天早上必然亮起的假待办会被学会无视）；⚠️⭐ 判「该楼群该日有无套餐」必须保留 **`status != 'cancelled'`**（与 `usedCount` 同源；省略会把**停团楼群算成已排** ⇒ 卡片恒显 0 且不报错）；③ ⭐⭐ **侧边栏 6 → 8 组**按模块域重归（概览 / 套餐 / 订单 / 团长与楼宇 / 供应商与出餐 / 财务 / 数据 / 系统）—— 原「业务」组 **17 项跨三域**、财务整域埋队尾，**只改 `group` 不动 `path`**（改 path 会同时动授权表 / 路由 / 已发出的书签），`/dashboard` 标题由「运营概览」改回「工作台」；④ 端上按 `account.menus[]` 过滤卡片（渲染纪律、非安全边界；供应商账号**不发该请求**避免无谓 `10003`）· D66 出参**含 `viewer`**（只读聚合的天然落点）· GET 只读**刻意不加 `@OperationLog()`**；⑤ `e2e-m3` 新增 **§38 · 20 条断言**（结构 5 + 逐条对账 4 + 闸门与夹具收尾 5 + 角色矩阵 6），m3 **1035 → 1055**；`gate.mjs all verify` **22/22 全绿**；⚠️ 顺带纠正一处**自造数字**（原稿按「4 条 + 3 角色」估成 18 条，实测 **20 条** —— 「禁止手写数字入文档」再次生效））；M5 段标注 4 项**外部条件阻塞**（5.2 压测 / 5.4 真机部署 / 5.5 灰度 / 5.6 演练）（⚠️ 子批次是前置 **≠ M5**；验收标准 4 条**全部要求真机执行**，十七个子批次的完成**均不构成**对它们的满足）+ **M5-17 首页三处调整 + U1/U5 编号与归属一致性**（2026-09-20 · 需求方三点反馈 · 零 DDL · 零新增错误码 · **零新表 · 零新增文件** · 门禁仍 22 道 · 表数仍 27）：⚠️⭐ **先纠正需求方第 ③ 点的前提** —— 需求方问「普通用户没走团长邀请流程，下单时是不是有个页面提醒他必须注册团长或选团长后才能下单」；查完代码：**系统不会因为「没有团长」拦住下单**（未绑定团长时 `OrderService.resolveLeader` **自动挂靠本楼在任团长**，下单照常成功、佣金归那位）⇒「必须注册团长」这个页面**不存在也不该存在**（凭空加一道门槛会把本可成交的用户挡在门外）；**真正缺的不是拦截，而是把归属说出来**（经需求方确认：**保持自动挂靠 · 首页明示归属**，「首页选团长」**本轮不做**）。① **首页精简**：移除页尾「往日这盒」（U2 版块 + `fetchHistory` 调用 + 样式）—— 首页每多一块主按钮就往下掉一屏；**接口 `/home/history` 与端上 `fetchHistory` 均保留**（M1 既有验收点，日后做「历史」入口可直接复用聚合逻辑），两处**各自注明保留理由**。② ⭐⭐ **菜品「来自：X」可点 → 溯源页并定位那一家**：新增 **U1 `dishes[].supplierId`** 与 **U5 `supplier.id`**（含「供应商查不到」的占位视图也带 id）；首页点它 → 跳 P38 带 `supplierId`，溯源页 `onLoad` 解析 → 取到 U5 数据后**按 id 匹配** → 该卡描金圈（新增 `ab-supplier-card` 的 `highlight` prop）+ **直接弹出平台层**；⚠️ **按 id 不按名字**：`ab_supplier.name` **无唯一约束**（同名两家是合法数据），按名定位会让用户在溯源页**照着一家不是自己点的那家去平台下单** —— 该页最坏的一类错误；找不到时**明说**（toast）不静默。③ ⭐⭐ **不抽共享弹层、只传 id**：首页**不**把上一页的 `supplier` 对象塞过去（跳过去的是**另一个页面实例**、数据由 U5 现取；传对象会造出「页面显示 A、实际数据是 B」的**第二种真相**）。④ ⭐⭐ **U1 `leader.source`（新）+ 收口缺陷⑫**：`bound`（经邀请链接绑定）/ `building_default`（未绑定 → 自动挂靠本楼在任团长），端上在**首页团长卡**与**下单确认页取餐信息卡**两处明示（后者是**付款前最后一次**能看见归属的机会）；⚠️ 配套修 **U1 与 U6 的归属判据不一致**（U1 只决定**显示**、此前不看在职；U6 决定**钱**、要求在职 ⇒「团长停职 + 用户未重绑」时**首页写着 A、佣金却记给 B**）；根因是 D22「停职」只改 `ab_team_leader.status`、**不清** `ab_user.team_leader_id`（**这是对的**，复职后绑定该还在）⇒「绑定行」与「有效归属」本就可以不是同一个；修法 = **让显示侧照抄交易侧的顺序**（①绑定且在职 → ②本楼 id 最小且在职 → ③`null`），**不是**让两边各写一份判据。⑤ ⭐⭐ **e2e 不许「拿 U1 自己当期望」**：缺陷⑫ 的回归用**停职**把两侧逼到分歧点，期望值由**独立复现的 U6 判据**给出（`e2e-m1.mjs` 新增 `resolveLeaderByU6Rule()`，直查 `ab_user` / `ab_team_leader` 的同一段 SQL + `ORDER BY id ASC`）—— 拿 U1 出参当期望只能证明「U1 等于它自己」（本项目反复踩的**假绿**形状）；⚠️ 停职样本**断言成败都复位**（`finally`）。⑥ ⭐ **不新增组件级 class 依赖**（「定位高亮」用显式 `highlight` prop，而非页面给组件挂 `class` —— 外部 class 是否落到组件根节点在各小程序端表现不一致，「看起来生效、真机不生效」正是本项目最想避免的缺陷形状）· ⑦ ⭐ **样式纪律**（新增元素只用已登记 token，**不引入新的裸色值**；自动挂靠那句用**主文字色**而非弱灰）。⑧ **验收**：`e2e:m1` **54 → 64**（新增 10 条：编号同源 2 · `leader.source` 两态 2 · `supplierId` 正整数 1 · 缺陷⑫ 停职回归 3 · 停职样本构造与复位 2）· `typecheck:mp` 通过 · `gate.mjs` 22/22。⑨ ⚠️ **顺带补掉一处账本缺口（同 #139 族）**：§五「任务分解」进度块此前**止于 M5-14**（M5-15/16 已落未入块）、断言数停在 `54 / 126 / 1026`、M5-5 步骤数仍是旧值 38 → 一并更正为 **18 个子批次（M5-0 ~ M5-17）**、**`64 / 126 / 1055`**、**46 步**（*账本自己不更新时，任何自动化都不会报错*）· ⭐ **v1.1.28（2026-09-20）M5-18 协议阅读页**：M5 段**十九个子批次（M5-0 ~ M5-18）** —— **U16 收口**，改由**端上内置原生页**（`apps/miniprogram/src/pages/agreement/agreement.vue`）承担《用户协议》与《隐私政策》正文，**不设 `GET /me/agreements` 端点**、**不用 web-view**（web-view 需业务域名白名单 + ICP + HTTPS，三项都卡在 M5 外部依赖上，属**用外部条件换内部能力**）；正文**单一真源** = `apps/miniprogram/src/constants/agreements.ts`（**纯文本**分段结构 —— `<text>` 不解析 Markdown，正文里写 `**` 会原样显示）；入口 = 「我的 → 设置」（`showActionSheet` 四项：客服 / 用户协议 / 隐私政策 / 关于）；原 `pages/webview/` 占位页**已删除**；**零 DDL · 零新增错误码 · 零新表 · 门禁仍 22 道 · 表数仍 27**；⚠️ **账号注销入口仍未实装**（合规清单 §七 row 2 · 提审前置）—— U16 与其同属「提审阻塞对」，本批只收口前者 · ⭐ **2026-09-21 M5-19（v1.1.29）＝ 第二十子批次（M5-0 ~ M5-19 · 工程本批 · 零 DDL · 零新增错误码 · 零新增文件 · 门禁仍 22 道 · 表数仍 27）**：把《审阅意见》里**无需需求方裁定**的 6 项一次做完 —— **PR-01 自助取消两层补齐**（`@Idempotent` 只挡**同键重放**；真并发保护在服务层：原子占位 `UPDATE … WHERE id = :id AND status = :from` + `affected === 0` 即抛 `30003`，**fail-closed**、钱一分不动；余额动作移到占位成功之后）+ ⭐ **余额写入收口到唯一口 `updateBalanceRow()`**（`freeze` / `release` / `consume` / `refundBalance` 四处原先 `version` **只进 SET、不进 WHERE** ⇒ 乐观锁**装饰性**、丢更新，且 `balanceAfter` 与余额**一起错、彼此自洽**、事后对账抓不住；现 `WHERE id AND version` + 抛 **`40018`** —— 该码 M5-7 即为此定义、此前在本模块**不可达**）+ **PR-02 送达时刻由 13 处手写收敛到真源**（**运行时 11 处 + 潜伏 2 处**：`workbench.service.ts` ⭐ **同 payload 双真相** · `share.service.ts` 分享语 · D66 `deliveriesLate` 的 `hint` · `config.specs.ts` / `message-template.specs.ts` **删掉重复陈述**（前者文件头本就禁止「在别处再写一遍时刻」→ **自我违反**）· `order-state-machine.ts` 潜伏死文案 · 端上 `constants/index.ts` 的 `TIME_ANCHOR` **整表删除**（**10/10 成员全仓零消费**））+ ⭐ **新增 3 个下发字段（本批唯一契约变更）**（**U1 `deliverAt`** · **U3 `deliverAt`** · **U10 `pickup.expectAt`**，均 = `formatTimeOfDay(currentTimeline().arrival)`；端上 `order-create` / `order-detail` / `leader-invite` 三页改为**只展示响应值**）+ ⚠️ **有意保留 1 处并双标注**（用户协议正文：协议页**刻意零网络请求**、离线可读逐字可审，**不能**改为从响应取；已双标注「人工同步点」并点名真源，彻底消除需改**合规文本** ⇒ 待裁定）+ PR-04 编辑按钮权限 · PR-05 财务域角色常量 · OBS-7 配送单生成告警判据 · PR-09 失效分组文案；⚠️ **顺带纠正 2 处文档↔代码漂移**（U10 `delivered` 节点 `text` 实装恒为 `待取餐`；`pickup` 示例补 `expectAt`）；验收 `gate.mjs all verify` **22/22** · e2e 断言数**不变**（**64 / 128 / 1055**，复刻 env 直跑复核）；⚠️ **PR-01 的并发断言需真机 MySQL**（sqlite 单连接把事务串行化，本测不具鉴别力）；⚠️ **本批不做**需需求方裁定的 6 项（登记为 **M5-20**）"),
+    "ABox一盒M0启动评审纪要v1.0.md":      ("现行", "M0 启动评审结论（通过）· 检查清单 7✅/4⏳ · 关键口径 12 条 · M1 启动条件"),
+    "ABox一盒MVP优化交接包v1.3.md":      ("现行", "锁定项 L1–L12 + 裁决 C1–C11（口径权威 · 文本版）"),
+    "ABox一盒MVP优化交接包v1.3.html":    ("现行", "交接包 v1.3 的排版可读版（含 C11：灵活用工代发 + 日结）"),
+    "ABox一盒MVP原型审查报告v1.0.html":  ("现行", "29 项问题清单（回归验收基准）· ⚠️ 历史快照：正文为 2026-09-14 发现记录，文首已加 C9 修订提示"),
+    "ABox一盒MVP优化执行报告v1.0.html":  ("现行", "A/B/C/D 四方向优化结论（⚠️ 历史文档：其「余额账户砍至二期」表述已被 PRD v2.1 覆盖）"),
+    "ABox一盒开发前准备计划v1.0.html":    ("现行", "四阶段推进路线（准备期总纲）"),
+    "手机测试指南.md":                   ("现行", "原型真机测试方式"),
+    "ABox一盒本地开发手册v1.0.md":        ("现行", "不依赖云资源的本地开发手册（四驱动开关 · 本地跑通登录→下单→支付→回调）"),
+    "ABox一盒专家团进场就绪度审计报告v1.0.md": ("现行", "专家团进场就绪度审计（五维 · 结论均来自实机复跑）"),
+    "ABox一盒专家团进场隐患修复验收单v1.0.md": ("现行", "3 P0 + 9 P1 + 8 P2 隐患修复验收单（CI 全绿 · M1 可开工）"),
+    "ABox一盒外卖小程序最快上线路径与提审自检清单v1.2.md": ("现行", "最快上线路径 + 提审自检清单（v1.2）"),
+    "ABox一盒外卖小程序上线资质与平台准入清单v1.2.md": ("现行", "自营路线上线资质与准入执行清单（v1.2 · 2026-09-16 裁定回归「单主体自营 + 半成品供应链」：不需 EDI / 不需平台备案 / 不涉二清；核心资质 = 食品经营许可证（热食类制售））"),
+    "ABox一盒自营结算口径定义v1.0.md":   ("现行", "自营口径下结算定义（2026-09-16 定稿）· 4 条裁定 + 2 条不变量：**退款不冲减供应商应付** / 计费基数取**实收量** / 应付对象**仅供应商采购款** / siteFee 改**自有场所摊销**；S9 出单 fail-closed + 幂等键；错误码预留 50012–50014"),
+    "ABox一盒部署运维手册v1.0.md":        ("现行", "【M5-0 · M5-2 增补】生产部署与运行手册（2026-09-17）· 环境矩阵 / 拓扑（本地 compose 与 `docker-compose.prod.yml` 是两套东西）/ 密钥纪律 / 部署流程（含首次核对 9 项）/ 禁发窗口 / 两级探针监控 + 8 任务时刻表 + 队列观测 / 备份恢复 / **应急预案 6 类** / 日巡检清单 / ⚠️ **遗留风险 9 条（R1 Docker 未真机执行 · R2 生产库从未跑迁移 · R3 e2e 用 sqlite · R4 微信回调未验 · R5 未压测 · R6 HTTPS 未配 · R7 镜像未瘦身 · R8 账号未到位 · R9 食品经营许可证）** · ⭐ **v1.0.1（M5-2）：R2 升级**为「**结构已机械对账**（`schema:parity` · 27 表 / 394 列）+ 仍需真机空库首迁预演」，并补明「**两支迁移都要 applied**」与 `migration:show` 核对步骤 —— ⚠️ **不写成已验**：本机无 Docker / 无 MySQL"),
+    "ABox一盒团长操作卡v1.0.html":  ("现行", "【M5-3 · 试运营交付物】团长端**一页操作卡**：一天时间轴（前一日 14:00 开团 / 24:00 截单 / 当日 11:30 送达 / 14:00 确认）+ 每天三件事（开团后转发 / 截单前提醒 / 11:30 取餐确认）+ 佣金四级（见习 8% / 正式 9% / 金牌 10% / 首席 12%，见习 30 天未促单失效）+ 三条红线（不收现金 / 不承诺加单 / 不替退款）；口径逐条对齐《业务运作理解 v2.0》与**真实接口**（不编造操作）"),
+    "ABox一盒供应商出餐卡v1.0.html": ("现行", "【M5-3 · 试运营交付物】供应商端**一页出餐卡**：时间轴（前一日 24:00 截单汇总 → 当日出餐送达 → 次日 02:00 生成应付）+ 三件事（截单后看量 / 出餐时确认 / 次日对账）+ 结款口径（**实收 × 出餐日冻结单价** · 日结 · 人工对公转账 · **取回单 + 发票**）+ 三条红线"),
+    "ABox一盒安全自检报告v1.0.md":  ("现行", "【M5-3 · 5.3 安全自检的本地部分】越权全量机械对账（135 端点 / 10 条规则 R1——R10）+ 密钥扫描（工作区 **与完整 git 历史**）+ 日志脱敏核查 + `POST /pay/mock/paid` 显式 fail-closed 加固；⭐ 两支检查器**自带自证能力**（每次运行人为构造违规/真凭据样本，报不出即自身失败）；⚠️ 边界**如实标注**：不覆盖「服务层数据收窄」（按 `supplier_id` 过滤做到没有）· 未做 `npm audit` · 生产白名单与 HTTPS 待环境"),
+    "ABox一盒内部测试操作清单v1.0.html": ("现行", "【M5-5 · 交付给执行测试的人 · **v1.2**（就地修订 2026-09-19，文件名保持 v1.0；**M5-14 起 U9 整条重写** —— 底部 tab 已改名「供应商」、**灰掉的平台 = 该供应商未入驻是对的**、**真机上不能一键跳转也是对的**、未开团的日子打开是空白而不弹错；步骤数仍 **46**）】**46 步**可打印 A4 操作清单：用户端 U1–U16 / 运营后台 A1–A24 / 负向用例 N1–N3 + **问题记录表**（严重度三档 P0 卡死 / P1 结果不对 / P2 不好用，兜底「拿不准写 P1」）+ **身份分配表**（⚠️ 同一身份同一业务日只能做一次 → 多人共用必撞、必被误报成 bug）+ 收工复原；定位：**工程看手册、测试人看清单**（不出现同源代理 / 幂等键这类技术名词）· ⭐ **2026-09-18 M5-9**：文首新增绿色 `.tip` 块，告知**库里已预置 34 单模拟数据**（订单 11 态 / 退款 4 / 提现 5 / 配送 4），并逐条写清「**今天也在内**」（否则佣金明细 / 打包任务 / 看板今日档 / 配送单这 4 页默认打开是空表）、「**今日佣金显示 pending 是预期的**」（T+1 02:00 才入账）、「**对账页默认空是预期的**」（锚 = 支付日）、「**明日下单窗口未被占用**」—— 不写清这四条，测试人会把这四种**正确行为**记成缺陷 · ⭐ **2026-09-18 M5-9 收尾**：§二 表尾登记《人工测试入口卡》交叉引用（四个入口的**二维码 + 可转发 PNG** 由 `node scripts/make-qr.mjs` 生成 —— **本清单只写「入口是什么」，入口卡负责「地址是什么、二维码在哪」**；⚠️ 换网络后需重新生成）+ §一 工程步骤补「可整张转入口卡」+ 文末版本行补注 · ⭐ **2026-09-19 M5-13 升版 v1.1（步骤 41 → 46）**：把 M5-11 / M5-12 / M5-13 三处收口转成**能点出来的**步骤 —— ① **U16**（团长邀请码**真绑定**：本轮 `dev:1001` = `LDR0001`，落地页免登录 `/#/pages/leader-invite/leader-invite?code=LDR0001`；上一版点「授权加入」只记本地）；② **A21** 系统 → **跑批时刻表**（8 任务 × 出厂/注册/生效时刻，**「注册时刻为空」= 该任务永远不会跑且不报错**，这是它唯一能被看见的地方）· **A22** 系统 → **通知模板**（上一版服务端已授权、路由也在，**侧边栏没有它** → 只能手输 URL）· **A23** 点开一张「演示·」**历史订单详情**（上一版报「单号格式不合法」—— 列表能看、详情打不开最易被误判成网络问题）· **A24** 把**「金牌团长费率」10 改 11** 看**三处是否同步变**（后台等级下拉 / 端上等级体系表 / 此后写入的快照）并**改回**（费率真源收口，详见 M5-13）；③ A19 收窄为「**时刻类**配置」、A20 补记 A24、第七节新增「**改过配置一定要改回**」（费率不还原最隐蔽：后续所有人按 11% 算而页面看不出是谁改的）"),
+    "ABox一盒供应商内部测试操作清单v1.0.html": ("现行", "【M5-6 · 交付给执行测试的人】供应商侧可打印 A4 操作清单：入口 = **与运营共用后台 `:5173`**（不是独立系统）+ 账号分角色 + 6 项菜单里**3 项是未实装占位页**（⚠️ 默认落点 `/dashboard` 空白是**未实装**、不是登录失败）+ 出餐确认三件事 + 结算页「今天本来为空」的原因（锚 = **出餐日**）+ 「**找不到才对**」类判据（I1：不该出现 ¥25.80 / 佣金 / 毛利）"),
+    "ABox一盒全面检查与测试报告v1.0.md":  ("现行", "⭐ **P1-5 已收口（2026-09-19 M5-14）**：用户裁定走**方案 ② 实装 U5**（不是从底部栏移除 tab）—— 服务端 + 端上 P38 全链路实装 · 底部 tab 改名「**供应商**」对齐原型 · 种子补齐外卖链接；三处与原型/设计稿的偏差**已裁定并留档**（健康证不输出 / 真机跳转降级 / 缓存一期未实装）· 【2026-09-18 · 正式测试前全量排查】五维度审计（功能逻辑 / 边界与异常输入 / 错误处理与日志 / 性能与资源 / 代码规范与一致性）：4 路只读代理 + 主审运行时实测（28 项边界 / 越权 / 幂等，**零 500**）+ **契约 vs 实现对账**（规范 91 端点 vs 实装 135）；⭐ 已修复 2 项（P0 红线 emoji · 异常过滤器两处口径）· 未修复 9 项（含位置 / 原因 / 建议验证方式）· **误报澄清 3 项**（含反证）· 门禁 18/18 复跑全绿；⚠️ 能力边界与「测不了什么」如实标注"),
+    "ABox一盒代码整体审查与缺陷汇总v1.0.md":  ("现行", "【2026-09-18 · 基线 70030ca · 门禁 19/19 · e2e m3 969】5 域并发只读深审（资金链 / 订单履约与供应链 / 认证授权安全 / 任务队列驱动资源 / 契约与一致性）+ **逐条代码级复核**（不采信未复核的推断）· 21 条发现 = **1 P0 + 5 P1 + 9 P2 + 6 P3**；⭐ 核心结论 **⛔ 订单履约链 T7–T9 在 `ab_order` 上零写入点**（`cooked`/`delivering`/`delivered` 无实现 → 订单永远停在 `cut_off`、佣金永不产生），而 **e2e 全绿恰恰掩盖了它**（夹具直接 `UPDATE ab_order SET status='delivered'` 造数据，测的是下游、上游那次状态推进没有实现）—— 「机械证据全绿、真实链路是断的」的教科书案例；⚠️ 定位：**正式人工测试前的最后一轮静态审计**，目的是把人的时间花在只有人能验的地方"),
+    "ABox一盒代码审查修复批次交付报告v1.0.md":  ("现行", "【M5-7 · 2026-09-18 · 输入=《代码整体审查与缺陷汇总》§二 21 条发现】把**能落地修复**的项全部实施（不是只审不改）：**4 条 P1 资金链缺口 + 1 条 P1 安全默认值 + 5 类 P2 加固项全部落地**（资金链四处收口 = 原子占位一处覆盖余额/佣金/通道三段 + 三处乐观锁 + 无账户 fail-closed `40019`；写钱入口两层齐备 = 服务层原子占位 + 控制器 `@Idempotent`）· ⭐ **门禁 19 → 20 道**（新增 `state:audit` 状态机「声明 ↔ 写入点」机械对账，**首跑即报出第二处此前无人登记的漂移**：`ORDER_TRANSITIONS[refund_applying]` 仍声明 `→ refunding` 而 M4-3 起订单不再进该态）· e2e m3 **969 → 980**（新增 §33b 11 条断言）· 新增错误码 **2 个**（`40018`/`40019`）· **零 DDL / 零新表 / 零新列** · ⚠️ **6 条 P0/P3 结构性缺口按性质分流**为「建门禁」或「如实登记待裁决」—— **#79 履约链未实现**（只做「测试清单标注依赖」+「根因建门禁」，实现待产品范围裁决）· ⚠️ **资金链并发断言本地不可验**（e2e 走 sqlite 单连接把事务串行化，本测不具鉴别力 → 转真机 MySQL）；⚠️ 并更正原审查报告一处因果误判（#83 根因不是「豁免放过默认值」而是**压根没有规则命中**）"),
+    # ── M5-9 人工测试前置（2026-09-18）──
+    "ABox一盒模拟数据与回归测试结果v1.0.md": ("现行", "【M5-9 · 2026-09-18 · 人工测试前置】模拟数据补充 + 基于该数据的回归结果汇总：**两层种子纪律**（`seed` = 基础主数据 · **零订单**；`seed:demo` = **34 单**演示数据 · 在基础层之上叠加）· 覆盖 **订单 11 态全覆盖** + 退款四态 + 提现五态 + 佣金两段式（含 `reversal` 负行）+ 发票三态 + 配送四态 + **11 类边界/异常样本** · 结果：门禁 **20/20** ✅ · e2e m1 45 / m2 126 / m3 **1007**（**与 M5-8 基线一致** → 演示数据不污染既有验收）· 自检 **13/13** + 1 条如实告警（⭐ M5-11 补 ⑬ 演示单号过**读取侧**校验 —— 此前 `ABDEMO` 前缀含字母、长度 14，不满足自家 `^AB\\d{16}$`，端上**点开任何演示订单都 `10001`**，属缺陷 **#93**）· 页面可用性探针 **83/0**（M5-11 新增「演示单号能过读取侧校验」6 条 · **正证 + 反证成对**）· 基线清单 **290/290** · ⭐ 盘出并修掉 **2 处数据层真缺口**（**#87** 发票 `partial` 态**永远造不出来** —— 未付款行不进开票分母 → 供应商被误判「全开」，**不报错、界面只是少一块内容**；**#88** 演示数据只造「过去」→ **4 处默认日期=今天**的页面打开是空表，而库里数据一张不少）· ⚠️ 另 6 项首跑红是**探针自身写错出参形状**（非产品缺陷）· 纪律沉淀 **自检 ≠ 可用性探针**（「写进库是对的」≠「接口按页面默认视图给得出」）· 3 条预期行为（对账锚支付日 / 供应商结算锚 T+1 / 今日佣金 `pending`）已写进《内部测试操作清单》避免误报"),
+    # ── 2026-09-22 合规与路线结论文件（本批补登）──────────────
+    # 三份同日结论文件，均由「资质 / 上线路线」追问触发，与《上线资质与平台准入清单 v1.2》、
+    # 《最快上线路径与提审自检清单 v1.2》同属「上线可行性」族。
+    # 此前散落在工作区根目录而**未登记** ⇒ 生成器把它们列进「待归类」告警
+    # （长期挂告警 = 等于没有检查，同「恒 N/A」一类），故本批归类为「现行」。
+    "ABox一盒食品经营许可替代路径与产品形态方案评估v1.0.md": ("现行", "结论文件（2026-09-22）·「除小程序与 H5 外还有没有其它解决方案」的评估：先纠正前提 —— **《食品经营许可证》不是「渠道门槛」，而是《食品安全法》第三十五条的法定准入**；在此前提下梳理替代路径与产品形态取舍"),
+    "ABox一盒H5路线可行性决策备忘v1.0.md": ("现行", "结论文件（2026-09-22）·「能不能直接做成 H5 以绕开微信审核」的可行性裁定 · ⚠️ 同日修订：用户告知「快团团已不允许上架外卖类产品」⇒ 原 §五「用快团团承接一期交易」建议**已撤销**，并补入平台系统性禁售核查结论 + 124 号令公示义务 + 电商法修订草案下团长连带责任风险"),
+    "ABox一盒方案B适配性核验与二次打包合规判定v1.0.md": ("现行", "结论文件（2026-09-22）·核验「预包装食品备案已完成 + 预定式接单 + 合作商家提前做菜 + 集散中心二次打包」是否成立方案 B（品牌方备案 + 受托方 SC 生产）· ⚠️ 一句话结论：**不能直接认定成立** —— B 的成立条件不是「预定式」，而是「**所售之物本身已是合格预包装食品**」；且「二次打包」在监管口径下对应**四种性质完全不同**的行为，其中三种直接推翻 B"),
+    # ── 已废弃 ──
+    "ABox一盒外卖小程序上线资质与平台准入清单v1.1.md": ("废弃", "已被 v1.2 取代（第三方平台路线于 2026-09-16 被裁定推翻）"),
+    "ABox一盒业务运作理解v1.0.md":       ("废弃", "已被 v2.0 取代"),
+    "ABox一盒小程序产品方案v1.0.md":      ("废弃", "v1.0 系列，口径已过时"),
+    "ABox一盒数据库ER设计v1.0.md":       ("废弃", "已被 v2.1 取代"),
+    "ABox一盒项目目录结构v1.0.md":        ("废弃", "已被 v2.0 取代（含楼长端 / T-1 20:00）"),
+    "ABox一盒MVP优化交接包v1.0.md":      ("废弃", "已被 v1.3 取代（C1–C9 未裁决）"),
+    "ABox一盒MVP优化交接包v1.1.md":      ("废弃", "已被 v1.3 取代（未含 C10 结算裁决）"),
+    "ABox一盒MVP优化交接包v1.1.html":    ("废弃", "已被 v1.3 取代（未含 C10 结算裁决）"),
+    "ABox一盒MVP优化交接包v1.2.md":      ("废弃", "已被 v1.3 取代（未含 C11 佣金个税与日结裁决）"),
+    "ABox一盒MVP优化交接包v1.2.html":    ("废弃", "已被 v1.3 取代（未含 C11 佣金个税与日结裁决）"),
+    "ABox一盒外卖小程序上线资质与平台准入清单v1.0.md": ("废弃", "已被 v1.1 取代（第三方平台路线与 EDI 前置未纳入）"),
+}
+
+PROTO = {
+    "prototype/index.html": ("现行", "可点击原型 v4.10.0（37 页 · 结算成本项可配置版 · 已部署线上）"),
+    "prototype/README.md":  ("现行", "原型变更日志（已刷新至 v4.10.0，页索引 37 页；页面归属仍以《目录结构 v2.0》§十 为准）"),
+    "prototype/manifest.json": ("现行", "PWA 清单"),
+}
+TESTS = {
+    "tests/nav-stack.test.js":   ("现行", "导航栈单测（61 断言）"),
+    "tests/render_check.js":     ("现行", "渲染 / 运行时检查（11 后台页 + 移动端）"),
+    "tests/bracket_check.py":    ("现行", "括号与反引号配平"),
+    "tests/js-syntax-check.js":  ("现行", "JS 语法校验"),
+    "tests/check_online.py":     ("现行", "线上部署核验"),
+    "tests/baseline_manifest.py": ("现行", "本清单生成器（基线变更时重跑）"),
+    # ⚠️ 2026-09-21：`tests/tools/gate.mjs`（12 道）**已删除**，本表的登记项同时移除。
+    #    理由：它是陈旧副本，缺 M5 期新增的**多道**「声明 ↔ 实现」对账门禁（且新旧两份的门禁数会各自独立漂移），却自称「复刻 CI 全部作业」
+    #    ⇒ 会产出**假绿**的验收结论（详见《本地开发手册》§6.1 / `tests/tools/README.md`）。
+    #    ⚠️ `TESTS` 驱动本清单「§五 验证工具」表，**按名字查表**：
+    #    条目留着而文件不在，会在表里留下一个**指向空气的登记项**，故连同文件一并移除。
+    #    门禁执行器的**唯一真源**是仓库内 `abox-onebox/scripts/gate.mjs`。
+    "tests/tools/verify-manifest.mjs": ("现行", "本清单哈希复核器（字节 + SHA-256 + 覆盖性）"),
+    "tests/tools/audit-contract.mjs": ("现行", "契约端点对账（**静态**解析 controller 装饰器 × 《接口规范》端点表）—— 与仓库内 `route:audit`（**运行时反射**）互为独立取数，两法端点集合实测**完全相等**（141 = 141 · 交集 141 · 双向差额 0）；**未声明缺口 > 0 即非零退出**（`--report-only` 可只报告），豁免认「行内显式声明」，**删掉声明立刻重新变红**；自带四重自证（两侧非空 · 装饰器解析无遗漏 · 豁免判据能报也能不报 · 负向样本 exit=1）"),
+    "tests/tools/README.md":     ("现行", "校验工具说明书（沙箱约束、重跑纪律、运行时路径）"),
+}
+
+# 阶段四工程骨架：列关键文件并计算摘要（其余按目录汇总计数）
+SCAFFOLD_KEY = [
+    "package.json", "pnpm-workspace.yaml", "tsconfig.base.json", "docker-compose.yml",
+    ".env.example", ".eslintrc.cjs", "commitlint.config.cjs", "README.md", "CONTRIBUTING.md",
+    ".github/workflows/ci.yml",
+    "scripts/setup.sh", "scripts/setup.ps1", "scripts/init.sql", "scripts/sync-docs.mjs",
+    # 验证路径本身也要冻结：门禁执行器 + 端到端验收（含起服务托管），改动它们等于改动"基线怎么被验证"
+    "scripts/gate.mjs", "scripts/e2e-m1.mjs", "scripts/e2e-m2.mjs", "scripts/lib/e2e-server.mjs",
+    # ⭐ **补登（M5-9 收尾 · 2026-09-18）** —— 下面两项同属上面这条判据（起服务托管 / 交付入口），
+    #    此前漏登：`local-test.mjs` 是 M5-4 引入的「真人可上手」入口（一键起 API + 用户端 H5 +
+    #    运营后台并打印扫码地址），与 `lib/e2e-server.mjs` 是同一族；`make-qr.mjs` 是 M5-9 引入的
+    #    入口卡生成器（二维码 + 后台链接），与 `sync-docs.mjs` 同属**工具链**且**复刻了端口契约**
+    #    （h5=5180 / admin=5173 / api=3000，必须与 `local-test.mjs` 一致，漂移即「卡上的码扫不开」）。
+    #    ⚠️ 旧判据（「无『（缺失）』行 + 总数自洽」）对**整批漏登完全无感**（两边自洽、照样全绿），
+    #    故只能靠收尾的机械比对：`git diff --name-only <上批feat_sha> HEAD` ∩ 已登记路径。
+    "scripts/local-test.mjs", "scripts/make-qr.mjs",
+    #    M5-9 补登：`local-server.mjs` 是「本地同源托管 + /api·/static 代理」的宿主，属"基线怎么被验证"族（M5-4 引入时整批漏登）；
+    #    `make-font-subset.py` 生成 H5 品牌字体子集（楷体手机端回退 #90 的对策），字体产物哈希随它可复现。
+    "scripts/lib/local-server.mjs", "scripts/make-font-subset.py",
+    "packages/shared-types/src/enums/order-status.ts",
+    "packages/shared-types/src/enums/leader-level.ts",
+    "packages/shared-types/src/enums/payout-channel.ts",
+    "apps/api-server/src/modules/finance/payout.service.ts",
+    "packages/shared-utils/src/biz.ts",
+    "apps/miniprogram/src/constants/index.ts",
+    "apps/miniprogram/src/uni.scss",
+    "apps/miniprogram/src/pages.json",
+    # ── M5-18 协议阅读页（2026-09-20）──────────────────────────────────
+    # U16 收口：协议正文**单一真源** + 端上原生阅读页（**不设端点**、**非 web-view**）。
+    # 二者同属「交付给用户的法定文本」族：正文改一个字，用户看到的协议就变一次，
+    # 故与《合规资质与协议清单》一起冻结。
+    "apps/miniprogram/src/constants/agreements.ts",
+    "apps/miniprogram/src/pages/agreement/agreement.vue",
+    "apps/admin-web/src/constants/index.ts",
+    "apps/admin-web/src/styles/element-override.scss",
+    "apps/api-server/src/app.module.ts",
+    "apps/api-server/src/modules/order/order-state-machine.ts",
+    "apps/api-server/src/tasks/leader-expire.task.ts",
+    "apps/api-server/test/unit/order-state-machine.spec.ts",
+    # ⭐ F5（2026-09-25）：与上一行同族 —— 服务文件把 `rateOf` / `sceneOf` / `MAX_RANGE_DAYS`
+    #    导出的原话就是「**避免只有 HTTP 一条验证路径**」，此前**无人引用**（空头承诺）；
+    #    本 spec 让那句话成立，故同属「验证路径本身也要冻结」。
+    "apps/api-server/test/unit/message-reach.spec.ts",
+    # ── M2 团长端（2026-09-15）────────────────────────────────────────────
+    # 冻结的是「契约载体」：表结构 / 枚举 / 幂等 / 计佣与出款口径所在文件
+    "apps/api-server/src/database/entities/withdraw.entity.ts",
+    "packages/shared-types/src/enums/withdraw-status.ts",
+    "packages/shared-types/src/enums/refund.ts",
+    "apps/api-server/src/common/interceptors/idempotent.interceptor.ts",
+    "apps/api-server/src/modules/finance/commission.service.ts",
+    "apps/api-server/src/modules/finance/withdraw.service.ts",
+    "apps/api-server/src/modules/finance/refund.service.ts",
+    "apps/api-server/src/modules/finance/leader-finance.controller.ts",
+    "apps/api-server/src/modules/order/leader-order.service.ts",
+    "apps/api-server/src/modules/team-leader/workbench.service.ts",
+    "apps/miniprogram/src/api/leader.ts",
+    "apps/miniprogram/src/api/leader-order.ts",
+    "apps/miniprogram/src/api/leader-finance.ts",
+    "apps/miniprogram/src/api/balance.ts",
+    # ── M3 后台端（2026-09-15）────────────────────────────────────────────
+    # 冻结的是「契约载体」：双主体隔离（越权 = 10002/10003）· 角色→菜单单一来源
+    # · 令牌吊销 · 声明式操作日志 · 前端错误码拆包与权限路由 所在文件
+    "apps/api-server/src/common/guards/jwt-auth.guard.ts",
+    "apps/api-server/src/common/guards/admin.guard.ts",
+    "apps/api-server/src/common/decorators/auth.decorator.ts",
+    "apps/api-server/src/common/constants/admin-role.ts",
+    "apps/api-server/src/common/decorators/operation-log.decorator.ts",
+    "apps/api-server/src/common/interceptors/operation-log.interceptor.ts",
+    "apps/api-server/src/common/constants/error-code.ts",
+    "apps/admin-web/src/api/request.ts",
+    "apps/admin-web/src/api/auth.ts",
+    "apps/admin-web/src/router/guards.ts",
+    # ── M3-2 套餐编排（2026-09-15）────────────────────────────────────────
+    # 冻结的是「编排契约」：创建≠上架的两步分离 · 矩阵派生的 emptyBuildings 口径
+    # · D5 不覆盖 · D7 由菜品反查供应商与求和成本 所在文件
+    "apps/api-server/src/modules/meal/meal-admin.service.ts",
+    "apps/api-server/src/modules/meal/meal-admin.controller.ts",
+    "apps/api-server/src/modules/meal/dto/meal-admin.dto.ts",
+    "apps/admin-web/src/api/meal.ts",
+    "apps/admin-web/src/views/meal/matrix.vue",
+    # ── M3-3 订单中心（2026-09-15）────────────────────────────────────────
+    # 冻结的是「订单账务契约」：目标值改单语义 · 跨楼群闸门 · 后台强制退款拆两路
+    # · 反向结算（原记录不得改写 / 佣金负行 / 应付三态）所在文件
+    "apps/api-server/src/modules/order/order-admin.service.ts",
+    "apps/api-server/src/modules/order/order-admin.controller.ts",
+    "apps/api-server/src/modules/order/dto/order-admin.dto.ts",
+    "apps/api-server/src/modules/finance/reversal.service.ts",
+    "apps/admin-web/src/api/order.ts",
+    "apps/admin-web/src/views/order/list.vue",
+    "scripts/e2e-m3.mjs",
+    # ── M3-4 退款审批（2026-09-15）────────────────────────────────────────
+    # 冻结的是「C6 三段式收口契约」：审批与实退同事务（唯一执行口 executeRefund）
+    # · 驳回回退 order_status_before（缺失即 40014 fail-closed）· 两级权限白名单
+    # · D40 拆两路金额（微信实付原路退 / 余额抵扣回余额）所在文件
+    "apps/api-server/src/modules/finance/refund-admin.service.ts",
+    "apps/api-server/src/modules/finance/refund-admin.controller.ts",
+    "apps/api-server/src/modules/finance/dto/refund-admin.dto.ts",
+    "apps/api-server/src/database/entities/order.entity.ts",
+    "apps/admin-web/src/api/finance.ts",
+    "apps/admin-web/src/views/finance/refund.vue",
+    "apps/admin-web/src/views/order/detail.vue",
+    # ── M3-5 后台团长管理（2026-09-16）────────────────────────────────────
+    # 冻结的是「D19–D22 契约」：名录/流水/详情（日志按团长 id 与用户 id 双键查）
+    # · 任命与转交闸门（20012 附 occupiedBy；现任停职而非删除）· 改等级**同步写费率**
+    # · 停用/复职只走 D22 单一入口 · 两级权限白名单（类级含 operator，
+    # D20/D21/D22 方法级收窄到 super_admin/admin）
+    "packages/shared-types/src/enums/leader-admin.ts",
+    "apps/api-server/src/modules/team-leader/leader-admin.service.ts",
+    "apps/api-server/src/modules/team-leader/leader-admin.controller.ts",
+    "apps/api-server/src/modules/team-leader/dto/leader-admin.dto.ts",
+    "apps/api-server/src/modules/team-leader/team-leader.module.ts",
+    "apps/admin-web/src/api/leader.ts",
+    "apps/admin-web/src/views/leader/list.vue",
+    "apps/admin-web/src/views/leader/apply.vue",
+    "apps/admin-web/src/views/leader/detail.vue",
+    # M3-6 供应商管理 + 集散（D23–D32 · 原型 P33）
+    "apps/api-server/src/modules/supplier/supplier-admin.service.ts",
+    "apps/api-server/src/modules/supplier/supplier-admin.controller.ts",
+    "apps/api-server/src/modules/supplier/dto/supplier-admin.dto.ts",
+    "apps/api-server/src/modules/supplier/dish/dish-admin.service.ts",
+    "apps/api-server/src/modules/supplier/dish/dish-admin.controller.ts",
+    "apps/api-server/src/modules/supplier/supplier.module.ts",
+    "apps/api-server/src/modules/distribution-center/distribution-center-admin.service.ts",
+    "apps/api-server/src/modules/distribution-center/distribution-center-admin.controller.ts",
+    "apps/api-server/src/modules/distribution-center/dto/distribution-center-admin.dto.ts",
+    "apps/api-server/src/database/entities/supplier.entity.ts",
+    "packages/shared-types/src/enums/supplier-admin.ts",
+    "apps/admin-web/src/api/supplier.ts",
+    "apps/admin-web/src/views/supplier/list.vue",
+    "apps/admin-web/src/views/supplier/form.vue",
+    "apps/admin-web/src/views/supplier/dish-library.vue",
+    "apps/admin-web/src/views/supplier/distribution-center.vue",
+    "apps/admin-web/src/views/supplier/takeout-links.vue",
+    # ── M3-7 办公楼与楼群（2026-09-16 · D13–D18 · 原型 P37 五视图）──────────
+    # 冻结的是「主数据契约」：状态三态（1 营业中 / 2 待开通 / 3 已暂停，修掉旧种子
+    # 「一值两义」）· 覆盖缺口三因（no_group / no_center / all_center_disabled 三种修法）
+    # · 集散主备与路线号**全派生不落库** · D15 `buildingGroupId: null` = 移出楼群且
+    # **不收 leaderId**（改团长只有 D20/D21 一个入口）· D18 停用非空楼群 60003
+    # fail-closed 且**先搬楼再判闸门** 所在文件
+    "packages/shared-types/src/enums/building-admin.ts",
+    "apps/api-server/src/modules/building/building-admin.service.ts",
+    "apps/api-server/src/modules/building/building-admin.controller.ts",
+    "apps/api-server/src/modules/building/dto/building-admin.dto.ts",
+    "apps/api-server/src/modules/building/building.module.ts",
+    "apps/api-server/src/database/entities/building.entity.ts",
+    "apps/admin-web/src/api/building.ts",
+    "apps/admin-web/src/views/building/overview.vue",
+    "apps/admin-web/src/views/building/list.vue",
+    "apps/admin-web/src/views/building/groups.vue",
+    "apps/admin-web/src/views/building/leader-binding.vue",
+    "apps/admin-web/src/views/building/delivery-map.vue",
+    # ── M3-8 供应商端出餐确认（2026-09-16 · S1–S3）──────────────────────────
+    # 冻结的是「出餐确认契约」：惰性生成 + 生成即冻结 · 09:30 为截止点非最早点
+    # · 逐 (菜品, 集散中心) 项幂等确认 · 父表状态由明细派生（不新增 partial）
+    # · S3 打包闸门与可见性语义 · 请求体不收 supplierId 所在文件
+    "apps/api-server/src/modules/supplier/supplier.service.ts",
+    "apps/api-server/src/modules/supplier/supplier.controller.ts",
+    "apps/api-server/src/modules/supplier/dto/supplier.dto.ts",
+    "apps/admin-web/src/api/supplier-portal.ts",
+    "apps/admin-web/src/views/supplier/workbench.vue",
+    "apps/admin-web/src/views/supplier/cook-confirm.vue",
+    "apps/admin-web/src/views/supplier/packing-center.vue",
+    "apps/admin-web/src/router/routes.ts",
+    # ── M3-9 应付结算 S9（2026-09-16 · 自营口径首次实装）────────────────────
+    # 冻结的是「采购应付契约」：计费基数 = 实收量 · 单价取**出餐日冻结快照**（非出单时刻的
+    # 成本价）· 出单四闸 fail-closed（资质 / 父行未完成 / 实收为空 / 实收 0）· 付款登记仅
+    # `pending` 可（50012 / 50013）· 幂等走**软层不建唯一索引**（本表要容纳 `type='reversal'`
+    # 负行）· 供应商端 S9 复用财务服务、不变量 I1 落在出参结构层 所在文件
+    "apps/api-server/src/modules/finance/supplier-share.service.ts",
+    "apps/api-server/src/modules/finance/supplier-share-admin.controller.ts",
+    "apps/api-server/src/modules/finance/dto/supplier-share.dto.ts",
+    "apps/api-server/src/modules/finance/finance.module.ts",
+    "apps/api-server/src/tasks/supplier-share.task.ts",
+    "apps/api-server/src/tasks/tasks.module.ts",
+    "apps/admin-web/src/api/supplier-share.ts",
+    "apps/admin-web/src/views/finance/supplier-share.vue",
+    "apps/admin-web/src/views/supplier/settlement.vue",
+    # ── M3-10 系统配置 D57–D58（2026-09-16 · P36）──────────────────────────
+    # 冻结的是「配置读写契约」：`CONFIG_SPECS` 单一真相（一份声明同时驱动 D57 分组文案、
+    # D58 白名单与取值范围、前端控件类型）· ⭐ `wiring` **接线状态如实标注**（9 项「配了但
+    # 代码不读」的键只读展示并点明原因，不给「改了不生效」的输入框）· 白名单拒绝未知键
+    # （不静默忽略）· 整批原子 · percent 百分数↔比率**单点换算** · ⭐ 写完同步 `invalidate()`
+    # 刷新配置缓存 · 履约成本「是否已登记」判据单点化（D57 配置页与 D47 看板共用）所在文件
+    "apps/api-server/src/modules/admin/config/config.specs.ts",
+    "apps/api-server/src/modules/admin/config/config.service.ts",
+    "apps/api-server/src/modules/admin/dto/config.dto.ts",
+    "apps/api-server/src/modules/admin/admin.controller.ts",
+    "apps/api-server/src/common/services/biz-config.service.ts",
+    "apps/admin-web/src/api/system.ts",
+    "apps/admin-web/src/views/system/config.vue",
+    # ── M3-11 数据看板 D47–D50（2026-09-16 · P35 · M36）─────────────────────
+    # 冻结的是「统计口径契约」：`stats.constants.ts` **口径唯一真相**（D47/D48/D49 三处
+    # 同源）· ⭐ GMV **含在途退款**（剔未支付/已取消/已退款）· 成本侧取**净额**（`reversal`
+    # 负行计入、`cancelled`/`reversed` 剔除，否则已纠错的应付会被算两遍或算漏）· 履约成本
+    # = 三项配置单价 × 份数（**不含** `supplier_total_default`）· 毛利可靠性提示与 P36 配置页
+    # **共用** `summarizeCostRegistration()` · ⭐ D49 **按菜品合并**（一菜多套餐须并一行）·
+    # ⭐ D50 留存数字**成对下发**（观察窗口未走完 或 群为空 → 双 `null`，两种 null 语义不可
+    # 混用）· `viewer` 菜单只有这 4 个看板页 → 白名单**必须含 viewer** 所在文件
+    "apps/api-server/src/modules/stats/stats.constants.ts",
+    "apps/api-server/src/modules/stats/stats.service.ts",
+    "apps/api-server/src/modules/stats/stats-admin.controller.ts",
+    "apps/api-server/src/modules/stats/stats.module.ts",
+    "apps/api-server/src/modules/stats/dto/stats.dto.ts",
+    "apps/api-server/src/modules/admin/admin.module.ts",
+    "packages/shared-utils/src/time.ts",
+    "apps/admin-web/src/api/stats.ts",
+    "apps/admin-web/src/views/stats/core-metrics.vue",
+    "apps/admin-web/src/views/stats/building-rank.vue",
+    "apps/admin-web/src/views/stats/dish-heat.vue",
+    "apps/admin-web/src/views/stats/retention.vue",
+    # ── M3-12 通知模板 D59–D60（2026-09-16 · P36 · 新增第 27 张表）────────────
+    # 冻结的是「通知模板契约」：`message-template.specs.ts` **场景声明唯一真相**（5 场景
+    # 与原型 P36 逐行对应）· ⭐ **场景定义不落库**（`scene`/渠道/触发时机/变量白名单/是否必推
+    # 全是代码事实；库表只存 `enabled`/`wechatTemplateId`/`groupContent`/`updatedBy`）·
+    # ⭐⭐ **启用闸门 fail-closed**（每渠道有必要条件 `wechat_subscribe`→模板 ID、
+    # `wechat_group`→文案；缺一即拒启用 `10001`；判定按**改动后最终状态**，防「先清空条件再
+    # 单独 enabled=1」绕过；`missingForEnable()` 管理侧与投递侧**共用**）· ⭐ 接线状态**两级如实
+    # 标注**（场景级 `wiring` live/pending + 必附 `pendingReason`；字段级 `fieldWiring` 区分
+    # `live` 与 `record_only`）· ⭐⭐ **明写「订阅消息文案由微信公众平台侧定义」**（`groupContent`
+    # 是存档/人工发群用途，改它改不了用户收到的推送）· 变量白名单（只有**双**花括号算占位符）·
+    # 只读字段**拒绝而非静默忽略**（`forbidNonWhitelisted`）· 「未传」≠「传 null」（判据
+    # `!== undefined`，见《缺陷与陷阱》#46）· ⭐ **真消费点 = 退款结果通知**（`refund.service.ts`
+    # 两个执行口在**事务外**调 `MessageService.notify()`；`notify()` 不抛异常）·
+    # **未启用 = 不投递且不留日志**（`ab_message` 语义是「发过什么」）所在文件
+    "apps/api-server/src/modules/admin/template/message-template.specs.ts",
+    "apps/api-server/src/modules/admin/template/message-template.service.ts",
+    "apps/api-server/src/modules/admin/dto/message-template.dto.ts",
+    "apps/api-server/src/modules/admin/admin.controller.ts",
+    "apps/api-server/src/modules/message/message.service.ts",
+    "apps/api-server/src/modules/message/message.module.ts",
+    # ── F5 通知触达矩阵：编排 + 到达率（2026-09-25 · 零 DDL · 零新增错误码 · 表数仍 27）──
+    # 冻结「按人按场景编排 + 到达率回看」两件事：⭐ 受众**只接受预定义选择器**（不收
+    # `userId[]` —— 收一个任意列表就等于开了**群发后门**）· ⭐⭐ `dryRun` **缺省 `true`**
+    # （默认只算不发）· ⭐⭐ `ab_message` **无 `scene` 列** ⇒ 按场景聚合**必须在服务端内存
+    # 完成**（`JSON_EXTRACT` 属驱动相关语法）· ⭐⭐ 无记录时 `reachRate` 是 **`null` 而非 `0`**
+    # （「区间内没发过」与「发了全失败」是两回事）
+    "apps/api-server/src/modules/message/message-orchestrator.service.ts",
+    "apps/api-server/src/modules/message/message-reach.service.ts",
+    "apps/api-server/src/modules/message/message-admin.controller.ts",
+    "apps/api-server/src/modules/message/dto/message-f5.dto.ts",
+"apps/api-server/src/modules/rating/rating.constants.ts",
+"apps/api-server/src/modules/rating/rating.service.ts",
+"apps/api-server/src/modules/rating/rating.controller.ts",
+"apps/api-server/src/modules/rating/rating-admin.controller.ts",
+"apps/api-server/src/modules/rating/dto/rating.dto.ts",
+"apps/api-server/src/database/migrations/1700000000003-dish-rating.ts",
+"packages/shared-types/src/dto/rating.dto.ts",
+"apps/api-server/test/unit/dish-rating-agg.spec.ts",
+    "apps/api-server/src/modules/finance/refund.service.ts",
+    "apps/api-server/src/database/entities/system.entity.ts",
+    "apps/admin-web/src/api/system.ts",
+    "apps/admin-web/src/views/system/message-template.vue",
+    # ── M3-13 财务端点 D33–D35（2026-09-16 · P34 · 零 DDL · 零错误码）─────────
+    # 冻结的是「财务端点契约」：⭐ **D33 不自己算一套口径**（收入 / 成本 / 毛利 / 逐日趋势
+    # 全部取 `StatsService.dashboard()` —— 与 D47 看板**同一个函数**，结构上不可能漂移）·
+    # ⭐ `range` 复用 `STATS_RANGES`、⭐ `date` 是**区间终点锚点**（该入参同时给 D47–D50）·
+    # ⭐ **时点量 vs 区间量分离**（余额 / 冻结 / 待入账佣金不随 `range` 变，带 `asOf`）·
+    # ⭐⭐ **D34 行内等级 / 费率是结算快照**（C2，同一团长三条佣金可显示三个等级）·
+    # ⭐⭐ **D35 = M4 `commission-settle.task` 的同一执行口**（`settlePending`）·
+    # ⭐⭐ **补账只改账、不改事实**（只加 `total_commission`，不动 `total_orders`/
+    # `last_order_at`，否则污染 C2 晋级审计）· 无归属进 `skippedReasons` 且**仍停在
+    # `pending`**（不猜、不静默丢弃）· **一期 `pending` 常态为 0**（取餐确认即时入账）
+    # 故 `note` 每次都下发 所在文件
+    "apps/api-server/src/modules/finance/finance.service.ts",
+    "apps/api-server/src/modules/finance/finance-admin.controller.ts",
+    "apps/api-server/src/modules/finance/dto/finance.dto.ts",
+    "apps/admin-web/src/views/finance/overview.vue",
+    "apps/admin-web/src/views/finance/commission.vue",
+    # ── M3-14 余额账户管理与调整 D38–D39（2026-09-16 · P34 · 零 DDL）────────────
+    # 冻结的是「余额账户契约」：⭐⭐ **负债合计复用 D33 同一个函数**
+    # （`FinanceService.loadLiability()` 由 private 改 public；两页各算一套 `SUM(ab_balance)`
+    # 漂移**不报任何错**，e2e 用「D38 liability ≡ D33 liability」写前写后各钉一次）·
+    # ⭐⭐ **负债是时点量**（`pageSize`/`accountType`/`keyword` 都不改它，`total` 才是筛选
+    # 命中数 —— 做成「当前页求和」是最容易犯的错）· D39 **四动作**
+    # （recharge / deduct / freeze / **unfreeze** —— 规范原只写三动作，「不能解冻的冻结是死钱」）
+    # · ⭐⭐ **冻结 / 解冻不动 total_in / total_out**（钱没进出平台，只是从「可用」挪到「冻结」，
+    # 与 L12 提现同口径）· ⭐⭐ **余额不得为负**（扣减/冻结越界 → 40002「钱不够花」；
+    # 解冻越界 → **新码 40015**「冻结账对不上」—— 两码**刻意分开**，合流一个码运维就分不清
+    # 该让人充钱还是该查数据）· ⭐ **幂等键必填**（调账无业务单号，重复提交即重复加钱：
+    # 缺键 10001 / 命中 10006 + 首次结果原样返回）· **乐观锁** `WHERE id=? AND version=?` ·
+    # ⭐ **只有「充值」能自动建户**（其余动作无账户时明确报错，不先建 0 余额账户）·
+    # ⭐⭐ **权限常量单一真相**（`BALANCE_ADJUST_ROLES` 同时驱动 `@Roles()` 与出参
+    # `actions.canAdjust`，结构上消除「按钮亮着点了 10003」）· 未知 action **fail-closed**
+    # （否则写出「余额没变却多一条流水」的脏数据）· 新枚举 **`ab_balance_log.type='adjust'`**
+    # （与原五值分开，避免污染佣金汇总）· 流水与快照**同源**（同事务写 `ab_balance` +
+    # `ab_balance_log`，末条 `balance_after` === 当前 `balance`）所在文件
+    "apps/api-server/src/modules/finance/balance-admin.service.ts",
+    "apps/api-server/src/common/utils/order-no.ts",
+    "apps/admin-web/src/views/finance/balance.vue",
+    # ── M3-15 微信支付对账 D43 + 发票管理 D44（2026-09-16 · P34 · 零 DDL · 零错误码）──
+    # 冻结的是「对账与发票契约」：⭐⭐ **D43 一期不假装已与微信对平**（无商户号 + 无 API
+    # 证书 → 拿不到微信账单）：出参强制带 `channel.source='local_only'` +
+    # `billAvailable=false` + note 明写「**不等于已与微信侧对平**」，端上常驻 `el-alert`。
+    # 做成「内部两表比对通过 → balanced:true」是最危险的一类假绿 —— 真正该发现的差异
+    # （微信收了钱、系统不知道）将永远不可见 · ⭐⭐ **`date` 锚 = 支付日**
+    # （`anchor='paidAt'` + `anchorLabel='支付日'`）：微信账单按支付日切日，这是财务域
+    # **唯一一个 date 不指出餐日**的端点，与 D33/D34/D36 是两条时间轴 ·
+    # ⭐ **主体是差异清单不是流水列表**：五类差异 `order_paid_no_log` /
+    # `log_success_no_order` / `amount_mismatch` / `duplicate_transaction` /
+    # `no_transaction_id`，每类配套 `nextAction`（人话的下一步，含「不要做什么」）·
+    # ⭐⭐ 三角恒等式 `orderFen − logFen = diffFen`（正常 0），退款按 `refunded_at`
+    # 单列 `refundFen`、`netFen = orderFen − refundFen` · ⭐⭐ **`balanced` 双条件**
+    # （金额相等 **且** 无结构差异：重复/缺交易号可能不影响合计金额，只比金额会报「已平」，
+    # 而凭证重复正是**重复入账前兆**）· ⭐ **三个检测方向**（② 当日订单的**全部**流水、
+    # **不限日期** —— 回调丢失时 `paid_at` 为空，按日期切会切掉最该抓的那一类）·
+    # ⭐⭐ **D44 零 DDL·派生视图**：不建 `ab_invoice`，事实已在 `ab_supplier_share`
+    # （`invoice_no` + `paid_at` + `payee_id`），建表立刻产生**第二份真相** ·
+    # ⭐⭐ **D44 粒度 = 供应商 × 月份**（按应付行平铺会看到「同一发票号重复 30 次」，
+    # **完全看不出**「这家这个月只开了一半」；三态 `none`/`partial`/`full` 中
+    # **`partial` 才是本页存在的理由**）· ⭐ **月份锚 = 应付单生成月**（`share_date`，
+    # 权责发生制台账，跨月付款仍归原月）· ⭐⭐ **分母只含已付款行**（未付款就要票供应商
+    # 不会给；未付款额单列 `unpaidAmountFen`，不进开票状态判定，否则刚出单的日子满屏
+    # 「未开票」淹没真欠票）· ⭐ 两个可执行下一步 `titleMissing`（去 D28 补开票抬头）
+    # 与 `overdue` + `overdueDays`（已付超 **30 天**无票 = 税务风险）· ⭐ **冲销行不进
+    # 发票分母**（`type='reversal'` 负行只累加 `reversalFen`）· ⭐ **分月必须在服务端
+    # 内存完成**（`strftime`/`DATE_FORMAT` 是驱动相关语法，用了破坏「四驱动零改动切换」）·
+    # ⭐ `status` 是**派生值 → 先聚合再筛**，非法枚举 `10001`（不静默回落成「全部」）·
+    # ⭐⭐ **`isRealDate()` 兜底**（DTO 正则只挡格式，`Date.UTC(2026,12,1)` 会**静默滚动**
+    # 到 2027-01-01：格式合法、语义非法的入参是最容易漏的一类）所在文件
+    "apps/api-server/src/modules/finance/reconciliation.service.ts",
+    "apps/api-server/src/modules/finance/invoice.service.ts",
+    "apps/api-server/src/common/utils/time.ts",
+    "apps/admin-web/src/views/finance/reconciliation.vue",
+    "apps/admin-web/src/views/finance/invoices.vue",
+    # ── M4-0 契约级修正 + S3 迁运营后台（2026-09-16 · 自营口径前置）──────────
+    # 冻结的是「字段下线契约」：⭐⭐ **历史字段三要素**（列保留 · 改可空 · DTO 删字段
+    # + `forbidNonWhitelisted` → 前端传即 `10001`，**绝不静默忽略**）——
+    # `ab_distribution_center.supplier_id`（原 NOT NULL）与 `ab_supplier.type` 同模式降级 ·
+    # ⭐ **D27 `PUT /admin/suppliers/{id}/type` 整条路由删除**（打旧路径 → `10004`），
+    # `50008 SUPPLIER_TYPE_CONFLICT` 三处闸门拆除、**号位保留不再使用**（号位回收会让
+    # 历史日志里的旧码被解释成另一件事）· D23 不再下发 `typeOptions`、`?type=` 不受理、
+    # 详情 7 块→6 块（去 `dcCount`）· D29/D30/D31 **停收 `supplierId`**
+    # （→ `10001`，属「请求形状错误」而非业务值非法 —— 两者刻意分开）·
+    # ⭐⭐ **S3 打包任务整条迁运营后台** `GET /admin/packing-tasks`（P39「加工场所打包」）：
+    # 原可见性判据在 `supplier_id` 停用后**必然失效**，且其数据面**跨供应商**
+    # （打包线按场所聚合**他方**到货明细）→ 开给任一供应商即**泄露同业经营数据**（违反 I1），
+    # **只换判据治不了「不该看」→ 迁移而非换判据**（《缺陷与陷阱》#58）·
+    # 判据跨批次联动：`defaultPackingDate()` 取**全量**最近生产计划日（不复用带
+    # `supplierId` 的 `defaultDate()`，否则「已到齐」在某些视角恒为假）·
+    # 菜单与白名单**同源**（加/删都要两处同步）· 零新增列 / 零新增错误码 / 表数仍 27 所在文件
+    "apps/api-server/src/modules/supplier/packing-admin.controller.ts",
+    "apps/admin-web/src/api/packing.ts",
+    # ── M4-3 队列贯通（2026-09-17 · 4.9 三消费者 + 4.10 订阅投递点 + 事务边界重构）──
+    # 冻结的是「队列与投递契约」：双驱动 fail-closed（memory 如实标 durable=false /
+    # redis 连不上拒绝启动）· ⭐ 外部通道调用**移出 DB 事务**（事务内只落账务，通道
+    # 失败入队退避重试；退款单 failed 语义收窄为「通道失败、账务已定稿、不回滚」）·
+    # ⭐ 结算通知载荷**按团长拆分**（聚合载荷无收件人 = 通知没发生却看起来成功）·
+    # ⭐ `NOTIFY_PAGES` 跨端落地页由 e2e 与 `pages.json` **机械对账**（写错不报错）·
+    # ⭐ `requestSubscribe` 是机器可读布尔 · `specState()` 单点换算 · U15 读侧实装 /
+    # 写入侧一期未实装如实留名 所在文件
+    "apps/api-server/src/common/queue/queue.types.ts",
+    "apps/api-server/src/common/queue/queue.service.ts",
+    "apps/api-server/src/common/queue/memory.queue.backend.ts",
+    "apps/api-server/src/common/queue/redis.queue.backend.ts",
+    "apps/api-server/src/queues/queues.module.ts",
+    "apps/api-server/src/queues/queue-payloads.ts",
+    "apps/api-server/src/queues/queue-admin.controller.ts",
+    "apps/api-server/src/queues/order-paid.consumer.ts",
+    "apps/api-server/src/queues/refund-apply.consumer.ts",
+    "apps/api-server/src/queues/settle-orders.consumer.ts",
+    "apps/api-server/src/modules/message/message-subscribe.service.ts",
+    "apps/api-server/src/modules/message/message.controller.ts",
+    "apps/api-server/src/config/app.config.ts",
+    "apps/miniprogram/src/composables/use-subscribe-message.ts",
+    "apps/miniprogram/src/api/user.ts",
+    # ── M4-1 / M4-2 调度基座（2026-09-17 · ⚠️ 前列批次遗漏，本批一并补登）──────
+    # 冻结的是「调度契约」：TASK_SCHEDULES 单一真相（8 任务 = cron + dateKind，
+    # 任务体不写日期计算，「同刻不同日」在结构上不可能写错）· 补跑接口与跑批
+    # 共用同一执行口 · 锁不是保险丝（成功保留 / 失败即时释放）· 5 个新任务的
+    # runOnce 单一执行口 所在文件
+    "apps/api-server/src/tasks/schedule.service.ts",
+    "apps/api-server/src/tasks/schedule-admin.controller.ts",
+    "apps/api-server/src/tasks/schedule-admin.service.ts",
+    "apps/api-server/src/tasks/dto/schedule.dto.ts",
+    "apps/api-server/src/tasks/meal-publish.task.ts",
+    "apps/api-server/src/tasks/cutoff.task.ts",
+    "apps/api-server/src/tasks/delivery-generate.task.ts",
+    "apps/api-server/src/tasks/auto-confirm.task.ts",
+    "apps/api-server/src/tasks/commission-settle.task.ts",
+    "apps/api-server/src/tasks/reconciliation.task.ts",
+    # ── M4-4 提现审批（2026-09-17 · D45 + D46/D46a/D46b/D46c · 零 DDL · 新增 2 码）──
+    # 冻结的是「资金收口契约」：⭐⭐ **三路解冻共用一个方法**（差额只有 direction：
+    # 驳回 / 失败 'in' 回可用、到账 'out' 出平台）· ⭐⭐ **`total_out` 按申请额累加**
+    # （不是实付，否则 total_in − total_out 与 balance + frozen 对不上）·
+    # ⭐⭐ **到账不写 ab_balance_log**（该表 = 可用余额每次变化，到账时可用额不变）·
+    # ⭐⭐ **角色白名单单一真相**（FINANCE_READ_ROLES 含 operator / FUND_ACTION_ROLES 不含，
+    # 与出参 actions 可点性共用一份）· ⭐⭐ **团长余额唯一真源 = LeaderMoneyService**
+    # （ab_team_leader.balance / pending_amount / withdrawn_amount 三列转历史字段）
+    # 所在文件
+    "apps/api-server/src/modules/finance/withdraw-admin.service.ts",
+    "apps/api-server/src/modules/finance/finance.constants.ts",
+    "apps/api-server/src/common/services/leader-money.service.ts",
+    "apps/admin-web/src/views/finance/withdrawal.vue",
+    # ── M5-0 部署运维基座（2026-09-17 · M5 前置子批次 · 零 DDL · 零错误码）──────
+    # 冻结的是「可运维性与部署契约」：探针**分级**（liveness 不检依赖 / readiness 检
+    # DB + 队列消费者）· 优雅关闭（`enableShutdownHooks` + exec 形式 CMD）·
+    # 迁移 glob `*.{ts,js}` 双匹配（生产 `dist/*.js` 必须命中）· 镜像非 root / tzdata /
+    # HEALTHCHECK / 锁文件冻结 · 生产编排四服务与暴露面 · 五个运维脚本的入口与安全默认
+    # ⚠️ 与 M4 各批同理：**运维产物「没跑过 = 不存在」** —— 本批只做静态验收，
+    #    真机执行如实列为遗留风险（《部署运维手册 v1.0》§遗留风险 R1）
+    "apps/api-server/src/health/health.controller.ts",
+    "apps/api-server/src/main.ts",
+    "apps/api-server/src/database/data-source.ts",
+    "apps/api-server/package.json",
+    "apps/api-server/Dockerfile",
+    "apps/admin-web/Dockerfile",
+    "apps/admin-web/nginx.conf",
+    "docker-compose.prod.yml",
+    ".dockerignore",
+    ".gitignore",
+    "scripts/deploy.sh",
+    "scripts/rollback.sh",
+    "scripts/backup-db.sh",
+    "scripts/restore-db.sh",
+    "scripts/healthcheck.sh",
+    # ── M5-1 配送单人工修正（2026-09-17 · M5 前置子批次 · 收口 #61 · 零 DDL · 新增 2 码）──
+    # 冻结的是「人工修正契约」：⭐⭐ **`version` 乐观锁必填**（`ab_delivery_record.version`
+    # 列早已存在、此前零使用 → 不加锁就是「后写静默覆盖前写」，两边都显示成功）·
+    # ⭐⭐ **只改 5 个字段、不含 `status`**（状态属履约流转，另批）· ⭐⭐ **份数对比与 4.3
+    # 跑批共用 `aggregateOrderQuantity()`** 且**取全量**（不受筛选影响）· ⭐ **份数不符 ≠
+    # 被人改过**（两种成因刻意不区分，故 `hasManualInput` 才是可靠标记）· ⭐ **审计 diff
+    # 复用 `response_data` 整体落库**（不新建审计表）· ⭐ **状态文案收敛到 shared-types**
+    # 所在文件
+    "packages/shared-types/src/enums/delivery-status.ts",
+    "apps/api-server/src/modules/delivery/delivery.controller.ts",
+    "apps/api-server/src/modules/delivery/delivery.service.ts",
+    "apps/api-server/src/modules/delivery/dto/delivery.dto.ts",
+    "apps/admin-web/src/views/order/delivery.vue",
+    "apps/admin-web/src/api/delivery.ts",
+    # ── M5-2 生产迁移补齐 + 结构对账门禁（2026-09-17 · M5 前置子批次 · 收口 #76 · 零错误码）──
+    # 冻结的是「生产结构 = 实体结构」这条**机械保证**：⭐⭐ **两支迁移合并推演才等于实体**
+    # （单看 init 少 2 表 9 列，是刻意的）· ⭐⭐ **检查器自带自证能力**（每次运行人为制造
+    # 一个缺口并确认能报出，报不出即自身失败 —— 「恒绿的检查比没有检查更糟」）·
+    # ⭐ **源B 不解析实体源码，改让 TypeORM 真建一次**（列装饰器形态多，正则必漏）·
+    # ⭐ **PK 列豁免类型比较**（sqlite integer vs mysql bigint 是 PkColumn 按 DB_DRIVER 的刻意分派）
+    # ⚠️ 本批验的是「迁移推演 ≡ 实体」这件**结构事实**，**不是**「MySQL 上执行成功」这件
+    #    **运行事实**（本机无 Docker / 无 MySQL → 手册 R2 只升级为「结构已机械对账」）
+    "apps/api-server/src/database/migrations/1700000000000-init.ts",
+    "apps/api-server/src/database/migrations/1700000000001-parity-fix.ts",
+    "apps/api-server/src/database/schema-parity.ts",
+    # ── M5-3 试运营交付 + 安全自检 + #49 时间类配置接调度（2026-09-17 · 零 DDL · 零错误码）──
+    # 冻结的是「一处声明、两处派生」这条**结构性保证**：⭐⭐ **业务时刻的唯一真相 =
+    # `order-timeline.ts` 的 `DEFAULT_TIMELINE`**，`TASK_SCHEDULES[*].cron` 与 `time.ts`
+    # 的锚点函数**都是它的派生值**（改前同一批时刻在三处各写一遍且无机械对账 → 配置写
+    # 23:59、cron 按 00:00 跑、下单窗口按 23:00 关，三者对不齐且不会报错 = 缺陷 #49）·
+    # ⭐⭐ **cron 改运行时注册**（`@Cron()` 是装饰器参数、模块加载即静态元数据，后台改
+    # 配置永远影响不到它）→ `ScheduleRegistrar` 按**生效配置**生成 cron 并热重载；
+    # ⚠️ 其最危险的失败形态是**任务静默不跑**，故有三道防线：逐名 `doesExist` 核对
+    # （缺则拒绝启动）· 启动横幅 · `GET /admin/schedule` 下发 `registeredCron`（外部可观测）·
+    # ⭐ **`24:00` 必须被模型支持**（= 次日 0 点，截单口径的原生表达；旧正则只收 00:00–23:59，
+    # 于是种子只能写 `23:59` 近似值 —— 1 分钟偏差就此固化，这不是笔误而是**模型缺一个值**）·
+    # ⭐ **读表失败绝不回落默认时间轴**（否则一次 DB 抖动就把运营配的开团时刻静默改回出厂值）
+    "apps/api-server/src/common/utils/order-timeline.ts",
+    "apps/api-server/src/common/utils/tz.ts",
+    "apps/api-server/src/tasks/schedule.registrar.ts",
+    # 安全自检两支（越权全量机械对账 + 密钥/日志扫描）：⭐ 判据必须与 `AdminGuard`
+    # **逐字对齐**（`roles.length > 0` 才算声明 —— 空 `@Roles()` 是 truthy，用 `!eff` 判
+    # 「未声明」会让检查器自己成为漏洞）· ⭐ 用**运行时反射**读元数据而非解析源码
+    # （`@Roles(...CONST)` 变量展开形态正则解析会漏）· ⭐ **自带自证能力**（每次运行
+    # 人为构造违规/真凭据样本，必须被报出，否则自身失败）· ⭐ 自证样本**拼接构造**
+    # 以免扫描器扫到自己的源码（自污染）
+    "apps/api-server/src/common/security/route-audit.ts",
+    "apps/api-server/src/common/security/security-scan.ts",
+    # ── M5-6 全面检查报告五项「本地可完成」修复（2026-09-17 · 1 支增量迁移 · 零新增错误码）──
+    # ⭐⭐ `index-parity.ts`：补 `schema:parity` **自述的「不比索引」边界** —— 判据是
+    # 「迁移索引 ≡ 实体索引」（索引名 + 列**有序** + 唯一性），且**自带自证**（删索引 /
+    # 翻转唯一性 / 删列三种人为缺口必须被报出，否则自身失败）。⚠️ 它首跑即报出 **25 处
+    # 「实体写属性级单列 / 迁移写类级复合」漂移** —— 两边**各自都自洽**，模板里那句
+    # 「A 与 B 一致性」的旧判据对漏登/漂移**完全无感**（同 #46 的教训：判据本身要先被验证）。
+    # ⭐ `1700000000002-index-commission-meal.ts`：`ab_commission` 是**永续增长表**，
+    # 而 3 处查询都以 `meal_date` 打头 —— 此前只有含 `meal_date` 的**复合**索引（列序不匹配
+    # 即用不上），等于每次对账/统计都全表扫。迁移照 `parity-fix` 用 `information_schema`
+    # 查存在性守卫（MySQL 8 无 `ADD COLUMN/INDEX IF NOT EXISTS`），幂等可重入。
+    # ⭐ `rate-limit.middleware.ts` 由**空占位改实装**（P2-7：`10005` 从「有码无实现」到真生效）：
+    # **固定窗口 + IP/账号双维度 + 复用同一个 `AllExceptionsFilter`** 产出 429（不手写第二套 →
+    # 不会出现「同为限流、两种响应形状」）；注册点必须是 `AppModule.configure()`（见 #78）；
+    # 阈值按「一栋办公楼共用 NAT 出口」定（IP 10/分 · 账号 5/分）且**刻意不设全局写兜底**。
+    "apps/api-server/src/database/index-parity.ts",
+    "apps/api-server/src/database/migrations/1700000000002-index-commission-meal.ts",
+    "apps/api-server/src/common/middleware/rate-limit.middleware.ts",
+    # ── M5-7 整体审查可修项收口（2026-09-18 · 零 DDL · 2 个新增错误码 · 门禁 19 → 20 道）──
+    # ⭐⭐ `order-state-audit.ts`：**状态机声明 ↔ 生产写入点**机械对账（门禁 `state:audit`）。
+    # 它是 **P0 缺陷 #79** 的防复发门禁 —— 当时 `cooked`/`delivering`/`delivered` 三态
+    # **全仓零写入点**（订单永久停在 `cut_off`、佣金永不产生），而 **19 道门禁 + e2e 969 条
+    # 全绿、一条都没红**：因为**没有任何门禁问过这个问题**（e2e 夹具直写 DB 造 `delivered` 单，
+    # 测试永远从链路**中间**开始）。判据是**状态级**：①声明为迁移目标的状态必须有写入点
+    # （未实装的走 `UNIMPLEMENTED_TARGETS` **显式豁免表**，条目带理由 + 账本引用，且**被实现后
+    # 门禁要求删除豁免** —— 豁免只能如实存在、不能腐烂）②写入的状态必须在状态机内登记
+    # （防 #67 类字面量写错）③枚举成员名拼错单独一条 FAIL（运行期是 `undefined`，静默写成 NULL）。
+    # ⚠️ **边界**：只做状态级、**不做迁移边级**（守卫形态多变，静态配对必然误报），无法静态
+    # 判定的写入点**显式列为待人工确认**而非静默跳过。⭐ 自带**三重自证** + **反证测试**
+    # （删 `delivering` 豁免必红 / 塞 `'ghost_state'` 必红）—— 反证当场抓出首版扫描器的一个洞
+    # （只匹配两种合法写法 → 拼错的字面量被当成「动态值」放过），**这就是「新检查器必须被反证过」的实证**。
+    "apps/api-server/src/modules/order/order-state-audit.ts",
+    # ── M5-10 原型逐页对齐 · 批次二（2026-09-18 · 补 U13/U14 读侧 + A2 派生字段）──
+    # 冻结的是「余额读侧契约」：U13/U14 出参形状 + 余额流水文案单一真相。
+    # ⚠️ `user.controller.ts` 系 **M2 起整批漏登**（U17 一直是契约载体却从未入册，
+    # 属「SCAFFOLD_KEY 整批漏登而不报错」的又一例，本批收尾机械比对抓出后补登）；
+    # `balance-log.ts` 把 `ab_balance_log.type → 中文文案` 收敛为单一真相
+    # （finance 与 user 两个读侧共用，防第二份漂移）；DTO 字段名与 A2 逐字一致
+    # （`hasBalanceAccount`），同语义两名字会让端上写两套判断。
+    "apps/api-server/src/modules/user/user.controller.ts",
+    "apps/api-server/src/modules/user/dto/user-balance.dto.ts",
+    "apps/api-server/src/common/constants/balance-log.ts",
+    # ── M5-11 三处挂账缺陷收口 #92 / #93 / #94（2026-09-18 · 零 DDL · 零新增错误码）──
+    # 冻结的是「邀请码解析的唯一实现」：本批把此前**三份各自独立**的「邀请码 → 团长」
+    # （`MealService.findLeaderByCode` / `OrderService.resolveLeader` 各抄一份正则，
+    #  `AuthService` 则**压根没有** —— 那才是 #92 本体）收敛到本服务。
+    # ⚠️ 判据：**同一件事的第二、第三份表述**——改一处必然分叉（同族 #67 / #79 / #84）。
+    # 三处调用方此后各自只保留「无效时怎么办」的策略差异（降级 / 抛 30007）。
+    "apps/api-server/src/common/services/leader-lookup.service.ts",
+    # ⚠️ **本批收尾机械比对结果（如实记录）**：`git diff --name-only cc2bb61`（上一笔 feat）
+    # ∪ 工作区改动 = 21 个文件，与本表求交 = 3 项（`leader-lookup.service.ts` /
+    # `api/leader.ts` / `scripts/e2e-m2.mjs`）。**本批新增文件恰好 1 个**（即上面那支服务），
+    # 已登记 ⇒ **表增量 1 = 新增文件数 1**，无整批漏登。
+    # 其余 18 个是**既有文件**（`auth.service.ts` / `meal.service.ts` / `order.service.ts` /
+    # `invite.service.ts` / `level.service.ts` / `team-leader.service.ts` / 3 个端上页面 /
+    # 2 份 docs 镜像 / `seed*.ts` / `seed-demo.ts`）—— 本表一贯只冻结**逐批次新增的契约载体**
+    # （故整支 `modules/auth/` 自 M2 起就不在册），这些文件的改动不改变本表的登记粒度；
+    # ⚠️ 若日后要把「登录绑定语义」也纳入冻结面，应作为**一次显式的补登**并在此说明原因。
+    # ── M5-12 运维与门禁类待办清理（2026-09-18 · 零 DDL · 零新增错误码 · 门禁仍 20 道）──
+    # 冻结的是**两条「一致性靠人记」的机械保证**：
+    # ① ⭐ **周期运维动作的唯一真相** = `deploy/cron/abox-ops.cron`（带 `{{ABOX_REPO}}` /
+    #    `{{ABOX_LOG_DIR}}` 占位符的**模板**），由 `scripts/install-cron.sh` 渲染后写进 crontab；
+    #    ⭐ 渲染后**若仍含 `{{` 即 die**（拒绝把语法错误的命令行写进 crontab）· 标记块
+    #    `# >>> ABOX OPS` / `# <<< ABOX OPS` **从模板 grep 取、不硬编码**（两处各写一份就是
+    #    「同一件事的第二份表述」）· `strip_block` 用 awk 而非 `sed /r1/,/r2/d`（防「有起无终」
+    #    删到文件尾）· 读 crontab 走 `crontab -l || true` + `case` 匹配（`cmd | grep -q` 配
+    #    `set -o pipefail` 会 SIGPIPE 把成功变失败）· **不设 `CRON_TZ`**（避免出现第三个时区源）。
+    # ② ⭐ **日巡检要能红** = `scripts/ops-daily.sh`（三检查收成一个退出码：0 通过含 WARN /
+    #    1 有 FAIL / 2 用法环境错）。三条判据**都改过一轮**，每条都是「初版恒过 = 等于没检查」：
+    #    磁盘可用按**百分比**（`df -Pk` 算 `free*100/total`；固定 MB 阈值在 40G/100G 盘上恒过或恒红）·
+    #    备份新鲜度按 `-mmin`（`-newermt` 在 busybox 上行为不一致）且 `<1024` 字节判**空导出**·
+    #    ⚠️⭐ 探针子进程必须 `env -u http_proxy -u https_proxy …` **显式清代理** —— 本机
+    #    `http_proxy` 已设时 curl 会把 `127.0.0.1` 探测定向到代理、拿回 `502 upstream connect failed`，
+    #    与「服务真挂」**同形**（本批实测踩到）。
+    # ③ ⭐ **跑批时刻表的读侧**：`api/schedule.ts` + `views/system/schedule.vue`（D64/D65）——
+    #    端点 `GET /admin/schedule` 自 M4-1 就有、**长期无页面**，值班只能翻文档；端上**不复刻任何
+    #    服务端规则**（「是否被覆写」只用 `registeredCron !== cron` 纯字符串比较 · `24:00` **不折算**，
+    #    折算就把「它是次日 0 点」这条信息抹掉了）· 补跑是**真改历史数据**的动作，故二次确认。
+    #    ⚠️ 顺带补登两处**既有**漏登（非本批新增文件，属机械对账抓出的历史缺口）：
+    #    `ADMIN_NAV` 里 `/system/message-template` 自 M3-12 起**授权了却没入口**（侧边栏点不到，
+    #    与 M3-14 修过的 `/finance/*` 五页同族）；`ADMIN_MENU_KEYS` 补 `/system/schedule`。
+    "apps/admin-web/src/api/schedule.ts",
+    "apps/admin-web/src/views/system/schedule.vue",
+    "deploy/cron/abox-ops.cron",
+    "scripts/install-cron.sh",
+    "scripts/ops-daily.sh",
+    # ⚠️ **本批收尾机械比对结果（如实记录）**：`git diff --name-only eea928c`（上一笔 feat）
+    # ∪ 工作区改动 = 9 条（4 改 + 5 新增）。**本批新增文件恰好 5 个**，已全部登记 ⇒
+    # **表增量 5 = 新增文件数 5**，无整批漏登。其余 4 个是**既有已登记文件**
+    # （`admin-web/src/constants/index.ts` · `admin-web/src/router/routes.ts` ·
+    #  `api-server/src/common/constants/admin-role.ts` · `scripts/e2e-m3.mjs`），
+    # 本表一贯只冻结**逐批次新增的契约载体**，改动不改变登记粒度。
+    # ④ 本节未登记但**同批实装**的第三项保证：`scripts/e2e-m3.mjs` §36「三处时刻黑盒机械对账」
+    #    （10 条断言 · 把「配置 → 生效时刻 → cron」从**结构性派生**升级为**黑盒可证**；
+    #    出厂口径在脚本内**写死复刻**，不 import 服务端常量 —— 只有两条独立路径才能互相证伪），
+    #    `e2e-m3.mjs` 早已在册，故不产生增量。
+    # ── M5-14 溯源实装 + tab 改名「供应商」（2026-09-19 · 收口《全面检查报告》P1-5 ·
+    #    零 DDL · 零新增错误码 · 门禁仍 20 道 · 表数仍 27）──────────────────────────
+    # 冻结的是 **U5「今日这盒 · 商家溯源」的对外承诺**：
+    # ① ⭐⭐ `common/utils/takeout.ts` = `ab_supplier.takeout_links` 的**唯一读取口**
+    #    （后台 D33 与用户端 U5 共用）。这一列此前**两个消费方各解析一遍** —— 正是
+    #    「后台显示已入驻、端上却是灰的」且**两边都不报错**的成因；函数吸收两个落库坑：
+    #    **键缺失 ≠ 未入驻**（三平台**恒返回 3 条**，`configured=false`）+ `__recommended.url`
+    #    里存的**是平台 key 而非链接**；并做**读侧兜底**（悬空推荐 ⇒ `recommended=null`）。
+    # ② ⭐ `shared-types/dto/traceability.dto.ts` = **C8 出参契约**本身：`TraceabilityQualification`
+    #    只列 `food_business_license` / `business_license` **两项**（原型 P38 卡片的第三项
+    #    「健康证」**刻意不输出** —— 自营下其主体是 ABox 自有持证场所、且 `ab_supplier` 无该列，
+    #    照抄即**在食品安全叙事上虚报资质**）；`url: null` = 该平台未入驻是**合法状态**。
+    # ③ ⭐ `modules/traceability/traceability.service.ts` = **C8 收口点**（`supplierView()`
+    #    出参只有 名称/资质/推荐/三平台 —— 状态、联系方式、供价、分账比例一律不出现）。
+    # ④ `api/traceability.ts` + `ab-supplier-card/index.vue` = 端上**唯一取数口**与**卡片渲染**：
+    #    三平台**恒渲染 3 条**、未入驻**置灰而不隐藏**（「缺京东」必须看得见 —— 缺平台是要去谈的）。
+    # ⚠️ **本批收尾机械比对（如实记录）**：新增文件**恰好 3 个**（`takeout.ts` ·
+    #    api-server `modules/traceability/dto/traceability.dto.ts` · shared-types
+    #    `dto/traceability.dto.ts`），已全部登记；另 **3 项为「补登」**（文件早已存在、
+    #    但此前是**空壳或占位**，本批才成为真正的契约载体）：`traceability.service.ts`
+    #    （此前空文件）· `api/traceability.ts`（此前 `export {}`）· `ab-supplier-card/index.vue`
+    #    （此前 `<slot/>`）。补登理由与 M5-9 补登 `local-test.mjs` 同源 —— 它们此后属于
+    #    「**契约怎么被表达**」，改动它们等于改动 U5 对用户的承诺。
+    #    其余为本批**改动的既有已登记文件**（`seed.ts` 不在册但一直不冻结种子内容 ·
+    #    `e2e-m1.mjs` 早已在册 · `supplier-admin.service.ts` 未在册）。
+    # ⚠️ **本批同时删除 1 个死文件**：`apps/miniprogram/src/pages/traceability/components/supplier-card.vue`
+    #    （**全仓零引用**，且内含硬编码「资质三重核验」徽章 —— 与 U5 实装**刻意不输出健康证**
+    #    的口径**正好相反**，留着就是一句躺在仓库里的**虚假合规声明**）。它**从未在本表登记**
+    #    ⇒ 删除不产生表变更。⚠️ 并登记一条**门禁覆盖盲区**：`dead-files-scan.mjs` 只认
+    #    「空导出 + 零引用」，**带实现的死文件**它报不出来；而「文档描述的路径与真实树是否
+    #    一致」**没有任何门禁会发现**（本批据此更正了《项目目录结构》§五 虚列的 9 个 DTO 路径）。
+    "apps/api-server/src/common/utils/takeout.ts",
+    "apps/api-server/src/modules/traceability/dto/traceability.dto.ts",
+    "apps/api-server/src/modules/traceability/traceability.service.ts",
+    "packages/shared-types/src/dto/traceability.dto.ts",
+    "apps/miniprogram/src/api/traceability.ts",
+    "apps/miniprogram/src/components/ab-supplier-card/index.vue",
+    # ── M5-15 三处「严重问题」排查修复（2026-09-20 · 人工测试当场发现 · 零 DDL ·
+    #    新增 1 个错误码 `30019` · 门禁 20 → 22 道 · 表数仍 27）──────────────────────
+    # 冻结的是**两条「靠人记」的一致性终于有了执行者**：
+    # ① ⭐ `check-nav-consistency.mjs`（门禁 `nav:consistency`）—— `ADMIN_NAV`（前端侧边栏）
+    #    ↔ `ADMIN_MENU_KEYS`（服务端菜单键）**双向等值**。需求方报的「后台缺办公楼建立模块」
+    #    **不是缺模块**，而是这条链断了：菜单键 / 路由 / `@Roles` 是**三份表述**，任缺一份
+    #    都**不报错**，只表现为「那一页不存在于人的视野里」（同族 M3-12 的
+    #    `/system/message-template`、M3-14 的 `/finance/*` 五页）。**首跑即抓出 5 处历史遗留**：
+    #    `/supplier/packing-center` 死入口 1 处 + 统计类 4 页无入口（`/leader/apply` 的下钻
+    #    属刻意设计 → 进显式豁免表，条目带机械证据 + 自收紧判据）。
+    # ② ⭐ `check-md-tables.mjs`（门禁 `doc:tables`）—— Markdown 表格**被空行截断**：
+    #    GFM 里表格遇空行即结束 ⇒「表行 → 空行 → 表行」让后半段**退化成带竖线的普通段落**。
+    #    源文件看着像表、渲染出来不是表，而 **prettier / markdownlint / 构建全都不报错**
+    #    （`docs` 还在 `.prettierignore` 里，连格式门禁都不覆盖）。**首跑扫出 5 处存量**：
+    #    《里程碑计划》变更记录表 3 处（整表裂成 4 段）·《接口规范》1 处（「最近修订（M5-14）」
+    #    整行**粘在 M5-8 行尾** ⇒ 渲染时该行**多出两列**）·《项目目录结构》版本表 1 处。
+    #    ⭐ 判据**必须排除「两张表相邻」**（表A → 空行 → 表B 表头 → 表B 分隔行 是**完全合法**
+    #    的形态，《接口规范》§6.8 就是）—— **误报比漏报更快把人训练成忽略告警**，检查器
+    #    首版正因缺这条而**自证失败**。两支检查器都**自带自证样本**（报不出即自身失败）。
+    # ⚠️ **本批收尾机械比对（如实记录）**：本批**新增文件恰好 3 个** —— 上面两支门禁实现
+    #    （与 `schema-parity.ts` / `index-parity.ts` / `route-audit.ts` / `security-scan.ts` /
+    #    `order-state-audit.ts` 同族）**已全部登记**；第三个
+    #    `apps/miniprogram/src/utils/dev-identity.ts`（端上**测试期**身份切换）**刻意不登记**
+    #    —— 同 M5-14 的 `utils/format.ts`：本表冻结的是**契约载体**，端上纯工具不属于
+    #    「对外承诺怎么被表达」，其契约面写在《接口规范》§1.5 的「身份模型」表里。
+    #    其余为本批**改动的既有已登记文件**（`meal-admin.*` / `admin-role.ts` / `error-code.ts` /
+    #    `shared-utils/src/biz.ts` / `admin-web/src/constants/index.ts` / `e2e-m3.mjs` /
+    #    `gate.mjs`），改动不改变登记粒度。**表增量 2 = 新增门禁文件数 2**，无整批漏登。
+    # ⚠️ 并如实登记一条**生成链路缺陷（本批发现并修掉）**：本生成器的 `ROLE` / `TESTS`
+    #    三处描述（《里程碑计划》/《接口规范》/`tests/tools/gate.mjs`）此前**只在生成物里被手改、
+    #    没回迁**，⇒ 生成器**无法复现**当前清单，下一次重跑会把这三段说明**静默回退成上一批
+    #    的版本**（正是本表反复记录的「同一件事的第二份表述」同族，只是这次分叉发生在
+    #    **生成器 ↔ 生成物**之间；且因为 `tests/` 不入库，**没有任何门禁看得见**）。
+    #    已把生成物版本回迁为生成器唯一源，验收判据 = **「重跑生成器 ⇒ 与清单逐字节一致」**。
+    "scripts/check-nav-consistency.mjs",
+    "scripts/check-md-tables.mjs",
+    # ── 2026-09-21 全量体检 α+β 批（一处安全缺陷 + 两条「同一件事两份表述」的防复发门禁 ·
+    #    零 DDL · 零新增错误码 · 新增门禁 2 道 · 删除死文件 1 个 · 表数仍 27 · 表增量 +2）──────
+    # 本批针对的横向根因只有一条：**同一件事有 N 份表述，而不被自动化执行的那一份必然悄悄错掉**。
+    # 两支新门禁都是这条根因的**执行者**，故与 `schema-parity.ts` / `index-parity.ts` /
+    # `route-audit.ts` / `security-scan.ts` / `order-state-audit.ts` 同族，一并冻结：
+    # ① ⭐ `check-dup-const.mjs`（门禁 `dup:const`）—— **真源字面量外溢**。档位映射的真源是
+    #    `shared-utils/src/biz.ts` 的 `SET_MEAL_SLOT_LABEL`，而端上 `utils/format.ts` 与
+    #    `order-admin.service.ts` **各手抄了一份同值映射** —— 抄的时候是对的，改真源那一刻
+    #    它们就错了，而**那时门禁全绿**（两处已改为 import 同源）。判据只挑「当前零命中且
+    #    零误报」的三条（档位映射 / 送达时刻字面量 / 端上日期解析）；**费率与售价刻意不覆盖**
+    #    （`0.12` 与 CSS `rgba(...,0.12)` 同形、售价在快照与示例里合法出现）—— 误报比漏报
+    #    更快把人训练成忽略告警。
+    # ② ⭐ `check-gate-parity.mjs`（门禁 `gate:parity`）—— **门禁清单本身**被抄成两份。
+    #    `.github/workflows/ci.yml` 自工程仓重建（`0e9552e`）后**一次都没改过**：里面另写了一套
+    #    `pnpm lint / typecheck / test / build:*`，**缺 8 道**（schema:parity / index:parity /
+    #    route:audit / security:scan / nav:consistency / doc:tables / dup:const / state:audit）；
+    #    而 CLI 的 `NODE_VERSION` 写死 `20`，直接使 `verify` 起不来（e2e 用 `node:sqlite`，
+    #    需 Node ≥ 22.5）⇒ **「CI 跑 e2e」此前只是一句声明，CI 的绿灯不构成任何证据**。
+    #    判据三条：CI 只许调 `node scripts/gate.mjs <别名>` 且必须全覆盖 `all`+`verify` ·
+    #    CI 不得再出现逐包门禁命令 · **文档条数标记与实算一致**（条数真源 = `gate.mjs --json`，
+    #    文档侧**只允许一处**声明点 —— 数字写死在多处正是本门禁要治的病）。
+    # 两支检查器都**自带自证样本**（报不出即自身失败），且都实测过「必红」：
+    # `dup:const` 用 16 个合成样本 + 真实仓库先报 7 处探针命中；`gate:parity` 在本仓首跑即
+    # 报出「两支文档缺条数标记」，补齐后转绿（**恒绿的检查等于没有检查**）。
+    # ⚠️ **本批收尾机械比对（如实记录）**：SCAFFOLD_KEY **新增文件恰好 2 个**（上面两支门禁实现）；
+    #    删除 1 个（`packages/shared-types/src/enums/dish-slot.ts` —— `vegetable`/`side`
+    #    **全仓零消费**的死枚举 + 漂移标签 `DISH_SLOT_LABEL`，且 4 处注释把它描述成真实存在；
+    #    它**本表从未登记**，故删除不产生表变更）。其余为本批**改动的既有已登记文件**
+    #    （`gate.mjs` / `e2e-m3.mjs` / `ci.yml` / `admin.controller.ts` / `admin-user.service.ts` /
+    #    `admin-user.vue` / `order-admin.service.ts` / `supplier.entity.ts` / `supplier-admin.*` /
+    #    `shared-utils/src/biz.ts` / `shared-types/src/index.ts` / `shared-types/src/enums/supplier-admin.ts` /
+    #    `miniprogram/src/utils/format.ts` / `miniprogram/src/pages/index/index.vue`）。
+    "scripts/check-dup-const.mjs",
+    "scripts/check-gate-parity.mjs",
+    # ㊷ S9 设计线：两支设计门禁（原 `_tmp/icons/ui-gate.py` / `verify-regen.py` 手工脚本）
+    #    ⚠️ `design:docs` 的语料是 `_ABox一盒*` 工作区内部物料 ⇒ 该脚本**不进 CI**（gate.mjs 注释同源）
+    "scripts/check-design-spec.py",
+    "scripts/check-design-docs.py",
+    # ── M5-20 账号注销入口 U19（2026-09-23 · 提审阻塞项收口 · 零 DDL · 零新表 · 新增 2 码）──
+    # 冻结的是「账号注销契约」：**注销 = 匿名化 + 停用、不是删行**（`status = 3` + 软删 +
+    # 7 个可识别字段清空；⭐ **`openid` / `unionid` 刻意保留** —— 删掉它会让同一个人下次登录
+    # 又注册成一个全新账号，同一微信两套账比留一行匿名数据更糟）· ⭐⭐ **三道闸门 fail-closed**
+    # （在职团长 / 余额或冻结 > 0 / 有未终态订单 → `20015` + `data.reasons` 原因码数组，
+    # 三道**全查一遍再报**）· ⭐⭐ **再登录 `20014`，与黑名单 `20006` 分码**（注销是用户自己的
+    # 决定、黑名单是平台处罚；混码则客服分不清该「恢复账号」还是「解封」）· ⭐ **二次确认词由
+    # 服务端裁定**（`confirmText` 须逐字等于「注销账号」→ 否则 `10001`；端上自绘弹窗不构成证据）·
+    # ⭐ **原子占位**（`WHERE id AND status != 3` + `affected = 0` → `20014`；「查库判 status」只是
+    # **快路径**、不构成并发防护 —— 与 M5-19 的 U11 同纪律）· ⭐ **不碰资金账**（不删
+    # `ab_commission` / `ab_balance_log` / `ab_order`，财务凭证留存先于「删除个人数据」）·
+    # ⚠️ **已知边界**：旧 token 过期前仍可用但读到已匿名化资料（与 `20006` 同口径：状态只在
+    # 登录时判）—— 已写成 e2e 断言，让边界是**声明**而非遗漏。载体如下：
+    "apps/api-server/src/common/constants/user-status.ts",
+    "apps/api-server/src/modules/user/user.service.ts",
+    "apps/api-server/src/modules/user/dto/user-cancel.dto.ts",
+    "apps/miniprogram/src/pages/account-cancel/account-cancel.vue",
+]
+
+
+
+GIT_EXE = r"C:\Users\herma\.workbuddy\binaries\PortableGit\versions\1.2.0\cmd\git.exe"
+BASELINE_TAG = "v1.1-local-dev-base"
+
+
+def _git(args, cwd=SCAFFOLD):
+    """尽力而为地调用 git；任何异常都退化为 None，绝不让清单生成失败。"""
+    import subprocess
+    try:
+        return subprocess.check_output([GIT_EXE, "-C", cwd] + args,
+                                       stderr=subprocess.DEVNULL, timeout=30
+                                       ).decode("utf-8", "replace").strip()
+    except Exception:
+        return None
+
+
+def git_facts():
+    """返回 (生成时 HEAD 短号, 基线 tag 指向的提交短号, 基线 tag 文件数)"""
+    head = _git(["rev-parse", "--short", "HEAD"]) or "—"
+    tag = _git(["rev-list", "-n", "1", BASELINE_TAG]) or ""
+    tag_short = tag[:7] if tag else "—"
+    ls = _git(["ls-tree", "-r", "--name-only", BASELINE_TAG])
+    n_tag = len([x for x in ls.split("\n") if x.strip()]) if ls else 0
+    return head, tag_short, n_tag
+
+
+HEAD_SHORT, TAG_SHORT, TAG_FILES = git_facts()
+
+
+def digest(abs_path):
+    h = hashlib.sha256()
+    n = 0
+    with open(abs_path, "rb") as f:
+        while True:
+            b = f.read(65536)
+            if not b:
+                break
+            h.update(b)
+            n += len(b)
+    return h.hexdigest()[:12], n
+
+
+def rows(pairs, base):
+    out = []
+    items = pairs.items() if isinstance(pairs, dict) else pairs
+    for rel, (role, desc) in items:
+        p = os.path.join(base, rel.replace("/", os.sep))
+        if os.path.exists(p):
+            d, n = digest(p)
+            out.append((rel, d, n, role, desc))
+        else:
+            out.append((rel, "—", 0, role, desc + "（缺失）"))
+    return out
+
+
+def rows_simple(paths, base):
+    """给定相对路径列表，返回 (rel, digest, bytes, '', '') 元组列表"""
+    out = []
+    for rel in paths:
+        p = os.path.join(base, rel.replace("/", os.sep))
+        if os.path.exists(p):
+            d, n = digest(p)
+            out.append((rel, d, n, "", ""))
+        else:
+            out.append((rel, "—", 0, "", "（缺失）"))
+    return out
+
+
+def table(rs):
+    lines = [
+        "| # | 文件 | 版本 / 说明 | 字节 | SHA-256（前 12） |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    for i, (rel, d, n, _role, desc) in enumerate(rs, 1):
+        lines.append("| %d | `%s` | %s | %s | `%s` |" % (i, rel, desc, format(n, ","), d))
+    return "\n".join(lines)
+
+
+def scaffold_stats():
+    total = 0
+    by_area = {}
+    for dirpath, dirnames, filenames in os.walk(SCAFFOLD):
+        dirnames[:] = [d for d in dirnames if d not in ("node_modules", ".git", "dist")]
+        for fn in filenames:
+            rel = os.path.relpath(os.path.join(dirpath, fn), SCAFFOLD).replace("\\", "/")
+            parts = rel.split("/")
+            key = parts[0] if len(parts) == 1 else ("/".join(parts[:2]) if parts[0] in ("apps", "packages", "scripts") else parts[0])
+            by_area[key] = by_area.get(key, 0) + 1
+            total += 1
+    return total, by_area
+
+
+def scan(base, prefix=""):
+    """扫描 base 目录下的资产；prefix 用于标注已移出根目录的存档件"""
+    out = []
+    if not os.path.isdir(base):
+        return out
+    for name in sorted(os.listdir(base)):
+        p = os.path.join(base, name)
+        if not os.path.isfile(p):
+            continue
+        if name == os.path.basename(OUT):
+            continue
+        if name.startswith("_") or name.startswith(".") or name.endswith(".pyc"):
+            continue
+        role, desc = ROLE.get(name, ("待归类", "未登记"))
+        if prefix:
+            desc = desc + "（已移入 `archive/`，不再进 `docs/` 与交接目录）"
+        d, n = digest(p)
+        out.append((prefix + name, d, n, role, desc))
+    return out
+
+
+found = scan(ROOT) + scan(ARCHIVE, "archive/")
+
+act = [r for r in found if r[3] == "现行"] + rows(PROTO, ROOT)
+dep = [r for r in found if r[3] == "废弃"]
+un = [r for r in found if r[3] == "待归类"]
+
+sc_total, sc_by_area = scaffold_stats()
+sc_table = table(rows_simple(SCAFFOLD_KEY, SCAFFOLD))
+sc_area_lines = "\n".join(
+    "| `%s` | %d |" % (k, v) for k, v in sorted(sc_by_area.items())
+)
+
+body = """# ABox 一盒 · 开发基线冻结清单 v1.0
+
+> **基线标识**：`v1.1-local-dev-base` · **冻结日期**：2026-09-14 · **最近修订**：2026-09-25（㊹ **P1-U2 口味评价与菜品迭代闭环** —— 新增 **U20 `POST /orders/{{orderNo}}/rating`**（逐菜三键 · **一次提交即定稿不可改** → 新码 `30021` · 状态闸门 → 新码 `30020`）+ **D69 `GET /admin/stats/dish-rating`**（口味红黑榜 · P35 菜品热度页第二 Tab）+ **第 28 张表 `ab_dish_rating`**（`uk_dish_rating_order_dish` 唯一键兜底「一次定稿」）+ **第 4 支迁移** · ⭐⭐ `badCount`（区间）与 `monthBadCount`（**锚点月**）**分道** —— 月初按区间算「本月投诉」会把上月旧账计入、红线天天误报 · ⭐ 区间切 `meal_date`（吃到的日子）· `resolveStatsRange` 上提为纯函数（D49/D69 共用）· U10 详情补 `dishes[].dishId` + 内嵌 `rating` 块 · 聚合纯函数 `aggregateDishRatings()` + 单测 `dish-rating-agg.spec.ts`（jest 45 → **51 条 / 6 → 7 套**）· e2e m1 **88 → 105**（U20 用户流 17 条 · 节末**夹具还原**）+ m3 **1092 → 1110**（§40 红黑榜对账 18 条 · 固定锚 + 手算期望值）· **门禁仍 29 道** · 表数 **27 → 28**）；另收口 2026-09-25（㊸ **F5 通知触达矩阵（编排 + 到达率 + 截单提醒场景）** —— 新增 **D67 `GET /admin/messages/reach`**（到达率回看）/ **D68 `POST /admin/messages/orchestrate`**（按人按场景编排）+ 场景清单 **6 → 7**（`cutoff_remind`，**追加在末尾**以保住「前 5 行 = 原型」的可核对性）· ⭐ 受众**只接受预定义选择器**（不收 `userId[]` = 不开群发后门）· ⭐⭐ `dryRun` **缺省 `true`**（默认只算不发）· ⭐⭐ `ab_message` **无 `scene` 列** ⇒ 按场景聚合**必须在服务端内存完成** · ⭐⭐ 无记录时 `reachRate` 是 **`null` 而非 `0`** · e2e **§39 · 26 条断言**（m3 **1066 → 1092**）· **零 DDL · 零新增错误码 · 门禁仍 29 道 · 表数仍 27** · ⭐ 收口补：**D67/D68 编号补进代码侧**（`@ApiOperation.summary` 按全仓约定**前置 D 号**、`constants/index.ts` 该页 `module` 由 `D59/D60` 改 `D59/D60 · D67/D68`）—— 此前编号**只写在契约文档**，代码侧查不到 ⇒ 后端与前端两处已补齐）；另新增 `apps/api-server/test/unit/message-reach.spec.ts` —— `message-reach.service.ts` 导出 `rateOf`/`sceneOf`/`MAX_RANGE_DAYS` 的原话是「避免**只有 HTTP 一条验证路径**」，而此前**无人引用**（空头承诺）；本 spec 让那句话成立（jest **39 → 45 条 / 5 → 6 套**））· 前次 2026-09-21（㊷ **S9 设计线收口：两支设计门禁转常驻 + 渲染区 Markdown 泄漏清零 + 390px 真视口验证 + 窄屏触摸目标 44px 补齐（零 DDL · 零新增错误码 · 门禁 27 → 29 道 · 表数仍 27）** —— ① ⭐⭐ **`design:spec` / `design:docs` 由手工脚本迁入 `gate.mjs` 常驻**（原 `_tmp/icons/ui-gate.py` / `verify-regen.py`，**不在任何门禁内** ⇒ S8 抽共享菜单组件后其中一条断言仍找旧字面量 ⇒ **转红三轮无人发现** —— 恒红与恒绿同罪）；迁入同时改为按**脚本位置**解析仓库根 + 新增 `design` 别名 + Python 解释器**运行时探测**（CI `python3` / 本地 `python`，探测不到给**必红命令**而非跳过）；⚠️ `design:docs` **刻意不进 `all`**：语料是 `_ABox一盒*` 内部物料、`sync-docs` 刻意不镜像 ⇒ CI 里没有语料，挂进 `all` 就是「CI 装作绿」。② ⭐⭐ **渲染区 Markdown `**` 泄漏口径更正并清零** —— 原登记「13 处 / 6 文件待处置」把**HTML 注释里的 `**` 一并计入**（注释不渲染 = 假阳性）；用判据对 git HEAD 实扫：真泄漏仅 **7 处**（`template.vue` 2 + `schedule.vue` 5）、其余 6 处全在注释里，已修净 ⇒ 全仓渲染区 = 0（样本 80 个含 `<template>` 的文件），固化为 `design:spec` 第 7 道（**上报样本数**；0 样本记 N/A 不计分母）。③ ⭐⭐ **390px 真视口验证**（零依赖 CDP：系统 Chrome/Edge + node22 内置 fetch/WebSocket，`_tmp/dsg/shot-390.mjs`）—— 断言 matchMedia 命中 / `is-narrow` / 桌面侧栏 DOM 移除 / 汉堡存在 / **横向溢出 = 0** / 佣金宽表换卡片 / **主控件触摸高度**，两屏全绿 + 截图留证（`_shots/s9-390/`）。④ ⭐⭐ **「窄屏块存在 ≠ 触摸目标达标」**—— §9.3 写的 `min-height: 44px` 落码只给了 `.el-button`；逐控件实测：汉堡 44 ✅、按钮 44 ✅，但**工具栏下拉 32、卡片链接输入框 32（连旧判据视野都不在）、状态四按钮 30**（EP 2.14 默认值）；修法 = **直接命中 wrapper 本体**（`.el-select__wrapper` **写死** `min-height:32px`、不吃任何变量 ⇒ 设 `--el-component-size` 抬不动下拉；输入框走 `--el-input-height`） + 状态按钮 `&__inner min-height:44px`；**分页器刻意不动**（EP 复合控件，只抬两件会高矮不齐、全抬 = 全站级主题改写，越过「只做关键路径」边界）⇒ 在 390 门禁里**单独报告实测值**而非静默略过；新增 `design:spec` **第 8 / 9 道闸门**，并**对修前备份实测报红 2 + 3 条**（非恒绿）。⑤ ⭐⭐ **scoped CSS `:deep()` 挂根即失效（真缺陷）** —— wrapper 规则一度直接挂 `.ab-layout.is-narrow` 之下，scoped CSS 把 `data-v` 加到 `:deep()` 前最后一个复合选择器 ⇒ 编译成 `.ab-layout.is-narrow[data-v-x] …`，而 `.ab-layout` 是 layout 组件节点 ⇒ **整条规则静默失效**（构建与旧门禁全绿、下拉悄悄退回 32px，二次真视口才抓到）⇒ 必须挂在**本地元素类名**（`.toolbar` / `.cards`）之下，已写进代码注释与《执行清单》§十。⑥ ⚠️ **脚本类文件改完必须 `node --check`**（纪律再次生效）：一个反引号写进探针的模板字符串 ⇒ 字面量被提前闭合 SyntaxError，靠补丁的语法预检才拦下。⑦ 文档同步：《执行清单》§9.3 补记 / §9.5 口径更正表 / §十 +4 行判据更正。⑧ **验收**：`gate.mjs all verify` **26/26 全绿**（all 22 + verify 4；e2e m1 64 / m2 128 / m3 1066 与基线一致；首跑 25/26 红在 `format` —— 两个 `.vue` 被补丁以 CRLF 落盘，prettier 归一后转绿）· `design` 组 2/2 · 本清单 **316 → 318/318**（+2 = 两支设计门禁脚本）。⑨ ⭐⭐ **`design:spec` 第 4 道闸门「恒 N/A」根治（本批自查出的真缺陷）** —— 原判据把承载名写死成 kebab-case 的 `<ab-icon>` ⇒ 本仓库 **0 样本** ⇒ 常驻记 N/A；而真实承载一直是**后台** PascalCase 组件 `apps/admin-web/src/components/AbIcon/index.vue`（`size?: 16 | 20 | 24`，默认 20）**实测 13 处**引用 ⇒ **一处都没扫到**（「恒 N/A」与「恒绿」同罪：都等于没有检查 —— 本项目 `gate()` 早把「0 样本不得记 OK」写成判据，本例正是它要抓的形状）。改法：按**真实承载**改写（静态 `size=` 与绑定 `:size=` 两种写法都收），且**必须锚定标签名** —— 同批 `.vue` 里还有 `<el-empty :image-size=48/56/60>`（Element 空状态插图，与三档无关），只按 `size=N` 裸扫会把它们误判成「第四档」；自证 **+4 例**（PascalCase 正例 / 绑定正例 / kebab 向后兼容 / **EP 负样本**），并对**真语料**注入一处 `size=18` 实测报红（定位 `takeout-links.vue:92`）、还原后与备份**逐字节一致**（sha256）⇒ 该闸门从此真的拦得住（`design:spec` 由 **32/33 · 另 1 项无样本** 变为 **33/33**）。端上**刻意不在此处重复实现**（端上走字符 + 类名的 `.abi` 承载，由专用门禁 `icons:lock` 覆盖 —— 同一判据写两遍必有一处悄悄失真，那正是 `dup:const` 门禁要治的病）。 · ㊶ **全量体检 α+β 批：一处安全缺陷 + 两条「同一件事两份表述」的防复发门禁（2026-09-21 · 零 DDL · 零新增错误码 · 新增门禁 2 道 · 删除死文件 1 个 · 表数仍 27 · 表增量 +2）** —— 输入《实现全量体检报告 v1.0》，按「能机械防复发的先做、需要需求方裁定的挂账」执行。① ⭐⭐ **C1 后台提权闸门（本批唯一安全类缺陷）** —— `@Roles(super_admin / admin)` 只检查「是不是管理角色」，而 `ADMIN_ROLES` 含 `super_admin` ⇒ **admin 可以把任何人（含自己）提成超管**：越权面不是「多一个入口」，而是**权限模型本身失效**。修法：服务层新增两条规则（**只有 super_admin 能授予 super_admin** / **只有 super_admin 能授予或撤销 super_admin**），`admin-user.vue` 侧同步收窄下拉选项（⚠️ 前端只藏选项、**权威在服务端**，注释已写明）；`e2e-m3` 新增 **§10b · 11 条断言**（admin→super_admin 被拒 20010 ×3 场景 + **正向对照**（super_admin 建超管 = 0）+ **隔离断言**（`activeSupers ≥ 2` ⇒ 证明拒因是提权规则而**不是**「最后一个超管不能停用」那条既有规则）+ **边界不误伤**（admin 改超管姓名 = 0）+ 被拒后 DB 行不变 + 夹具自清理），m3 **1055 → 1066**（⚠️ 同一批另**改写 `e2e-m3` 1 条既有断言**：原断言要求菜品库出参提到字符串 `DishSlot`，而该枚举正是本批要删的死代码 ⇒ 改为盯**真正要承诺的那件事**（出参须点名两条轴的物理落点 `ab_dish.category` / `ab_set_meal_item.slot`）。**改写不是新增 ⇒ m3 断言总数不变**；教训：**断言一个已删除的符号名，只会让下一个读的人去找一个不存在的东西**）。② ⭐⭐ **`dup:const` 门禁** —— 见 SCAFFOLD_KEY 处登记；⚠️ 同时纠正报告一处**误判**：`汤`（档位轴 `ab_set_meal_item.slot`）与 `汤品`（品类轴 `ab_dish.category`）是**两条轴**、并非漂移，**不改**（改它反而会把一个正确表述改坏）。③ ⭐⭐ **`gate:parity` 门禁** —— 见 SCAFFOLD_KEY 处登记；CI 收敛为`node scripts/gate.mjs all` + `verify` 两个 job（Node 22 · 旧 CI 的 MySQL/Redis service 一并移除：**实测无任何门禁连过它们** —— `schema:parity` / `index:parity` 走 `:memory:` sqlite、其余纯静态，留着只会让人误以为「CI 在 MySQL 上验证过」，那是与门禁清单同族的**假覆盖**）。④ ⭐ **门禁自报覆盖面（治门禁自身的退化）** —— `gate.mjs` 原先**成功时丢弃子进程 stdout**（写成 `ok ? stdout : ""`）⇒ 跑完只看到「✔ jest (4.3s)」，**跑了几条测试完全不可见**，即门禁自身退化**不在任何失败路径上**（这正是本批 E1/E3 的共同病根）；现保留输出并在汇总里逐条打印 `↳` 自报行。⭐ 同日**移除 `--passWithNoTests`**：它让「一个测试都没跑到」也返回 0，5 个 spec 被误删时门禁**依旧全绿**。⑤ ⭐ **删除工作区根那份陈旧门禁副本**（`tests/tools/gate.mjs`，只跑 12 道却自称「逐条复刻 CI 的**全部**作业」⇒ **会给出假绿的验收结论**），并在《本地开发手册》§6.1 立「**唯一门禁执行器**」硬规则 + 门禁条数**只允许一处声明点**（其余文档写指针）。⑥ **验收**：`gate.mjs all` **20/20** · `verify` **4/4** · 合计 **24/24** · e2e m1 **64** / m2 **128** / m3 **1066**。⚠️ 本批自查出两处**报告未写到的连带影响**并已处置：删 `tests/tools/gate.mjs` 会同时打断《冻结清单》登记与手册教学（已同步处置）· 文档条数「18 道」随新增门禁即刻过期（已改为机器校验的标记）。⚠️ **需需求方裁定的项（未做，如实挂账）**：A1 `totalFen` 口径 · A2 真机微信登录/支付相关项 —— 均**不在本批**，不构成本批已收口的声明） · ㊵ **M5-19 送达时刻收口真源 + 自助取消两层补齐（工程本批 · 零 DDL · 零新增错误码 · 零新增文件 · 门禁仍 22 道 · 表数仍 27 ⇒ 本表行数不变 315/315）** —— ① ⭐⭐ **PR-01 自助取消（U11）两层补齐**（控制器 `@Idempotent({{ scope: 'order-cancel', required: false }})` + 服务层**原子占位** `UPDATE … WHERE id = :id AND status = :from`，`affected === 0` 抛 `30003` fail-closed、钱一分不动；余额动作移到占位成功之后。⚠️ 幂等键只拦**同键重放**，拦不住「不同键」/「一端带键一端不带」的并发 ⇒ **两层缺一有缝**；⚠️ **串行重放本来就测不出**（第二次因已 `cancelled` 返回 `30003`，恰好掩盖问题）⇒ **真机 MySQL 并发验证仍是待办**）· ② ⭐⭐ **余额写入收口到唯一口 `updateBalanceRow()`**（四处 `version` 原**只进 SET、不进 WHERE** ⇒ 乐观锁**装饰性**、丢更新，且 `balanceAfter` 与余额**一起错、彼此自洽**、事后对账抓不住；现 `WHERE id = :id AND version = :v` + 抛 `40018` —— 该码 M5-7 即为此定义、此前在本模块**不可达**）· ③ ⭐⭐ **送达时刻收敛到真源**（真源 = `common/utils/order-timeline.ts` 的 `DEFAULT_TIMELINE.arrival`；**13 处手写 = 运行时 11 + 潜伏 2**：团长工作台 ⭐ **同 payload 双真相**（`expectAt` 手写紧邻 `expectAtIso` 派生 ⇒ 改一次配置**当场分裂**）· 分享转发语（**离线转发，改后无法纠正**）· D66 `deliveriesLate.hint` · `config.specs.ts` / `message-template.specs.ts` **删重复陈述**（前者文件头本就禁止「在别处再写一遍时刻」→ **自我违反**）· 状态机潜伏死文案（兜底链被 11 态全覆盖**短路**）· 端上 `constants/index.ts` 的 `TIME_ANCHOR` **整表删除**（**10/10 成员全仓零消费**）；⚠️ **先纠正一处口径误判**：`set_meal.delivery_arrival_time` 的 `wiring` 实为 **`live`** ⇒ **后台一键可改**，「一期不可配」**不成立**）· ④ ⭐⭐ **新增 3 个下发字段（本批唯一契约变更）**（**U1 `deliverAt`** · **U3 `deliverAt`** · **U10 `pickup.expectAt`**，均 = `formatTimeOfDay(currentTimeline().arrival)`，与既有 `cutoffAt` / `expectAtIso` **同源**；端上 `order-create` / `order-detail` / `leader-invite` 三页改为**只展示响应值**）· ⑤ ⚠️ **有意保留 1 处并双标注**（用户协议正文 `agreements.ts` 的 `11:30`：协议页**刻意零网络请求**（离线可读、逐字可审，文件头第 3 条已裁定为「人工镜像」），**不能**改为从响应取；已双标注「人工同步点」并**点名真源**，彻底消除需改**合规文本** ⇒ 待裁定）· ⑥ ⚠️ **顺带纠正 2 处文档↔代码漂移**（U10 示例 `delivered` 节点 `text` 原写 `预计 11:30 送达`，实装因兜底链被短路**恒为 `待取餐`**；`pickup` 示例补 `expectAt`）· ⑦ **验收**：`gate.mjs all verify` **22/22**（首跑红 2 项均已转绿：`format` 4 文件按仓库格式落盘 · `security:scan` 因三个一次性探针含硬编码口令而**移交工作区根 `tests/_probes-2026-09-21/`**）；e2e 断言数**不变**（**64 / 128 / 1055**，复刻 env 直跑复核）；⚠️ **另 6 项需需求方裁定**（PR-02/PR-06 楼栋状态与无在任团长拦截 · A7 文档重写 · PR-03 状态机声明补边 · PR-08 门禁补路由 · OBS-2 拉黑复查点）登记为 **M5-20**）· ㊴ **M5-18 协议阅读页（U16 收口 · 端上原生页）** —— 《用户协议》《隐私政策》正文**单一真源** `apps/miniprogram/src/constants/agreements.ts` + 原生阅读页 `pages/agreement/agreement.vue`（免登录可读），入口挂到「我的 → 设置」（`uni.showActionSheet` 四项）；**刻意不设端点、不用 web-view**（web-view 需业务域名白名单 + ICP + HTTPS，全是 M5 外部阻塞项，属**拿外部条件换内部能力**）；原 `pages/webview/` 占位页删除；**零 DDL · 零新增错误码 · 零新表 · 门禁仍 22 道 · 表数仍 27**；⚠️ **账号注销入口仍未实装**（同属提审前置）· ㊳ **M5-17 首页三处调整 + U1/U5 编号与归属一致性（需求方三点反馈 · 零 DDL · 零新增错误码 · 零新表 · 门禁仍 22 道 · 表数仍 27 · 零新增文件行）** —— 需求方三点：①「最下面类似历史记录的功能暂时不需要，不要让首页太复杂」②「每个菜的来自的供应商应该可以点击，点击后可以跳转到第三方外卖平台，类似供应商页面中点击商家的功能」③「如果是个普通用户直接进入小程序，没有走团长邀请的流程，那么他下单的时候是不是有个页面提醒他必须注册团长或者选择团长后才能下单？」。⚠️⭐ **先纠正需求方第 ③ 点的前提**（查完代码才敢答）：系统**不会因为「没有团长」拦住下单** —— 未绑定团长时 `OrderService.resolveLeader` 会**自动挂靠本楼在任团长**（②级回退），下单照常成功、佣金归那位；故「必须注册团长才能下单」这个页面**不存在也不该存在**（凭空加一道门槛会把本可成交的用户挡在门外）；**真正缺的不是拦截，而是把归属说出来**。经需求方确认口径：**保持自动挂靠 · 首页明示归属**；「首页选团长」**本轮不做**。① ⭐ **首页精简** —— 移除页尾「往日这盒」（U2 版块 + `fetchHistory` 调用 + `.section` / `.history` 样式）：首页只保留「今天订不订」这一件事，每多一块主按钮就往下掉一屏；**接口 `/home/history` 与端上 `api/meal.ts` 的 `fetchHistory` 均保留**（M1 既有验收点、日后做「历史」入口可直接复用聚合逻辑），服务端与端上两处**各自注明保留理由**。② ⭐⭐ **菜品「来自：X」可点 → 溯源页并定位那一家** —— 新增 **U1 `dishes[].supplierId`**（`meal.service.ts` `dishesOfSetMeal` 出参）与 **U5 `supplier.id`**（`traceability.service.ts` `supplierView` + 「供应商查不到」的占位视图也带 id）；首页点它 → `navigateTo('/pages/traceability/traceability', {{ supplierId }})`，溯源页 `onLoad` 解析入参 → 取到 U5 数据后**按 id 匹配** → 该卡描金圈（`ab-supplier-card` 新增 `highlight` prop，`$c-gold` 描边 + `$c-trace-card-from` 浅金底）+ **直接弹出它的平台层**；⚠️ **按 id 不按名字**：`ab_supplier.name` **无唯一约束**（同名两家是合法数据），按名定位会让用户在溯源页**照着一家不是自己点的那家去平台下单** —— 该页最坏的一类错误；**找不到时明说**（toast「该出品方今日不在名单中」）不静默（真会发生的场景是跨 24:00 换日）。③ ⭐⭐ **不抽共享弹层、只传 id** —— 首页**不**把上一页的 `supplier` 对象塞过去：跳过去的是**另一个页面实例**、数据由 U5 现取；传对象会造出「页面显示 A、实际数据是 B」的**第二种真相**（把弹层抽成共享组件还要处理两端各自的空态与降级，本批不做）。④ ⭐⭐ **U1 `leader.source`（新）+ 收口缺陷⑫** —— `'bound'`（经邀请链接绑定，且**在任**）/ `'building_default'`（未绑定 → **自动挂靠**本楼在任团长）；端上在**首页团长卡**与**下单确认页取餐信息卡**两处明示（后者是**付款前最后一次**能看见归属的机会 —— 佣金是**从这一单里分出去的**，让用户以为「我没跟谁」而实际有人在收他的佣金，是比不显示更糟的沉默）。⚠️ 配套修 **U1 与 U6 的归属判据不一致** —— U1（只决定**显示**）此前**不看绑定团长是否在职**，U6（决定**钱**）要求在职 ⇒「团长停职 + 用户未重绑」时**首页写着 A、佣金却记给 B**；根因是 D22「停职」只改 `ab_team_leader.status`、**不清** `ab_user.team_leader_id`（**这是对的**，复职后绑定该还在）⇒「绑定行」与「有效归属」本就可以不是同一个；修法 = **让显示侧照抄交易侧的顺序**（①绑定且在职 → ②本楼 id 最小且在职 → ③`null`）并额外下发 `source`，**不是**让两边各写一份判据。⑤ ⭐⭐ **e2e 不许「拿 U1 自己当期望」** —— 缺陷⑫ 的回归用**停职**把两侧逼到分歧点，期望值由**独立复现的 U6 判据**给出（`e2e-m1.mjs` 新增 `resolveLeaderByU6Rule()`：直查 `ab_user` / `ab_team_leader` 的同一段 SQL、`ORDER BY id ASC` 对齐服务端）：若拿 U1 出参当期望，这条断言只能证明「U1 等于它自己」、对分歧**完全无感**（本项目反复踩的**假绿**形状）；⚠️ 停职样本**断言成败都复位**（`finally`），否则后续用例与下次种子会落在一个被改脏的库上。⑥ ⭐ **不新增组件级 class 依赖** —— 「定位高亮」用 `ab-supplier-card` 的**显式 `highlight` prop**，而非由页面给组件挂 `class`：组件有自己的根节点与 scoped 样式，外部 `class` 是否落到根节点上在各小程序端表现并不一致（「看起来生效、真机不生效」正是本项目最想避免的缺陷形状）。⑦ ⭐ **样式纪律** —— 新增元素**只用已登记 token**（`$c-text` / `$c-text-weak` / `$c-gold` / `$c-bg` / `$c-trace-card-from`），**不引入新的裸色值**（后者刻意用来替代再写一个 `rgba(...)`）；自动挂靠那句用**主文字色**而非弱灰（与钱有关的告知不该以「可略过」的视觉权重呈现）。⑧ **验收**：单跑 `e2e:m1` **通过 64/64**（54 → 64 = 新增 10 条：编号同源 2（U1 `supplierId` 集合 ≡ U5 `supplier.id` 集合 · **逐菜对账**同菜名 ⇒ 同 id 同展示名）· `leader.source` 两态 2（1002 `bound` / 1001 `building_default`）· `supplierId` 恒为正整数 1 · 缺陷⑫ 停职回归 3（不再显示停职团长 · 与独立复算的 U6 判据一致 · 回落到本楼在任团长且标 `building_default`）· 停职样本构造与复位 2）· 端上 `typecheck:mp` 通过 · `gate.mjs` 22/22 · `SCAFFOLD_KEY` 与本清单文件数**均不变**（本批**零新增文件**，仅既有文件哈希重算）。⑨ ⚠️ **顺带补掉一处账本缺口（同 #139 族）** —— 《里程碑计划》§五「任务分解」进度块此前的子批次清单**止于 M5-14**（M5-15 / M5-16 已落但未入块）、断言数也停在 `54 / 126 / 1026`、M5-5 的步骤数仍是旧值 38 → 一并更正为 **18 个子批次（M5-0 ~ M5-17）** 与 **`64 / 128 / 1055`**、**46 步**（*账本自己不更新时，任何自动化都不会报错*）。⚠️ 其中 **m2 的 126 不是「旧值」而是「错值」**：本批复刻 env 直跑三套 e2e（`gate.mjs` 成功时吞子进程 stdout，数断言**必须直跑**）得 m1 **64/64** · m2 **128/128** · m3 **1055/1055**，而账本**自 M5-11 起一直写 126** —— 追溯确认 `e2e-m2.mjs` 的 `assert(` 站点数在 **M5-11（`eea928c`）由 126 → 128**，而该批行文写的是「条数仍 126」（只改写不断言增删）⇒ **账本与实测脱节 6 个子批次且无人发现**，正是这句话的实例；m2 **连跑两次均 128**，计数稳定（其 `existsSync(DB_PATH)` 只用于辅助函数提前返回，不构成按条件增删的断言块））+ ㊲ **M5-16 后台工作台实装 + 侧边栏 6 → 8 组归域（零 DDL · 零新增错误码 · **零新状态** · 门禁仍 22 道 · 表数仍 27 · **零新增文件行**）** —— 需求方两句话：「**后台的工作台还没有任何内容，我不知道它长啥样、也不好测试**」+「**侧边栏菜单再好好分个类，后面一堆栏目都没有归类，或者归类的不合理**」。① ⭐⭐ **「工作台空」的真相是环境旧产物 + 页面无内容**：M5-15 已把 `el-empty` 换成「按账号可见菜单渲染的导航页」（零 API），但它**没有任何业务内容** ⇒ 打开仍是一片卡片墙、**看起来像占位**；⚠️「不是空壳」是代码事实，「看起来像能用」是人的判断，本批把后者也做实。② ⭐⭐ **新增 D66 `GET /admin/dashboard/todos`**（`modules/admin/dashboard/` 三个文件 + 端上 `api/dashboard.ts` + 重写 `views/dashboard/index.vue`）：出参 `items[]`（**4 条固定 key、顺序即界面顺序**）+ `brief`（今日作业 4 指标）+ `businessDate` / `tomorrowDate`；④ 条口径**全部复用既有状态机、不引入任何新状态**（`refund.applying` / `withdraw.pending` / 「在营楼群 减 明日有未取消分配」/ `delivery_record.status != 'arrived'`）；⭐ **`count=0` 也下发**（端上按「有活 / 已清空」两态渲染，**不是整卡消失** —— 消失会让人以为「这个功能没做」）；⭐ `hint` 由**服务端下发**（端上不复制第二份口径文案）。③ ⭐⭐ **一条极易写错的判据**：判「该楼群该日有无套餐」的既有唯一口径是 **`ab_meal_assignment.status != 'cancelled'`**（与 `meal.service.ts` / `meal-admin.service.ts` 的 `usedCount` 同源）；若写成「有没有分配行」，**停团楼群会被算成已排** ⇒ 待办卡**恒显 0 且不报错**（正是本批要防的静默失效）。④ ⭐⭐ **`deliveriesLate` 带时间闸门**：仅在**当日送达时刻已过**时才查库计数，**送达前恒 0 且不发 SQL** —— 否则「还没到点」会被误报成「已延误」，而**一张每天早上必然亮起的假待办，比没有待办更糟**。⑤ ⭐ **侧边栏 6 → 8 组按模块域重归**（概览 / 套餐 / 订单 / **团长与楼宇** / **供应商与出餐** / **财务** / 数据 / 系统：原「业务」组 **17 项跨三域**、财务整域埋队尾）—— **只改 `group` 字段，`path` 与注释一字不动**（`ADMIN_NAV` 同时被 `nav:consistency` 门禁与 `stores/permission.ts` 的 `visiblePaths` 消费，改 path 会同时动授权表、路由与已发出的书签）；`/dashboard` 标题由「运营概览」**改回「工作台」**。⑥ ⭐ **端上按 `account.menus[]` 过滤卡片**（`perm.visiblePaths`；供应商账号**不发该请求**避免无谓 `10003`）—— 那是**渲染纪律**，不是安全边界；**D66 出参含 `viewer`**（工作台是**只读聚合**，正是「只读观察者」的天然落点），**GET 只读故刻意不加 `@OperationLog()`**。⑦ `e2e-m3` **新增 §38 · 20 条断言**（结构 5 + 逐条对账 4 + 闸门与夹具收尾 5 + 角色矩阵 6），m3 **1035 → 1055**；`gate.mjs all verify` **22/22 全绿**；⚠️ 本批复现两条已登记陷阱：**直跑 e2e 不带 `seed`** 崩于 `TypeError: Provided value cannot be bound to SQLite parameter 1`（看起来像套件坏了）· **`gate.mjs` 成功时吞掉子进程 stdout** → 断言总数须**复刻 env 直跑**才可见；⚠️ 文档同步顺带纠正一处**自造数字**：原稿按「4 条待办 + 3 组角色」估成 18 条，实测 **20 条**（以直跑输出为准 —— **禁止手写数字入文档**这条再次生效）+ ㊱ **M5-14 溯源实装 + 底部 tab 改名「供应商」（收口《全面检查报告》P1-5 · 零 DDL · 零新增错误码 · 门禁仍 20 道 · 表数仍 27）** —— 需求方口径：「**用户不喜欢我们的套餐时，也能通过『供应商』页找到合作供应商，直接跳转到该供应商所在的美团 / 京东 / 淘宝店铺**」；该页在原型里是 **P38**，但此前**三处全是空的**（后端 `TraceabilityController` 是**零路由空类** · 小程序 `api/traceability.ts` 是 `export {{}}` · 页面是脚手架占位），而底部第 2 个 tab 还挂着不达意的「溯源」。① ⭐⭐ **服务端 U5 实装**（`@Public()` 免登录只读 · `buildingId` 必传 —— 免登录下守卫不注入 `req.user`、无从推楼群，且**不做「回落到任一楼群」的猜测**）；**N+1 收敛**为固定 4 次查询（供应商视图按 id 缓存，与菜数无关）；`supplierView()` 是 **C8 收口点**；**未开团不报错**，回 `dishes: []` + 说明（与 U1 的 `MEAL_NOT_PUBLISHED` **相反**：U1 是交易页、报错能说清「为什么不能下单」；U5 是**信任页**、无团可溯时用户无从 action，红色 toast 只会让人以为坏了）。② ⭐⭐ **抽 `common/utils/takeout.ts` = `takeout_links` 的唯一读取口**（后台 D33 与 U5 共用）—— 同一列被两处各解析一遍，正是「后台显示已入驻、端上却是灰的」且**两边都不报错**的成因（同族第 N 形态）；吸收两坑：**键缺失 ≠ 未入驻**（三平台**恒返回 3 条**、`configured=false`）+ `__recommended.url` 里存的是**平台 key 而非链接**；并做**读侧兜底**（悬空推荐 ⇒ `null`）。③ ⭐ **三平台入口恒返回 3 条、未入驻置灰而不隐藏** —— 筛掉未配置项会让「缺京东」在界面上**看不见**，而运营恰恰需要看见（**缺平台是要去谈的，不是不存在的**）；种子里**刻意造出两种缺平台组合**（四季鲜蔬/老李家 缺京东 · 京味小馆 缺淘宝）让这条分支在演示环境**走得到**。④ ⚠️ **原型 P38 卡片的第三项「健康证」刻意不输出**：自营裁定后健康证的主体是 **ABox 自有持证场所**（热加工/打包）而非半成品供货方，且 `ab_supplier` **无对应列** ⇒ 照抄即**在食品安全叙事上虚报资质**（比少显示一项严重得多）；同时把《种子数据清单》§3.1 的「**三证齐全**」这个**自营前的旧表述**更正为「两证齐全」。⑤ ⭐ **跳转真机降级、不假装能跳**：`wx.navigateToMiniProgram` 需 appId 白名单（一期**未取得**），实现为「能跳则跳、不能跳则复制店铺名/链接 + 引导」；三个 appId **留空**并附注释。⑥ ⭐ **缓存如实改标「一期未实装」**（规范早期曾提 Redis `trace:{{buildingId}}:{{mealDate}}` TTL ≤ 5 分钟 —— 本仓库 Redis **仅作队列驱动、无缓存层**，而溯源低频只读且查询已收敛为**常数 4 次**）。⑦ ⭐⭐ **文档三处「两份表述」纠正**：《接口规范》§3.2 原节是**未实现时的设计稿**，与实装三处不一致（**ⓐ 资质三项→两项** · **ⓑ `takeoutLinks` 由顶层→挂 `dish.supplier` 下** · **ⓒ 补 `setName`/`recommended`/`configured`**），另 §八 映射表 P38 行「主要表」原写 `ab_supplier_dish_daily`（那是**出餐确认**用的表）→ 改为实装真正读的套餐侧表；《项目目录结构》升 **v2.0.22** —— ⚠️ 同时更正 **§五 `packages/shared-types` 整节虚列的 9 个 DTO 路径**（`api/user.ts`/`meal.ts`/`order.ts`/… **一个都不存在**，真实位置是 `dto/`）+ §二 8 个组件**漏写 `ab-` 前缀** + §四 补登 `takeout.ts` 与长期漏列的 `money.ts`/`password.ts`。⑧ ⭐ **顺带删掉 1 个死文件**：`pages/traceability/components/supplier-card.vue` **全仓零引用**，且内含**硬编码「资质三重核验」徽章** —— 与 U5 实装**刻意不输出健康证**的口径**正好相反**，留着就是一句躺在仓库里的**虚假合规声明**（它**从未在本表登记** ⇒ 删除不产生表变更）；⚠️ 并登记一条**门禁覆盖盲区**：`dead-files-scan.mjs` 只认「空导出 + 零引用」（**带实现的死文件报不出来**），而「文档描述的路径与真实树是否一致」**没有任何门禁会发现**。**验收**：`gate.mjs all verify` **20/20** · e2e m1 **45 → 54**（+9 = U5 溯源九条：免登录可读 / 逐菜出品方 / 资质取自在册证照 / 三味屋三平台齐全 + 推荐美团 / 「缺京东」**看得见** / 推荐平台必为已配置 / **C8 反泄露**（出参不含 status·commission·shareRate·供价·联系方式）/ 集散中心带地址且 `traceNote` 由**本次真实资质并集**生成 / 缺 `buildingId` → `10001`）· m2 **126** / m3 **1026**（未变） · 基线清单 **304 → 310/310**（+6 = **3 新增**：`takeout.ts` · api-server `modules/traceability/dto/` · shared-types `dto/traceability.dto.ts`；**+3 补登**：`traceability.service.ts`（此前空文件）· `api/traceability.ts`（此前 `export {{}}`）· `ab-supplier-card/index.vue`（此前 `<slot/>`）——《内部测试操作清单》升 **v1.2**（**U9 整条重写**，步骤数仍 46）+ ㉟ **测试物料刷新（纯测试交付物 · 零代码 · 零 DDL · 零新增文件）** —— ① 《内部测试操作清单》升 **v1.1**（就地修订，文件名保持 v1.0）：**步骤 41 → 46**，把 M5-11 / M5-12 / M5-13 三处收口转成**能点出来的**验证步（**U16** 邀请码真绑定 + 免登录落地页 · **A21** 跑批时刻表（**「注册时刻为空」= 该任务永远不会跑且不报错**）· **A22** 通知模板菜单可达 · **A23** 演示订单详情能打开 · **A24** 改金牌费率看**三处是否同步变**并改回），另补 §二「本轮实测地址」与 §七「改过配置一定要改回」；② 《人工测试入口卡》按 **2026-09-19 实测**重新生成（四个入口经**局域网 IP** 逐一 200 验证 · **四张二维码全部反解校验通过** · 端产物内无写死 IP）；③ 环境实测记录：`local-test.mjs --seed --build`（H5 与后台均重建）· 同源代理登录 201 · 明日套餐 4 菜 ¥25.80 · 邀请码 `LDR0001` `valid=true` · 费率 8/9/10/12% · 时刻表 8/8 已注册）+ ㉞ **M5-13 两处「两个真相」收口 + 结构对账补尺寸维度（零 DDL · 零新增错误码 · 门禁仍 20 道 · 表数仍 27 · 零新增文件）** —— ① **「等级 → 费率」**：收口前是 **2 个来源 × 4 个消费点**（只有 `promotion.service` 读 `ab_config.commission.rate.*`，另三条路读常量 `LEADER_LEVEL_META[level].rate`），而 `config.specs.ts` 把这四键声明为 `wiring: 'live'`、类注释也写「以 `ab_config` 为准」⇒ **声明与实现不一致**，表现是「运营改了费率只有 1/4 条路径生效」而**两侧都不报错**；现收敛为 `BizConfigService.commissionRate()` **唯一口**（L16 `rules()` / D19 `levelOptions()` / D21 `rateOf()` / L17 建档）；② **`schema:parity` 补尺寸维度**（长度 / 精度 + 标度 / 小数秒精度**分别落位**，混谈会让 84 个 `DATETIME(3)` 全假红）；取数改读 **TypeORM 实体元数据**而非 sqlite 读回列（后者对 VARCHAR 恒空串 = **恒不报错的检查**）；⚠️ 原 `COLUMN_DEF_RE` 单行正则 + `split(',')` 会把 `DECIMAL(12,2)` **切碎、精度静默丢光** —— 正是此前「不比尺寸」的隐蔽原因；实测 **27 表 / 394 列 → 287 个维度两侧都有声明且全部相等**、单侧 0 项，反证两条尺寸改动**正确报红 exit 1**；③ `scripts/e2e-m3.mjs` 增 **§37**（9 条断言 · m3 **1017 → 1026**）：改配置 ⇒ 三条读路径 + 一条写路径同变、**改回 ⇒ 全回原值**、夹具**逐键复原并断言复原**；④ 本批判定标准 **304/304**（仅哈希重算；零新增文件）；⑤ ⚠️ 复现两条已登记陷阱：**直跑 e2e 不带 `seed`** 崩于 `TypeError: Provided value cannot be bound to SQLite parameter 1`（**看起来像套件坏了**）· **`gate.mjs` 成功时吞掉子进程 stdout** → 断言总数须**复刻 env 直跑**才可见）+ ㉝ **文档账本补齐：《开发里程碑计划》M5-4 ~ M5-12 入册（v1.1.14 ~ v1.1.22 · 纯文档 · 零代码 · 零 DDL）** —— 该计划的变更记录此前**止于 v1.1.13（M5-3）**、§五 子批次段同样只到 M5-3，**M5-4 ~ M5-12 共 9 个子批次从未入册**（本清单对它的登记描述同样停在「四个子批次」）；⚠️ 这是 **#139「文档账本」的真实缺口**：*账本自己不更新时，任何自动化都不会报错*（同族第八形态 —— 前七形态见 #67 / #76 / #79 / #84 / #92 / #93 / #94）。本批补：① 变更记录 **+9 行**（v1.1.14 云前内部测试环境 / v1.1.15 内部测试操作清单 / v1.1.16 供应商侧清单 / v1.1.17 修复批次 / v1.1.18 履约链 T7-T9（**收口 #79**）/ v1.1.19 演示数据集 + 入口卡 + 字体修复 / v1.1.20 原型逐页对齐 19 页 / v1.1.21 三处挂账（#92 / #93 / #94）/ v1.1.22 运维与门禁类待办清理）；② §五 补 **9 段**子批次说明，进度块由「四个子批次」更正为 **「13 个子批次（M5-0 ~ M5-12）」**，并重申「**没有任何一个**构成对 4 条验收的满足」；③ 5.1 断言数 **951 → 1017**（并标注 M5-8 §35 起**订单每次状态变化都来自真实 HTTP**）· 5.3 安全自检标注「本地可做部分已进 **2 道门禁**」· 5.7 试运营交付由「待 5.5 灰度后产出」更正为「**本地可做部分已交付**」；④ 文档版本 v1.1.12 → **v1.1.22** · 日期 2026-09-17 → 2026-09-18。**验收**：`docs/` 镜像与根文档 `diff` **无差异** · 表格内**零未转义原生管道**（提交前先机械扫过并修掉 1 处）· 本清单重生成（**304/304** 不变 —— 本批**零新增文件**）· 提交 `a6ee92a docs(M5-12)`）+ ㉜ **M5-12 运维与门禁类待办清理（零 DDL · 零新增错误码 · 门禁仍 20 道 · 表数仍 27）** —— 本批清的四条待办**缺口全在「人怎么用」、不在「代码能不能跑」**：① **周期运维动作进 cron**（`deploy/cron/abox-ops.cron` 模板 + `scripts/install-cron.sh` 幂等安装器 + `scripts/ops-daily.sh` 日巡检）—— 此前 `backup-db.sh` / `healthcheck.sh` 都是「**已备、没接**」（手册写着用法却全靠人记），故把周期动作收成**带 `ABOX_REPO` / `ABOX_LOG_DIR` 占位符的唯一真相模板**，由安装器渲染后写入 crontab（⭐ 渲染后**若仍含未替换的占位符即 die** —— 拒绝把语法错误的命令行写进 crontab；标记块**从模板 grep 取、不硬编码**；`strip_block` 用 awk 而非范围 `sed`，防「有起无终」删到文件尾；**不设 `CRON_TZ`** 以免出现第三个时区源）；⭐ `ops-daily.sh` 三检查收成**一个退出码**（0 通过含 WARN / 1 有 FAIL / 2 用法环境错），且**三条判据各自改过一轮** —— 磁盘可用改**百分比**（固定 MB 阈值在 40G/100G 盘上恒过或恒红）· 备份新鲜度改 `-mmin` 且以 `<1024` 字节判**空导出** · 探针子进程**显式清 `http_proxy`**（⚠️ 实测踩到：环境里 `http_proxy` 已设 → curl 把 `127.0.0.1` 探测定向到代理 → 拿回 `502 upstream connect failed`，与「服务真挂」**同形**）—— 三处的共同理由是**恒过的检查比没有检查更糟**；② ⭐ **三处时刻的黑盒机械对账**（`e2e-m3` §36 · **10 条断言**）—— #49 之后「业务时刻唯一真相 = `DEFAULT_TIMELINE`」一直靠**结构性派生**兜住（cron 与下单窗口锚点皆其派生值）而**没有黑盒断言**；本节把**出厂口径在脚本内写死复刻、刻意不 import 服务端常量**（只有两条独立路径才能互相证伪），正向验「批量写配置 → 逐键读回 + `effectiveAt` + `registeredCron` 双到位」· **反向**验「偏离出厂值的任务集**恰好等于**被覆写的配置键对应任务集」· **反证**验「4 个不可配任务在配置全改时仍出厂值」· **fail-closed** 验「非法值 `25:00` → `10001` 且不半生效」；⚠️ **反证那组是关键** —— 只验正例的话，「时刻表读的就是配置、配置读的就是时刻表」会**互相担保而恒绿**；③ **`GET /admin/schedule` 有端点无页面**（M4-1 起）→ 补后台「跑批时刻表」页（`apps/admin-web/src/api/schedule.ts` + `views/system/schedule.vue`，D64/D65），值班此前只能翻文档；端上**不复刻任何服务端规则**（「是否被覆写」只做 `registeredCron !== cron` 纯字符串比较 · `24:00` **不折算**，折算就把「它是次日 0 点」这条信息抹掉了）· 补跑是**真改历史数据**的动作，故二次确认；④ 挂账「`currentTimeline()` 是**进程级单例**」**如实标注为部署前提**（新增手册遗留风险 **R10**：一期**只允许单 API 实例**，多实例会「A 实例已按新截单拒单、B 实例还按旧放行」而**两边都不报错**）—— 修法是配置变更事件广播 + Redis 发布订阅，**属未验证形态**，本批**刻意不实装**（不写没跑过的代码）；⚠️ 另如实登记 **R11**：运维脚本与 cron **从未真机执行**（本机无 crontab / 无生产盘）。**验收**：`gate.mjs all verify` **20/20** · e2e m1 **45** / m2 **126** / m3 **1007 → 1017**（+10 = §36 全绿）· 基线清单 **299 → 304/304**（+5 = 本批 5 个新增文件）· 顺带补登 `ADMIN_NAV` 历史缺口 `/system/message-template`（M3-12 起**授权了却没入口**，侧边栏点不到，与 M3-14 修过的 `/finance/*` 五页同族））+ ㉛ **M5-11 三处挂账缺陷收口 #92 / #93 / #94（零 DDL · 零新增错误码 · 门禁仍 20 道 · 表数仍 27）** —— 本批**不是新功能**，是把三个「门槛内但一直没做」的挂账补上；三处**同族**：*同一件事有两份表述，而不被自动化执行的那一份必然是错的*（#67/#76/#79/#84 的同族第五~七形态）。① **#92 邀请码绑定链路两端补实装** —— 新建 `common/services/leader-lookup.service.ts`（`@Global` 的 `CommonModule` 注册并 `exports`；导出 `LEADER_CODE_RE` + `parseLeaderCode()` **纯函数** + `byCode()` / `requireActiveByCode()` → 无效或停职抛 `30007`）**收口三份各自独立的实现**（`MealService.findLeaderByCode` 与 `OrderService.resolveLeader` **各抄一份正则**，`AuthService` 则**压根没有** —— 那才是 #92 本体；此后三处只保留「无效时怎么办」的策略差异 = 降级 / 抛 30007）；`AuthService.login` 新增 `bindInvite()`，`LoginDto.inviteCode` 自 M2 起一直是**死字段**，本批才真读 —— **码无效即整趟登录失败**（端上 `bindLeaderByInvite` 捕获后回落**不带码的普通登录**，不把人锁在门外）、**只 patch 缺失的 `teamLeaderId`/`buildingId`**、**换团长不换楼**（改楼栋属 L15「办公楼变更」后台审核事项）；`LeaderInviteService.bindOnInvite()` **幂等且不覆盖邀请人**（邀请人是历史事实，改了等于篡改前一个邀请人的晋级依据）；端上「登录 + 绑定」同一趟完成（P10 `join()` 改为真调服务端，不再「如实只记本地」）；⚠️ 顺带校正《接口规范》§1.5 一处**事实错误**（原写 `POST /auth/wx-login {{leaderCode?}}` —— **该路径与字段名都不存在**，真实契约是 `POST /auth/login {{code, nickname?, avatarUrl?, inviteCode?}}`），并改正本条登记自身的两处错述（原写「`ab_user` 两列**全仓没有**生产写点」—— 实际「申请团长」「后台任命」两条路径**有**写点，缺的只是**扫码路径**）。② **#93 演示单号前缀 `ABDEMO` → `AB0000`** —— 原前缀含字母、长度 14，不满足**自家读取侧**校验（`AB` + 16 位数字）→ **端上点开任何演示订单都 `10001 orderNo 格式不合法`**（P5 打不开任何一单、人工测试点历史订单全报错、极易误报成 bug）；新前缀 = `AB` + **年份位 `0000`**（真实单号年份来自 `todayBj()`，**「0000 年」永不可能被生成** ⇒ 既不撞真实单号、又仍是清理键 `LIKE 'AB0000%'`）+ `MMDD` + **8 位序号**；**清理键 / e2e 锚点 / 探针锚点三处同批换**；两道护栏 = `seed:demo` 自检补第 **⑬** 条（**用生产函数 `isOrderNo()` 逐张验形 —— 刻意不重抄正则，重抄必漂移**）+ 探针补「演示单号能过**读取侧**校验」6 条（**正证 + 反证成对**：后台 D9 按单号打开 `code===0` / 用户端取详情 `code !== 10001`；反证 = 旧格式 `ABDEMO2026091830` 仍 `10001`，**证明这道校验确实在看单号而非恒真**）；⚠️ 提现 / 退款 / 余额调整三类单号**不受该正则约束**，故保留 `…DEMO` 语义前缀。③ **#94 L15 `mine.level` 改名拆分** —— 该字段是**按本月业绩反推的「应处等级」**（`resolveLevel()` 输出 · 晋级审计的**输入**，根本不看当前等级），与 L11/L14 的**实际生效等级**（`ab_team_leader.level`）**同名不同义**：「首席但本月 7 单」**同时命中** `chief` 与 `trainee`，两个值都「对」、只是语义不同 —— **同名不同义比「两个名字同一义」更危险：编译器与类型系统都拦不住**；出参改为 **`effectiveLevel` + `derivedLevel`**（**旧 `level` 删除、不留别名** —— 留别名等于让漂移回来），`nextLevel` / `progress` 由**服务端**按生效等级在阶梯上推导（`progress()` 加首参 `effectiveLevel`：非法值记 warn 并兜底 index 0，否则 `indexOf` 返回 `-1` 会被下游误读成「已达最高级」，又一个不报错的错）—— **端上不再复刻阶梯与门槛**（`commission.vue` / `profile.vue` 删 `ladder` computed 与 `LEADER_LEVEL_META` 引用，避免每个读侧各写一份推导），`e2e-m2` L16 断言改写并**显式断言旧字段 `mine.level === undefined`**；⚠️ **为什么长期没人发现**：原型 P16/P20 的演示数据是「首席 + 本月 186 单 + 推荐 5 名」（**业绩达标**），两个 `level` 恰好相等，**原型自己看不出这个矛盾** —— 换一套不达标数据（本仓种子 `dev:1001`）立刻暴露，故纪律沉淀「**演示数据必须至少有一组落在边界/不达标侧**，否则版式对齐会掩盖语义缺陷」。**验收**：`gate.mjs all verify` **20/20** · e2e m1 **45** / m2 **126** / m3 **1007**（**与基线一致**，M5-11 只改写 m2 的 L16 断言、未增删条数）· `seed:demo` 自检 **13/13** + 1 条如实告警 · 探针 **83/0** · 基线清单 **298/298** → **299/299**（+1 = 新增的 `leader-lookup.service.ts`）· `SCAFFOLD_KEY` **新增登记 1 项**，并做收尾机械比对（本批新增文件数 1 = 表增量 1，无整批漏登）+ ㉚ **M5-9 收尾（人工测试入口卡 + `local-test --build` 守卫修复 · 纯工具链 · 零 DDL · 零错误码 · 门禁仍 20 道）** —— ① 新增 `scripts/make-qr.mjs`：把「本机 IP / 四个入口端口 / 后台账号」固化成一页**可打印可转发**的《人工测试入口卡》（二维码 = **内联 SVG**、**零外部资源** → 离线与打印都能显示；另出 4 张 PNG 便于转发），⭐ **生成后反解校验**（`jimp` + `qrcode-reader` 把 PNG 解回来**逐条比对 URL**）—— 二维码**编错了肉眼看不出来**，而「IP 或端口拼错」要到「测试人扫了打不开」才暴露，**编一遍解一遍是两条独立代码路径**；⚠️ 交付物**刻意带 `_` 前缀**（`_ABox一盒人工测试入口卡v1.0.html` + 同名 PNG 目录）故**不进本冻结清单**（含 IP 与生成时刻、**内容易变**；一进就重生成一次飘红一次，**恒红的检查等于没有检查**）—— `_` 前缀是仓库既有的「生成物 / 不进冻结集」标记，生成器 `scan()` 与 `verify-manifest.mjs` 的覆盖性检查**两边都显式跳过**；② ⭐ **修一处真缺陷：`local-test.mjs --build` 在「已经构建过」的机器上必失败** —— H5 产物 `dist-h5/assets` 轻松超 50 文件，而 uni-app / vite 构建前的 `emptyOutDir` 会 `fs.rmSync` 整个目录 → 撞沙箱 bulk-delete 守卫 → vite 汇总成 `x Build failed`，**看起来像代码编译不过、实际代码一行没错**（`build:mp` / `build:admin` 走 `gate.mjs`、自带这层保护，而 **H5 走 `local-test.mjs`、没有 gate 兜底** —— M5-4 引入起一直是坏的，这次给测试人起环境才第一次踩到）；修法与 `gate.mjs` 的 `swapAwayOutDir` 同源：构建前把整个 outDir **`rename` 到系统临时目录**（rename 是**单次系统调用、不计入配额**，临时目录本身也在豁免名单内），构建后删掉临时副本；③ ⭐ `SCAFFOLD_KEY` **补登 2 项**（`scripts/local-test.mjs` / `scripts/make-qr.mjs`）—— 同属既有判据「验证路径本身也要冻结：门禁执行器 + 端到端验收（**含起服务托管**）」，其中 `local-test.mjs` 是 **M5-4 引入时整批漏登**（旧判据对漏登**完全无感**：两边自洽、照样全绿）；④ **实测（不写成「应该能通」）**：经**局域网 IP 192.168.0.102**（**非** 127.0.0.1 —— 证明真的绑在 `0.0.0.0`）四入口全 **200** · H5 产物内**无任何写死的 IP**（`apiBaseUrl:"/api/v1"`）· ⭐ **经同源代理真实登录成功**（`POST /api/v1/auth/login {{code:'dev:1001'}}` → **201 + token + `isLeader:true`**），即「页面 → 同源代理 → 后端」这条**手机实际路径**实测贯通；`format` / `lint` 全绿 · 入口卡**反解 4/4**）+ ㉙ **M5-9 演示 / 边界数据集（人工测试前置 · 零 DDL · 零新增错误码 · 门禁仍 20 道，新增门禁名 `seed:demo`）** —— 在基础种子之上**叠加**一层演示数据（**34 单 · 订单 11 态全覆盖** · 退款四态 · 提现五态 · 佣金两段式（`pending`/`settled`/`cancelled` + `reversal` 负行）· 发票三态 · 配送四态 · 套餐三档单价），**刻意不并进 `seed.ts`**：`seed` 是 e2e 前置，而 `e2e:m3` 有多处**绝对值**断言（D1 排期格数 / 三味屋当日加工场所数 / 发票分母 / 干净候选池）依赖「库里只有基础主数据」，并进去会让这些断言**全红** —— 那是与被测产物无关的**假红**。数据只用**楼群 4/5**、楼栋 8/9/11/12、专用 `openid LIKE 'demo_abox_%'` 与单号前缀（`ABDEMO`/`WDDEMO`/`RFDEMO`/`DMDEMO`），与 e2e 密集使用的 1/2/3 楼群**完全错开**；⭐ **本批最有价值的发现：数据「在库里」≠「页面默认视图看得见」** —— 后台有 **4 处**页面的默认日期就是**今天**（佣金明细 / 打包任务 / 看板「今日」档 / 配送单取最近配送日），只补历史日期会让人打开**空表**并**误记成缺陷**；而今日完成的单**天然**是佣金 `pending` 的最佳样本（T+1 02:00 才入账），**无需人为构造** —— 故补了「今天」这一天；自带 **12 项自检**（11 态覆盖 / 分配孤儿 / `sold_count` 口径 / 金额闭合 / 佣金逐笔复核 / 同用户同日不重复 / 不占「明日」窗口 / 无团长楼栋归属为 NULL / 资金恒等式 / 在途提现不透支 / **楼 8 团长转交分界（同楼两费率快照）** / **佣金两段式账期**），任一不过即 `exit 1`；⭐ 另建**页面可用性探针** `tests/_probe-demo-data.mjs`（**77 项**断言 · 走真实 HTTP 与页面默认视图 · 刻意**不进**门禁）—— 首跑即盘出 **2 处数据层真缺口**：① 发票「**部分开票**」此前**永远造不出来**（把 `none` 当成了部分开 · 而未付款行**不进开票分母** → 供应商 2 仍被判「全开」、`partialCount` 恒为 0，**不报任何错、界面只是少一块内容**）② 佣金曾写成「`completed` 一律 `settled`」，会让**今天的单凭空多出一天账期**；另 **6 项红是探针自身的错**（响应形状假设写错：`building-rank` 是 `groups`/`buildings`、余额冻结字段是 `frozenFen`、对账 `list` **只装差异行**故「空」才正确、打包任务出参是 `centers`）—— 判据沉淀：**自检 ≠ 可用性探针**（「写进库是对的」不等于「接口按页面默认视图给得出」）· `local-test.mjs` 的 `--seed` **默认同时叠加**演示数据（`--demo=0` 退回干净库）· 顺带纠正一份**过时文档**（《种子数据清单》§九 原写的六单样例**从未落地**）· 门禁 **仍 20 道**（`seed:demo` 是种子层门禁名，不计入验证道数））+ ㉘ **M5-7 代码审查修复批次（资金链并发收口 + 状态机对账门禁）** —— 输入《代码整体审查与缺陷汇总 v1.0》§二 **21 条发现**，按「能落地修复的全部实施」执行：**4 条 P1 资金链缺口 + 1 条 P1 安全默认值 + 5 类 P2 加固项全部落地**（资金链四处收口 = 一处**原子占位**覆盖余额/佣金/通道三段 + 三处**乐观锁** + **无账户 fail-closed `40019`**；写钱入口**两层齐备** = 服务层原子占位 + 控制器 `@Idempotent`）；⭐ **新增门禁 `state:audit`**（状态机「声明 ↔ 写入点」机械对账：声明源 = `import ORDER_TRANSITIONS`，写入源 = 扫 `.update(Order).set({{status:…}})`），门禁 **19 道 → 20 道**，**首跑即报出第二处此前无人登记的漂移**（`ORDER_TRANSITIONS[refund_applying]` 仍声明 `→ refunding`，而 M4-3 起订单不再进该态，通道进度改由 `ab_refund.status` 表达）；e2e m3 **969 → 980**（新增 §33b 11 条断言：幂等键回放 `10006` · 余额乐观锁 `version` **恰好 +1** · 无账户 `40019` 且整体回滚）；**新增错误码 2 个**（`40018`/`40019`）· **零 DDL · 零新表 · 零新列 · 表数仍 27** · 新增 2 份交付物登记（现行 36 → 38）；⚠️ **#79 订单履约链 T7–T9 未实现**（只做「测试清单标注依赖」+「根因建门禁防漂移」，实现待产品范围裁决）· ⚠️ **资金链并发断言本地不可验**（e2e 走 sqlite 单连接把事务**串行化**，本测**不具鉴别力** → 转真机 MySQL）；⚠️ 并更正原审查报告一处**因果误判**（#83 根因不是「豁免放过了默认值」，而是**压根没有规则命中**））+ ㉗ **正式测试前全量排查（QA 批 · 非功能批）** —— 五维审计（功能逻辑 / 边界与异常输入 / 错误处理与日志 / 性能与资源 / 代码规范与一致性）：4 路只读代理 + 主审运行时实测（28 项边界/越权/幂等，**零 500**）+ ⭐ **契约 vs 实现对账**（规范 91 端点 vs 实装 135）；⭐ **已修复 2 项**（P0 红线 emoji `apps/admin-web/src/views/order/list.vue:226` · 全局异常过滤器两处口径）· **未修复 9 项**（含位置 / 原因 / 建议验证方式）· **误报澄清 3 项**（含反证）· 门禁 18/18 复跑全绿 · **零 DDL · 零错误码 · 表数仍 27** · 新增 4 份交付物登记（现行 33 → 36）· 复盘方法沉淀 `~/.workbuddy/skills/local-first-fullstack-dev/references/08-pre-release-audit.md`）+ ㉖ **M5-3 试运营交付 + 安全自检 + #49 时间类配置接调度**（收口 **#49 · 关单** · 试运营两卡（团长操作卡 / 供应商出餐卡）· 新增门禁 `route:audit` / `security:scan` → **18 道** · 时刻唯一真相收敛到 `order-timeline.ts` + cron **运行时注册与热重载** + `24:00` 合法化 + 跨键自洽校验 · 零 DDL · 零错误码 · 表数仍 27）+ ㉕ M5-2 生产迁移补齐 + 结构对账门禁（收口 #76 · 补 2 表 + 9 列 + 1 索引 · 新增 `schema:parity` 门禁 · 零错误码 · 表数仍 27）+ ㉔ M5-1 配送单人工修正（D61/D62 · 收口挂账 #61 · `version` 乐观锁 30016/30017 · 零 DDL · 表数仍 27）+ ㉓ M5-0 部署运维基座（探针**分级** liveness/readiness + 优雅关闭 + 生产迁移 glob 双匹配 + 双 Dockerfile / nginx / compose.prod + 五个运维脚本 + 部署运维手册；修真缺陷 **#71–#75**）+ ㉒ M4-4 提现审批（D45 列表 + D46/D46a/D46b/D46c 四动作 · 资金链收口 + 团长余额真源收敛 + 角色白名单单一真相）+ ㉑ M4-3 队列贯通（BullMQ 三消费者 + 订阅消息投递点 + 外部通道移出 DB 事务）+ ⑳ M4-1 日切链路 + M4-2 结算链路 + ⑲ M4-0 契约级修正 + S3 打包任务迁运营后台 + ⑱ M3-15 微信支付对账 D43 + 发票管理 D44 + ⑰ M3-14 余额账户管理与调整 D38–D39 + ⑯ M3-13 财务端点 D33–D35 + ⑮ M3-12 通知模板 D59–D60 + ⑭ M3-11 数据看板 D47–D50 + ⑬ M3-10 系统配置 D57–D58 + ⑫ M3-9 应付结算 S9 + ⑪ 上线路线回归自营 —— 四项详见下方；① C9 结算口径修订：成本项可配置 · 平台毛利为结果值 · 原型升 v4.10.0 · 废弃《产品方案 v1.0》移入 `archive/`；② M2-2.1/2.2 落地：团长叠加身份 + 申请即生效，`ab_team_leader` 补回 `floor`，「团长在职」判据统一 `status = 1`，等级值统一 `formal`；③ 验证路径纳入冻结：`scripts/gate.mjs` / `e2e-m1` / `e2e-m2` / `lib/e2e-server.mjs`；④ M3-1 后台鉴权基座落地：**双主体隔离**（小程序 `ab_user` 与后台 `ab_admin_user` 各自独立账号，靠 JWT `typ` 按路径隔离，越权 = 10002/10003）· 角色→菜单**以代码为唯一来源**（`admin-role.ts`，一期不建 `ab_admin_role` 表）· 令牌吊销走 KV（改角色/停用后旧 token 立即失效）· 声明式操作日志 · 错误码补 `20009`/`20010` · 验证路径纳入 `scripts/e2e-m3.mjs`；⑤ **M3-2 套餐编排 D1–D7 落地**：`创建 ≠ 上架` 两步分离（D2 建 pending，D4 才 active）· 矩阵返回**完整网格**且 `emptyBuildings` 由楼栋状态派生 · 已截单不许上架（`30013`）· D5 批量复制**不覆盖**已存在项 · D7 由菜品**反查**供应商并求和成本（前端不提交 `supplierId`/`costPrice`）· 错误码补 `30011`/`30012`/`30013`；⑥ **M3-3 订单中心 D8–D12 落地**：D8 返回**完整网格语义**且 `tab=abnormal` 不含 `cancelled`、`summary` 不受分页影响、**后台列表同样脱敏**（全号只有 D12 导出且强制留痕）· D9 `actions` 把按钮可用性口径收到服务端 · D10 改单给的是**目标值不是增量**（重试不翻倍）、改份数仅限未支付、改取餐楼须**同楼群**（`30015`）、过截单 `30014` · D11 后台强制退款拆两路（微信原路退 + 余额单独退回）、`amountFen` 是防误操作参数（不符 `40011`）· **C9 反向结算**：原记录不得改写（冲销写负行、原行只翻 `cancelled`）、毛利留存、应付三态（未生成时不造空冲销行）· 错误码补 `30014`/`30015`/`40009`/`40010`/`40011`）；⑦ **M3-4 退款审批 D40–D42 落地**：C6 三段式收口 —— 审批与实退**同事务**（唯一执行口 `executeRefund`）· 驳回资金零变动且订单回 `ab_refund.order_status_before`（**缺列值 40014 fail-closed**，不猜默认值）· 仅 `applying` 可批（否则 `40013`）· 审批时**重算可退额**不符即 `40011` · 两级白名单（类级含 `operator`，D41/D42 方法级收窄到资金角色）· 错误码补 `40012`/`40013`/`40014`；⑧ **M3-5 后台团长管理 D19–D22 落地**：名录/流水/详情（操作日志按**团长 id 与 用户 id 双键**查）· 任命与转交闸门 `20012`（回带 `occupiedBy`，现任**停职而非删除**）· 改等级**同步写 `commission_rate`** · 停用/复职只走 D22 单一入口 · 两级白名单 · 错误码补 `20011`/`20012`/`20013` · **零 DDL 变更**；⑨ **M3-6 后台供应商管理 + 集散 D23–D32 落地**：列表脱敏 / 详情才回真实手机号、**银行账号原文任何接口不回** · 新建即 `audit_status=pending` · 资质审核与 `status` **正交**（驳回不自动下架）· 类型闸门 `50008` 三入口同拦 · 集散中心软删两道前置（错误信息给「改用停用」的出路）· `serviceGroups` **整体替换**（传空数组即清空）· **`ab_supplier` 补 7 列**（本批次唯一 DDL）· 操作日志拦截器**响应体兜底取新建对象 id** · 错误码补 `50003`/`50005`/`50006`/`50007`/`50008`；⑩ **M3-7 后台办公楼与楼群 D13–D18 落地**（原型 P37 五视图）：**状态三态修订** `BuildingStatus`（1 营业中 / 2 待开通 / 3 已暂停）修掉旧种子「待开通与已暂停都写 2」的**一值两义**缺陷（楼群**刻意保持二态**）· **覆盖缺口三因** `DistributionGap`（`none`/`no_group`/`no_center`/`all_center_disabled` —— 三种成因三种修法）· **集散主备与路线号 R1…Rn 全派生不落库**（真源 `ab_distribution_center.service_groups`；且**不返回距离/时长** —— 无地图数据，原型 km/分钟是演示值）· D15 `buildingGroupId: null` = **移出楼群**、空变更 `10001`、**刻意不收 `leaderId`**（改团长只有 D20/D21 一个入口，避免绕过 `20012` 闸门）· D18 停用非空楼群 `60003` **fail-closed** 且**先搬楼再判闸门**（一次请求内「清空成员 + 停用」放行）· `ab_building` 增 `population` 列（**唯一 DDL，无新表**）· 错误码补 `60001`–`60005`（新号段 `6xxxx 主数据`））
+> **⑩ 本批次（M3-8）**：供应商端出餐确认 S1–S3 落地 —— 生产计划**惰性生成且生成即冻结**（只生成 `planQuantity > 0` 的行）· 09:30 deadline 是**截止点不是最早点**（迟于出餐日 09:30 一律 `50009` fail-closed，**不接受补确认**）· 确认粒度 = (供应商, 菜品, 出餐日, 集散中心) 逐项**幂等** · 父表状态由明细**派生** pending/cooking/done（不新增 `partial`）· S3 打包闸门 `ready` 依赖全中心确认，非集散型主体 `visible=false`（HTTP 200 而非错误）· 请求体**刻意不收 `supplierId`**（收下即 `10001`）· **新增表 `ab_supplier_dish_center_daily`**（本批次唯一 DDL）· 错误码补 `50009`/`50010`/`50011`；**⑪ 上线路线裁定**：由 v1.1 的「第三方平台路线」**回归「单主体自营 + 半成品供应链」**（2026-09-16）—— EDI 许可证 / 网络食品交易第三方平台备案 / 电商收付通与二级商户号**全部撤销**，资金定性恢复「自营 → 不涉二清」，核心长周期项变为**《食品经营许可证》（热食类制售）**，详见《上线资质与平台准入清单 v1.2》；**⑫ 本批次（M3-9 应付结算 S9）**：**自营口径首次实装**（**零 DDL**）—— ① 回退 M3-3 `reverseSupplierShares()`：退款**不再冲减**供应商应付，改为显式声明 `supplierShareAdjusted=0` + `supplierShareMode='not_applicable'`（保留字段让「应付分文未动」可断言）；② 出单 `POST /admin/supplier-shares/generate` —— 计费基数 = **实收量**（`NULL` 视为足额），⭐ **单价取 `ab_supplier_dish_daily.unit_price`（生成即冻结的协商价快照）**、为空才回落 `ab_dish.cost_price`（并据此修正口径文档 §4.1）；③ **四闸 fail-closed**（资质异常 / 父行未 `done` / 实收为空 / 实收 0）→ 不出单、进「未出单异常清单」，**补齐输入重跑即可补出**；④ 付款登记仅 `pending` 可（`50012`）、回单号必填（`50013`）、同一回单号不得用于两笔；⑤ **幂等走软层、刻意不建唯一索引**（本表含 `type='reversal'` 负行，同键正负两行是合法冲销）；⑥ 供应商端 S9 `GET /supplier/settlement` 复用财务侧 `SupplierShareService.supplierView()`（运营与供应商**只有一份实现**），出参含**跨日期**待付合计、**不变量 I1 落在结构层**；⑦ 跑批 `SupplierShareTask`（T+1 02:00）与手动补跑共用同一执行口；⑧ 权限两级白名单（类级含 `operator`，`generate`/`payment` 方法级收窄到资金角色）；⑨ 错误码 `50012` `50013`（**`50014` 取消并释放号位** —— 「确认未完成 → 不出单」是常态待办，做成错误码只会让运营看到「出单失败」看不到「哪几家没确认」）；⑩ `e2e-m3` 新增 **§21**（41 条断言 · 不依赖下单窗口）；⑪ 顺手清掉残留旧语境（供应商端「分账单价」、集散页「复用合作供应商场地」、`seed` 的 `settlement.site_fee` 文案、`finance.entity` 列注释）——自营下这些字样与口径矛盾，留着就是「两个真相」；⑫ `SCAFFOLD_KEY` 增 **9 项** M3-9 契约载体；**⑬ 本批次（M3-10 系统配置 D57–D58 · P36 · 零 DDL · 零错误码）**：① ⭐ **本批次最大产出是「如实标注未接线」** —— 逐键排查 `ab_config` 全部 30 项配置的**真实消费点**，发现 **9 项「种子里配了、服务端代码从不读取」**（`set_meal.publish_time` / `cutoff_time` / `delivery_arrival_time` · `commission.auto_confirm_time` / `settle_hour` 的实际调度**硬编码在 `@Cron()` 装饰器**里 —— NestJS 的 cron 是**静态元数据**、不读配置；`distribution_center.default_count` / `rice_fee` / `pack_fee` · `supplier.settle_cycle` 的口径已改表驱动或代码常量）。这些键**继续展示但置为只读 + 点明原因**（`wiring='unwired'` + `unwiredReason` 直指是哪个 task），而不是给一个「看起来能改、改完没反应」的输入框 —— **让运营改一个不生效的值，比不给他改更糟**；另 2 项为**策略标识**（`negotiated` / `residual`）同样只读（存的是策略名，塞金额进去会污染口径记录）；② **`CONFIG_SPECS` 单一真相**：一份声明同时驱动 D57 分组/文案、D58 白名单/取值范围、前端控件类型（标签写前端 + 校验写 DTO + 可写判定藏服务方法 = 同一个键三份定义互相漂移）；③ **写入三条纪律**：**白名单**（未知键 → `10001` 而非静默忽略；未接线项与策略标识**一律拒写**）· **整批原子**（任一项不合法 → 整批不写入，部分成功会让「二次确认」失去意义）· ⭐ **写完同步 `invalidate()`**（`BizConfigService` 有 60s 进程内缓存，等 TTL 就会出现「配置页已改、业务仍按旧值跑」—— 本项目头号顽疾「两个真相」）；④ ⭐ **percent 单点换算**防 100 倍错误：入参/出参都是百分数（`8` = 8%）、库内存 `0.0800`，换算只在 `normalizeForStore` 一处（e2e 用「写 8.5 → 库内必须 0.0850」钉住）；⑤ **数值格式前置校验**：`Number('')` 是 0，不先过正则就会把「清空金额框」静默存成 `0.00` —— 对成本项就是「悄悄变回未登记」且毫无提示；⑥ **库中缺失键的处理**：`order.pay_timeout_minutes` / `settlement.supplier_total_default` 不在种子里、靠代码兜底运行 → D57 显示 `valueSource='fallback'` + 兜底值（空白会让运营以为「配置丢了」，而系统其实正按该值在跑），D58 首次调整时 **INSERT** 新行（UPDATE 不到就失败 = 这个值永远改不了）；⑦ **履约成本登记判据单点化**：`isCostRegistered()`（值 > 0）落 `shared-utils`，**D57 配置页与 D47 看板共用**（否则出现「配置页说已登记、看板说未登记」）；D57 的 `meta` 刻意走 `BizConfigService.settlementCostState()`（**经缓存**），使「写完即时生效」可被 e2e **真实验证**；⑧ 权限沿用类级 `super_admin` / `admin`（**刻意不收窄到只放超管** —— `admin` 本就能改供应商结算账户，改系统配置不构成新的权限升级）；⑨ `e2e-m3` 新增 **§22**（35 条断言 · 不依赖下单窗口 · **夹具节末全量还原** —— 配置是**全局**的，不还原会把「费率 8.5」这类副作用留给重跑）；⑩ `SCAFFOLD_KEY` 增 **7 项** M3-10 契约载体；⑪ ⚠️ **登记一项独立待办**（《缺陷与陷阱》**#49**）：时间类配置与调度**分家** —— 配置写「截单 23:59」、`cutoff.task` 在 `00:00` 跑、下单窗口实为 `[14:00, 23:00)`，**三者对不齐**；动态化需改 `SchedulerRegistry` 或 `@Interval`，会动到**下单窗口**（e2e 全量依赖 14:00–23:00），属独立验收项；**⑭ 本批次（M3-11 数据看板 D47–D50 · P35 · M36 · 零 DDL · 零错误码）**：① ⭐ **口径唯一真相 `stats.constants.ts`** —— 状态集合 / 区间档位 / 基数选择 / `topN` 上限 / cohort 周数全部收一处，D47/D48/D49 三处**同源**（看板每个数都是「多表 + 一组状态 + 一条时间轴」聚合出来的，同一指标极易在两处各算一套，漂移后就是「总额 ¥4,798、分项加起来 ¥4,301」—— e2e 用 `D48.totalGmvFen === D47.metrics.gmvFen` 钉死）；② ⭐ **修正 §6.6 的 GMV 口径**：原写「已完成订单、不含已退款」→ 实装为「状态 ∉ 未支付 / 已取消 / 已退款（`pending_pay` / `cancelled` / `refunded`），**含在途退款**」—— 在途退款钱未退、佣金未冲销，剔除会造成「钱已收但 GMV 不计、佣金却还在支出」的**双向错配**，四个减项必须放进**同一等式**才算得平；③ **成本侧取净额**：采购款剔 `status` 为 `cancelled` / `reversed` 的行、佣金剔 `status='cancelled'`，`type='reversal'` 负行**必须计入**（只取正行会把已纠错的应付又算一遍）；④ **履约成本 = 三项配置单价之和 × 份数**（`settlement.site_fee` / `packing_labor_fee` / `delivery_fee`；**不含** `supplier_total_default` —— 种子兜底示例值，采购款走实际应付单，两者都扣即重复计成本）—— 这是 M3-10 三项配置的**首个真消费者**；⑤ ⭐ **毛利可靠性提示**：履约成本未登记（复用 `summarizeCostRegistration()`，与 P36 配置页**同一份实现**）或采购应付单未生成 → D47 出 `warnings`「上限值」；⑥ **经营毛利可为负是刻意保留的信号**（退款订单采购款仍要付，故该部分毛利为负，前端标红）；⑦ **区间只开 `today/7d/30d` 三档**、缺省 `7d`、**含末日**，**非法 `range` → `10001` 不静默回落**；基准 = **出餐日**；`trend` 每天一行且 **Σ 逐日 GMV = 区间 GMV**；⑧ ⭐ **D49 按菜品合并**（一菜多套餐必须并一行，拆分即热度腰斩；占比分母 = 全部份数而非 `topN` 之和）；⑨ ⭐ **D50 留存数字成对下发**（窗口未走完 **或** 群为空 → 双 `null`；两种 null 语义不可混用）、新客看**全历史**首单、cohort 按**自然周（周一为始）**；⑩ ⭐ **权限白名单必须含 `viewer`**（其菜单只有这 4 个看板页，漏了就是「菜单能点、点了报 10003」）；⑪ **实现选型：取行回内存聚合、不下推 SQL**（`SUM(decimal)` 跨驱动归一不一致 + 三处必须同源；单量破万再下推，届时只改一个文件）；⑫ **顺手清掉三处「两个真相」**：删掉 `stats.constants.ts` 两个**从未被引用**的常量（`STATS_EXCLUDED_STATUSES`、`REFUND_RATE_EXCLUDED_STATUSES` —— 后者注释描述的是「按 `ab_refund` 算」这套**没有采用**的算法）+ 文件头旧 §6.6 文案同步 + `core-metrics.vue` GMV 副标题由「不含已取消 / 已退款」（漏未支付、且与「在途退款计入」矛盾）更正为「不含未支付 / 已取消 / 已退款（**在途退款计入**）」；⑬ `e2e-m3` 新增 **§23（61 条断言 · 不依赖下单窗口 · 夹具节末全量还原）**，用**增量对照 + 结构不变量**而非写死累计值（看板是**全局**聚合，不还原会把凭空多出的 GMV / 佣金 / 采购款留给重跑）；⑭ **修掉一条「测试写错、代码没错」的假红**：D49 断言原把共享菜当独占菜写死 `+5 份`（实测 `#4`/`#6` 应为 `8 份`），改为**从 `ab_set_meal_item` 推导期望值** —— 断言写死数字等于把「数据形状的巧合」当成契约；**⑮ 本批次（M3-12 通知模板 · P36 · D59–D60 · 新增第 27 张表）**：① ⭐ **存储选型：新建独立表 `ab_message_template`，而不是塞进 `ab_config`** —— `CONFIG_SPECS` 的类型系统是**扁平标量**（money / percent / int / text / time），撑不住「场景 + 多渠道 + 变量白名单 + 启用闸门」这个**结构化**整体；硬塞只有两条路：JSON-in-`config_value`（则 D58 的白名单与单点校验失效、校验逻辑四散 → 立刻多出第二个真相），或拆成十几个扁平键（则「一个场景」在库里不存在、`ab_message` 也无从对应）。⭐ **一处规格纠偏**：《接口规范》§八 原把 `ab_message` 列入 P36 依赖 —— 实查它是**推送日志**表（只增，记「发过什么」），**不是模板定义**，故新增第 27 张表并同步登记 §八 映射表；② ⭐ **场景定义是代码事实，不落库**：`scene` / 渠道组合 / 触发时机 / 变量白名单 / 是否必推全部收在 `message-template.specs.ts`（原型 P36 卡片 5 行逐行对应）；库表只存**可编辑部分**（`enabled` / `wechatTemplateId` / `groupContent` / `updatedBy`）。落库必然漂移成「库里写着走微信群、代码只发订阅消息」这种**无法自证**的矛盾；③ ⭐⭐ **启用闸门 fail-closed**：每个渠道有**必要条件**（`wechat_subscribe` → 模板 ID；`wechat_group` → 文案），缺一即**拒绝启用**（`10001`）—— 放行的后果是页面显示「已启用」而投递必然失败，用户永远静默收不到且**没有任何地方显示异常**；判定按**改动后的最终状态**（不是只看本次提交的字段），否则可「先清空模板 ID，再单独发一次 `enabled=1`」绕过；判定函数 `missingForEnable()` 落在 `specs`，**管理侧（保存前）与投递侧（能否发）共用**；④ ⭐ **接线状态两级如实标注**：**场景级** `wiring`（`live` = 有真实投递点 / `pending` = 一期无，**必附 `pendingReason`**）+ **字段级** `fieldWiring`（`enabled` / `wechatTemplateId` = `live`；`groupContent` = `record_only` —— 供人工复制发群，**不是程序行为**）。一期 `live` 仅 `refund_result` 一条；⑤ ⭐⭐ **明写「微信订阅消息的文案由微信公众平台侧定义」**：订阅消息内容在公众平台按模板 keyword（`thing1` / `time2`）定义，服务端只能往 `data` 填值 —— 页面 `note` 直接讲清「改本页文案**不会**改变用户收到的订阅消息」，否则运营会以为改了文案用户就能看到新内容（M3-10「给了输入框却没接上线」的同类）；⑥ **变量白名单 + 边界**：`{{变量}}` 必须 ∈ 该场景 `variables`，否则 `10001`（写错的变量发送时不被替换，用户直接看到 `{{xxx}}` 原文）；**只有双花括号算占位符**，单花括号 `{{3}}` 不匹配（否则「今日共 {{12}} 份」这类自然文本会被误判拒写）；⑦ **只读字段拒绝而非静默忽略**：全局 `ValidationPipe` 已开 `forbidNonWhitelisted` → DTO 未声明的 `scene` / `channels` 直接 `10001`（**静默忽略更糟：调用方以为改成功了**）；**「未传」与「传 null」是两种语义**（缺省 = 不改、显式 `null` = 清空），判据 `!== undefined`（见《缺陷与陷阱》#46）；空请求 → `10001`；⑧ ⭐ **真消费点 = 退款结果通知**：`refund.service.ts` 的**两个执行口**（D11 强制退款 / D41 审批通过）在 **`dataSource.transaction()` 返回之后**调 `MessageService.notify()` —— ⭐ **必须在事务外**：事务里发了通知而事务回滚，就是「用户收到退款通知但退款并未发生」。`notify()` **不抛异常**，问题全部收敛进返回值，调用点再兜一层 `try`（退款已成功、钱已出去，通知失败只能是「这次没通知到」）；`userId → openid` 换算归投递侧（业务侧不该为发通知去 join 用户表）；⑨ **投递侧实装原空模块**：`message.service.ts` 原为 `export class MessageService {{}}` 的零实现占位，本批次实装；同时**删除 `wechat-template.service.ts` 与 `templates/index.ts` 两个零引用死占位**（「模板定义该写哪」由此**只有一个答案**）；⑩ **未启用 = 不投递且不留日志**：`ab_message` 的语义是「**发过什么**」，把「因为没启用所以没发」也写进去，这张表就失去查询价值（e2e 用「关闭场景退款 → 日志增量 0；启用后同操作 → +1 且 `status=success` 且 `template_id` = 后台刚配置的值」把这条钉死 —— 配置**真的被用上了**，不是代码里的常量）；⑪ **不引入缓存**：全表 5 行、只在「打开管理页」与「产生一条退款通知」时读，属低频路径；**没有缓存就没有「写完忘了失效」**（将来读频率上来再加，届时必须同时补 `invalidate()` 调用点，代码注释已留此约束）；⑫ **种子由 `MESSAGE_TEMPLATE_SPECS` 派生**（不存在第二份场景列表）：只有 `leader_delivery` 启用（含微信群渠道，人工发群只需文案，不依赖尚未申请的微信模板 ID），其余 4 个 `enabled=0`，如实反映「一期没有微信账号」；库中「有行但声明里没有」的场景**不展示 + 大声记 WARN**；⑬ **错误码零新增**（闸门 / 变量 / 只读字段 / 空请求 → `10001` 且 `data.fields` 回带逐条中文说明；目标不存在 → `10004`）；权限沿用类级 `super_admin` / `admin`，`operator` / `finance` / `viewer` / `supplier` / 小程序 token → `10003`、未登录 → `10002`；`@OperationLog({{ module:'system', action:'编辑通知模板' }})`（必须能回答「谁在什么时候关掉了退款通知」）；⑭ `e2e-m3` 新增 **§24**（47 条断言 · 不依赖下单窗口 · 夹具逐字段还原）；⑮ ⚠️ **本批次自测抓到一处设计不自洽（已修为真缺陷 #50）**：原型把「团长送达通知」写作**双渠道**（微信群 + 服务通知），照抄进 `specs` 后该场景在种子里是启用态、却必然缺订阅消息模板 ID → **「已启用」与「启用闸门」互相矛盾**，首跑 6 条红（位置分散、根因同一）。修法：`channels` 改**单渠道 `['wechat_group']`** —— **渠道是代码事实，代码一期只发人工群就照实写**（二期接服务通知时改 `specs` 加渠道即可，闸门会自动开始要求模板 ID）；⑯ ⚠️ 同批次另登记 3 条**测试侧**教训进《缺陷与陷阱》§三（独立块作用域导致跨节 `const` 不可见 → 整节 `ReferenceError`；幂等断言须用**当前值**而非本节快照，并补「不同 → 恰好 1 项」的反面对照；出参是视图对象 `{{list,summary,note}}` 不是数组）；⑰ ⚠️ **收尾 `verify` 抓到并修掉一条「顺序脆弱型假红」**：§23 原写 `ΔactiveLeaderCount === 1` / `ΔactiveBuildingCount === 2`，而 Δ 隐含「这些主体在本节之前**不活跃**」—— e2e:m1/m2 与 §15/§16 会在**同一 7d 区间**留下**同一** leader / 楼栋的有效单（实测留有一单 `refund_applying` · `team_leader_id=1` · `building_id=1` · 出餐日 = 今天），`before` 基线已含该主体 → Δ 由 1/2 变成 0/1。症状极典型：**`seed → e2e:m3` 单跑全绿、`verify`（seed→m1→m2→m3）串跑两条红**，且失败点与被测产物（stats 去重逻辑）**完全无关**。**修法**：改为**库内对照 oracle**（同口径 SQL 独立算一遍，断言 `api === oracle`，与基线无关）+ ⭐ 补一条「本节夹具自身贡献 2 栋不同楼栋 / 1 名团长」的**结构断言**（否则等式两边同为 0 也能过 —— 只换 oracle 不补这条等于把断言改空）。⚠️ **纪律升级：「增量对照」不是万能 —— 对『多章节共享的主体』天然失效**（用户维度可 Δ；共享维度不可 Δ）；`verify` 四段串跑全绿（m1 38 · m2 121 · **m3 708**）。
+**⑯ 本批次（M3-13 财务端点 D33–D35 · P34 · 零 DDL · 零错误码）**：① ⭐ **最大决定是「D33 不自己算一套口径」** —— 收入 / 成本 / 履约 / 毛利 / 逐日趋势**全部取 `StatsService.dashboard()`**（与 D47 看板**同一个函数**），故「财务页的 GMV」与「看板的 GMV」在**结构上不可能漂移**；e2e 用「GMV / 单量 / 佣金 / 采购 / 毛利五项与 D47 **逐项相等**」钉死（gmv 7740/7740 · commission 335/335 · purchase 75000/75000）—— 若哪天有人把它改回自己 `SUM(...)`，这条立刻红；② ⭐ **逐日分项之和 === 区间总额**（同一份数据的两种切法，互为正反面），且 `daily` 与区间**等长**（无单日补 0 —— 端上不必自己补齐空洞，图表不会断档）；③ ⭐ **`range` 复用 `STATS_RANGES`**（today / 7d / 30d）**不另立「日/周/月」** —— 同一句话在两页指两个区间是最难查的一类对不上账；非法 `range` → `10001`（**不静默回落**：回落会让运营以为看的是 90 天）；④ ⭐ **`date` 是区间终点锚点**（起止仍由 `range` 推导，**不是自由起止**）—— 需求来源是「期末对账要看已经过完的那一天」；该入参落在 `StatsQueryDto`，**D47–D50 同时获得**（向后兼容的扩展入参）；⑤ ⭐ **时点量 vs 区间量分离**：`liability`（余额 / 冻结 / 待入账佣金）是**时点量、不随 `range` 变化**，出参带 `asOf`；e2e 用「7d 与 30d 两次请求该三项完全不变」钉死 —— 时点量被读成「本期新增负债」是最误导人的一类错；⑥ `payable.generated` 判据是「**是否存在有效应付行**」而非「金额是否为 0」（实收 0 的日子**也会出单**）；`payableStatus` 四态 `none`/`pending`/`paid`/`partial` 是**给人看的**，中文文案服务端下发；⑦ 已退金额的筛法：`ab_refund` **没有** `meal_date`，按出餐日筛必须回到订单表 —— 实现用 **SQL 子查询**而非 `IN (:...ids)`，因为 30 天区间可能上千单而 **SQLite 绑定变量上限 999**，拼大 `IN` 列表会「本地全绿、换驱动才炸」；⑧ D34 粒度**按出餐日**一张表（不是区间）—— 佣金明细是「一天一张」的核对习惯；扩展入参 `status`/`type`/`keyword`（M3-13 登记），非法枚举 → `10001`（不静默忽略成「全部」）；`summary` 按**同一过滤条件的全量**（`pageSize=1` 时不变）+ `byLevel[]` 按等级拆分（e2e 断言 `Σ byLevel = netFen`）；⑨ ⭐⭐ **D34 行内 `leaderLevel`/`rate` 是结算快照（C2）**：团长后来晋级，历史行仍显示**当时**的等级与费率（列头直接写「（快照）」）；e2e 用「**同一个团长**的三条佣金分别显示见习 8% / 正式 9% / 首席 12%」钉死 —— 一个团长只有一个当前等级，故这不可能是「当前值」；⑩ ⭐⭐ **D35 = M4 `commission-settle.task`（T+1 02:00）的同一执行口**（`CommissionService.settlePending`）—— 跑批上线只需把 `@Cron` 接到本方法，**不另写第二套入账逻辑**；入账段**唯一**（`accrueForOrders` 与 `settlePending` 共用 `creditCommissions`，流水文案取**佣金行快照**，否则账本会写着「首席 12%」而钱按 8% 算）；⑪ ⭐⭐ **一期 `pending` 常态为 0**：佣金在 L9 取餐确认时**即时入账**（`accrueForOrders` 直接写 `settled`），故 D35 出参**每次都**下发 `note` 说明「这不是故障、也不是钱没结」—— 否则「点了按钮 0 条」一定被当成故障报上来；⑫ ⭐ **D35 刻意不做「补计佣」**：`ab_order` **没有**「下单 / 确认时刻的团长等级」快照 → 任何事后补计佣都只能用团长**当前**等级，团长晋级后**多算佣金**；这是**结构性缺口（非实现 bug）**，故 D35 严格限定为「`pending` → `settled` 入账」；⑬ **D35 原子与并发**：**整批单事务**（不留「一半团长到账」）+ 逐行 `UPDATE ... WHERE id=? AND status='pending'` 以 `affected` 判归属 —— 并发下已被别处入账的行进 `skipped` 而非重复加钱；无归属（团长档案不存在）进 `skippedReasons`（人话）且**仍停在 `pending`**：不猜、不建号、不静默丢弃；⑭ ⭐⭐ **补账只改账、不改事实**：`creditCommissions(..., touchOrderStats:false)` 只累加 `total_commission`，**不动** `total_orders` / `last_order_at` —— 补结算不是新下单，顺手刷活跃度会污染 C2 晋级审计（按 `month_orders`）；这个 bug 极其安静（余额对了、佣金对了，只有团长的晋级进度被悄悄推快），故 e2e 专门断言；⑮ D35 入参**刻意不收金额、不收团长** —— 入账金额一律以 `ab_commission` 行为准（计佣时冻结的快照）；一旦允许传金额，就等于开了「手工往团长余额加钱」的后门；⑯ 权限两级白名单：类级 `super_admin`/`admin`/`finance`/`operator`（运营要能看资金与佣金，跟进「为什么佣金没结」），**D35 方法级收窄到 `super_admin`/`admin`/`finance`**（把钱记进团长余额是资金动作，同 D41）；**不含 `viewer`** —— `admin-role.ts` 里 viewer 的菜单只有 4 个看板页，财务页不在其中；这与 D47–D50 **刻意含 `viewer`** 正好相反，两处都是「白名单必须与菜单同源」；`@OperationLog({{ module:'finance', action:'佣金入账补跑' }})`（必须能回答「谁在什么时候把钱补记进团长余额」）；⑰ ⚠️ **顺手清掉死占位**：删除 `modules/finance/finance.controller.ts`（原 `@Controller('finance')` 空类、零引用）—— 「财务端点该写哪」由此**只有一个答案**（与 M3-12 删 `MessageService`、`wechat-template.service.ts` 两个空占位同一纪律）；⑱ `e2e-m3` 新增 **§25（33 条断言 · 不依赖下单窗口 · 夹具节末全量还原）** —— 订单与佣金夹具一律**直插** `ab_order`/`ab_commission`；D35 **真改过余额**，不还原会把「多出来的钱」留给重跑；`SCAFFOLD_KEY` 增 **5 项** M3-13 契约载体；⑲ ⚠️ 两条**测试侧**教训（进《缺陷与陷阱》§三）：**a.** 往 e2e 脚本**追加章节必须插在 `await stopApiServer()` 之前** —— 插到文件末尾时夹具（**直连 SQLite**）全部通过、**第一条 HTTP 调用**才 `fetch failed`，且日志里**没有任何服务端痕迹**（服务既没崩也没报错，只是被正常关掉了），极易误判成「服务崩了 / 端口被占」；**b.** **「幂等」不能钉 `scanned=0`** —— 无归属那条佣金永远停在 `pending`，故第二跑 `scanned=1 / settled=0` 才是**正确行为**；判据应钉 `settled=0 ∧ 余额一分未变 ∧ scanned===skipped ∧ 该行仍 pending`（首跑 1 条红，根因是**断言写错、代码没错**）。
+**⑰ 本批次（M3-14 余额账户管理与调整 D38–D39 · P34 · 零 DDL）**：① ⭐⭐ **负债合计不自己算** —— D38 的 `liability` 直接调 `FinanceService.loadLiability()`（**由 `private` 改 `public`**，与 D33 资金总览**同一个函数**）；两页各写一套 `SUM(ab_balance)`必然漂移且**没有任何报错**，只会让运营在两页看到两个不同的「平台欠用户多少钱」；e2e 用「D38 `liability` **逐项等于** D33」写前 + 写后各钉一次（改回自己 SUM 立刻红）；② ⭐⭐ **负债是时点量**：`pageSize` / `accountType` / `keyword` **都不改变**它（`total` 才是本次筛选命中数）—— 「平台还欠用户多少钱」不该因为运营敲了个昵称就变小，把 `liability` 做成「当前页求和」是最容易犯的错；③ ⭐ **D39 补第四动作 `unfreeze`**：规范原只写「充值 / 扣减 / 冻结」三动作，但**不能解冻的冻结是死钱**（冻结本是为争议 / 风控设的临时态，没有解冻口就只能改库）；④ ⭐⭐ **冻结 / 解冻不动 `total_in` / `total_out`**：钱没进出平台，只是从「可用」挪到「冻结」——若把冻结记成支出，`total_out` 会随冻结 / 解冻来回跳并与提现累计互相污染（L12 提现也刻意「申请阶段不计入累计支出」）；⑤ ⭐⭐ **余额不得为负**：扣减 / 冻结越界 → `40002`（钱不够花，等入账 / 充钱即可）；解冻越界 → **新码 `40015`**（**冻结账对不上** —— 说明余额快照与冻结记录不一致，是账实不符信号，要查数据而非让人充钱）；**两码刻意分开**（合流一个码，运维就分不清该做什么）；⑥ ⭐ **幂等键必填**：D39 没有业务单号可供判重，重复提交就是**重复加钱**（与 L12 提现同一风险面）—— 缺键 `10001`；同键重复提交 `10006` + **首次结果原样返回**、余额一分不再动；⑦ **乐观锁** `UPDATE ... WHERE id=? AND version=?` 以 `affected` 判归属（复用 `withdraw.service.ts` 同一处理），抢锁失败 `10001` + 「请刷新后重试」；⑧ ⭐ **只有「充值」能自动建户**：其余三个动作在无账户时**明确报错**（**不是**先建一个 0 余额账户再报「余额不足」—— 后者会在库里凭空长出一行「余额 0、从未有过资金往来」的账户，让 D38 账户数与 D33 `accountCount` 悄悄错开）；首充建户是 D39 的正当用途（「给从没下过单的用户发补偿」），卡住它运营就卡死在这里；⑨ ⭐⭐ **权限常量单一真相**：`BALANCE_ADJUST_ROLES` **同时**驱动控制器 `@Roles(...)` 与出参 `actions.canAdjust` —— 一处改动两处生效，结构上不可能出现「按钮亮着、点了 `10003`」或「按钮灰着、其实有权限」（⚠️ 项目既有写法如 `leader-admin.service.ts` 的 `canManage` 多为**两处硬编码 + 注释对齐**，本批改为常量）；⑩ 两级白名单：类级 `@Roles('super_admin','admin','finance','operator')`（运营要能看「这个用户余额为什么异常」）、**D39 方法级收窄**到 `('super_admin','admin','finance')`（把钱记进余额是资金动作，同 D35 / D41）；**不含 `viewer`**（其菜单只有 4 个看板页）；⑪ ⭐ **新枚举值 `ab_balance_log.type='adjust'`**：与原五值（`commission` / `order_pay` / `withdraw` / `withdraw_refund` / `refund`）**刻意分开** —— 调账既不是佣金也不是消费，混进去会污染「佣金支出」类汇总口径；已回写《接口规范》§九扩展登记，并同步补 `BALANCE_LOG_TYPE_LABEL`（漏了这步，用户在自己的余额明细 L19 里会看到裸英文）；⑫ **账本与快照同源**：每次调账在**同一事务**内写 `ab_balance`（快照）+ `ab_balance_log`（发生额，含 `balance_after` 逐步落痕、`related_id` = `AJ…` 单号），故「当前余额」必须 === 「末条流水 `balance_after`」（L11 / L19 可相互验算的落点）；e2e 断言「5 条流水**全部** `type=adjust` 且带 `AJ…` 单号、`direction` 依次 +1 / −1 / −1 / +1 / +1」；⑬ 流水 `remark` **带操作人**（`@OperationLog` 记的是「谁调了接口」，而这条流水会被用户 / 团长在自己的余额明细里看到 —— 让「谁动过我的钱」在一处可查）；⑭ 未知 `action` **fail-closed `10001`**（DTO 的 `@IsIn` 已挡住未知值，但**内部调用**不经过 DTO：若静默走完 `switch`，`nextXxx` 全等于原值 → UPDATE 把相同值写回（`version` 还 +1）→ 流水里多一条「金额有、余额没变」的记录 —— **余额看着对、只有账本对不上**，最难查的一类脏数据）；⑮ **溢出前置挡**（`ab_balance` 四列 `DECIMAL(12,2)`：不挡就由 DB 抛**驱动相关**错误，且**同事务流水尚未写**、运维无法定位是哪一步）；⑯ **D38 无账户空视图**（`hasAccount=false` + 余额全 0 + `logs=[]`）—— 否则运营搜不到人 → 以为查无此用户 → **不敢充值**，而 D39 恰恰支持首充建户；列表模式则**只列有账户的行**（把所有 `ab_user` 都铺满页面毫无信息量，也会让 `total` 失去「有多少个账户」的含义）；⑰ D38 扩展入参 `userId` / `accountType` / `keyword`（M3-14 登记）：非法 `accountType` → `10001`（**不静默回落成 `all`**）、`userId` 不存在 → `10004`（**不是**返回一行空账户：查无此人要能被区分出来）；筛选查询用 **SQL 子查询**（避开 SQLite 绑定变量上限 999，M3-9 已踩过 —— 但**当前页**批量装饰只有 ≤100 个用户，用 `In` 列表安全）；手机号**一律脱敏**；余额列**降序**（运营最想先看「谁的余额大得异常」）；⑱ **前端 `balance.vue`**（负债卡片 + 筛选 + 单用户账户卡 + 最近流水 + 调账弹窗：元→分换算预览、幂等键每次打开生成且失败不重置）；⚠️ 顺手修掉**前端菜单缺口** —— `ADMIN_NAV` 财务域原只挂 `/finance/overview` 一个入口，其余 5 个子页（含本批余额页）服务端早已授权却**点不到**，运营只能手输 URL（**「菜单与白名单同源」纪律的反向缺口**）；⑲ `e2e-m3` 新增 **§26（34 条断言 · 不依赖下单窗口 · 夹具节末全量还原）** —— 夹具直插新用户，D39 **真改过余额**，不还原会把「多出来的钱」留给重跑并让 D38↔D33 对账在「两次读之间」产生假绿；`SCAFFOLD_KEY` 增 **3 项** M3-14 契约载体；⑳ ⚠️ 一条**测试侧**教训（进《缺陷与陷阱》§三）：**断言取数层级必须核对** —— `code` 挂在响应体 `.body` 上、**不在** `.body.data` 里，写成 `data?.code === 0` 恒等于 `undefined === 0`，断言**静默失败**而诊断行照旧打印出「看起来正常」的数据（本批首跑 2 条红，根因是**断言写错、代码没错**）。
+**⑱ 本批次（M3-15 微信支付对账 D43 + 发票管理 D44 · P34 · 零 DDL · 零错误码）**：① ⭐⭐ **D43 一期不假装已经跟微信对过账** —— 「对账」这一页极易被实现成「内部两张表比对通过 → `balanced: true`」，而一期**物理上拿不到微信账单**（无商户号 + 无 API 证书）；那样运营会以为「微信侧也平了」，**真正危险的差异（微信收了钱、我们不知道）将在那一天永远不被发现**。故出参**强制**带 `channel.source = 'local_only'` + `billAvailable: false` + 一句人话 `note`，端上常驻 `el-alert` 原样展示；接入账单下载后只需把 `source` 改 `'bill'` 并补比对段，口径不变；② ⭐⭐ **`date` 锚 = 支付日**（出参回显 `anchor: 'paidAt'` + `anchorLabel: '支付日'`）—— 微信账单**按支付日切日**，这是财务域**唯一一个 `date` 不指出餐日**的端点；拿它去对 D33 / D34 / D36 的出餐日数字必然对不上，**那是两个时间轴、不是 bug**；③ ⭐ **本页主体是差异清单、不是流水列表**（流水列表去 D33 / D40 看）：五类差异 `order_paid_no_log` / `log_success_no_order` / `amount_mismatch` / `duplicate_transaction` / `no_transaction_id`，按「先查钱去哪了 → 再查状态 → 最后补凭证」的**处理优先级**固定排序，每类配套 `nextAction`（人话的下一步，且写明**不要做什么**：如「不要直接改库」「不能靠调平掩盖」「不可作为税前扣除凭证」）；④ ⭐⭐ **三角恒等式**：`orderFen`（`ab_order.paid_at` 当日已付款）− `logFen`（`ab_payment_log.paid_at` 当日 `success`）= `diffFen`（正常必须为 0，正数 = 系统少收）；退款按 `refunded_at` **单列** `refundFen`、`netFen = orderFen − refundFen`（退款不改写原支付流水的日期归属）；⑤ ⭐⭐ **`balanced` 是双条件**：金额相等 **且** 无结构差异 —— 重复交易号 / 缺交易号**可能不影响两侧合计**（金额一样、只是凭证重复），只比金额会报「已平」，而凭证重复恰恰是**重复入账的前兆**；⑥ ⭐ **差异检测三个方向**：① 当日订单 → 「订单说付了、账上没有」（含流水停在 `pending`）；② 当日订单的**全部**流水（**不限日期** —— 回调丢失时流水 `paid_at` 为空，按日期切会**恰好切掉最该抓的那一类**）；③ 当日成功流水 → 「钱收了但订单没标」+ 同交易号多行；⑦ ⭐⭐ **D44 零 DDL · 派生视图**：**不建 `ab_invoice`** —— 发票的全部事实已在 `ab_supplier_share`（`invoice_no` + `paid_at` + `payee_id`），建表立刻产生**第二份真相**（「应付表说付了、发票表说没票」时以谁为准？），与项目「派生值不落库」不变量一致；⑧ ⭐⭐ **D44 粒度 = 供应商 × 月份**：发票实务上按**月**开一张，按单条应付行平铺会让运营看到「同一发票号重复 30 次」，**完全看不出**「这家这个月只开了一半」—— 而这正是最需要被发现的状态；三态 `none` / `partial` / `full` 中 **`partial` 才是本页存在的理由**；⑨ ⭐ **月份锚 = 应付单生成月**（`share_date`，**权责发生制**台账）：供应商拿当月全部货款催票、不是拿付款日催票，跨月付款（8 月账单 9 月付）**仍归 8 月**；复用 `monthRangeOf()`（项目里月份边界的**唯一实现**）；⑩ ⭐⭐ **分母只含「已付款」行**：未付款就要票供应商不会给；未付款额**单列** `unpaidAmountFen`、**不进开票状态判定**（否则一个刚出单的日子会满屏「未开票」，把真正的欠票淹没）；⑪ ⭐ **两个可执行下一步**：`titleMissing`（去 D28 补开票抬头 —— **没抬头票开不出来**，是最容易被漏的一环）· `overdue` + `overdueDays`（已付超 **30 天**无票 = 实打实的**税务风险**，自营下进项票是**税前扣除凭证**）；⑫ ⭐ **冲销行不进发票分母**：`type = 'reversal'` 负行只累加 `reversalFen` 并提示**需另行换票**（计入已付额会把「已开票 / 已付款」比例算错）；失效应付集合直接复用 `stats.constants.ts` 的 `PURCHASE_VOID_STATUSES`（与 D47 / D33 同一份定义）；⑬ ⭐ **分月必须在服务端内存完成** —— `strftime('%Y-%m', …)`（SQLite）/ `DATE_FORMAT(…, '%Y-%m')`（MySQL）是**驱动相关**语法，用了就破坏「**四驱动零改动切换**」这条基线承诺，且**本地全绿、换驱动才炸**（同 D29 楼群筛选）；⑭ ⭐ **`status` 是派生值 → 必须先聚合再筛**，非法枚举 **`10001`、不静默回落成「全部」**（回落会让运营以为看的是全量）；⑮ ⭐⭐ **`isRealDate()` 兜底真实日期**：原 `@Matches(/^\\d{{4}}-\\d{{2}}-\\d{{2}}$/)` 只挡格式，`Date.UTC(2026, 12, 1)` 会**静默滚动**到 2027-01-01 —— 运营看到的是一份**别的日期**的对账且毫无提示。本批三处同修：DTO 正则收紧到 `^\\d{{4}}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$` + `time.ts` 新增 `isRealDate()` + 服务层 fail-closed（⚠️ 「格式合法、语义非法」是**最容易漏的一类入参漏洞**，本批 e2e 首跑 2 条红之一就是它）；⑯ 两级白名单：两接口均为**纯读 GET**，类级 `FINANCE_VIEW_ROLES`（含 `operator`）**不额外收窄**；**不含 `viewer`**（其菜单只有 4 个看板页，与 D47–D50 同）；⑰ ⭐ **菜单同源**：`/finance/invoices` **同时**进 `ADMIN_MENU_KEYS` + finance 角色菜单 + `ADMIN_NAV` —— 授权了就必须有入口，否则运营拿到一串 403；⑱ `e2e-m3` 新增 **§27**（实测 **34 条**断言 · **不依赖下单窗口**）：夹具直插**隔离支付日**（`bjToday() − 200` 天，避免与既有批次同一天互相串味），五类差异**逐类命中** + 三态 + 权限矩阵 + 非法入参（含 `2026-13-01` / `2026-02-30`）；节末**全量还原**应付单（不删会让三种开票状态互相串味）；⑲ ⭐ `SCAFFOLD_KEY` 增 **5 项** M3-15 契约载体。
+
+**⑲ 本批次（M4-0 契约级修正 + S3 打包任务迁运营后台 · 自营口径前置 · 零新增列 / 零新增错误码 / 表数仍 27）**：① ⭐⭐ **历史字段三要素**（**列保留** · **改可空** · **DTO 删字段 + `forbidNonWhitelisted` → 前端传即 `10001`**，**绝不静默忽略** —— 静默忽略 = 「传了不报错、也不生效」，是最难查的一类不一致）—— `ab_distribution_center.supplier_id`（原 NOT NULL）与 `ab_supplier.type`（`dish`/`distribute`/`both`）同模式降级为**历史字段**（自营下加工场所属 ABox 自有，「场所属于某供应商」与「供应商兼营场所」两个前提同时消失）；② ⭐ **D27 `PUT /admin/suppliers/{{id}}/type` 整条路由删除**（打旧路径 → `10004`），`50008 SUPPLIER_TYPE_CONFLICT` **三处闸门全拆、号位保留不再使用**（⚠️ **号位绝不回收** —— 回收后再给别的语义用，历史日志 / 工单 / 文档里的旧码会被解释成另一件事）；③ **D23 收敛**：不再下发 `typeOptions`、`?type=` 不受理（→ `10001`）、详情 **7 块 → 6 块**（去「加工场所」块与 `dcCount`）；**D29/D30/D31 停收 `supplierId`**（→ `10001`，属「**请求形状错误**」而非「业务值非法」—— 两者刻意分开，`10001` 让前端立刻可见，`50008` 只在「字段存在但取值不允许」时出现）；④ ⭐⭐ **S3 打包任务整条迁运营后台** `GET /admin/packing-tasks`（P39「加工场所打包」· `super_admin`/`admin`/`operator`），`GET /supplier/packing-tasks` **已删除**（→ `10004`）：原可见性判据「本主体名下有启用中集散中心」随 `supplier_id` 停用**必然失效**，且其数据面**跨供应商**（打包线按场所聚合**他方**到货明细）→ 开给任一供应商即**泄露同业经营数据**（违反 I1）；**只换判据治不了「不该看」→ 迁移而非换判据**（《缺陷与陷阱》#58）；判据跨批次联动：`defaultPackingDate()` 取**全量**最近生产计划日（不复用带 `supplierId` 的 `defaultDate()`，否则「已到齐」在某些视角下恒为假）；⑤ **对外派生文案**统一称**「加工场所」**（实体名 `ab_distribution_center` 与库内 `name` 演示值保留 —— 改的是派生文案与页面标题）；⑥ **菜单与白名单同源**（`ADMIN_NAV` 加 `/supplier/packing-center`、`SUPPLIER_NAV` 删 `/supplier/packing`；两处 `MENU_KEYS` 同步 —— **授权了必须有入口；入口撤了白名单也要撤**）；⑦ `e2e-m3` §18/§20 同步改写（D27 `50008`→`10004` · D30/D31 `50008`→`10001` · S3 段**全量改打 admin 端点**，新增「供应商端 S3 已下线 → `10004`」「operator 含 / viewer·finance 不含 → `10003`」「小程序 → `10003`」「未登录 → `10002`」五档矩阵）；⑧ `SCAFFOLD_KEY` 换 `packing.vue` → `packing-center.vue` 并增 **2 项**契约载体（`packing-admin.controller.ts` / `api/packing.ts`）；⑨ `gate.mjs all` **11/11** · `verify`（seed → m1 → m2 → m3）**4/4** · m1 38 / m2 121 / m3 **778**。
+**⑳ 本批次（M4-1 日切链路 + M4-2 结算链路 · 零 DDL · 零新增错误码 · 表数仍 27）**：**8 个定时任务全部实装**（`GET /admin/schedule` 的 `summary.implemented` = 8/8，由 5 升到 8）。**M4-1（4.1 / 4.2 / 4.3 + 调度基座 + 手动补跑接口）**：① ⭐⭐ **调度基座 `TASK_SCHEDULES` 单一真相** —— 8 个任务一张表写清「**几点触发**」+「**动哪一天**」（`dateKind`: today / tomorrow / yesterday / null），任务体**永远不写日期计算**（日期由 `ScheduleService.run()` 从声明表推导并**回传给任务**），故「同刻不同日」这一头号陷阱（`meal-publish` 与 `auto-confirm` 的 cron **完全相同** `0 0 14 * * *`，但前者开**次日**的团、后者确认**当日**的单）在结构上不可能写错 —— `GET /admin/schedule` **必须**下发 `dateKind`（附中文 `dateKindLabel`）是该陷阱的唯一防线；② **手动补跑** `POST /admin/schedule/{{task}}/run`（`date` 可选，缺省按声明表推导）与跑批**共用同一执行口**（任务的 `runOnce(date)` 就是其 cron 处理器内部调用的那一个方法），**刻意不加锁** —— 锁的语义是「同一目标日期只跑一次」，而补跑的动机恰恰是「跑批没跑成」，被锁挡住即失去用途；⭐ **锁不是保险丝**（KV 在 memory 驱动下**重启即丢**）—— **成功保留锁、失败立即释放锁**；未实装任务**如实标注** `implemented:false` + `pendingNote` 且补跑被明确拒绝（`10001`）；③ ⭐⭐ **修掉备料量恒为 0 的静默缺口**：`ab_meal_assignment.sold_count` 注释写「实时累加」但**全仓无累加点** → 跑批推给供应商的份数**恒为 0 且不报错**；修法**不引入实时累加**（需在下单/取消/超时/退款四条路径同步维护，漏一条就是一次静默错账），改为在**截单这一「定格」时刻从订单表聚合一次并落库**（语义 = 「**截单定格的已售份数**」），并补 `freezeProducePlan()` **截单后覆盖刷新**生产计划（只覆盖 `pending` 父行）—— ⚠️ **顺序不可颠倒**（先定格备料量、再刷计划）；④ ⭐ **跑批路径也必须落 `ab_operation_log`**（全局拦截器只对 HTTP 请求生效，故迁移在事务内**显式** `insert`，`snapshot.source='system'`）；⑤ **配送单粒度 = 楼群**（唯一键 `(meal_date, building_group_id)`，与「一车货送一个楼群、团长在楼下收」一致），份数与备料量**同源**，**幂等不覆盖**已存在行（司机 / 车牌是人工录入的）—— ⚠️ 代价是份数也被一起冻住（**待补人工修正入口**）；新增**可信度告警**（当日无任何 `cut_off` 订单 → 明确提示「截单可能没跑成、份数可能偏小」）。**M4-2（4.4 自动确认 / 4.5 佣金入账 / 4.7 对账）**：⑥ ⭐⭐ **佣金改「两段式」**（本批头号口径）—— 旧实现「L9 取餐确认即入账」把「计佣」与「入账」合成一件事，于是**退款落在两者之间的窗口时无路可走**；改为 `T 日 14:00 计佣 → ab_commission(status='pending')`（**只记账、钱不动**）+ `T+1 02:00 入账 → settled + ab_balance`（`creditCommissions` 是**唯一**把钱写进余额的地方，只被 `settlePending` 调用）；故 `pending` 成为**每天都出现的正常中间态**，`scanned=0` 的含义收窄为「当天没有新确认的订单」（**记 log 不记 warn**）；⑦ ⭐⭐ **退款冲销拆两条路径（C9 修订）** —— `pending`（未入账）→ **只把原行作废**（`pending → cancelled`）、**不写负向冲销行、不动余额**，`notes` 明写「未动余额」；`settled`（已入账）→ 写 `type='reversal'` 负行 **+ 扣余额**。⚠️ **旧实现只有后者** → 在 `pending` 窗口下会**从余额里扣一笔从未入账的钱**，而 `ab_balance` **允许为负**（佣金已提现即形成欠款，是**刻意**设计）→ **扣成负数、形成假欠款，且不报任何错**（《缺陷与陷阱》#62）；⭐ 出参符号与「是否已入账」**无关**（`commissionReversedFen` 恒正 / `commissionReversedQuantity` 恒负），端上不必分叉；⑧ ⭐⭐ **4.4 只转 `delivered`** —— `pending_pay` / `paid` / `cut_off` / `cooked` / `delivering` / `refund_applying` / `refunding` **一律原样不动**，收进 `notDelivered.byStatus` + `logger.warn`（到 14:00 还没送达是**履约异常**，把它当「确认收货」会把异常洗成正常单、佣金还照计 → **fail-closed**）；⚠️ 与 **L9 手动确认刻意宽严不同**（L9 放行 `delivered`/`delivering`：团长在楼下收款时可能面对刚到货的实况），差异已登记**待裁决**；⭐ **无归属团长**仍转 `completed` 但**收口计佣为 0**（`orphanConfirmed` + 日志，不猜、不建号）；⭐ **4.5 与 D35 同一执行口**（`CommissionSettleTask.runOnce()` 就是 `CommissionService.settlePending()`）；⚠️ **不做「补计佣」**（`ab_order` 无「确认时刻的团长等级」快照 → 只能读**当前**值 → 晋级后必然多算且无法自证，#51），且**补账只改账不改事实**（不动 `total_orders` / `last_order_at`，否则污染 C2 晋级审计）；⑨ ⭐⭐ **修掉 `monthOrdersOf` 的双计** —— 旧写法 `SUM(CASE WHEN type='reversal' THEN -quantity ELSE quantity END)` 配 `status` 过滤，会让退款单**先被 `WHERE` 排除、又被 `CASE` 加回**（`reversal` 行 `quantity` 本为负、`CASE` 又翻正）→ 月单**不降反平**，**可凭退款刷 C2 晋级**（退款是免费的）；现只数 `type='normal' AND status IN ('pending','settled')`（#63）；⑩ ⭐⭐ **对账目标日期 `today` → `yesterday`（改正）** —— 每日 04:00 对「今日」只能核 `00:00–04:00` 这 **4 小时切片**，昨日 23:00 之后（下单窗口 `[T-1 14:00, T-1 23:00)` 的尾部）的流水要等**次日**才被覆盖 → **每天都漏核一段**，而每天的结论都「看起来是对的」（#64）；锚 = **支付日**（`paid_at`，财务域**唯一**不指出餐日的端点）；**不平才写操作日志**（`module='finance'` / `action='对账不平'` / `target_id=日期`，后台「操作日志」页可见、可人工跟进，**零 DDL**；**平了不写**避免一年 365 条噪音；**幂等**同日不重复写），且告警快照**自带 caveat**「仅本地三头核对，**不等于已与微信侧对平**」（#55 —— 「不能把告警藏在服务器日志里」，也不能让它看起来比实际更可靠）；⑪ ⭐ **激活一条从未运行过的守卫** —— `collectQuitBlockers` 的「有未结算佣金不得停职」在两段式前**恒不触发**（`pending` 永远为 0 → **死代码**），两段式后 `pending` 天天产生，守卫**真正开始运行**（#52 已由「登记待观察」转为「**已激活**」）；⑫ ⏱ **时钟注入闸 `ABOX_SHIFT_TO_HOUR`** —— `isOrderable(T)` = `[T-1 14:00, T-1 23:00)` 对整数日无解，原本每天只有 9 小时能跑套件（其余 15 小时恒红、真回归被假红淹没）；现由 `gate.mjs` 给 `seed` / `e2e:m1/m2/m3` 注入「**北京小时平移**」—— **日历日不变**、时间仍 1:1 前进（非冻住时钟），且**不改 `@Cron` 真实触发时刻**（NestJS 的 cron 是静态元数据）→ **跑批验收一律走补跑接口**；⑬ `gate.mjs all` **11/11** · `verify`（seed → m1 → m2 → m3）**4/4** · e2e 断言 **m1 38 / m2 126 / m3 841**（M4-1 时为 808）；⑭ e2e 新增 **§28（30 条 · M4-1）** 与 **§29（10 条不变量 · M4-2）**，均**不依赖下单窗口**，夹具节末全量还原。
+
+**㉑ 本批次（M4-3 队列贯通 · 4.9 BullMQ 三消费者 + 4.10 订阅消息投递点 + 4.11 事务边界重构 · 零 DDL · 零新增错误码 · 表数仍 27）**：① ⭐⭐ **队列双驱动 fail-closed** —— `QUEUE_DRIVER=memory`（进程内，出参**如实标注** `durable=false` + `QUEUE_DRIVER_NOTE` 点明「进程重启即丢、多实例不分发」）/ `redis`（BullMQ，**连不上即拒绝启动**，不静默降级）：静默降级的后果是「以为消息在队列里、其实重启就没了」；`QUEUE_ATTEMPTS` / `QUEUE_BACKOFF_BASE_MS` / `QUEUE_CONCURRENCY` 走配置（e2e 用 `QUEUE_BACKOFF_BASE_MS=20` 把退避压到毫秒级，否则验证重试要真等好几秒）；**观测端点 `GET /admin/queue`（Q1）**下发各队列 pending/active/failed/completed + **`durable` 如实值** + `note`；② ⭐⭐ **外部通道调用移出 DB 事务**（本批唯一的既有行为改造）—— 退款原实现 `executeRefund` 在 `dataSource.transaction()` **内部**调微信退款：通道慢/超时即长时间持有行锁，且回滚后会出现「**通道已受理、账务已回滚**」这种钱与账对不上的分叉；现改为**事务内只落账务**（`settleRefundDb`）→ **事务外** `deliverOrQueueRefund()` → 通道失败则**入队退避重试**；⚠️ 退款单 `failed` 语义随之**收窄**为「**通道那段失败、账务已按「已受理」定稿**」（订单已 `refunded`、余额已退），**不回滚**；重试耗尽进死信并可由 `GET /admin/queue` 看见；③ ⭐ **结算通知载荷由「聚合型」改「按团长型」**：`SettleOrdersPayload` 原为 `mealDate`/`settledCount`/`totalFen`，**没有收件人** —— 一条载荷若无法回答「发给谁」，投递环节就只能静默跳过，而跑批结果仍显示「成功结算 N 条」；现改为每条载荷带 `leaderId` + `amountFen`，**一个团长一条**（《缺陷与陷阱》#68）；④ ⭐⭐ **跨端字符串契约必须机械对账（真缺陷 #67）**：`NOTIFY_PAGES`（订阅消息 `page` 落地页）原写 `pages/order/detail`，而小程序 `pages.json` 里实为 `pages/order-detail/order-detail` —— **写错落地页不会在任何一端报错**（微信侧照收、服务端照发、用户点开是空白页），四处都「看起来正常」；故 `e2e §30` 新增一条**文件级机械断言**：从 `message-template.specs.ts` 正则抽出 `NOTIFY_PAGES` 的 3 个值，断言其为 `apps/miniprogram/src/pages.json` 中 `pages[].path` 集合的**子集**（`≥3` 条且悬挂数 `=0`）；⑤ ⭐ **`requestSubscribe` 是机器可读布尔**（不从 `audience` 中文字反推）+ `specState()` 把「库行 → 生效状态」的换算收敛为**单函数**（同一判断写在两处必漂移）；⑥ **U15 `GET /me/subscribe/templates` 实装（读侧）**，**写入侧一期刻意未实装并如实留名**（需新表 + 无微信账号无法验证，不假装能用）；⑦ 小程序**两段式订阅**：`onLoad` 预加载 `preload()`（拿到模板清单）+ 点击时**同步** `requestFor()` —— `wx.requestSubscribeMessage` **仅在手势同步流中可用**，首个 `await` 之后调用必失败，故不得「先查后订」；⑧ **`MOCK_REFUND_FAIL_MARKER`** 为 mock 支付的退款失败注入点（e2e 借此制造通道失败，断言「订单已 `refunded` + 账务已定稿 + 队列出现重试」）；⑨ ⭐⭐ **修掉一处「编译期全绿、服务起不来」的运行时缺口（真缺陷 #66）**：`FinanceModule` 新增注入 `OperationLogRepository` 后 `tsc` / `lint` / `build` **三项全绿**，而服务启动即退出（`Nest can't resolve dependencies of the RefundService (...)`）—— ⭐ **`@Global()` 只让本模块 `exports` 出去的东西全局可见；从别处 `import` 进来的 provider 不会被二次导出**，故 `TypeOrmModule.forFeature` 必须在**使用方模块**显式注册（与 `tasks.module.ts` / `admin.module.ts` 既有做法一致）；**纪律升级：DI 只在运行时暴露 —— 静态全绿 ≠ 服务能起，收尾必须真起一次服务**；⑩ `gate.mjs all` **15/15** · `verify`（seed → m1 → m2 → m3）**4/4** · e2e 断言 **m1 38 / m2 126 / m3 876**（M4-2 时为 841）；⑪ `SCAFFOLD_KEY` 增 **15 项** M4-3 契约载体；⑫ `e2e-m3` 新增 **§30**（35 条 · 队列观测 + 退款通道失败重试 + 订阅投递点 + 跨端落地页机械对账 + 订阅清单读侧），夹具节末**全量还原**。
+**㉒ 本批次（M4-4 提现审批 D45 + D46/D46a/D46b/D46c · P34 · 零 DDL · 新增 2 码 · 表数仍 27）**：① ⭐⭐ **资金链在此收口** —— `L12 用户申请提现` 是打开的资金链**唯一推进点**（M4-2 §4.4 的口径里 D45/D46 一直挂账），本批补齐后台审批四动作，「佣金 → 提现 → 到账」全链路闭环；端点 `GET /admin/finance/withdrawals` + `POST /admin/finance/withdrawals/{{id}}/approve|reject|paid|fail` —— ⭐ `withdrawals` 是**静态首段**、`{{id}}` 只在段中，**无「参数路由吃掉静态路径」之虞**（将来加 `withdrawals/{{id}}` 详情仍须声明在静态段之前）；② ⭐⭐ **解冻只有一个方法，三个动作都走它**（`releaseFrozen()`，差别**只有 `direction`**）：驳回 `'in'`（`frozen −X` / `balance +X` / `total_in`·`total_out` **都不动**）· 到账 `'out'`（`frozen −X` / `balance` **不变** / **`total_out +X`**）· 失败 `'in'`（同驳回）—— 三路各写一份的后果是口径在**某一条路径上静默分叉**，`e2e §31` 用**同一组期望**钉死三条路径；③ ⭐⭐ **解冻前先校验 `frozen >= X`，不足 fail-closed `40015`**（**不复用 `40002`**）：`40002` 是「余额真的不够（等入账 / 充钱 / 少扣一点即可）」，`40015` 是「**冻结记录与余额快照不一致**」的**账实不符信号** —— 合流一个码，运维看到「余额不足」就去催用户充值，**问题被推给用户、而真正的数据不一致被掩盖**（《缺陷与陷阱》#54 判据的第二次落地）；④ ⭐⭐ **`total_out` 的增量是「申请金额」而不是「实付金额」**：到账写 `frozen −X`（X = 申请额），若按实付（X − 代扣个税）记，`total_in − total_out` 就与 `balance + frozen` 对不上；`e2e §31` 用「到账前后 `(total_in − total_out)` 的**差值 === 申请金额**」钉死（**写不变量，不写当时那次数字**）；⑤ ⭐⭐ **到账不写 `ab_balance_log`** —— 该表语义是「**可用余额的每一次变化**」（`direction` 只描述可用余额），而到账时**可用余额不变**（钱在申请时就已冻结）；⚠️ 这**不是**「账本与快照不同源」：`frozen` / `total_out` 的变化**从来**不由流水解释（D39 的 `freeze` 行即先例，`direction=-1` 而 `total_out` 刻意不动），**到账事实由 `ab_withdraw` 自身完整承载**（`status` / `paid_at` / `actual_amount` / `payout_batch_no` / `voucher_no`）；⑥ ⭐ **`actual_amount` = 到手额**（`PAYOUT_TAX` 代扣的个税**没到团长手里**）→ 「累计已提现」取 `actual_amount` 而非 `amount`；⭐ **`payoutBatchNo` = `PB{{yyyyMMdd}}`**（按**审批日**聚合、**无随机位**）：批次号是**给灵活用工平台对账用的人可读标识**，与订单 / 退款单号生成器**刻意区分**（随机位会让人无法从号上读出日期）；⑦ ⭐⭐ **状态机守卫 fail-closed `40017`（提现单状态不支持）· 单不存在 `40016`**：`pending → approved` · `pending → rejected` · `approved|paying → success|failed`；⚠️ **两码刻意分开** —— 前者是「你把 id 打错了」、后者是「这单已经走到别处了」，**看到码的人下一步动作不同**（同 #54 判据；两码已回写《接口规范》§九）；⭐ 驳回 / 失败**都原路解冻回可用余额**（不是留在冻结里等人处理），故 `collectQuitBlockers`（退出团长守卫，判据 `WITHDRAW_FROZEN_STATUS`）**不会把团长永久困住** —— 三路都离开「占用中」状态集；⑧ ⭐⭐ **角色白名单收敛为单一真相**（`modules/finance/finance.constants.ts`）：`FINANCE_READ_ROLES`（**含 `operator`**）/ `FUND_ACTION_ROLES`（**不含 `operator`**）。此前 D35 / D39 / D41+D42 三处**各自硬编码**字面量 `'super_admin','admin','finance'` —— 四个副本的后果不是编译不过，而是**静默漂移**：改一处忘一处就会出现「按钮亮着、点了 `10003`」（出参说可点、`@Roles` 说不行）或更糟的「按钮灰着、其实有权限」（**本该受管控的资金动作被默默放行**），二者都不报错、只在某次审计里才被发现；列表出参 `actions.canApprove` 等**可点性提示不是判据**，判据仍在服务端 `@Roles`，两者**共用同一份常量**；**与菜单同源**（`ADMIN_NAV` 的 `/finance/*` 出现在 `admin`/`operator`/`finance`，故不含 `viewer` —— 与 D47–D50 看板刻意**含** `viewer` 正好相反）；⑨ ⭐⭐ **团长「钱」的唯一真源（修《缺陷与陷阱》#69）** —— `ab_team_leader` 的 `balance` / `pending_amount` / `withdrawn_amount` 三列**只在种子里被赋过值、全仓零写点**，而 `balance` 恰好被**登录 / 资料 / 退出**三个出参当作「可用余额」下发 → 团长「我的」页显示**种子写死的数字**（示例 ¥575.86）、「余额明细」页（L11 `ab_balance`）显示**真值**，**同一人同一时刻两个余额且都不报错**，去提现反被 `50004 可提现余额不足` 挡下 —— **必然产生客服工单**；修法：新增 `LeaderMoneyService`（注册在 `CommonModule` 并 `exports`，任何模块直接注入 —— #66 的反向使用：**谁声明谁注册**，全局可见性靠「本模块 exports 本服务」而**不是**靠 `@Global()` 传递仓储），四项**全部派生**、三列转**历史字段**（与 M4-0 `ab_supplier.type` / `ab_distribution_center.supplier_id` 同模式）：`balanceFen`←`ab_balance.balance` · `frozenFen`←`ab_balance.frozen` · `pendingCommissionFen`←`ab_commission`（`status='pending' ∧ type='normal'`；⭐ 必须再排除 `type='reversal'` 负额行，否则退款冲销会把「待入账」算小甚至算成负数）· `withdrawnFen`←`ab_withdraw`（`status='success'`）的 `actual_amount` 合计；⚠️ **为什么不「顺手把这三列写起来」** —— 让每个写点（下单抵扣 / 退款回退 / D39 调账 / 提现冻结…）都同步更新一遍就是**第二份真相**，漏掉任一个即悄悄分叉，表现只是「某个页面显示旧数字」，**不报错、无告警**；⑩ ⭐ **`PayoutChannel` 枚举值由小写改大写（修《缺陷与陷阱》#70）**：原写 `'flex_manual'`，而**真实链路全是大写**（`ab_withdraw.payout_channel` 列默认值、`BizConfigService.payoutChannel()` 缺省值、e2e-m2 断言）；此前未炸**仅因该枚举全仓零消费点** —— 一旦有人照它做比较即**恒为 false 且不报错**；判据：**字符串枚举的值必须逐字取自「已落库 / 已在下发」的那一份，而不是自造命名风格**；⑪ **小程序余额展示改真源**：`balanceFen` / `frozenFen` 取自 L11 / `LeaderMoneyService`，不再读 `ab_team_leader.balance`（与前端**既有注释**口径一致 —— 该注释此前**只写在文档/注释里、没有机械校验**，服务端出参自己在踩）；⑫ `e2e-m3` 新增 **§31（49 条断言 · 不依赖下单窗口）**：D45 两级白名单（`operator` **能看不能批** / `viewer` 两侧皆拒）· D46a / D46b / D46c 三条路径的账户变化（`frozen` 归位 + 可用额归位 + `(total_in − total_out)` 预期）· 到账 `total_out +申请额` 与**不写 `ab_balance_log`** · `payoutBatchNo` 形态 · 状态机错序 → `40017` · 不存在 id → `40016` · 冻结不足 → `40015` · **退出团长互锁**（占用中不许退出）；夹具节末**全量还原**（提现**真改过余额与冻结**，不还原会把「多出来的钱 / 冻结」留给重跑）；实测 m3 **876 → 925**；⑬ `gate.mjs all` **15/15** · `verify`（seed → m1 → m2 → m3）**4/4** · e2e 断言 **m1 38 / m2 126 / m3 925**（M4-3 时为 876）；⑭ `SCAFFOLD_KEY` 增 **4 项** M4-4 契约载体，并 ⚠️ **补登 M4-1/M4-2 遗留的 10 项调度契约载体** —— 前列批次 ⑳ 的说明**未提及 `SCAFFOLD_KEY`**，实测 `tasks/schedule*.ts` 与 5 个新任务文件**从未登记**；清单的用途正是冻结**契约载体**，而调度基座（`TASK_SCHEDULES` 单一真相）恰是其中最关键的一件，故本批一并补登（共 +14 项）。
+
+**㉓ 本批次（M5-0 部署运维基座 · M5 前置子批次 · 零 DDL · 零错误码 · 表数仍 27）**：① ⭐⭐ **本批的定位** —— M5（三方联调 + 灰度上线）的 5.1–5.7 里 **4 项强依赖外部条件**（5.2 压测需生产级环境 / 5.4 部署需服务器与域名 / 5.5 灰度需真实楼栋与团长账号 / 5.6 演练需真实通道），这些**用户侧尚未到位**；故本地先完成**不依赖外部条件的那部分**（记为 M5-0），使外部条件到位后**只需执行、无需再开发**。⚠️ **M5-0 ≠ M5** —— 里程碑验收标准 4 条（3 天闭环 / 账实相符 / 无 P0 / 回滚 10 分钟内）**全部要求真机执行**，未执行前 M5 **不置完成**（本批已在《里程碑 v1.1.10》§五 逐项标注可推进性）；② ⭐⭐ **盘出并修掉 5 条「从未被执行过」的真缺陷（#71–#75）** —— 共同特征是**所有机械证据都是绿的，而对应能力一次都没生效**：#71 `main.ts` 从未调 `app.enableShutdownHooks()`（Nest 默认不注册信号监听）→ 两处 `onModuleDestroy()` **一次都没跑过**（容器 `docker stop` 不等在途请求跑完、BullMQ active 任务被丢在 Redis 上等 `stalledInterval` 才被重新认领，**全程不报错**；长期没暴露是因为 e2e 收尾走 `taskkill /T /F` **强杀**、「进程退出了」被当成「优雅关闭生效了」）；#72 迁移 glob 只匹配 `*.ts` → 生产 `dist/*.js` **零命中**，而 TypeORM **不报错**、`migration:run` **退出码 0** → 部署流水线显示「迁移 ✅ 成功」而 DDL 从未应用；#73 `scripts/deploy.sh` 是**空壳**（引用不存在的 Dockerfile + 占位 registry + `kubectl apply`）**从未被执行过一次**；#74 骨架 Dockerfile 五处生产硬伤（`--frozen-lockfile=false` 构建不可复现 / 缺 `build:shared` / root 运行 / 无 tzdata 与 `TZ` / shell 形式 CMD **吞 SIGTERM**）+ compose 传 `APP_VERSION` 而 Dockerfile **无 `ARG` 声明** → 版本注入静默失效；#75 `/health` 只证「进程会应答」却被当「可以接流量」用；③ ⭐⭐ **探针分级（#75 修法）**：`GET /health` 出参**一字不改**（三套件 `waitHealthy()` 依赖 `HTTP 200 && code===0`）+ 新增 `GET /health/ready`（检 DB `SELECT 1` + **队列 3 个消费者是否齐备**），失败时**显式** `BizException(SERVICE_UNAVAILABLE=90002, …, HttpStatus.SERVICE_UNAVAILABLE, body)` —— ⚠️ **必须显式传 503**：`90002` **不在** `HTTP_STATUS_OVERRIDE` 表里，而本项目业务失败默认 HTTP 200，不传就退化成 200，**编排器只看状态码 → 「不可用」被判成健康**；⭐ readiness 检「消费者齐不齐」而**不是**「Redis 通不通」（连通性在**启动期已 fail-closed 验过** —— 连不上即拒绝启动；而「消费者没注册上」是**启动期验不到、失败后完全静默**的一类故障：入队照常成功、`GET /admin/queue` 计数照常显示、任务**永远无人消费**，同 #68）；⭐ 探针**免鉴权 = 公网可见**，出参按「会被人看见」设计（失败原因与主机 / 端口 / 连接串**只进服务端日志**，HTTP 给固定文案）+ `PROBE_TIMEOUT_MS=1.5s`（依赖「半死」时不挂住、不堆积请求）；④ ⭐ **优雅关闭（#71 修法）**：`enableShutdownHooks()` + 容器 **exec 形式 CMD**（shell 形式会让 PID 1 变成 sh，信号到不了 node）；⚠️ **验收方式本身有坑** —— Windows 上 `process.kill(pid,'SIGTERM')` 走 `TerminateProcess`、handler **不跑**，故改为进程内 `process.emit('SIGTERM')` 等价触发 + **跨进程子脚本**在钩子执行瞬间 `writeSync(1,…)` 落标记、父进程读（**「进程退出了」不算证据，强杀也会退出**）；⑤ ⭐ **生产迁移（#72 修法）**：glob 改 `*.{{ts,js}}` **双匹配**（dev 命中 `.ts`、prod 命中 `.js`）+ `db:migrate:dist` / `:revert`；**验证** = `typeorm migration:show -d dist/…` 必须**列出** `[ ] Init1700000000000`（证明 glob 真的命中了编译产物）；⑥ ⭐⭐ **镜像与编排（#73/#74 修法）**：`apps/api-server/Dockerfile` 多阶段重写（builder `--frozen-lockfile` → `build:shared` → `api build`；runner `node:22-alpine` + tzdata + `ARG APP_VERSION` → `ENV` + **非 root** + `HEALTHCHECK` 打 `/health` + exec CMD）+ 新增 `apps/admin-web/Dockerfile` 与 `nginx.conf`（SPA fallback / `index.html` no-store / assets immutable / `/api` 与 `/static` 反代 / `proxy_request_buffering off` / gzip / 安全头）+ `docker-compose.prod.yml`（四服务 · mysql / redis **不暴露宿主端口** · `${{MYSQL_ROOT_PASSWORD:?}}` **fail-fast** · `init: true` 配套 shutdown hooks · 资源限制 · 日志 `max-size:50m`）+ `.dockerignore` + `.gitignore` 补 `.env.prod` / `backups/` / `_stale-build/`；⑦ ⭐ **运维脚本 5 件**：`deploy.sh` 重写为 7 步（`预检 → 备份 → 起依赖 → 构建 → 迁移 → up → 健康验证`），**失败时不自动回滚**（半新半旧比全旧更危险）改为**停 + 打印回滚命令**；`rollback.sh`（默认**不退迁移**，`--with-migrate-revert` 才退；回滚前自动备份）· `backup-db.sh`（`--single-transaction` + **size 检查防空导出**）· `restore-db.sh`（**破坏性 → 必须 `--yes`**）· `healthcheck.sh`（退出码 0/1/2，**可直接进 CI / cron**）；⑧ ⭐ 《ABox一盒部署运维手册 v1.0》入库（环境矩阵 · 拓扑 · 密钥纪律 · 部署流程含首次核对 9 项 · 禁发窗口 · 两级探针监控 + 8 任务时刻表 + 队列观测 + 告警 · 备份恢复 · **应急预案 6 类** · 日巡检清单 · **遗留风险 9 条**），并在 `ROLE` 登记为**现行**；⑨ ⭐⭐ **回归保护**：探针契约断言**并入 `e2e-m1.mjs`**（7 条：liveness 契约 · 出参键集合未被就绪信息污染 · readiness 检 DB · **3 队列消费者齐备** · 版本与 uptime 回显 · **免鉴权探针不泄露主机 / 端口 / 连接串** · 对照「受保护端点无 token 仍 401」）—— 理由：探针是**编排器的判据**，改坏了**不会有任何功能报错**，只会让「该摘流量时摘不掉、该重启时重启不了」，故必须钉进门禁；**实测 m1 38 → 45**；⑩ **零 DDL** · **表数仍 27** · **零新增错误码**（`90002` 早已存在，本批只是把它**显式接到 503**）；⑪ `SCAFFOLD_KEY` 增 **15 项** M5-0 契约载体；⑫ ⚠️ **遗留风险如实标注（不假装已验）**：本机**无 Docker** → 镜像与脚本**只做静态审查**（52 项机械检查 + `bash -n`），**未在真实服务器上跑过**；生产库**从未执行过迁移** · e2e 用 sqlite 非 MySQL · 微信回调与 HTTPS 未在真实通道验过 · **未压测** · 镜像未瘦身 · 账号资源未到位 · 食品经营许可证仍待办；⑬ `gate.mjs all verify` **15/15 全绿** · e2e **m1 38 → 45 / m2 126 / m3 925**。
+**㉔ 本批次（M5-1 配送单人工修正 · M5 前置子批次 · 收口挂账 #61 · 零 DDL · 新增 `30016`/`30017` · 表数仍 27）**：① ⭐⭐ **本批的定位 = 把口子从 DBA 手里收回运营手里** —— 4.3 生成配送单后，份数 / 司机 / 车牌 / 备注此前**没有任何后台入口**，只能进库改（`DeliveryController` 是**空壳**、DTO 只有占位字段）；而 4.3 的幂等**刻意不覆盖**已存在行（保护人工录入的司机与车牌）→ 连「份数要改」也无路可走。故**实装而不是新建**：`GET /admin/deliveries`（D61 查）+ `PUT /admin/deliveries/{{id}}`（D62 改）；② ⭐⭐ **`version` 乐观锁（真缺陷 #61 的一半是「改不了」，另一半是「改了会互相覆盖」）** —— `ab_delivery_record.version` 列**早已存在、此前零使用**；不加锁的后果不是报错而是**静默覆盖**：两个运营同时改同一张单，改份数的人改完，司机被另一个人换成另一个名字，**两边都显示成功**；冲突返回 `30016` + `data.current`（让前端「刷新后重提」，而不是对着旧值反复撞）；⭐ `SET` 子句里**必须带 `version: record.version + 1`** —— 若只改业务字段，MySQL 下「值没变 → 实际改变行数 0」会被**误判成冲突**（改备注为相同内容却报「有人改过」）；③ ⭐⭐ **份数不符 ≠ 被人改过**：列表带 `orderQuantity`（截单实收份数）/ `quantityDiff` / `quantityMismatch`，但**两种成因刻意不区分** —— 「截单没跑成（份数偏小）」与「人工修正」在数据上长得一样；故同时下 `hasManualInput`（是否有人工痕迹，**可靠**）并在 `note` 里直写这层歧义。不给歧义，运营就会把「跑批没跑成」当成「有人偷改」，去追一个不存在的人；④ ⭐⭐ **份数对比与 4.3 跑批共用 `aggregateOrderQuantity()`**（两份实现必然漂移）且**取全量**（不受 `buildingGroupId` / `status` 筛选影响 —— 筛完再比会让「一筛就全部对不上」）；⑤ ⭐⭐ **审计 diff 不新建表** —— `OperationLogInterceptor` 的 `snapshot` 列只写 `{{operator, role, at}}`，但 `response_data` **整体落库**；故 D62 出参带 `{{before, after, changed}}` 即被自动留存（**成功与失败都记**，e2e 分别钉死）；⑥ ⭐ **只改 5 个字段、不含 `status`** —— 状态（发货 / 在途 / 到达）属**履约流转**，与「修数据」的风险不同（改状态会影响下游对「是否已送达」的判断），留独立批次；**无 POST / DELETE**（配送单由跑批生成，不做手工增删）；⑦ ⭐ **状态文案收敛到 `shared-types/src/enums/delivery-status.ts`** —— `DELIVERY_STATUS_TEXT` 原在 `leader-order.service.ts` 与 `workbench.service.ts` **逐字重复两份**，新建的后台页若各写一份就是**第三份**（同 #67「跨端字符串契约无机械对账」）；⑧ **两级权限白名单**：类级含 `operator`（要跟单），**不含 `viewer`**（配送单含运力与司机电话）、不含 `finance`（与 D47–D50 看板**刻意含 `viewer`** 正好相反）；`ADMIN_MENU_KEYS` / `ADMIN_NAV` / 路由三者同步（**授权了必须有入口**）；⑨ ⚠️ **挂账 #49（时间类配置与调度分家）本批只做文案纠偏、不接线** —— 5 个时间键的 `unwiredReason` 原写「实际硬编码在 `xxx.task` 的 `@Cron("…")`」，M4-1 建立 `TASK_SCHEDULES` 声明表后**该文案已过时**，改为指向声明表；`set_meal.cutoff_time` 额外写明「**本键 / 声明表 / 下单窗口三者无机械对账**」；**接线调度会动下单窗口**（e2e 全量依赖 14:00–23:00），故维持**独立验收项**（同 M5-0 的纪律：不假装已解决）；⑩ `e2e-m3` **§32 新增 25 条断言**（隔离日 −216/−217 —— 与既有 today ± {{1,10,60,90,130,190,200,205,208,209,210,212,213,214,215,365}} 全不冲突；节末**全量还原**）+ §28「人工录入」由**直写 SQL 改为走 D62 接口**（顺带把「修正真的落到库里」变成断言）+ §22 断言文案随 ⑨ 更新 → **m3 925 → 951**；⑪ `gate.mjs all verify` **15/15 全绿** · `SCAFFOLD_KEY` 增 **6 项** M5-1 契约载体。
+**㉕ 本批次（M5-2 生产迁移补齐 + 结构对账门禁 · M5 前置子批次 · 收口 #76 · 新增 1 支迁移 · 零错误码 · 表数仍 27）**：① ⭐⭐ **本批的定位 = 把「生产结构」这条从未被验证过的命脉接上机械保证** —— 全仓此前**只有一支**迁移 `1700000000000-init.ts`（25 张 `CREATE TABLE`，**零 ALTER**），而实体有 **27 张表**；`data-source.ts` 写着 `synchronize: driver === 'sqlite'` → **seed / e2e×3 / gate 全程走 sqlite 由实体同步建表**，故这支迁移**一次都没有被执行过**（本机无 Docker / 无 MySQL，M5-0 自己也如实写了「生产库从未执行过迁移」）。机械对账实测缺口 = **整表 2 张 + 列 9 个 + 索引 1 个**；② ⭐⭐ **为什么此前没有任何一条门禁会红，而危险度反而比 M5-0 之前更大** —— 迁移只在**真的连上 MySQL 并执行**时才工作，sqlite 下「实体是唯一真相」**恰好成立**，于是「实体改了、迁移忘了改」**不在任何失败路径上**；而 M5-0 的 #72 刚把 migrations glob 从 `*.ts` 修成 `*.{{ts,js}}`（改前生产**一条迁移都找不到、TypeORM 不报错、退出码 0**）→ 形态从「**静默零迁移**」升级为「**跑出一个残缺库**」；⚠️ 缺列**不是「少个功能」，是「整张表打不开」**：TypeORM `find()` 默认 `SELECT` 实体**全部列** → MySQL 上直接 `ER_BAD_FIELD_ERROR`，后果是后台**供应商列表 / 详情**（D23 / P25）与**楼栋列表**（D37）**打开即 500**、**退款审批（C6）**读写 `ab_refund` 全表打不开（fail-closed 的 `40014` **连触发机会都没有** —— 先炸在查询上）、**消息模板页**（D59/D60）与集散日出餐量链路因缺表 500；③ ⭐⭐ **修法选「新增增量迁移」而非「就地改 init」** —— init 从未执行过、就地改更干净，但**若某环境已把 `Init1700000000000` 记为已执行**，TypeORM 会**静默跳过**改动后的它，缺口依然存在（**正是本批最恨的失败形态**）→ 增量迁移**不再依赖「没人跑过」这个前提**；代价是多一支文件；④ ⭐⭐ **补齐内容（DDL 逐字取自 ER v2.1）**：新增 `apps/api-server/src/database/migrations/1700000000001-parity-fix.ts` —— **2 表**（`ab_supplier_dish_center_daily` 按 §3.6.1 · `ab_message_template` 按 §3.9）+ **9 列**（`ab_building.population` · `ab_supplier` 审核族 7 列 `audit_status`/`audit_remark`/`audited_at`/`audited_by`/`license_expire_at`/`invoice_title`/`takeout_links` · `ab_refund.order_status_before`）+ **1 索引**（`ab_building.idx_building_status`）+ `ab_building.status` **注释对齐三态**（`MODIFY` 只改注释、**不改类型不迁数据**）；**两处刻意偏差**：引用 id 统一 `BIGINT UNSIGNED`（ER 里 `audited_by` 只写 `bigint`）· `order_status_before` 按 **`VARCHAR(16)`** 而非 ER 误写的 `tinyint`；⑤ ⭐⭐ **幂等与可重入** —— MySQL 8 **不支持** `ADD COLUMN IF NOT EXISTS` / `CREATE INDEX IF NOT EXISTS`，故列与索引**逐项查 `information_schema.COLUMNS` / `.STATISTICS`**（`TABLE_SCHEMA = DATABASE()`，**不串库**）后再加，两表用 `CREATE TABLE IF NOT EXISTS` → **重跑不报错、不重复加**（**不需要「只在空库上跑」这个前提**）；`down()` 对称回退（删 9 列 / 删索引 / 删 2 表 / 注释改回 init 原文案）；⑥ ⭐⭐ **一处文档错误被代码反向纠正** —— ER §5.3 把 `ab_refund.order_status_before` 记作 `tinyint`，而 `refund.service.ts` 写入的是 `order.status`（状态**字符串**）、`refund-admin.service.ts` 还会对它跑 `adminStatusText()` → 按 `VARCHAR(16)` 建列并**同步更正 ER**（**文档记错，不是代码错**；**文档比代码更错的场合，机械对账的源必须是代码、不能是文档**）；⑦ ⭐⭐ **新增 `apps/api-server/src/database/schema-parity.ts` 作为门禁 `schema:parity`（`gate.mjs` 的 `GATES` + `all` 别名，**15/15 → 16/16**）** —— 源A「**迁移推演**」= 解析**全部迁移**的 `CREATE TABLE` / `ADD COLUMN` / `MODIFY COLUMN`（作用域 = 模块级常量 + `up()`，`down()` 排除；**先剥注释再扫关键词**，否则迁移里的一句注释就能触发假报）；源B「**实体真库**」= TypeORM 拿 `ALL_ENTITIES` 在**内存 sqlite** 上 `synchronize` 真建表再读回。⚠️ **源B 刻意不解析实体源码**：列装饰器形态太多（`@Column`/`@VersionColumn`/`@PkColumn`/`@CreateDateColumn`），正则解析必漏 —— **本批前两版手写解析器就是这么错的**（漏 `@VersionColumn` / 行号错位），故改成「让 ORM 自己建一遍」；⚠️ **三处刻意豁免 / 显式失败**：**PK 列豁免类型比较**（sqlite `integer` vs mysql `bigint` 是 `PkColumn()` 按 `DB_DRIVER` 的**刻意分派**，不是漂移）· `JSON→TEXT` 归一 · **未登记类型 / 未支持语句形态**（`CHANGE COLUMN` / `RENAME` / `CREATE INDEX` / `DROP COLUMN`）**显式报错、绝不静默跳过**；⑧ ⭐⭐ **门禁自带自证能力（本批最有价值的一处设计）** —— 检查器**每次运行人为制造一个缺口**（从源A 深拷贝里删掉一列）**并确认能报出该列**，否则**自身失败**：「**恒绿的检查比没有检查更糟**」；⚠️ **这条自检当场抓出了自身一个 bug**：计数器原在循环外模块级累加，第二支迁移文件拿本文件条数去比累计值 → 误报「CREATE TABLE 源码 2 / 解析 27」；⑨ **反证测试**：人为删 `population` 条目 → 门禁红且**点名该列**（393 vs 394），还原后按 sha 校验一致；⑩ **文档回写**：ER 文档 §5.3 类型更正 + 新增 **§5.8 迁移↔实体结构对齐**段（含 ⚠️ 边界：**ER 是三份结构表述里唯一无自动校验的一份**）+ 表数总览补警示「**表数对齐 ≠ 结构对齐**」；init 头注释「24 张表」**纠正为实际 25 张**并注明差额去向（`schema:parity` 按「**两支迁移合并推演**」对账）；《部署运维手册》**R2 升级**为「结构已机械对账 + 仍需真机空库首迁预演」；《项目目录结构》v2.0.7；⑪ ⚠️ **未做的事（如实标注）**：**仍未在真机空库上跑过首迁** —— 本批验的是「**迁移推演 ≡ 实体**」这件**结构事实**，**不是**「MySQL 上执行成功」这件**运行事实**；`down()` 只能回退本支；**两支迁移合并推演才等于实体**（单看 init 少 2 表 9 列，是刻意的）；⑫ `SCAFFOLD_KEY` 增 **3 项** M5-2 契约载体（`1700000000000-init.ts` / `1700000000001-parity-fix.ts` / `schema-parity.ts`）。
+
+> **用途**：本清单声明开发阶段（M1 起）的**唯一输入版本**。开发方一律以本清单所列「现行」文件为准，**不得参考「已废弃」文件**。
+> **校验方式**：文件名 + 字节数 + SHA-256（前 12 位）三重核对；拿到文件后先跑一次摘要比对，防止版本漂移。
+
+---
+
+## 一、冻结基线总览
+
+| 项 | 值 |
+| --- | --- |
+| 基线标识 | `v1.1-local-dev-base`（提交历史重建后的现行 tag） |
+| 冻结日期 | 2026-09-14 |
+| 原型版本 | v4.10.0（37 页，已部署；结算成本项可配置版） |
+| 现行资产 | {n_act} 份 |
+| 已废弃资产 | {n_dep} 份（存档，勿参考） |
+| 工程骨架 | `abox-onebox/` · **{sc_total} 个文件**（阶段四产出） |
+| 数据库表 | **27 张**（ER v2.1：23 张 + 评审新增 `ab_leader_invite` + M2 新增 `ab_withdraw` + M3-8 新增 `ab_supplier_dish_center_daily` + M3-12 新增 `ab_message_template`）· ⚠️ **表数对齐 ≠ 结构对齐**：自 2026-09-17（M5-2 · #76）起，「实体 → 迁移」的**逐表逐列**对齐由门禁 **`schema:parity`** 机械保证（27 表 / 394 列），且**开发期用 sqlite 建表、生产用迁移建表**这一分叉已由此门禁兜住 |
+| 技术栈 | uni-app(Vue3+TS) + NestJS + MySQL 8 + Redis 7 + 微信支付 V3；**佣金出款走灵活用工平台代发**（C11，见目录结构 v2.0） |
+| 基线 commit | 基线 tag `{BT}`（`{TS}` · {TF} 文件）· 生成时 HEAD `{HS}`（**回溯基准**：清单是生成物，其自身提交号 = 上述 HEAD 的下一笔 `chore(baseline)` 提交） |
+| 准备期状态 | **阶段一 / 二 / 三 / 四 全部完成 + M0 启动评审已通过**；M1（后端 + 小程序基座）· M2（团长端全链路）已端到端验收；**M3（运营后台 + 供应商端）已完成（M3-1 ~ M3-15）**：已落地 M3-1 后台鉴权基座 · M3-2 套餐编排 D1–D7 · M3-3 订单中心 D8–D12 · M3-4 退款审批 D40–D42 · M3-5 后台团长管理 D19–D22 · M3-6 后台供应商管理 + 集散 D23–D32 · M3-7 后台办公楼与楼群 D13–D18 · M3-8 供应商端出餐确认 S1–S3 · M3-9 应付结算 S9（自营口径首次实装）· M3-10 系统配置 D57–D58 · M3-11 数据看板 D47–D50 · **M3-12 通知模板 D59–D60** · **M3-13 财务端点 D33–D35** · **M3-14 余额账户管理与调整 D38–D39** · **M3-15 微信支付对账 D43 + 发票管理 D44** · **M4-0 契约级修正 + S3 打包任务迁运营后台** · **M4-1 日切链路（4.1/4.2/4.3 + 调度基座 + 手动补跑）** · **M4-2 结算链路（4.4/4.5/4.7）** · **M4-3 队列贯通（BullMQ 三消费者 + 订阅消息投递点 + 外部通道移出 DB 事务）** · **M4-4 提现审批（D45 列表 + D46/D46a/D46b/D46c 四动作 · 资金链收口）** · **M5-0 部署运维基座（探针分级 + 优雅关闭 + 生产迁移 glob + 双镜像 / compose.prod / 5 脚本 + 部署运维手册；修真缺陷 #71–#75）** · **M5-1 配送单人工修正（D61/D62 · 收口挂账 #61）** · **M5-2 生产迁移补齐 + 结构对账门禁（收口 #76 · 补 2 表 9 列 1 索引 + `schema:parity`）** · **M5-3 试运营交付 + 安全自检 + #49 时间类配置接调度（收口 #49 · 门禁 16 → 18 道）** · **M5-4 云前内部测试环境（`scripts/local-test.mjs` 一键起「API + 用户端 H5 + 运营后台」+ 同源反向代理 + 端上自检 11 项）** · **M5-5 内部测试操作清单（38 步可打印 A4 + 问题记录表 + 严重度分档 + 身份分配 · 纯文档、未改代码）** · **M5-6 全面检查五项「本地可完成」修复（`index:parity` 门禁 18 → 19 道 · 限流中间件由空占位改实装）** · **M5-7 代码审查修复批次（资金链并发收口 + 安全默认值 fail-fast + `state:audit` 门禁 19 → 20 道 · 新增 40018 / 40019）** · **M5-8 履约链 T7/T8/T9 补实现（收口 P0 缺陷 #79 · D63 `PATCH /admin/deliveries/{{id}}/status` + 状态机删不可达边 + 后台入口 · 新增 30018 · e2e m3 980 → 1007）** · **M5-9 演示 / 边界数据集（两层种子纪律 `seed` / `seed:demo` · 34 单覆盖 11 态 · 13 项自检 + 页面可用性探针 83 项 · 收口数据层缺陷 #87 / #88 / #93）** · **M5-10 原型逐页对齐（P1–P20 共 19 页 · 三批全毕 · 裁定 `prototype/index.html` v4.10.0 为版式验收基准 · 顺带盘出并收口 #94）** · **M5-11 三处挂账缺陷收口（#92 邀请码绑定链路两端补实装 + `LeaderLookupService` 唯一实现 · #93 演示单号前缀 `AB0000` · #94 L15 `mine.level` 改名拆分 · 零 DDL · 零新增错误码 · 门禁仍 20 道 · 表数仍 27）**；⭐ **M5 主线（三方联调 + 灰度上线）仍被外部条件阻塞**（5.2 压测 / 5.4 真机部署 / 5.5 灰度 / 5.6 演练），故 M5-0/1/2 是**前置子批次 ≠ M5**；《部署运维手册 v1.0》**已产出**（M5-0），其中 **R2 已由 M5-2 升级为「结构已机械对账」** |
+
+---
+
+## 二、现行资产（开发阶段唯一输入）
+
+{table_act}
+
+---
+
+## 三、已废弃资产（存档 · 勿参考）
+
+{table_dep}
+
+---
+
+## 四、工程骨架 `abox-onebox/`（阶段四产出）
+
+**总计 {sc_total} 个文件**，按区域分布：
+
+| 区域 | 文件数 |
+| --- | --- |
+{sc_area_lines}
+
+**关键文件摘要**（其余文件以仓库为准）：
+
+{sc_table}
+
+> 骨架含：根配置（pnpm workspace / TS / ESLint / Prettier / commitlint）+ CI 四作业 + Docker Compose（MySQL 8 + Redis 7，无 RabbitMQ）
+> + 小程序 21 页骨架 + 后台 33 视图骨架 + 后端 15 模块 / 8 定时任务 / 3 消费者 + 4 个 packages。
+> 业务实现留空，由开发阶段填充；**锁定口径仅剩售价与费率**（售价 ¥25.80 / 佣金 8-9-10-12% / 截单 T-1 24:00）；**结算成本项已全部改为可配置**（供应商供价逐菜协商 / 集散复用场地默认 ¥0 / 打包人工 / 配送费 / **平台毛利为结果值** · C9 2026-09-15 修订），**佣金出款通道已抽象**（`PayoutChannel` · C11：灵活用工平台代发，一期清单导出 + 回执登记）。
+
+---
+
+## 五、验证工具（随基线冻结）
+
+{table_test}
+
+---
+
+## 六、冻结与变更规则
+
+1. **只增不改**：基线冻结后，任何文档变更**不得直接改写原文件**，须另出增量版本（如 v2.2），并在「变更记录」中登记。
+2. **文档 ↔ 原型同步**：改文档必须同步原型（反之亦然），一致性以《原型审查报告 v1.0》的 29 项清单回归为准。
+3. **变更留痕**：所有变更需记录「变更人 / 日期 / 原因 / 影响范围」，并走《协作规范 v1.0》§六 变更流程。
+4. **口径冲突仲裁顺序**：交接包 **v1.3**（锁定项 L1–L12、裁决 **C1–C11**）> PRD v2.1 > ER v2.1 > 目录结构 v2.0 > 接口规范 / 状态机 v1.0 > 其它。
+5. **代码仓库对应关系**：本清单的 `docs/` 目标位置见《项目目录结构 v2.0》§一；阶段四已生成骨架，执行 `pnpm docs:sync` 即可把根目录文档同步入仓。
+
+---
+
+*文档结束 · ABox 一盒 · 开发基线冻结清单 v1.0 · 2026-09-14*
+""".format(
+    n_act=len(act), n_dep=len(dep), sc_total=sc_total,
+    sc_area_lines=sc_area_lines,
+    table_act=table(act), table_dep=table(dep), table_test=table(rows(TESTS, ROOT)),
+    sc_table=sc_table,
+    BT=BASELINE_TAG, TS=TAG_SHORT, TF=format(TAG_FILES, ','), HS=HEAD_SHORT,
+)
+
+if un:
+    body += "\n> ⚠️ 待归类文件：\n" + "\n".join("- `%s` — %s" % (r[0], r[4]) for r in un) + "\n"
+
+with open(OUT, "wb") as f:
+    f.write(body.encode("utf-8"))
+
+report = [
+    "written: %s" % OUT,
+    "current=%d deprecated=%d unclassified=%d scaffold_files=%d"
+    % (len(act), len(dep), len(un), sc_total),
+]
+for r in found:
+    report.append("  %-6s %-46s %12s  %s" % (r[3], r[0], format(r[2], ","), r[1]))
+with open(os.path.join(ROOT, "_mf_report.txt"), "w", encoding="utf-8") as f:
+    f.write("\n".join(report))
+print("\n".join(report))

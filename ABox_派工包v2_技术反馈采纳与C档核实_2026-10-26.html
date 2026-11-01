@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox · 派工包 v2（技术反馈采纳 + C 档核实结论 + 新发现）</title>
+<style>
+  :root{
+    --brown:#6E5435; --brown-d:#4a3a22; --cream:#F6F0E5; --cream-2:#efe6d6;
+    --line:#d9cbb4; --ok:#3f7d4f; --part:#b07d2b; --gap:#b23b3b; --na:#7a7a7a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"楷体","KaiTi","STKaiti",simkai,serif;color:var(--brown-d);background:var(--cream);line-height:1.68;}
+  header{background:var(--brown);color:var(--cream);padding:22px 28px;}
+  header h1{margin:0 0 4px;font-size:23px;letter-spacing:2px;}
+  header p{margin:0;font-size:13.5px;opacity:.92;}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px 22px 60px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13.5px;}
+  .card h3{margin:0 0 10px;color:var(--brown);font-size:15px;}
+  .card h4{margin:14px 0 6px;color:var(--brown);font-size:13.5px;}
+  table{width:100%;border-collapse:collapse;font-size:12.8px;margin:10px 0;}
+  table th,table td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
+  table th{background:var(--cream-2);color:var(--brown);}
+  .v-ok{color:var(--ok);font-weight:bold;}
+  .v-part{color:var(--part);font-weight:bold;}
+  .v-gap{color:var(--gap);font-weight:bold;}
+  .code{font-family:Consolas,Monaco,monospace;font-size:11.8px;background:var(--cream-2);padding:1px 5px;border-radius:3px;color:#5a4326;word-break:break-all;}
+  .alert{background:#fceaea;border-left:4px solid var(--gap);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .warn{background:#fbf3e3;border-left:4px solid var(--part);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  .good{background:#eaf3e8;border-left:4px solid var(--ok);padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px;}
+  ul{margin:6px 0 6px 18px;padding:0;}
+  li{margin:3px 0;}
+  .kpi{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0;}
+  .kpi div{flex:1;min-width:150px;background:var(--cream-2);border:1px solid var(--line);border-radius:8px;padding:10px 14px;text-align:center;}
+  .kpi b{display:block;font-size:20px;color:var(--brown);}
+  .kpi span{font-size:12px;color:var(--na);}
+  footer{font-size:12px;color:var(--na);text-align:center;margin-top:30px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>派工包 v2 · 技术反馈采纳 + C 档核实 + 新发现</h1>
+  <p>2026-10-26 ｜ 依据：《派工包复验与反馈》+ 逐条回源核实验 ｜ 原则：<b>改没改必须自己验，不信回执</b></p>
+</header>
+
+<div class="wrap">
+
+  <div class="kpi">
+    <div><b>2/2</b><span>A2·A3 修复已独立复验属实</span></div>
+    <div><b>11/11</b><span>A2 验收脚本全绿（EXIT=0）</span></div>
+    <div><b>3/3</b><span>技术指出的三处偏差全部属实，已采纳</span></div>
+    <div><b>3</b><span>本批新发现（均可回源码核对）</span></div>
+  </div>
+
+  <div class="card">
+    <h3>一、技术的三处纠正 —— 全部属实，我错了</h3>
+    <div class="alert">
+      这三条我<b>逐条回源核过，技术是对的</b>。原派工包里的数字请以下表为准，别再按旧版本去核对。
+    </div>
+    <table>
+      <tr><th style="width:20%">纠正项</th><th style="width:14%">原文（我）</th><th style="width:14%">实数</th><th>我的复核证据</th></tr>
+      <tr>
+        <td><b>@Public 端点数</b></td>
+        <td class="v-gap">10 处</td>
+        <td class="v-ok">13 处</td>
+        <td>逐行明细：health ×2、auth ×3、meal ×1、payment ×2、traceability ×3、track ×1、wecom-kb ×1。<br>
+        <b>错因</b>：我当初 grep 限定在 <span class="code">modules/</span>，漏掉顶层的 <span class="code">health/health.controller.ts</span> 两个。</td>
+      </tr>
+      <tr>
+        <td><b>page-track-cleanup 路径</b></td>
+        <td>写作 tasks/</td>
+        <td class="v-ok">modules/track/</td>
+        <td><span class="code">modules/track/page-track-cleanup.task.ts:36</span> <span class="code">PAGE_TRACK_RETENTION_DAYS = 180</span>，实现完整，可作 A5 归档样板。</td>
+      </tr>
+      <tr>
+        <td><b>A4 定性偏重</b></td>
+        <td class="v-gap">可绕过（分量重）</td>
+        <td class="v-part">仅面额缺上限</td>
+        <td><span class="code">coupon.service.ts:23</span> 注释原文「关联券种定义 id…；<b>纯补偿券可空</b>」⇒ 可空是<b>有意设计</b>，售后补偿券本就无券种总量可言。<br>
+        <b>完全采纳</b>：不能把 <span class="code">couponDefId</span> 改成必填，那会直接打断售后补偿发券流程。</td>
+      </tr>
+    </table>
+    <div class="good">
+      <b>结论不变的部分：</b>全局 <span class="code">JwtAuthGuard</span> fail-closed 依然成立，13 处免鉴权集中在登录、健康检查、支付回调、企业微信回调、溯源只读等合理场景 —— 只是<b>数字从 10 改为 13</b>，别按 10 去核对时误判多出 3 个敞口。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>二、A2 / A3 是否真改 —— 我独立复验的结果：属实</h3>
+    <div class="warn">
+      <b>先说一个坑（差点造成误判）：</b>源码改了，但 <span class="code">apps/api-server/dist</span> 还是 <b>10-24</b> 的旧产物。
+      我第一次重跑测试<b>仍然报红</b> —— 那是<b>构建未同步</b>，不是修复无效。
+      <b>任何人如果只跑测试不看 dist 时间戳，都会误判成「技术没改」。</b>
+    </div>
+    <table>
+      <tr><th style="width:8%">条目</th><th style="width:34%">回源码看到的事实</th><th>评价</th></tr>
+      <tr>
+        <td><b>A2</b></td>
+        <td><span class="code">kv.service.ts:38 driverIsRedis</span> · <span class="code">:42 driver === 'redis'</span> ·
+        <span class="code">:129-150 setNx</span> 重写：redis 驱动时<b>先判 redis 是否为空 → 抛明确错误；否则直接 await set（外层无 try/catch）⇒ 出错向上抛</b></td>
+        <td class="v-ok">修复属实。<b>比原建议更彻底</b>：技术特意堵了第二个入口 —— 光改 catch 不够，<span class="code">useMemory()</span> 提前返回也会走内存，故改为「驱动声明为 redis 就永不走内存」。</td>
+      </tr>
+      <tr>
+        <td><b>A3</b></td>
+        <td><span class="code">op-blocklist.controller.ts:49-57</span>：<span class="code">@OperationLog({module:'system', action:'解除AI禁止清单', targetParam:'opCode'})</span> +
+        <span class="code">@CurrentAdmin</span> + <span class="code">if (!actor?.sub) throw …'无法识别操作人，拒绝解除禁止'</span></td>
+        <td class="v-ok">修复属实。<b>「认不出操作人即拒绝」这一句是关键加分</b>：物理删除动作没有操作人 = 审计断链，宁可不做。</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>三、A2 验收脚本已重写为「验收模式」—— 11/11 全绿</h3>
+    <div class="good">
+      修复前的脚本是<b>复现缺陷</b>用的（期待它红）；修复后它必须<b>守住不回退</b>（期待它绿）。
+      按技术提醒，我重写了它 —— <b>否则它会一直红着，让人误以为缺陷还在</b>。
+      连跑 3 次 <span class="code">EXIT=0</span>，稳定不抖动。
+    </div>
+    <table>
+      <tr><th style="width:30%">断言</th><th>守什么</th></tr>
+      <tr><td>① Redis 不可达 ⇒ setNx <b>必须抛错</b></td><td>fail-closed 的核心；静默返回 true 即等于放行重复扣款</td></tr>
+      <tr><td>② setNx <b>不得返回布尔值</b></td><td>防止有人改成「返回 false 假装没抢到」，那同样会静默放行</td></tr>
+      <tr><td>③ 两实例至多一个拿到锁</td><td>互斥本体（原缺陷的 ③ 就是这里）</td></tr>
+      <tr><td>④ setNx 体内不得递归调用自身</td><td>静态守住：<b>降级路径不许被加回来</b></td></tr>
+      <tr><td>⑤ 存在 driverIsRedis 显式隔离</td><td>保证 redis 驱动下永不读内存</td></tr>
+      <tr><td><b>RV-b2 / RV-c（新增）</b></td><td><b>回答技术问的「要不要重启」</b>：断言故障后 <span class="code">degraded</span> 无残留 + setNx 体内既不读 <span class="code">degraded</span> 也不走 <span class="code">useMemory()</span>。<br>
+      ⇒ 没有任何需要靠重启才能清除的状态，<b>Redis 一恢复、下一次调用即生效</b></td></tr>
+      <tr><td>RV1 探针有效性（改用 memory 驱动）</td><td>共享存储下同键第二次必须 false。改驱动是因为<b>不再依赖网络行为</b>，语义更精确且不会 flaky</td></tr>
+    </table>
+    <div class="warn">
+      <b>过程中我自己踩的坑（已修，写出来免得重蹈）：</b>
+      <ul>
+        <li><span class="code">lazyConnect:true</span> ⇒ 不发命令 ioredis <b>根本不连接</b>，轮询 <span class="code">status</span> 永远等不到 ready，会误判「连不上」。</li>
+        <li><span class="code">server.close()</span> <b>只停止接受新连接，不断开已有连接</b> ⇒ 模拟不了「Redis 挂了」，必须自己记账 socket 并 destroy。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>四、C 档 5 条已核完 —— 全部从「自查题」升级为「确证结论」</h3>
+    <table>
+      <tr><th style="width:6%">#</th><th style="width:16%">条目</th><th style="width:12%">结论</th><th>依据（文件:行）</th></tr>
+      <tr>
+        <td>C1</td><td><b>H9</b> 佣金冲正</td><td class="v-part">主链路扎实 · 留 1 条残余</td>
+        <td>✅ 扎实：<span class="code">refund.service.ts:782</span> 在事务内调 <span class="code">applyRefundEffects</span>；冲正<b>只认 pending/settled 白名单</b>（<span class="code">reversal.service.ts:244</span>，注释写明为何不用「非 pending 即 settled」的猜测）；<b>条件更新原子占位</b>（<span class="code">:277-287</span>，抢不到就一分钱不动）；pending 分支<b>作废不扣钱</b>（<span class="code">:296-307</span>）；settled 分支<b>写负行 + 乐观锁扣余额 + 写流水</b>（<span class="code">:329-370</span>）。<br>
+        ⚠️ <b>残余</b>：<span class="code">refund.service.ts:77-84</span> 可退状态<b>含 COMPLETED</b>，且<b>退款无任何时间窗</b> ⇒ 佣金 T+1 02:00 入账、团长提现后仍可退款，此时余额被扣成负（<span class="code">:381-384</span> 只写 notes「形成欠款由后续佣金抵扣」）。<b>团长若不再接单，这笔钱追不回。</b></td>
+      </tr>
+      <tr>
+        <td>C2</td><td><b>Q1</b> 配送单幂等</td><td class="v-ok">设计正确 · 不用动</td>
+        <td><span class="code">delivery.service.ts:265-272</span> 注释明写：已存在即<b>跳过不覆盖</b>，因为单子生成后运营会填司机/车牌，「重算会把人工录入抹掉」。这是<b>权衡后的刻意设计</b>，不是漏实现。</td>
+      </tr>
+      <tr>
+        <td>C3</td><td><b>Q7</b> 日结平账</td><td class="v-part">只有三头 · 一期限制</td>
+        <td>实际核对<b>订单 ↔ 支付流水 ↔ 退款</b>三头，非五方。且 <span class="code">reconciliation.task.ts:46-58</span> 注释自承「一期无商户号+证书，<b>物理上拿不到微信账单</b>」，出参强制带 <span class="code">channelSource='local_only'</span> / <span class="code">billAvailable=false</span>，<b>不许假装已与微信对平</b>（#55）。<br>
+        ⇒ 这不是偷懒，是<b>诚实标注边界</b>；也正因如此，A1 单边账才是真缺口。</td>
+      </tr>
+      <tr>
+        <td>C4</td><td><b>S2</b> 打款失败回滚</td><td class="v-part">并发与回滚都已防住</td>
+        <td>✅ <span class="code">withdraw-admin.service.ts:280-289</span> 并发审批：<span class="code">WHERE id=? AND status='pending'</span> + affected 判定，只有一次生效。✅ <span class="code">markFailed:487-503</span> 原路解冻把钱退回可用余额，<span class="code">releaseFrozen</span> 带乐观锁且冻结不足时 fail-closed。✅ 四个端点全有 <span class="code">@OperationLog + @Idempotent + @Roles(FUND_ACTION_ROLES)</span>。<br>
+        ⚠️ 「以第三方返回为准置终态」<b>不成立</b> —— 全仓无任何第三方打款调用，<span class="code">markPaid</span> 是<b>人工回填</b>（注释直言「一期人工通道的唯一收口」）。这是<b>现状而非缺陷</b>，但与期望的「自动到账」有差距（见 D3）。</td>
+      </tr>
+      <tr>
+        <td>C5</td><td><b>S5</b> 对账在不在跑</td><td class="v-part">有告警 · 无执行记录</td>
+        <td>✅ 不平即写 <span class="code">ab_operation_log</span>（<span class="code">reconciliation.task.ts:119-140</span>，module='finance'/action='对账不平'/targetId=日期），后台可见；同日期<b>幂等不重复写</b>；平了则不写（避免 365 条噪音）。<br>
+        ❌ 但 <span class="code">sched.run()</span> 只有 kv 锁 + 日志，<b>无任何执行记录表</b> ⇒ 「任务压根没被调度」与「跑了且平了」<b>在界面上完全一样</b>。与 A5/T1 同根，建议合并处理。</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>五、本批新发现 3 条（均已回源核对）</h3>
+    <div class="alert">
+      <b>N1｜最硬的一条：后台把楼「停用」了，用户端照样能下单。</b><br>
+      同一个「能不能订」的判定，<b>后台和用户界面写了两份口径</b>：<br>
+      · 后台 <span class="code">building-admin.service.ts:218</span>：<span class="code">canOrder = status === ACTIVE && gid !== null</span><br>
+      · 用户端 <span class="code">meal.service.ts:104</span>：<span class="code">canOrder = assignment.status === 'active' && isOrderable(...)</span> —— <b>完全不查楼宇/楼群状态</b><br>
+      ⇒ 运维在后台点「停用」，<b>只是后台列表显示不可订</b>；只要那天该楼群还有一条处于 active 的套餐分配，用户打开小程序照样能下单、照样扣款。<br>
+      <b>交叉验证</b>：下单主链路 <span class="code">order.service.ts</span> 与 <span class="code">meal.service.ts</span> 全文均无 <span class="code">BuildingStatus|BuildingGroupStatus</span>；<span class="code">BuildingGroupStatus</span> 在 <span class="code">modules/building/</span> 之外<b>零引用</b>。
+    </div>
+    <div class="alert">
+      <b>N2｜楼宇「停用/改名」对已有订单没有任何联动。</b><br>
+      <span class="code">updateBuilding:632-712</span> / <span class="code">updateGroup:928</span> 里<b>不检查该楼是否有未完结订单</b>、不通知、不退款。<br>
+      ⇒ 这条直接回答了您问的 <b>R1</b>（见下方可否复用 W1）。
+    </div>
+    <div class="alert">
+      <b>N3｜技术的第 4 条建议成立，且比他说的更严重：incr 降级会让「限流 + 登录失败锁定」同时失效。</b><br>
+      <span class="code">kv.service.ts:173-191</span> 的 <span class="code">incr</span> 仍走 <span class="code">useMemory()</span> 降级。
+      而它的两个调用方是 —— <span class="code">rate-limit.middleware.ts:208</span>（接口限流）与 <span class="code">auth.service.ts:381</span>（登录失败次数锁定）。<br>
+      ⇒ Redis 一抖动，多实例<b>各自计数</b>：限流阈值被放大 N 倍，<b>暴力破解保护失效</b>。这不是可用性问题，是<b>安全问题</b>。<br>
+      <b>建议</b>：这两个用途都应 fail-closed（与 setNx 同口径）。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>六、X1 换绑楼清空团长 —— 我给的判定：现在不改代码，改注释</h3>
+    <div class="warn">
+      <span class="code">user.service.ts:139-148</span> 换楼时清 <span class="code">teamLeaderId: null</span>，日志与接口摘要都写着「待重算 / 按新楼重算跟随团长」，
+      但<b>全仓无任何重算实现</b>。<br>
+      <b>为什么不急着改</b>：清空后用户下次下单会走 <span class="code">resolveLeader()</span> 三级兜底，落到<b>新楼在职团长</b> ——
+      <b>结果是对的</b>（佣金确实归新楼的人），所以不会「记错楼」。<br>
+      <b>真正该改的是误导性表述</b>：注释承诺了不存在的「重算」，后续维护者会以为有兜底而放松警惕。<br>
+      <b>建议</b>：把「待重算」改成「清空后由 <span class="code">resolveLeader</span> 兜底重解析」，成本近乎为零。<br>
+      <b>若要「归给邀请我的人/最近合作过的团长」</b>——那是新功能，另行派工。
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>七、D 档终版 —— 按您的指示，以技术建议为主</h3>
+    <div class="warn">
+      <b>唯一与您的原意冲突的一项（D3 起提金额）已由您拍板确认</b>：保留「不限」，其余四项采纳技术建议。下方对照表留档。
+    </div>
+    <table>
+      <tr><th style="width:6%">#</th><th style="width:14%">条目</th><th style="width:30%">终版口径（采纳技术建议）</th><th>与您先前拍板的关系</th></tr>
+      <tr><td>D1</td><td>非营业日</td><td>工作日营业；周末与法定节假日休市，<b>休市日不开放下单</b>；春节提前公告；突发休市走停售流程</td><td class="v-ok">与您「先人工操作」一致 —— 一期靠人工提前编排，系统侧暂不开发</td></tr>
+      <tr><td>D2</td><td>一键停售</td><td><b>要，且做成一键触发三步</b>：停止接单 + 通知已下单用户 + 自动退款退券</td><td class="v-ok">与您「可以有」一致</td></tr>
+      <tr>
+        <td>D3</td><td>提现规则</td>
+        <td class="v-ok">已定稿（2026-10-26）：起提 <b>不限</b>（地板 ¥0.01）· <b>T+1</b> 到账 · 免手续费 · 单日上限 <b>¥2000</b> · <b>当日不可重复</b></td>
+        <td class="v-ok">4 项采纳技术建议，<b>起提金额保留您的「不限」</b>（因「当日 1 笔」已锁住人工笔数）。落地规格见《<b>D3 提现规则定稿</b>》</td>
+      </tr>
+      <tr><td>D4</td><td>批量退款</td><td>要，按配送日/楼宇批量，<b>必须支持断点续退</b>；另加您要求的<b>「明确提醒」</b></td><td class="v-ok">一致（提醒是您的补充要求，已并入）</td></tr>
+      <tr><td>D5</td><td>楼宇停用</td><td>停用前校验无未完结订单；有则先批量退款再停用；<b>只停用、不硬删</b></td><td class="v-ok">与您「系统统一提醒」方向一致</td></tr>
+    </table>
+    <div class="alert">
+      <b>D3 冲突 —— 已于 2026-10-26 拍板，冲突消除</b>
+      <div class="good" style="margin-top:8px">
+        定稿五值：<b>起提不限 · T+1 到账 · 免手续费 · 单日 ¥2000 · 当日不可重复</b>。<br>
+        其中「起提不限」保留了您的原意 —— 我原先担心的是「不限 ⇒ 人工打款笔数失控」，但<b>「当日 1 笔」已把笔数锁死</b>（一人一天最多一笔），所以两项可以并存。<br>
+        <b>另有一条重要更正</b>：我先前说「起提金额要改代码」是<b>错的</b> —— 它本就是配置项 <span class="code">commission.min_withdraw</span>（<span class="code">biz-config.service.ts:179-181</span>，默认 10），后台配置页已上架，<b>改成 0 即可，零代码、不发版</b>。<br>
+        完整落地规格（配置键、错误码、事务口径、验收 7 条）见独立文件《<b>ABox_D3提现规则定稿_2026-10-26.html</b>》，可直接贴给技术。
+      </div>
+      <b style="display:block;margin-top:14px">原冲突对照（留档）</b>
+      <table>
+        <tr><th style="width:22%">数值</th><th style="width:26%">您先前拍板</th><th style="width:26%">技术建议</th><th>差异影响</th></tr>
+        <tr><td>起提金额</td><td>不限</td><td>¥50</td><td class="v-gap"><b>最关键</b>：现在是<b>人工打款通道</b>（我已核过：<span class="code">markPaid</span> 是人工回填，全仓无第三方打款调用）。不限 ⇒ 提 ¥0.5 也要人工处理一笔</td></tr>
+        <tr><td>到账时限</td><td>审核后立即</td><td>T+1</td><td>「立即」需接第三方自动打款 API；现状只能「运营人工转账后回填」</td></tr>
+        <tr><td>单日上限</td><td>¥1000</td><td>¥2000</td><td>取哪个都行，纯业务选择</td></tr>
+        <tr><td>当日可否重复</td><td>能</td><td>不能</td><td>能 ⇒ 同一人一天可分多次提，人工笔数翻倍</td></tr>
+        <tr><td>手续费</td><td>不收</td><td>不收</td><td class="v-ok">一致</td></tr>
+      </table>
+      我判断：<b>技术的 ¥50 起提 + 当日不可重复，是在替您省人工成本</b>，因为他知道现在是人工通道。
+      若您坚持「不限 + 可重复」，建议同步确认人工打款能承受的笔数，或先做自动打款对接。
+    </div>
+    <div class="good">
+      <b>关于您问的「R1 能不能直接调用 W1」——方向对，但现在连不上。</b><br>
+      楼宇停用是<b>局部</b>影响（一栋楼），一键停售是<b>全局/指定配送日</b>，两者<b>共同的下半段完全一致</b>（通知已下单用户 + 退款退券）。<br>
+      正确做法是<b>先建统一的「停售影响面处理」服务，让楼宇停用与一键停售都调用它</b>，只是作用域不同 —— 这正是您说的「调用 W1」的意思。<br>
+      ⚠️ 前提是要先修 <b>N1/N2</b>：现在<b>停用楼宇连新单都挡不住</b>，谈「自动退款已有订单」还没有地基。<b>建议 N1/N2 与 W1 一起派工。</b>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>八、现在的完整待办清单（按优先级）</h3>
+    <table>
+      <tr><th style="width:6%">档</th><th style="width:26%">事项</th><th style="width:12%">状态</th><th>下一步</th></tr>
+      <tr><td>A2</td><td>幂等键 fail-closed</td><td class="v-ok">已修复·已验收</td><td>脚本 11/11 绿，<b>建议纳入 CI</b>（EXIT≠0 即阻断）</td></tr>
+      <tr><td>A3</td><td>解除禁令留痕</td><td class="v-ok">已修复·已复验</td><td>无</td></tr>
+      <tr><td>A1</td><td>支付单边账</td><td class="v-part">待设计评审</td><td>出一页设计（超时阈值/重试上限/异常去向），评审后落码</td></tr>
+      <tr><td>A4</td><td>发券面额上限</td><td class="v-part">待您给数值</td><td>技术建议 ≤ 单份餐价 ¥25.80；<b>「券种可绕过」的说法已撤回，勿据此改造</b></td></tr>
+      <tr><td>A5</td><td>跑批/日志可观测</td><td class="v-part">待定监控方案</td><td>先定「告警触达到谁、留存多久」，再照 <span class="code">modules/track/page-track-cleanup</span> 做「先归档再删」</td></tr>
+      <tr><td>B</td><td>团长作用域死代码</td><td class="v-part">待查生产库</td><td>确认 <span class="code">teamLeaderId IS NULL</span> 为 0 后删除该分支</td></tr>
+      <tr><td class="v-gap">新增</td><td><b>N3 incr 降级致限流失效</b></td><td class="v-gap">建议必修</td><td>限流与登录失败锁定改 fail-closed，与 setNx 同口径</td></tr>
+      <tr><td class="v-gap">新增</td><td><b>N1/N2 停用不阻断下单</b></td><td class="v-gap">建议必修</td><td>用户端 canOrder 与后台统一口径；停用前校验未完结订单。<b>建议与 W1 一起做</b></td></tr>
+      <tr><td class="v-gap">新增</td><td>C1 残余：退款无时限</td><td class="v-part">建议补</td><td>定一个退款时限，或对「佣金已提现」情形走人工审批</td></tr>
+      <tr><td>新增</td><td>C5/A5 跑批执行记录</td><td class="v-part">建议补</td><td>与 A5 合并：先有执行记录，才谈心跳告警</td></tr>
+      <tr><td>新增</td><td>X1 注释误导</td><td class="v-part">低成本</td><td>改「待重算」为「由 resolveLeader 兜底重解析」</td></tr>
+      <tr><td>D3</td><td>提现五数值</td><td class="v-ok">已定稿</td><td>不限 / T+1 / 免手续费 / ¥2000 / 当日 1 笔 —— 见《D3 提现规则定稿》，<b>可开工</b></td></tr>
+    </table>
+  </div>
+
+  <footer>
+    ABox 一盒 · 派工包 v2 ｜ 2026-10-26 ｜ 每条结论均可按「文件:行」回源核对 ｜ 技术反馈中 3 处纠正已全部采纳
+  </footer>
+
+</div>
+</body>
+</html>

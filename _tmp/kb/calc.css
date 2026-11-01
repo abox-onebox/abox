@@ -1,0 +1,44 @@
+/* ══════════ 三期 · 问数（由 build2.py 读入并拼进 <style>） ══════════ */
+.mgrid{display:grid;grid-template-columns:1fr;gap:10px}
+.mcard{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:12px 15px 13px}
+.mcard .mh{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap}
+.mcard .mn{font:400 17px/1.4 var(--serif);color:var(--brand)}
+.mcard .mu{font-size:12.5px;color:var(--ink2)}
+.mcard .mt{font-size:13px;color:var(--ink2);margin-top:6px;line-height:1.9}
+.mcard .mt b{color:var(--ink);font-weight:600}
+.mcard .mq{font-size:13px;color:var(--brand);margin-top:8px;cursor:pointer}
+.mcard .mq:hover{text-decoration:underline}
+.pill{display:inline-block;font-size:12px;background:var(--brand-soft);color:var(--brand);
+  border-radius:20px;padding:1px 9px;margin:2px 5px 2px 0}
+.pill.d{background:#F1EDE3;color:var(--ink2)}
+.pill.k{background:#EDEAE0;color:#6C6858}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:13px 15px;margin-bottom:14px}
+.frow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.f{display:flex;flex-direction:column;gap:4px}
+.f>label{font-size:12px;color:var(--ink2)}
+.f input,.f select{font:13.5px var(--sans);padding:6px 9px;border:1px solid var(--line);
+  border-radius:8px;background:var(--bg);color:var(--ink);outline:none;max-width:230px}
+.f input:focus,.f select:focus{border-color:var(--brand)}
+.f input[disabled],.f select[disabled]{opacity:.45}
+.chk{display:flex;gap:12px;flex-wrap:wrap;margin-top:11px;padding-top:10px;border-top:1px dashed var(--line)}
+.chk label{font-size:12.5px;color:var(--ink);display:flex;gap:5px;align-items:center;cursor:pointer}
+.chk .t{color:var(--ink2);font-size:12px;align-self:center}
+.res{margin-top:6px}
+.res table{border-collapse:collapse;font-size:13.5px;width:100%}
+.res th,.res td{border:1px solid var(--line);padding:5px 10px;text-align:left}
+.res th{background:var(--brand-soft);color:var(--brand);font-weight:600}
+.res tr:nth-child(even) td{background:#FBF8F1}
+.res td.num,.res th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.res tr.tot td{background:#F6F2E9;font-weight:600;color:var(--brand)}
+.calcbox{margin-top:12px;background:#FCFAF4;border:1px solid var(--line);border-radius:9px;
+  padding:10px 13px;font-size:12.5px;color:var(--ink2);line-height:1.95}
+.calcbox b{color:var(--brand)}
+.calcbox pre{margin:7px 0 0;padding:8px 10px;background:#F6F2E9;border:1px solid var(--line);
+  border-radius:7px;font:12px ui-monospace,Menlo,Consolas,monospace;color:var(--ink);
+  white-space:pre-wrap;word-break:break-word;max-height:230px;overflow:auto}
+.calcbox .kv{display:inline-block;margin-right:14px;white-space:nowrap}
+.calcbox .kv b{font-weight:600}
+.evcard{margin-top:11px;border-top:1px dashed var(--line);padding-top:9px}
+.evcard .t{font-size:12.5px;color:var(--ink2);margin-bottom:7px}
+.warnbox{margin-top:10px;background:#FBF2EA;border:1px solid #EEDCCB;border-radius:9px;
+  padding:9px 13px;font-size:13px;color:var(--warn);line-height:1.85}

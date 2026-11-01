@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox · 成为团长招募页 · 方案对比</title>
+<style>
+  :root{
+    --paper:#F6F0E5; --ink:#6E5435; --ink-soft:#9A8668;
+    --line:rgba(110,84,53,.15); --card:#FBF7F0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"楷体","KaiTi","STKaiti",serif;
+    background:var(--paper); color:var(--ink);
+    padding:40px 24px 80px;
+  }
+  header{max-width:1180px;margin:0 auto 36px;text-align:center}
+  header h1{font-size:30px;letter-spacing:4px;font-weight:normal}
+  header p{margin-top:10px;color:var(--ink-soft);font-size:15px;letter-spacing:1px}
+  .grid{
+    max-width:1180px;margin:0 auto;
+    display:grid;grid-template-columns:repeat(2,1fr);
+    gap:34px;
+  }
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .item{
+    background:var(--card);border:1px solid var(--line);
+    border-radius:18px;padding:22px 22px 18px;
+    box-shadow:0 8px 24px rgba(110,84,53,.08);
+  }
+  .item .tag{
+    display:inline-block;font-size:13px;letter-spacing:2px;
+    color:#fff;background:var(--ink);border-radius:999px;
+    padding:4px 14px;margin-bottom:6px;
+  }
+  .item h2{font-size:20px;font-weight:normal;letter-spacing:2px;margin:4px 0 4px}
+  .item .desc{font-size:14px;color:var(--ink-soft);line-height:1.7;min-height:46px}
+  .frame{
+    margin-top:14px;border:1px solid var(--line);border-radius:22px;
+    overflow:hidden;background:#fff;
+    box-shadow:0 10px 30px rgba(110,84,53,.12);
+  }
+  .frame iframe{display:block;width:375px;height:760px;border:0}
+  footer{max-width:1180px;margin:46px auto 0;text-align:center;color:var(--ink-soft);font-size:13px;letter-spacing:1px;line-height:1.8}
+</style>
+</head>
+<body>
+  <header>
+    <h1>成为团长 · 招募页方案对比</h1>
+    <p>四个精简方向 · 同守品牌米/棕楷体 · 真实佣金 8%–12% · 两种参与方式</p>
+  </header>
+
+  <div class="grid">
+    <section class="item">
+      <span class="tag">方案 A</span>
+      <h2>主张 + 收入 + 双路径</h2>
+      <p class="desc">渐变棕头「这盒饭顺手帮同事带」+ 收入钩子 + A/B 两张参与方式卡，结构最完整。</p>
+      <div class="frame"><iframe src="scheme-a.html" title="方案A"></iframe></div>
+    </section>
+
+    <section class="item">
+      <span class="tag">方案 B</span>
+      <h2>数字主角 · 招贴感</h2>
+      <p class="desc">把「每单赚 8%–12%」做成海报大字，其余压到最少，最像一张招贴。</p>
+      <div class="frame"><iframe src="scheme-b-income.html" title="方案B"></iframe></div>
+    </section>
+
+    <section class="item">
+      <span class="tag">方案 C</span>
+      <h2>真诚口吻 · 反画饼</h2>
+      <p class="desc">奶白底无渐变，口语化「午间那小时闲着也是闲着」+ 一段实心话，建信任。</p>
+      <div class="frame"><iframe src="scheme-c-voice.html" title="方案C"></iframe></div>
+    </section>
+
+    <section class="item">
+      <span class="tag">方案 D</span>
+      <h2>一步到位 · 最短</h2>
+      <p class="desc">单屏落地页：一个主张 + 一个利益点 + 一个 dominant 按钮 + 两个小链接。</p>
+      <div class="frame"><iframe src="scheme-d-landing.html" title="方案D"></iframe></div>
+    </section>
+  </div>
+
+  <footer>
+    点击任意方案卡片下方区域可在新页面单独打开 · 选定方向后我据此定稿并谈落码（改底部第 2 tab + 扩展 leader-apply）
+  </footer>
+</body>
+</html>

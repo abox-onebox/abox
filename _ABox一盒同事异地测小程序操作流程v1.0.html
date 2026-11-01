@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 同事异地测试小程序操作流程 v1.0</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --ink:#3A3128; --brown:#6E5435; --sub:#796C57;
+    --line:rgba(110,84,53,.22); --card:#FFFDF8; --gold:#C9A876;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;line-height:1.75}
+  .wrap{max-width:900px;margin:0 auto;padding:40px 24px 72px}
+  h1{font-family:"KaiTi","STKaiti",serif;font-size:32px;color:var(--brown);
+    margin:0 0 6px;letter-spacing:1px}
+  .sub{color:var(--sub);font-size:14px;margin-bottom:28px}
+  h2{font-family:"KaiTi","STKaiti",serif;font-size:21px;color:var(--brown);
+    margin:34px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  h3{font-size:16px;margin:20px 0 8px;color:var(--brown)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:18px 20px;margin:14px 0}
+  .lead{background:#fff;border-left:4px solid var(--brown)}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0;background:#fff}
+  th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+  th{background:#F1E9DA;color:var(--brown);font-weight:600}
+  code,kbd{background:#EFE7D8;padding:1px 6px;border-radius:4px;
+    font-family:"Cascadia Mono",Consolas,monospace;font-size:13px;color:#5B4730;
+    word-break:break-all}
+  .step{display:flex;gap:14px;margin:16px 0;align-items:flex-start}
+  .n{flex:0 0 30px;height:30px;border-radius:50%;background:var(--brown);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+  .step .b{flex:1}
+  .step .b b{color:var(--brown);display:block;margin-bottom:4px}
+  .badge{display:inline-block;font-size:12px;padding:2px 9px;border-radius:11px;
+    margin-right:6px;font-weight:600}
+  .b-done{background:#E4EFE2;color:#3D6B36;border:1px solid #BCD4B6}
+  .b-you{background:#F7E9CF;color:#8A5A16;border:1px solid #E4C892}
+  .b-he{background:#E6EDF5;color:#33536E;border:1px solid #BCCEDA}
+  .b-red{background:#FAE7E3;color:#96341F;border:1px solid #EFC3B6}
+  ul{padding-left:22px;margin:8px 0}
+  li{margin:5px 0}
+  .warn{border-left:4px solid #C0563A;background:#FDF3EF}
+  .ok{border-left:4px solid #4E8C43;background:#F3F8F1}
+  .note{font-size:13px;color:var(--sub)}
+  .foot{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);
+    font-size:12px;color:var(--sub)}
+  @media(max-width:640px){.wrap{padding:24px 16px 56px}h1{font-size:25px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>同事异地测试小程序 · 操作流程</h1>
+  <div class="sub">ABox 一盒 · v1.0 · 2026-10-03 · 祝总专用</div>
+
+  <div class="card lead">
+    <p style="margin:0 0 8px"><b>一句话结论：</b>前天你扫的那种「预览码」<b>只有管理员/开发者本人能扫</b>，同事扫会报错。要让同事异地测小程序，必须改走 <b>体验版</b> —— 把同事加为「体验成员」，并让他在手机上<b>打开调试</b>，这样才允许访问 <code>http://IP:8081</code>。</p>
+    <p style="margin:0" class="note">微信的规则：正式版必须 HTTPS + 备案域名；只有「调试态」才豁免域名校验并允许 IP 与 http。我们没有域名证书，所以实测阶段只能靠调试态。</p>
+  </div>
+
+  <h2>一、三种扫码入口的区别</h2>
+  <table>
+    <tr><th>入口</th><th>谁能扫</th><th>有效期</th><th>能测</th></tr>
+    <tr><td>预览码（开发版）</td><td><b>仅管理员/开发者本人</b></td><td>约 30 分钟</td><td>不行</td></tr>
+    <tr><td><b>体验版（推荐）</b></td><td>后台添加的<b>体验成员</b></td><td>较长（约 7 天）</td><td><b>可以</b></td></tr>
+    <tr><td>正式版</td><td>所有人</td><td>长期</td><td>需 HTTPS + 备案（暂无）</td></tr>
+  </table>
+
+  <h2>二、我已经帮你做好的</h2>
+  <div class="card">
+    <p><span class="badge b-done">已就绪</span>小程序已按「异地测试」参数构建完毕，你可以直接上传：</p>
+    <table>
+      <tr><th>项</th><th>值</th></tr>
+      <tr><td>产物目录</td><td><code>C:\Users\herma\WorkBuddy\ABox小程序\abox-onebox\apps\miniprogram\dist\build\mp-weixin</code></td></tr>
+      <tr><td>接口地址</td><td><code>http://154.8.164.180:8081/api/v1</code></td></tr>
+      <tr><td>登录身份</td><td><code>demoMode = true</code>（固定账号，不会每次重登换人）</td></tr>
+      <tr><td>AppID</td><td><code>wx389db239bcec75ca</code></td></tr>
+    </table>
+    <p class="note">说明：走的是 8081 端口上已有的 H5 站点做转发，<b>不需要再新开端口</b>，也不用把后端的 3000 暴露到公网。</p>
+  </div>
+
+  <h2>三、你要做的（4 步，约 10 分钟）</h2>
+
+  <div class="step"><div class="n">1</div><div class="b">
+    <b><span class="badge b-you">你做</span>腾讯云控制台放行 8081</b>
+    进入云服务器控制台 → 防火墙/安全组 → 添加入站规则：<b>TCP : 8081，来源 0.0.0.0/0</b>。<br>
+    <span class="note">这是目前唯一卡住的一步（我已实测公网 8081 仍不通，返回 000；8080 后台已通）。放行后告诉我一声，我立刻复验。</span>
+  </div></div>
+
+  <div class="step"><div class="n">2</div><div class="b">
+    <b><span class="badge b-you">你做</span>把同事加为「体验成员」</b>
+    登录 <code>mp.weixin.qq.com</code> → 左侧「管理」→「成员管理」→ 体验成员 → 添加同事<b>微信号</b>。<br>
+    <span class="note">没加的话，同事扫码会提示「暂无体验权限」。</span>
+  </div></div>
+
+  <div class="step"><div class="n">3</div><div class="b">
+    <b><span class="badge b-you">你做</span>微信开发者工具上传代码</b>
+    打开微信开发者工具 → 导入项目 → 目录选上面的<b>产物目录</b>，AppID 填 <code>wx389db239bcec75ca</code> →
+    点右上角「<b>上传</b>」→ 填版本号与备注 → 上传成功。<br>
+    然后到 mp 后台「管理」→「版本管理」→ 在开发版本那一行点「<b>设为体验版</b>」。
+  </div></div>
+
+  <div class="step"><div class="n">4</div><div class="b">
+    <b><span class="badge b-you">你做</span>把体验版二维码发给同事</b>
+    版本管理 → 体验版本 → 点击「体验二维码」→ 保存图片发给同事。<br>
+    <span class="note">如果只测一个账号，到此就够用。若要多人同时各测各的，见下面第五节。</span>
+  </div></div>
+
+  <h2>四、同事要做的（3 步）</h2>
+
+  <div class="step"><div class="n">1</div><div class="b">
+    <b><span class="badge b-he">同事做</span>微信扫码打开小程序</b>
+    打不开 = 还不是体验成员，回到第 2 步。
+  </div></div>
+
+  <div class="step"><div class="n">2</div><div class="b">
+    <b><span class="badge b-red">关键</span><span class="badge b-he">同事做</span>打开调试（这一步不能省）</b>
+    点小程序右上角「<b>…</b>」→ 找到「<b>打开调试</b> / 开发调试」→ 开启 →
+    <b>退出小程序后重新打开</b> → 屏幕右下出现<b>绿色 vConsole 按钮</b>即成功。<br>
+    <span class="note">为什么必须：不开调试，微信会强校验合法域名，我们的 IP + http 会被直接拦掉，表现为「网络异常 / 页面空白 / 本楼今日未开团」，很容易误判成功能坏了。</span>
+  </div></div>
+
+  <div class="step"><div class="n">3</div><div class="b">
+    <b><span class="badge b-he">同事做</span>开始测试</b>
+    正常走下单流程。支付走的是<b>模拟支付</b>（自动成功），不会真扣钱。
+  </div></div>
+
+  <h2>五、多人同时测怎么办（身份隔离）</h2>
+  <div class="card warn">
+    <p style="margin-top:0"><b>注意：所有人在同一台手机上默认都是同一个账号</b>（默认身份 <code>dev:1001</code>）。两人同时测会互相看到对方的订单和余额。</p>
+    <p style="margin-bottom:0">解决办法：给每个人生成一个<b>带参数的小程序码</b>，参数格式 <code>devCode=tom</code>、<code>devCode=lucy</code>（字母数字，最长 32 位）。谁的码谁扫，就是各自独立的账号。<br>
+    <span class="note">这件事我可以代劳：用 AppSecret 调用微信接口直接生成几张带不同 devCode 的小程序码给你。需要时说一声。</span></p>
+  </div>
+
+  <h2>六、三条红线（务必记住）</h2>
+  <div class="card warn">
+    <ul>
+      <li><b>上线前必须重新用正式模式构建上传。</b>现在这版是「开发模式」，带 <code>demoMode</code> 后门，任何人指定 <code>devCode</code> 就能换成任意身份 —— 绝对不能出现在正式版。</li>
+      <li><b>支付是假的。</b>服务器当前 <code>PROVIDER_MODE=mock</code>，支付自动置成功。同事看到「支付成功」不等于真支付链路通。</li>
+      <li><b>测试结束请告诉我下线。</b>8081 是对公网开放的临时测试入口，用完应在安全组关掉。</li>
+    </ul>
+  </div>
+
+  <h2>七、想更快？还有一条路（H5，不用上传）</h2>
+  <div class="card ok">
+    <p style="margin-top:0">放行 8081 之后，直接把下面链接发给同事，<b>微信里点开就是网页版</b>：</p>
+    <p><code>http://154.8.164.180:8081/?devCode=tom</code></p>
+    <p style="margin-bottom:0" class="note">优点：不用上传代码、不用加体验成员、不用开调试，5 分钟开测，换 <code>devCode</code> 就是换人。<br>
+    缺点：是网页不是小程序形态（没有胶囊 menu、导航栏观感不同）。<b>建议先用它把业务跑通，小程序形态作为第二步验证。</b></p>
+  </div>
+
+  <div class="foot">本卡由 AI 依据本机实测与微信官方规则整理 · 所有路径与参数均已在本地验证</div>
+</div>
+</body>
+</html>

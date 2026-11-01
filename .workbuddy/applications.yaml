@@ -1,0 +1,5 @@
+applications:
+  - name: ABox一盒原型
+    locator: wbapp_30sPEhaPLR04XKKpv1WxK0
+  - name: ABox内部助手
+    locator: wbapp_dFBh87mqVSTg0akdyqVy4d

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 小程序发布合规清单（预包装快消路线）v1.0</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --ink:#3A3128; --brown:#6E5435; --sub:#796C57;
+    --line:rgba(110,84,53,.22); --card:#FFFDF8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;line-height:1.75}
+  .wrap{max-width:940px;margin:0 auto;padding:40px 24px 72px}
+  h1{font-family:"KaiTi","STKaiti",serif;font-size:31px;color:var(--brown);
+    margin:0 0 6px;letter-spacing:1px}
+  .sub{color:var(--sub);font-size:14px;margin-bottom:26px}
+  h2{font-family:"KaiTi","STKaiti",serif;font-size:20px;color:var(--brown);
+    margin:32px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:16px 20px;margin:14px 0}
+  .lead{background:#fff;border-left:4px solid var(--brown)}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0;background:#fff}
+  th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+  th{background:#F1E9DA;color:var(--brown);font-weight:600}
+  code{background:#EFE7D8;padding:1px 6px;border-radius:4px;
+    font-family:"Cascadia Mono",Consolas,monospace;font-size:13px;color:#5B4730}
+  .ok-box{background:#F2F7F0;border:1px solid #D3E3CE;padding:12px 16px;border-radius:8px;margin:14px 0}
+  .warn-box{background:#FBE3E1;border:1px solid #E9BDB6;padding:12px 16px;border-radius:8px;margin:14px 0}
+  .badge{display:inline-block;font-size:12px;padding:2px 9px;border-radius:11px;font-weight:600;margin-right:6px}
+  .b-need{background:#F7E9CF;color:#8A5A16;border:1px solid #E4C892}
+  .b-none{background:#E4EFE2;color:#3D6B36;border:1px solid #BCD4B6}
+  .b-late{background:#E6EDF5;color:#33536E;border:1px solid #BCCDE0}
+  ol,ul{margin:8px 0;padding-left:22px}
+  li{margin:5px 0}
+  .chain{font-family:"Cascadia Mono",Consolas,monospace;font-size:12.5px;background:#fff;
+    border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin:12px 0;line-height:2.1}
+  .foot{margin-top:38px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--sub)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>小程序发布合规清单 · 预包装快消路线</h1>
+<div class="sub">ABox 一盒 · v1.0 · 2026-10-21 · 不含食品经营许可证</div>
+
+<div class="card lead">
+<b style="font-family:'KaiTi',serif;font-size:17px;color:var(--brown)">一句话结论</b>
+<p style="margin:8px 0 0">换成<b>预包装快消品</b>后，最重的那道门（实体加工场所 + 《食品经营许可证》+ 现场核查）整条消失了。
+剩下的都是<b>主体资质类</b>手续：微信认证、服务类目、两套备案、域名 HTTPS、支付商户号。<b>总周期约 3 周，且大部分可并行。</b></p>
+</div>
+
+<h2>一、路线变了，哪些东西直接从清单里消失</h2>
+<table>
+<tr><th style="width:36%">之前为盒饭准备的</th><th>现在还要吗</th></tr>
+<tr><td>《食品经营许可证》（热食类制售）</td><td><span class="badge b-none">不需要</span>改走备案</td></tr>
+<tr><td>自有持证加工场所 / 实体门店</td><td><span class="badge b-none">不需要</span>备案无现场核查</td></tr>
+<tr><td>「证照地址 = 出餐地址 = 网店地址」三一致</td><td><span class="badge b-none">不适用</span></td></tr>
+<tr><td>123 号令全套（食安封签、配送培训、无堂食标识）</td><td><span class="badge b-none">不适用</span>那是网络餐饮口的</td></tr>
+<tr><td>《增值电信业务经营许可证》EDI / ICP 证</td><td><span class="badge b-none">不需要</span>自营卖自己的货，非第三方平台</td></tr>
+<tr><td>已完成的「预包装食品备案」</td><td><span class="badge b-need">正是它</span>这条路的核心凭证</td></tr>
+</table>
+
+<h2>二、要办的清单（7 项）</h2>
+<table>
+<tr><th style="width:22%">事项</th><th style="width:14%">性质</th><th>要点与耗时</th></tr>
+<tr>
+<td><b>1. 营业执照经营范围</b></td><td><span class="badge b-need">先确认</span></td>
+<td>必须含「<b>食品经营（仅销售预包装食品）</b>」字样。<b>北京口径：经营范围有这句话 = 视为已备案，不用再单独办证、不单独发证。</b>没有的话先做经营范围变更（e 窗通，1–3 工作日）</td>
+</tr>
+<tr>
+<td><b>2. 网络经营报告</b></td><td><span class="badge b-need">别漏</span></td>
+<td>备案信息里若<b>没勾「网络经营」</b>，小程序开卖起 <b>10 个工作日内</b>须向属地市场监管部门补充报告</td>
+</tr>
+<tr>
+<td><b>3. 微信认证</b><br><span class="badge" style="background:#FBE9E7;color:#B23A2E;font-size:11px">注意：非企业微信认证</span></td><td><span class="badge b-need">硬前置</span></td>
+<td>企业主体 300 元/年，1–3 工作日。<b>不通过一般不退费</b>，材料一次备齐。<b>没认证 = 不能备案、不能开支付</b><br><span style="font-size:13px;color:var(--sub)">此认证在 <b>mp.weixin.qq.com</b>（小程序后台）做，与 <b>work.weixin.qq.com</b> 企业微信是两套独立账号、独立费用，互不相干。操作路径：左侧「设置」→「微信认证」→「开通」→ 填企业资料 + 上传营业执照 + 对公打款或微信支付 300 元 → 等待腾讯审核（1–3 工作日）。</span></td>
+</tr>
+<tr>
+<td><b>4. 微信服务类目</b></td><td><span class="badge b-need">硬前置</span></td>
+<td>选「<b>电商平台 / 商家自营 - 食品</b>」类目，上传营业执照（含上述经营范围）。<b>不再是「餐饮服务」</b>。3–7 工作日</td>
+</tr>
+<tr>
+<td><b>5. 小程序备案</b></td><td><span class="badge b-need">硬前置</span></td>
+<td>平台初审 1–2 工作日（<b>有电话核验</b>）→ <b>12381 短信核验 24 小时内</b>（超时整套作废）→ 北京通管局 <b>1–2 周</b>。<b>详细填写步骤见《_ABox一盒小程序备案详细步骤v1.0.html》</b></td>
+</tr>
+<tr>
+<td><b>6. 域名 ICP 备案</b></td><td><span class="badge b-need">并行</span></td>
+<td>你已购 <code>xunlizhinian.cn</code>，10-18 起可提交。腾讯云初审 1–2 → 12381 短信核验 24h → 北京管局 <b>7–14 工作日</b>。<b>这是全程最长的一段，先启动</b></td>
+</tr>
+<tr>
+<td><b>7. 支付商户号 + HTTPS</b></td><td><span class="badge b-late">可稍后</span></td>
+<td>微信支付普通商户号（营业执照 + 对公账户）；备案通过后配 <code>api.xunlizhinian.cn</code> + SSL 证书</td>
+</tr>
+</table>
+
+<h2>三、顺序：最容易排错的一处</h2>
+<div class="card">
+<p style="margin:0 0 6px"><b>很多人先去做「小程序备案」，结果卡住——因为备案的前置是「已有 ≥1 个通过的服务类目」，而类目又要先看资质。</b></p>
+<div class="chain">
+营业执照含经营范围（=已备案）<br>
+　→ 微信认证 → <b>服务类目通过</b> → <b>小程序备案</b> → 提审 → 发布<br>
+　　　　　　　　　　　　　　　　　└─ 域名备案（并行支线，最长，最早启动）
+</div>
+<p style="margin:6px 0 0;font-size:14px;color:var(--sub)">域名备案不和它串行，但<b>不做完，小程序即使发布了也发不出请求</b>——后端接口域名必须已 ICP 备案，且备案主体必须与小程序认证主体<b>完全一致</b>。</p>
+</div>
+
+<h2>四、三条红线（这条路真正会出事的地方）</h2>
+<div class="warn-box">
+<ol style="margin:0">
+<li><b>资质混用</b>——备案只给你「卖<b>别人造好的、带完整标签</b>的预包装食品」的资格。一旦加热、拆包分装、调味复配、改保质期，就从「销售」滑进「制售」，要《食品经营许可证》，<b>且届时备案自动失效</b>。行业原话：「很多商家用预包装食品备案上架加工食品，最终被巡检处罚，核心就是资质混用。」</li>
+<li><b>不能藏</b>——微信要求类目与实际功能一致，不得隐藏或多次跳转；124 号令要求<b>店铺主页显著位置持续公示</b>资质（常驻功能，不是提审时贴一次），并与实际售卖的一致。</li>
+<li><b>单品逐一确认</b>——如果快消品里有<b>酒类</b>，需另行确认（部分地区预包装备案不含酒类）；<b>进口商品</b>须有中文标签与入境检验检疫证明。这两类先单独问清楚再上架。</li>
+</ol>
+</div>
+
+<h2>五、你现在就可以动的两件事</h2>
+<div class="ok-box">
+<ol style="margin:0">
+<li><b>域名 ICP 备案现在就能提了</b>（<code>xunlizhinian.cn</code>，10-18 起已过静默期）。这是整条链里最长的一段，今天提就今天开始计时。</li>
+<li><b>核对营业执照经营范围</b>里有没有「食品经营（仅销售预包装食品）」这一句。有就不需要再办任何食品侧手续；没有就先做经营范围变更。</li>
+</ol>
+</div>
+
+<div class="foot">
+本文依据项目既有合规底稿 + 2026-10 北京／国家层面现行口径整理，不含《食品经营许可证》路径。<br>
+若后续要把「一饭四菜」热食加回来，整套要重新按 123 号令评估，届时本文不适用。
+</div>
+
+</div>
+</body>
+</html>

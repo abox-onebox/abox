@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>弹窗 × 真实照片 · 对照演示</title>
+<style>
+:root{ --bg:#F6F0E5; --surface:#FFFFFF; --surface3:#F0E7D3; --ink:#3A2E1E; --ink2:#6B5B45;
+  --ink-deep:#241B10; --weak:#A2927A; --line:#E5DAC4; --gold:#C9A876; --gold-deep:#8A6D3F; }
+*{ margin:0; padding:0; box-sizing:border-box; }
+body{ background:#211A12; min-height:100vh; font-family:'PingFang SC','Microsoft YaHei',sans-serif; padding:36px 20px 48px; }
+h1{ color:#F6F0E5; font-size:19px; text-align:center; letter-spacing:3px; font-weight:700; }
+.sub{ color:#A2927A; font-size:12px; text-align:center; margin-top:10px; letter-spacing:.5px; line-height:1.9; }
+.stage{ display:flex; gap:40px; justify-content:center; flex-wrap:wrap; margin-top:34px; }
+.col{ width:375px; }
+.col__tag{ text-align:center; font-size:13px; font-weight:700; letter-spacing:2px; margin-bottom:14px;
+  padding:7px 0; border-radius:10px; }
+.col__tag--real{ background:rgba(201,168,118,.16); color:#E3C88F; border:1px solid rgba(201,168,118,.35); }
+.col__tag--fb{ background:rgba(255,255,255,.05); color:#8D7E68; border:1px solid rgba(255,255,255,.1); }
+.col__note{ text-align:center; font-size:11px; color:#7A6C56; margin-top:12px; line-height:1.8; letter-spacing:.5px; }
+
+/* ===== 手机框 ===== */
+.phone{ width:375px; height:812px; background:var(--bg); border-radius:40px; position:relative; overflow:hidden;
+  box-shadow:0 24px 60px rgba(0,0,0,.45), 0 0 0 11px #15110c, 0 0 0 13px #2c2620; }
+.statusbar{ height:44px; display:flex; align-items:center; justify-content:space-between;
+  padding:0 22px; font-size:14px; color:var(--ink-deep); font-weight:700; }
+.statusbar .right{ display:flex; align-items:center; gap:5px; font-size:11px; }
+.dot{ width:6px; height:6px; border-radius:50%; background:var(--ink-deep); display:inline-block; }
+.screen{ height:calc(100% - 44px); overflow:hidden; }
+
+/* ===== 首页背景（简化） ===== */
+.countdown{ text-align:center; padding:14px 0 12px; }
+.countdown__label{ font-size:11.5px; color:var(--weak); letter-spacing:2px; }
+.countdown__num{ font-size:30px; font-weight:700; color:var(--ink-deep); font-family:'Courier New',monospace;
+  letter-spacing:2px; margin:4px 0 2px; }
+.countdown__sub{ font-size:10.5px; color:var(--weak); }
+.box{ background:var(--surface); border:5px solid #EFE3C8; border-radius:16px; margin:6px 12px 0; padding:12px; }
+.box__title{ font-size:15px; font-weight:700; color:var(--ink-deep); letter-spacing:3px; text-align:center;
+  padding-bottom:10px; border-bottom:2px solid var(--line); margin-bottom:10px; }
+.cells{ display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.cell{ background:var(--bg); border-radius:12px; padding:8px; cursor:pointer; }
+.cell__badge{ width:20px; height:20px; border-radius:6px; background:var(--ink-deep); color:var(--gold);
+  font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center;
+  font-family:'Courier New',monospace; margin-bottom:6px; }
+.cell__img{ width:100%; aspect-ratio:1/1; border-radius:9px; display:flex; align-items:center; justify-content:center;
+  color:#fff; font-size:11px; letter-spacing:2px; background-size:cover; background-position:center; }
+.cell__name{ font-size:13px; font-weight:700; color:var(--ink); margin:7px 2px 1px; }
+.cell__from{ font-size:10.5px; color:var(--gold-deep); margin:0 2px 2px; }
+.cell--x .cell__img{ color:var(--gold); }
+.rice{ margin-top:9px; background:var(--bg); border-radius:10px; padding:8px 10px; display:flex; gap:9px; align-items:center; }
+.rice__ico{ width:30px; height:30px; border-radius:8px; background:linear-gradient(135deg,#EAD9B0,#D9BE83);
+  display:flex; align-items:center; justify-content:center; font-size:15px; flex:0 0 auto; }
+.rice b{ font-size:13px; color:var(--ink); display:block; }
+.rice span{ font-size:10.5px; color:var(--weak); }
+
+/* ===== 弹窗 · 居中模态卡（方案 B） ===== */
+.sheet{ position:absolute; inset:0; z-index:50; visibility:hidden; }
+.sheet.on{ visibility:visible; }
+.sheet__mask{ position:absolute; inset:0; background:rgba(40,30,18,.5); opacity:0; transition:opacity .25s; }
+.sheet.on .sheet__mask{ opacity:1; }
+.sheet__panel{ position:absolute; left:20px; right:20px; top:50%; max-height:84%; overflow-y:auto;
+  background:var(--bg); border-radius:20px; box-shadow:0 18px 50px rgba(0,0,0,.32);
+  opacity:0; transform:translateY(-50%) scale(.92);
+  transition:opacity .25s, transform .25s cubic-bezier(.2,.8,.2,1); }
+.sheet.on .sheet__panel{ opacity:1; transform:translateY(-50%) scale(1); }
+.sheet__panel::-webkit-scrollbar{ display:none; width:0; height:0; }
+.sheet__panel{ scrollbar-width:none; -ms-overflow-style:none; }
+.sheet__grab{ position:sticky; top:0; height:0; z-index:6; overflow:visible; cursor:pointer; }
+.sheet__grab i{ position:absolute; top:11px; left:50%; margin-left:-19px; display:block;
+  width:38px; height:4px; border-radius:2px; background:rgba(255,255,255,.94);
+  box-shadow:0 1px 5px rgba(30,20,10,.45); transition:transform .18s ease; }
+.sheet__grab:active i{ transform:scaleX(1.16); }
+/* 头图：无图=渐变+字母水印；有图=真实照片 cover + 底部强 scrim 保白字可读 */
+.dhero{ position:relative; height:104px; display:flex; flex-direction:column; justify-content:flex-end;
+  padding:14px 18px; color:#fff; overflow:hidden; border-radius:20px 20px 0 0; }
+.dhero__letter{ position:absolute; right:12px; top:-16px; font-size:76px; font-weight:700;
+  font-family:Georgia,serif; opacity:.22; line-height:1; }
+.dhero__name{ font-size:20px; font-weight:700; letter-spacing:1px; text-shadow:0 1px 5px rgba(0,0,0,.35); }
+.dhero__sup{ align-self:flex-start; margin-top:7px; font-size:11.5px; padding:3px 11px; border-radius:14px;
+  background:rgba(255,255,255,.22); }
+.dishintro{ margin:12px 14px 0; background:var(--surface); border-radius:14px; padding:13px 15px; }
+.dishintro__tag{ display:inline-block; font-size:11px; font-weight:700; color:var(--gold-deep);
+  background:var(--surface3); border-radius:10px; padding:3px 10px; letter-spacing:2px; }
+.dishintro p{ font-size:12.5px; line-height:1.85; color:var(--ink2); margin:10px 0 0; }
+.suptitle{ display:flex; align-items:baseline; justify-content:space-between;
+  font-size:13.5px; font-weight:700; color:var(--ink-deep); border-left:3px solid var(--gold-deep);
+  padding-left:9px; margin:16px 18px 10px; letter-spacing:1px; }
+.suptitle__hint{ font-size:10.5px; font-weight:400; color:var(--weak); letter-spacing:.5px; }
+.photos{ display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:0 14px; }
+.photo{ border-radius:12px; overflow:hidden; }
+.photo__img{ aspect-ratio:1/1; display:flex; align-items:center; justify-content:center;
+  color:rgba(255,255,255,.45); font-size:12px; letter-spacing:3px;
+  background-size:cover; background-position:center; cursor:pointer; }
+.quallink{ display:block; margin:12px 14px 0; background:var(--surface); border-radius:12px;
+  padding:12px 14px; font-size:12.5px; color:var(--gold-deep); letter-spacing:.5px; }
+.pnote{ font-size:10.5px; color:var(--weak); line-height:1.7; padding:12px 18px 18px; }
+/* x 盲盒 */
+.xintro{ padding:14px 16px 4px; }
+.xintro p{ font-size:13px; line-height:1.85; color:var(--ink2); margin:0 0 12px; }
+.xchips{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
+.xchips span{ background:var(--surface3); color:var(--ink); border-radius:14px; padding:8px 0;
+  font-size:12.5px; text-align:center; }
+.xn{ background:var(--surface); border-radius:12px; padding:12px 14px; font-size:12.5px; line-height:1.8; color:var(--ink2); }
+
+/* ===== 图片放大层 ===== */
+.pview{ position:absolute; inset:0; z-index:60; background:rgba(18,14,9,.94);
+  display:flex; align-items:center; justify-content:center; visibility:hidden; opacity:0; transition:opacity .18s; }
+.pview.on{ visibility:visible; opacity:1; }
+.pview__img{ width:80%; aspect-ratio:1/1; border-radius:16px; display:flex; align-items:center; justify-content:center;
+  color:rgba(255,255,255,.5); font-size:15px; letter-spacing:4px; transform:scale(.92); transition:transform .18s; }
+.pview.on .pview__img{ transform:scale(1); }
+.pview__img--full{ background-size:contain; background-repeat:no-repeat; background-position:center; }
+.pview__scrim{ position:absolute; top:0; left:0; right:0; height:76px; pointer-events:none;
+  background:linear-gradient(rgba(0,0,0,.32), rgba(0,0,0,0)); }
+.pview__grab{ position:absolute; top:0; left:0; right:0; height:44px;
+  display:flex; align-items:center; justify-content:center; pointer-events:none; }
+.pview__grab i{ display:block; width:38px; height:4px; border-radius:2px; background:rgba(255,255,255,.62); }
+.pview__n{ position:absolute; bottom:32px; left:0; right:0; text-align:center;
+  color:rgba(255,255,255,.75); font-size:12px; letter-spacing:2px; }
+.pview__hint{ position:absolute; bottom:13px; left:0; right:0; text-align:center;
+  color:rgba(255,255,255,.40); font-size:10.5px; letter-spacing:1.5px; }
+.pview__img{ touch-action:none; }
+</style>
+</head>
+<body>
+
+<h1>弹窗 × 真实照片 · 对照演示</h1>
+<p class="sub">同一道菜 · 同一套版式 —— 左：真实照片就位（image_url 有值）｜右：未传图兜底（image_url 为空）<br>
+点任意菜品格可开弹窗 · 点弹窗内头图或实拍照片可看大图（真实照片全图不裁切，证件编号看得清）</p>
+
+<div class="stage">
+  <div class="col">
+    <div class="col__tag col__tag--real">真实照片就位</div>
+    <div class="phone" id="phL">
+      <div class="statusbar"><span>9:41</span><span class="right"><span>5G</span><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></div>
+      <div class="screen">
+        <div class="countdown">
+          <div class="countdown__label">距离截单还剩</div>
+          <div class="countdown__num">12:34:56</div>
+          <div class="countdown__sub">24:00 后将无法下单</div>
+        </div>
+        <div class="box">
+          <div class="box__title">本日精选</div>
+          <div class="cells"></div>
+          <div class="rice"><div class="rice__ico">🍚</div><div><b>东北珍珠米 · 当日现蒸</b><span>随附 · 集散中心统一供应</span></div></div>
+        </div>
+      </div>
+      <div class="sheet on">
+        <div class="sheet__mask"></div>
+        <div class="sheet__panel">
+          <div class="sheet__grab" role="button" aria-label="关闭"><i></i></div>
+          <div class="sheetBody"></div>
+        </div>
+      </div>
+      <div class="pview">
+        <div class="pview__scrim"></div>
+        <div class="pview__grab"><i></i></div>
+        <div class="pview__img"></div>
+        <div class="pview__n"></div>
+        <div class="pview__hint">下拉图片，或点按任意处关闭</div>
+      </div>
+    </div>
+    <p class="col__note">A 配了真实菜品图 + 四张门店实拍；B / o 未传图 → 自动走渐变兜底，版式不崩</p>
+  </div>
+
+  <div class="col">
+    <div class="col__tag col__tag--fb">未传图 · 渐变兜底</div>
+    <div class="phone" id="phR">
+      <div class="statusbar"><span>9:41</span><span class="right"><span>5G</span><span class="dot"></span><span class="dot"></span><span class="dot"></span></span></div>
+      <div class="screen">
+        <div class="countdown">
+          <div class="countdown__label">距离截单还剩</div>
+          <div class="countdown__num">12:34:56</div>
+          <div class="countdown__sub">24:00 后将无法下单</div>
+        </div>
+        <div class="box">
+          <div class="box__title">本日精选</div>
+          <div class="cells"></div>
+          <div class="rice"><div class="rice__ico">🍚</div><div><b>东北珍珠米 · 当日现蒸</b><span>随附 · 集散中心统一供应</span></div></div>
+        </div>
+      </div>
+      <div class="sheet on">
+        <div class="sheet__mask"></div>
+        <div class="sheet__panel">
+          <div class="sheet__grab" role="button" aria-label="关闭"><i></i></div>
+          <div class="sheetBody"></div>
+        </div>
+      </div>
+      <div class="pview">
+        <div class="pview__scrim"></div>
+        <div class="pview__grab"><i></i></div>
+        <div class="pview__img"></div>
+        <div class="pview__n"></div>
+        <div class="pview__hint">下拉图片，或点按任意处关闭</div>
+      </div>
+    </div>
+    <p class="col__note">全部字段无图时的样子 —— 就是现在首页定稿的外观，作为兜底基准</p>
+  </div>
+</div>
+
+<script>
+/* ===== 数据：左=有图（A 菜品图 + 四张门店实拍，B/o/x 无图），右=全部无图 ===== */
+const REAL_DISHES = [
+  { letter:'A', name:'小炒黄牛肉', sup:'三味屋', color:'linear-gradient(135deg,#C0634A,#9A452F)',
+    img:'assets/real-dish-a.png',
+    intro:'三味屋的招牌 · 黄牛肉嫩、微辣下饭，是店里点单率最高的一道。主料黄牛肉、青椒、小米辣，每份约 180g。' },
+  { letter:'B', name:'红烧排骨', sup:'老饭盒', color:'linear-gradient(135deg,#B97A3E,#8F5A26)',
+    intro:'老饭盒的拿手菜 · 排骨炖得软烂，咸鲜里带一点甜，老少皆宜。主料排骨、姜葱、冰糖，每份约 200g。' },
+  { letter:'o', name:'蒜蓉菠菜', sup:'四季鲜蔬', color:'linear-gradient(135deg,#9FB47A,#7E924F)',
+    intro:'四季鲜蔬的时令素菜 · 蒜蓉口味，清爽不腻。主料菠菜、蒜蓉，每份约 150g。' },
+  { letter:'x', name:'今日 x 盲盒', sup:'ABox 惊喜盒', color:'linear-gradient(135deg,#5C4327,#3C2C19)', isX:true }
+];
+const REAL_PHOTOS = [
+  { t:'营业执照', img:'assets/real-license.png' },
+  { t:'门头',     img:'assets/real-storefront.png' },
+  { t:'大厅',     img:'assets/real-hall.png' },
+  { t:'仓库',     img:'assets/real-warehouse.png' }
+];
+/* 右机：剥掉 img 字段即兜底态 */
+const FB_DISHES = REAL_DISHES.map(d=>{ const c={...d}; delete c.img; return c; });
+const FB_PHOTOS = REAL_PHOTOS.map(p=>{ const c={...p}; delete c.img; return c; });
+
+const PHONES = {
+  phL: { dishes: REAL_DISHES, photos: REAL_PHOTOS, cur: 0 },
+  phR: { dishes: FB_DISHES,   photos: FB_PHOTOS,   cur: 0 }
+};
+
+/* ===== 首页格子 ===== */
+function renderCells(phone){
+  const st = PHONES[phone.id];
+  phone.querySelector('.cells').innerHTML = st.dishes.map((d,i)=>{
+    const img = d.img
+      ? `style="background:url('${d.img}')"`
+      : `style="background:${d.color}"`;
+    const txt = d.img ? '' : (d.isX ? '?' : '菜品实拍');
+    return `<div class="cell${d.isX?' cell--x':''}" data-i="${i}">
+      <div class="cell__badge">${d.letter}</div>
+      <div class="cell__img" ${img}>${txt}</div>
+      <div class="cell__name">${d.name}</div>
+      <div class="cell__from">${d.isX?'ABox 惊喜':d.sup} ›</div>
+    </div>`;
+  }).join('');
+  phone.querySelectorAll('.cell').forEach(cell=>{
+    cell.addEventListener('click', ()=>openDish(phone, +cell.dataset.i));
+  });
+}
+
+/* ===== 弹窗内容（有图/无图双分支，逻辑与 index.html 一致） ===== */
+function dishHTML(phone, d){
+  const st = PHONES[phone.id];
+  if(d.isX){
+    return `<div class="dhero" style="background:${d.color}">
+        <div class="dhero__letter">x</div>
+        <div class="dhero__name">今日神秘盒</div>
+        <div class="dhero__sup">ABox 惊喜 · 送达到手才揭晓</div>
+      </div>
+      <div class="xintro">
+        <p>前三格已够大多数人吃饱，第四格若再放同样分量的一道，很多人会吃不完、甚至造成浪费。
+        所以我们把它改成 <b>每日一换的惊喜盒</b>——内容可能是：</p>
+        <div class="xchips"><span>小零食</span><span>小水果</span><span>小粗粮</span><span>小糕点</span><span>小卤味</span><span>鸡蛋糕</span></div>
+        <div class="xn">中午没吃完？带回去下午吃。轻、小、耐放，正是为"别浪费"而设计；
+        内容由 ABox 每日统筹，下单时不揭晓，送达时揭晓，保留盲盒惊喜。</div>
+      </div>
+      <p class="pnote">x 盒为 ABox 自有惊喜盒，不挂具体供应商证照；盒内均为独立小包装、可安全存放的食品。</p>`;
+  }
+  const heroImg = d.img
+    ? `background:linear-gradient(to top,rgba(0,0,0,.62),rgba(0,0,0,.05) 65%),url('${d.img}'); background-size:cover; background-position:center; height:128px;`
+    : `background:linear-gradient(rgba(0,0,0,.22),rgba(0,0,0,.04)),${d.color}`;
+  const heroLetter = d.img ? '' : `<div class="dhero__letter">${d.letter}</div>`;
+  const photos = st.photos.map((p,pi)=>{
+    const bg = p.img ? `background:url('${p.img}')` : `background:linear-gradient(135deg,#8A7B63,#6B5D47)`;
+    const wm = p.img ? '' : p.t;
+    return `<div class="photo"><div class="photo__img" style="${bg}" data-pi="${pi}">${wm}</div></div>`;
+  }).join('');
+  return `<div class="dhero" style="${heroImg}; cursor:pointer" data-mode="hero">
+      ${heroLetter}
+      <div class="dhero__name">${d.name}</div>
+      <div class="dhero__sup">来自 ${d.sup}</div>
+    </div>
+    <div class="dishintro">
+      <span class="dishintro__tag">关于这道菜</span>
+      <p>${d.intro}</p>
+    </div>
+    <div class="suptitle"><span>${d.sup} · 门店实拍</span><span class="suptitle__hint">点图可看大图</span></div>
+    <div class="photos">${photos}</div>
+    <div class="quallink">查看 ${d.sup} 完整资质 ›</div>
+    <p class="pnote">照片为示意占位，落码时替换为该出品方真实实拍。</p>`;
+}
+
+function openDish(phone, i){
+  const st = PHONES[phone.id];
+  st.cur = i;
+  const body = phone.querySelector('.sheetBody');
+  body.innerHTML = dishHTML(phone, st.dishes[i]);
+  body.querySelector('[data-mode="hero"]').addEventListener('click', ()=>openPview(phone,'hero'));
+  body.querySelectorAll('.photo__img').forEach(el=>{
+    el.addEventListener('click', ()=>openPview(phone,'photo',+el.dataset.pi));
+  });
+  phone.querySelector('.sheet').classList.add('on');
+}
+function closeDish(phone){ phone.querySelector('.sheet').classList.remove('on'); }
+
+/* ===== 放大层（真实照片 contain 全图不裁切） ===== */
+function openPview(phone, mode, idx){
+  const st = PHONES[phone.id];
+  const pv = phone.querySelector('.pview');
+  const img = pv.querySelector('.pview__img'), n = pv.querySelector('.pview__n');
+  img.classList.remove('pview__img--full');
+  if(mode === 'hero'){
+    const d = st.dishes[st.cur];
+    if(d.img){
+      img.style.background = "url('" + d.img + "')";
+      img.textContent = '';
+      img.classList.add('pview__img--full');
+    } else {
+      img.style.background = d.color;
+      img.textContent = d.letter;
+    }
+    n.textContent = '';
+  } else {
+    const p = st.photos[idx];
+    if(p.img){
+      img.style.background = "url('" + p.img + "')";
+      img.textContent = '';
+      img.classList.add('pview__img--full');
+    } else {
+      img.style.background = 'linear-gradient(135deg,#8A7B63,#6B5D47)';
+      img.textContent = p.t;
+    }
+    n.textContent = (idx + 1) + ' / ' + st.photos.length;
+  }
+  pv.classList.add('on');
+}
+function closePview(phone){ phone.querySelector('.pview').classList.remove('on'); }
+/* ===== 下拉关闭手势 + Esc（手不用够到右上角） ===== */
+function bindPviewGesture(phone){
+  const pvEl = phone.querySelector('.pview');
+  const img = pvEl.querySelector('.pview__img');
+  let y0 = 0, dy = 0, dragging = false;
+  function reset(){ img.style.transition=''; img.style.transform=''; pvEl.style.background=''; pvEl.style.opacity=''; }
+  img.addEventListener('pointerdown', function(e){
+    y0 = e.clientY; dy = 0; dragging = true; img.style.transition = 'none';
+  });
+  window.addEventListener('pointermove', function(e){
+    if(!dragging) return;
+    dy = Math.max(0, e.clientY - y0);
+    img.style.transform = 'translateY('+dy+'px) scale('+(1-Math.min(dy/1400,.1))+')';
+    pvEl.style.background = 'rgba(18,14,9,'+(0.94*(1-Math.min(dy/500,.62)))+')';
+  });
+  window.addEventListener('pointerup', function(){
+    if(!dragging) return;
+    dragging = false;
+    if(dy > 90){
+      img.style.transition = 'transform .2s ease-out';
+      img.style.transform = 'translateY('+(dy+60)+'px) scale(.9)';
+      pvEl.style.opacity = '0';
+      setTimeout(function(){ closePview(phone); reset(); }, 200);
+    } else {
+      img.style.transition = 'transform .18s cubic-bezier(.2,.8,.2,1)';
+      img.style.transform = ''; pvEl.style.background = '';
+    }
+    dy = 0;
+  });
+}
+
+function bindSheetGesture(phone){
+  const panel = phone.querySelector('.sheet__panel'), mask = phone.querySelector('.sheet__mask');
+  let py0 = 0, pdy = 0, pdrag = false;
+  panel.addEventListener('pointerdown', function(e){
+    if(panel.scrollTop > 0) return;
+    py0 = e.clientY; pdy = 0; pdrag = true; panel.style.transition = 'none';
+  });
+  window.addEventListener('pointermove', function(e){
+    if(!pdrag) return;
+    pdy = Math.max(0, e.clientY - py0);
+    panel.style.transform = 'translateY(-50%) translateY('+pdy+'px) scale('+(1-Math.min(pdy/1400,.08))+')';
+    if(mask) mask.style.opacity = String(1 - Math.min(pdy/500,.55));
+  });
+  window.addEventListener('pointerup', function(){
+    if(!pdrag) return;
+    pdrag = false;
+    if(pdy > 90){
+      panel.style.transition = 'transform .2s ease-out';
+      panel.style.transform = 'translateY(-50%) translateY('+(pdy+70)+'px) scale(.94)';
+      if(mask) mask.style.opacity = '0';
+      setTimeout(function(){
+        closeDish(phone);
+        panel.style.transition = ''; panel.style.transform = ''; if(mask) mask.style.opacity = '';
+      }, 200);
+    } else {
+      panel.style.transition = 'transform .18s cubic-bezier(.2,.8,.2,1)';
+      panel.style.transform = ''; if(mask) mask.style.opacity = '';
+    }
+    pdy = 0;
+  });
+}
+document.addEventListener('keydown', function(e){
+  if(e.key !== 'Escape') return;
+  document.querySelectorAll('.phone').forEach(function(phone){
+    if(phone.querySelector('.pview').classList.contains('on')) closePview(phone);
+    else phone.querySelector('.sheet').classList.remove('on');
+  });
+});
+
+/* ===== 初始化 ===== */
+document.querySelectorAll('.phone').forEach(phone=>{
+  renderCells(phone);
+  openDish(phone, 0);   // 默认打开 A 的弹窗
+  phone.querySelector('.sheet__mask').addEventListener('click', ()=>closeDish(phone));
+  phone.querySelector('.sheet__grab').addEventListener('click', ()=>closeDish(phone));
+  bindPviewGesture(phone);
+  bindSheetGesture(phone);
+  const pv = phone.querySelector('.pview');
+  pv.addEventListener('click', e=>{ if(e.target===pv) closePview(phone); });
+  pv.querySelector('.pview__img').addEventListener('click', e=>e.stopPropagation());
+});
+</script>
+</body>
+</html>

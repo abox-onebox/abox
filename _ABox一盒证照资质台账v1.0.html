@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ABox 一盒 · 证照与资质台账</title>
+<style>
+/* ── token 真源（生成注入，禁手改）── */
+:root{
+  --bg: #F6F0E5;
+  --surface: #FFFDF8;
+  --surface2: #F7F1E4;
+  --surface3: #FBF6EC;
+  --text: #6E5435;
+  --text2: #796C57;
+  --text-disabled: #A79A85;
+  --gold: #C9A876;
+  --gold-deep: #936F3A;
+  --gold-deepest: #8A6620;
+  --border: #E4D8C3;
+  --border-strong: #D6CBB8;
+  --ok: #5B7C3A;
+  --warn: #C44536;
+  --info: #4A6FA5;
+  --ok-bg: #F1F5EA;
+  --ok-bd: #BBCBA6;
+  --warn-bg: #FBF0EE;
+  --warn-bd: #E3BFB8;
+  --info-bg: #EDF1F8;
+  --info-bd: #B4C4DA;
+  --mut-bg: #F7F2E8;
+  --mut-bd: #E4D8C3;
+  --gold-bg: #FBF4E6;
+  --gold-bd: #DCC79C;
+  --ok-fg: #597939;
+  --warn-fg: #C24436;
+  --info-fg: #4A6FA5;
+  --gold-fg: #8D6A38;
+  --from: #FFF6E0;
+  --to: #FFEED5;
+  --brand-meituan: #FFD400;
+  --brand-meituan-text: #000000;
+  --brand-taobao: #FF6A00;
+  --brand-taobao-text: #000000;
+  --brand-jd: #E1251B;
+  --brand-jd-text: #FFFFFF;
+  --font-display: 'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif;
+  --font-body: -apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif;
+  --font-num: 'SF Mono','Roboto Mono',Consolas,monospace;
+  --r-sm: 4px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --sp-1: 6px;
+  --sp-2: 10px;
+  --sp-3: 14px;
+  --sp-4: 20px;
+  --sp-5: 28px;
+}
+/* ── 共享外壳 ── */
+/* ─────────────────────────────────────────────────────────────
+   P0 工具集 · 共享页面外壳
+   ⚠️ 本文件**零颜色字面量**：一切颜色只能来自 `:root` token（由生成器注入）。
+      构建期断言这一条（搜不到 # / rgb( / hsl( ），否则品牌必然各写各的。
+   ⚠️ 字体分层：楷体只用于**标题 / 品牌字 / 金额大字**，正文与表格用无衬线栈。
+   ───────────────────────────────────────────────────────────── */
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--gold-deep); }
+
+/* ── 顶栏 ── */
+.top {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 20;
+}
+.top .logo {
+  font-family: var(--font-display);
+  font-size: 19px; letter-spacing: .04em; color: var(--text);
+}
+.top .sub { font-size: 12px; color: var(--text2); }
+.top .spacer { flex: 1; }
+.top .ver { font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); }
+
+/* ── 页头 ── */
+.hero { padding: var(--sp-4) var(--sp-4) 0; }
+.hero h1 {
+  font-family: var(--font-display); font-size: 25px; font-weight: 400;
+  margin: 0 0 4px; letter-spacing: .02em;
+}
+.hero p { margin: 0; color: var(--text2); font-size: 13px; max-width: 78ch; }
+
+/* ── 布局 ── */
+.wrap {
+  display: flex; gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4) var(--sp-5);
+  align-items: flex-start;
+}
+/* ⚠️ 侧栏必须**自己能滚**（`max-height` + `overflow-y: auto`），这不是装饰：
+   `position: sticky` 的元素一旦高于视口可用高度，底部会被**钉住不动** ——
+   滚动页面也带不上来（必须滚到**整页最底**才够得到，因为那时 sticky 才脱离钉住）。
+   实测（1440×900 笔记本，最常见的办公尺寸）：6 个带侧栏的工具里有 5 个的
+   「筛选 / 操作（导出 · 导入 · 重置）」整组够不到；G1/G2/F3 在 1080 下也够不到。
+   附带好处：对 sticky 元素 `scrollIntoView` 是无效的（滚动页面它不动），
+   给侧栏自己的滚动区之后，控件才可能被自动带进视野（自动化探针同理）。
+   62px = `.top` 的实际高度（与 `top` 一致，改一处要一起改）。 */
+.side {
+  width: 310px; flex: 0 0 310px; position: sticky; top: 62px;
+  max-height: calc(100vh - 62px - var(--sp-3));
+  overflow-y: auto; overscroll-behavior: contain;
+}
+.main { flex: 1; min-width: 0; }
+
+/* ── 卡片 ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-4);
+  margin-bottom: var(--sp-3);
+}
+.card > h2 {
+  font-family: var(--font-display); font-size: 16px; font-weight: 400;
+  margin: 0 0 var(--sp-2); letter-spacing: .02em;
+  display: flex; align-items: center; gap: 8px;
+}
+.card > h2 .n { font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); }
+.hint { font-size: 12px; color: var(--text2); margin: 0 0 var(--sp-2); }
+
+/* ── 表格 ── */
+.tw { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left; font-weight: 500; color: var(--text2);
+  font-size: 11.5px; letter-spacing: .04em;
+  padding: 7px 9px; border-bottom: 1px solid var(--border-strong);
+  white-space: nowrap; background: var(--surface2);
+}
+td { padding: 8px 9px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: var(--surface3); }
+td.num, th.num { text-align: right; font-family: var(--font-num); }
+td.mono { font-family: var(--font-num); font-size: 12px; }
+.big {
+  font-family: var(--font-display); font-size: 22px; line-height: 1.2;
+}
+
+/* ── 徽标 ── */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 8px; border-radius: 999px;
+  font-size: 11.5px; white-space: nowrap;
+  border: 1px solid var(--mut-bd); background: var(--mut-bg); color: var(--text2);
+}
+.pill.ok { border-color: var(--ok-bd); background: var(--ok-bg); color: var(--ok-fg); }
+.pill.warn { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.pill.info { border-color: var(--info-bd); background: var(--info-bg); color: var(--info-fg); }
+.pill.gold { border-color: var(--gold-bd); background: var(--gold-bg); color: var(--gold-fg); }
+.pill.dim { color: var(--text-disabled); }
+
+/* ── 表单 ── */
+label.f { display: block; margin-bottom: var(--sp-2); }
+label.f > span {
+  display: block; font-size: 11.5px; color: var(--text2);
+  letter-spacing: .04em; margin-bottom: 3px;
+}
+input, select, textarea {
+  width: 100%; padding: 6px 9px;
+  background: var(--surface3); color: var(--text);
+  border: 1px solid var(--border-strong); border-radius: var(--r-md);
+  font-family: var(--font-body); font-size: 13px;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--gold); background: var(--surface);
+}
+input[type=number] { font-family: var(--font-num); }
+.row2 { display: flex; gap: var(--sp-2); }
+.row2 > * { flex: 1; min-width: 0; }
+
+/* ── 按钮 ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 13px; border-radius: var(--r-md);
+  border: 1px solid var(--border-strong); background: var(--surface);
+  color: var(--text); font-size: 13px; cursor: pointer;
+}
+.btn:hover { background: var(--surface2); border-color: var(--gold); }
+.btn.primary {
+  background: var(--text); border-color: var(--text); color: var(--surface);
+  font-weight: 500;
+}
+.btn.primary:hover { background: var(--gold-deep); border-color: var(--gold-deep); }
+.btn.sm { padding: 3px 9px; font-size: 12px; }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--text2); }
+.btn.ghost:hover { background: var(--surface2); }
+.btnbar { display: flex; flex-wrap: wrap; gap: var(--sp-1); margin-bottom: var(--sp-2); }
+
+/* ── 指标格 ── */
+/* ⚠️ 阈值要按**实际可用宽度**定：侧栏 310px − 卡片左右 padding 40px = 270px，
+       minmax 定 132px 时 2×132+10(gap)=274 > 270 ⇒ 永远只排 1 列（看着像没生效）。 */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(116px, 1fr)); gap: var(--sp-1); }
+.kpi {
+  background: var(--surface3); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 9px 11px;
+}
+.kpi .k { font-size: 11.5px; color: var(--text2); letter-spacing: .04em; }
+.kpi .v { font-family: var(--font-display); font-size: 21px; line-height: 1.3; }
+.kpi .u { font-size: 12px; color: var(--text2); font-family: var(--font-body); }
+.kpi.warn { border-color: var(--warn-bd); background: var(--warn-bg); }
+.kpi.ok { border-color: var(--ok-bd); background: var(--ok-bg); }
+
+/* ── 提示条 ──
+   ⚠️ 必须是**块级正常流**，绝不能写 `display: flex`：
+      提示条文案里普遍有行内 <b> / <br> / <span class="mono">。容器一旦是 flex，
+      这些行内片段就各自变成**独立的 flex 子项**，被挤成一条条窄列、每个子项还自己
+      内部换行 —— 长文案整段会散开（G2 概览那两条实测就是 9 个子项排一行，字距被拉满、
+      末行也被撑开）。**副作用迟发**：文案短、能挤进一行时看着完全正常（G1/M1 就是这样
+      过关的），所以这个坑很晚才露头。
+      原来是 flex + `gap: 8px`；块级子元素之间的留白改由下面两条规则承担。 */
+.note {
+  display: block;
+  padding: 8px 11px; border-radius: var(--r-md);
+  border: 1px solid var(--mut-bd); background: var(--mut-bg);
+  font-size: 12.5px; color: var(--text2); margin-bottom: var(--sp-3);
+}
+.note.warn { border-color: var(--warn-bd); background: var(--warn-bg); color: var(--warn-fg); }
+.note.ok { border-color: var(--ok-bd); background: var(--ok-bg); color: var(--ok-fg); }
+.note.info { border-color: var(--info-bd); background: var(--info-bg); color: var(--info-fg); }
+.note b { color: inherit; }
+/* 块级子元素之间留白（替代原来的 flex gap: 8px）—— 行内元素不受影响 */
+.note > div + div { margin-top: 6px; }
+/* 药丸横排（原来靠 flex 的 gap 撑开，块级流下要自己给左边距） */
+.note > .pill + .pill { margin-left: 4px; }
+
+/* ── 分段控件（tab）── */
+.seg { display: flex; gap: 2px; padding: 3px; background: var(--surface2); border-radius: var(--r-md); border: 1px solid var(--border); }
+.seg button {
+  border: 0; background: transparent; color: var(--text2);
+  padding: 5px 13px; border-radius: var(--r-sm); cursor: pointer; font: inherit; font-size: 13px;
+}
+.seg button.on { background: var(--surface); color: var(--text); font-weight: 500; }
+
+/* ── 条形图 ── */
+.bar { height: 8px; border-radius: 999px; background: var(--surface2); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--gold); }
+.bar.warn > i { background: var(--warn); }
+.bar.ok > i { background: var(--ok); }
+
+/* ── 自检条 ── */
+.gate {
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--surface3); padding: 8px 11px; font-size: 12.5px;
+}
+.gate .g { display: flex; gap: 7px; align-items: baseline; padding: 1px 0; }
+.gate .g i { font-style: normal; font-family: var(--font-num); font-size: 11px; color: var(--text-disabled); flex: 0 0 auto; }
+.gate .g .t { color: var(--text2); }
+.gate .g.bad .t { color: var(--warn-fg); }
+
+/* ── 页脚 ── */
+.foot {
+  padding: var(--sp-4); color: var(--text-disabled); font-size: 11.5px;
+  border-top: 1px solid var(--border); margin-top: var(--sp-5);
+}
+
+/* ── 窄屏：单列堆叠（断点与项目后台一致，避免出现第二份断点表述）── */
+@media (max-width: 768px) {
+  .wrap { flex-direction: column; padding: var(--sp-2); }
+  /* ⚠️ 落到单列后必须**解除**侧栏的自身滚动区：否则手机上会出现一个 1/4 屏高的小滚动盒，
+        里面的卡片被裁掉一半 —— 那是「为修一个坑造一个新坑」。 */
+  .side { width: 100%; flex: auto; position: static; max-height: none; overflow-y: visible; }
+  .hero { padding: var(--sp-3) var(--sp-2) 0; }
+  table { font-size: 12px; }
+}
+
+/* ── 本系统 ── */
+/* ─────────────────────────────────────────────────────────────
+   R1 证照与资质台账 · 本系统专属样式
+   ⚠️ 零颜色字面量：颜色一律走 var(--token)。构建期会扫这一条。
+   ───────────────────────────────────────────────────────────── */
+
+.nowrap { white-space: nowrap; }
+
+/* 台账表格子里的控件要紧凑，且保持可点面积 */
+#main table input, #main table select {
+  padding: 3px 6px;
+  font-size: 12.5px;
+  border-radius: var(--r-sm);
+}
+#main table td { padding: 5px 6px; }
+
+/* 「需动作」行整体给一点底色压力，扫一眼就能看到 */
+#main tbody tr[data-row] td:first-child { border-left: 3px solid transparent; }
+
+/* 待办清单 */
+.todo { font-size: 12.5px; line-height: 1.7; }
+
+</style></head><body>
+<header class="top"><div class="logo">ABox 一盒</div><div class="sub">证照与资质台账 · 内部工具</div><div class="spacer"></div><div class="ver">版本 <span id="ver"></span> · 基准日 <span id="date"></span></div></header>
+<div class="hero"><h1>证照与资质台账</h1><p>把「靠记性」变成「到期自动喊你」。证照管资格，状态管主体 —— 忘一次=卡一个月。数据只存在本机浏览器，不上传。</p></div>
+<div class="wrap"><aside class="side" id="side"></aside><main class="main" id="main"></main></div>
+<footer class="foot" id="foot">ABox 一盒 · R1 证照与资质台账 v1.0 · 品牌 token 与证照模板由生成器注入（禁手改）· 证照数据请自行填写，工具不联网、不上传任何内容</footer>
+<script>
+window.TOOL_VERSION = "v1.0";
+window.SPEC = {"_generated_by":"_tmp/p0/r1/extract.py","_doctrine":"口径只声明一次：代码真源的部分禁手改，改真源后重跑本脚本；真人事实的部分（主体/经营状态）人工维护。","brand":{"name":"ABox 一盒","company":"北京巡礼之年科技有限公司"},"tokens":{"value":{"bg":"#F6F0E5","surface":"#FFFDF8","surface2":"#F7F1E4","surface3":"#FBF6EC","text":"#6E5435","text2":"#796C57","text-disabled":"#A79A85","gold":"#C9A876","gold-deep":"#936F3A","gold-deepest":"#8A6620","border":"#E4D8C3","border-strong":"#D6CBB8","ok":"#5B7C3A","warn":"#C44536","info":"#4A6FA5","ok-bg":"#F1F5EA","ok-bd":"#BBCBA6","warn-bg":"#FBF0EE","warn-bd":"#E3BFB8","info-bg":"#EDF1F8","info-bd":"#B4C4DA","mut-bg":"#F7F2E8","mut-bd":"#E4D8C3","gold-bg":"#FBF4E6","gold-bd":"#DCC79C","ok-fg":"#597939","warn-fg":"#C24436","info-fg":"#4A6FA5","gold-fg":"#8D6A38","from":"#FFF6E0","to":"#FFEED5","brand-meituan":"#FFD400","brand-meituan-text":"#000000","brand-taobao":"#FF6A00","brand-taobao-text":"#000000","brand-jd":"#E1251B","brand-jd-text":"#FFFFFF","font-display":"'ABoxKai',KaiTi,STKaiti,楷体,'Noto Serif SC',serif","font-body":"-apple-system,BlinkMacSystemFont,'PingFang SC','HarmonyOS Sans SC','Noto Sans CJK SC','Microsoft YaHei',Arial,sans-serif","font-num":"'SF Mono','Roboto Mono',Consolas,monospace","r-sm":"4px","r-md":"10px","r-lg":"16px","sp-1":"6px","sp-2":"10px","sp-3":"14px","sp-4":"20px","sp-5":"28px"},"_src":"_ABox一盒设计token真源v2.1/design-tokens.css"},"subject":{"company":"北京巡礼之年科技有限公司","brand":"ABox 一盒","city":"北京","district":"昌平区","uscc":"","_src":"USER.md · 《创业系统地图》C0","_warning":"经营状态为真人事实，非代码真源；状态变化必须人工更新，不要指望自动同步"},"statusTracks":[{"key":"abnormal_list","label":"经营异常名录","authority":"市场监督管理局","action":"申请移出（先解除列入事由）","cycle":"事件驱动","state":"异常未移出","since":"2026-07","note":"2026-07 被列入，未移出 —— 直接影响小程序主体认证与类目资质"},{"key":"tax_status","label":"税务状态","authority":"主管税务机关","action":"解除非正常户（补申报 + 缴清 + 罚款）","cycle":"事件驱动","state":"曾非正常户 · 代理处理中","since":"","note":"已委托代理处理；解除前不得正式卖餐（影响发票与企业认证）"},{"key":"annual_report","label":"工商年报","authority":"市场监督管理局","action":"每年 6/30 前完成公示","cycle":"年度（1/1–6/30）","state":"待确认","since":"","note":"未年报是「列入经营异常」最常见事由 —— 两项要对着看"}],"licenseSeeds":[{"name":"营业执照","kind":"company","leadDays":90,"issuer":"市场监督管理局","why":"主体资格；注册地址与实际经营地不一致会被列异常"},{"name":"食品经营许可证","kind":"company","leadDays":60,"issuer":"市场监督管理局","why":"热食类制售必备；无证经营是最重的食品安全违法情形"},{"name":"经营场所使用证明","kind":"company","leadDays":60,"issuer":"产权方 / 物业","why":"食品经营许可证的前置材料；场所变更须同步变更许可"},{"name":"小程序主体认证","kind":"platform","leadDays":45,"issuer":"微信开放平台","why":"未认证无法上线；依赖营业执照与对公账户"},{"name":"食品经营类目资质","kind":"platform","leadDays":45,"issuer":"微信开放平台","why":"餐饮类目需上传食品经营许可证，审核有周期"},{"name":"平台准入材料","kind":"platform","leadDays":30,"issuer":"支付 / 平台方","why":"微信支付商户号、快团团等渠道的准入材料包"},{"name":"从业人员健康证","kind":"person","leadDays":30,"issuer":"疾控中心 / 体检机构","why":"接触直接入口食品的人员**每人**一张，一年一检"}],"kinds":[{"key":"company","label":"企业证照"},{"key":"person","label":"人员健康证"},{"key":"platform","label":"平台资质"},{"key":"supplier","label":"供应商资质"}],"personSlots":[{"holder":"","note":"出餐 / 打包 / 配送 直接接触食品的人员都要登记"}],"suppliers":{"list":[{"id":1,"name":"三味屋","contactName":"王经理","contactPhone":"13900000001","category":"本帮菜","licenseExpireAt":"2027-12-31","businessLicense":"91110105DEMO000001","foodLicense":"JY1110105DEMO000001"},{"id":2,"name":"四季鲜蔬","contactName":"李经理","contactPhone":"13900000002","category":"时蔬","licenseExpireAt":"2027-12-31","businessLicense":"91110105DEMO000002","foodLicense":"JY1110105DEMO000002"},{"id":3,"name":"京味小馆","contactName":"赵经理","contactPhone":"13900000003","category":"京味","licenseExpireAt":"2027-12-31","businessLicense":"91110105DEMO000003","foodLicense":"JY1110105DEMO000003"},{"id":4,"name":"老李家","contactName":"孙经理","contactPhone":"13900000004","category":"汤品","licenseExpireAt":"2027-12-31","businessLicense":"91110105DEMO000004","foodLicense":"JY1110105DEMO000004"}],"_src":"abox-onebox/apps/api-server/src/database/seeds/seed.ts","_demo":true,"_note":"证照号与到期日为**演示占位值**（真源注释明示），台账首次使用须替换为真实值后再用于监管应对"},"today":"2026-09-24","_srcs":{"tokens":"_ABox一盒设计token真源v2.1/design-tokens.css","suppliers":"abox-onebox/apps/api-server/src/database/seeds/seed.ts"}};
+/* ─────────────────────────────────────────────────────────────
+   P0 工具集 · 共享工具函数（纯函数为主，不碰业务）
+   ⚠️ 必须以「普通脚本」形式可被 eval（构建期启动冒烟要用），
+      故不使用 ESM 语法，只挂 `window.U`。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var U = {};
+
+  /* ── DOM ── */
+  U.$ = function (sel, root) { return (root || document).querySelector(sel); };
+  U.$$ = function (sel, root) {
+    return Array.prototype.slice.call((root || document).querySelectorAll(sel));
+  };
+  /** 绑定事件：一律挂到 document，用 closest 分发（兄弟节点挂错容器是本项目踩过的坑） */
+  U.on = function (evt, sel, fn) {
+    document.addEventListener(evt, function (e) {
+      var t = e.target && e.target.closest ? e.target.closest(sel) : null;
+      if (t) fn(e, t);
+    });
+  };
+
+  /* ── 文本 ── */
+  U.esc = function (s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  };
+  /** 数值格式化；null/undefined/NaN 一律回显 '—'（不要显示 NaN） */
+  U.num = function (v, d) {
+    if (v == null || v === '' || !isFinite(Number(v))) return '—';
+    return Number(v).toFixed(d == null ? 2 : d);
+  };
+  /** 金额：¥ + 两位小数 */
+  U.y = function (v, d) {
+    if (v == null || v === '' || !isFinite(Number(v))) return '—';
+    return '¥' + Number(v).toFixed(d == null ? 2 : d);
+  };
+  /** 分 → 元（项目内金额一律「存分、显示元」，避免浮点） */
+  U.fen2y = function (fen, d) {
+    if (fen == null || !isFinite(Number(fen))) return '—';
+    return '¥' + (Number(fen) / 100).toFixed(d == null ? 2 : d);
+  };
+  U.y2fen = function (y) { return Math.round(Number(y || 0) * 100); };
+  /** 归一两位小数（复刻 biz.ts 的 round2 语义：先乘后再四舍五入） */
+  U.round2 = function (n) { return Math.round((Number(n) + Number.EPSILON) * 100) / 100; };
+
+  /* ── 日期（一律 YYYY-MM-DD 字符串 · 本地时区 · 不碰 UTC）── */
+  U.pad2 = function (n) { return (n < 10 ? '0' : '') + n; };
+  U.today = function (d) {
+    d = d || new Date();
+    return d.getFullYear() + '-' + U.pad2(d.getMonth() + 1) + '-' + U.pad2(d.getDate());
+  };
+  /** 字符串 → Date（本地零点）；非法返回 null —— 绝不返回 Invalid Date 让它往下跑 */
+  U.dt = function (s) {
+    if (!s) return null;
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s).trim());
+    if (!m) return null;
+    var d = new Date(+m[1], +m[2] - 1, +m[3]);
+    return isNaN(d.getTime()) ? null : d;
+  };
+  U.addDays = function (s, n) {
+    var d = U.dt(s); if (!d) return null;
+    d.setDate(d.getDate() + n);
+    return U.today(d);
+  };
+  /** b − a 的天数（两个 YYYY-MM-DD）；任一非法返回 null */
+  U.diffDays = function (a, b) {
+    var x = U.dt(a), y2 = U.dt(b);
+    if (!x || !y2) return null;
+    return Math.round((y2.getTime() - x.getTime()) / 86400000);
+  };
+  /** 校验：是不是合法的 YYYY-MM-DD（且日期真实存在，如 2026-02-30 判非法） */
+  U.isDate = function (s) {
+    var d = U.dt(s);
+    return !!d && U.today(d) === String(s).trim();
+  };
+
+  /* ── 本地存储（file:// 下 localStorage 可能直接抛异常，必须容错）── */
+  U.store = {
+    get: function (k, dflt) {
+      try {
+        var v = g.localStorage.getItem(k);
+        return v == null ? dflt : JSON.parse(v);
+      } catch (e) { return dflt; }
+    },
+    set: function (k, v) {
+      try { g.localStorage.setItem(k, JSON.stringify(v)); return true; }
+      catch (e) { return false; }
+    },
+    del: function (k) {
+      try { g.localStorage.removeItem(k); return true; } catch (e) { return false; }
+    },
+    /** 存储是否可用（不可用时页面要提示「本次改动不会保存」） */
+    ok: function () {
+      try {
+        g.localStorage.setItem('__t', '1'); g.localStorage.removeItem('__t');
+        return true;
+      } catch (e) { return false; }
+    },
+  };
+
+  /* ── 导出 / 导入 ── */
+  U.download = function (name, text, mime) {
+    var blob = new Blob([text], { type: (mime || 'text/plain') + ';charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 0);
+  };
+  U.pickFile = function (accept, fn) {
+    var i = document.createElement('input');
+    i.type = 'file'; i.accept = accept || '.json';
+    i.onchange = function () {
+      var f = i.files && i.files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function () { fn(String(r.result), f); };
+      r.readAsText(f, 'utf-8');
+    };
+    i.click();
+  };
+  /** CSV：单元格内的引号/逗号/换行都要转义，否则 Excel 打开就串列 */
+  U.toCSV = function (rows) {
+    return rows.map(function (r) {
+      return r.map(function (c) {
+        var s = c == null ? '' : String(c);
+        return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      }).join(',');
+    }).join('\r\n');
+  };
+
+  /* ── 数组 ── */
+  U.groupBy = function (arr, keyFn) {
+    var out = {};
+    (arr || []).forEach(function (x) {
+      var k = keyFn(x);
+      (out[k] = out[k] || []).push(x);
+    });
+    return out;
+  };
+  U.sum = function (arr, fn) {
+    return (arr || []).reduce(function (s, x) { return s + (Number(fn ? fn(x) : x) || 0); }, 0);
+  };
+  U.sortBy = function (arr, fn, dir) {
+    var d = dir === 'desc' ? -1 : 1;
+    return (arr || []).slice().sort(function (a, b) {
+      var x = fn(a), y2 = fn(b);
+      if (x == null && y2 == null) return 0;
+      if (x == null) return 1;        /* 空值恒排末尾，不参与方向翻转 */
+      if (y2 == null) return -1;
+      return x < y2 ? -d : x > y2 ? d : 0;
+    });
+  };
+
+  g.U = U;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ─────────────────────────────────────────────────────────────
+   R1 证照与资质台账 · 纯逻辑层（不碰 DOM，可被 node 直接 eval）
+
+   ⚠️ 本系统要回答的唯一一句话：**「有没有哪张证照在悄悄到期？」**
+      所以两件事必须分清，绝不可混成一个字段：
+        · `state`  = 人工登记的状态（办理中 / 有效 / 已注销 / 停用）
+        · `expiry` = 由 `expireAt` 与今天**算出来**的到期档位
+      把「算出来的」当「登记的」存，就会出现「人工写着有效、其实已过期」——
+      这正是台账最容易自我欺骗的地方。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var U = g.U;
+
+  /* ── 档位（唯一真源；文案与色档一一对应，不许在别处再写一份）── */
+  var EXPIRY = {
+    expired: { key: 'expired', label: '已过期', rank: 0, tone: 'warn' },
+    due: { key: 'due', label: '临期', rank: 1, tone: 'gold' },
+    ok: { key: 'ok', label: '有效', rank: 2, tone: 'ok' },
+    permanent: { key: 'permanent', label: '长期有效', rank: 3, tone: 'dim' },
+    processing: { key: 'processing', label: '办理中', rank: 4, tone: 'info' },
+    /* ⭐ 2026-09-26 新增：已注销 / 停用 —— 终态，不参与提醒、也不该被算成「办理中」 */
+    voided: { key: 'voided', label: '已注销/停用', rank: 5, tone: 'dim' },
+    unknown: { key: 'unknown', label: '缺到期日', rank: -1, tone: 'warn' },
+  };
+  var EXPIRY_ORDER = ['unknown', 'expired', 'due', 'ok', 'permanent', 'processing', 'voided'];
+
+  var STATE_OPTS = ['有效', '办理中', '已注销', '停用', '待办理'];
+  /* ⭐ 提醒提前天数的真源默认（makeItem / leadDaysOf 共用，只此一份） */
+  var DEFAULT_LEAD_DAYS = 30;
+  var KIND_LABEL = { company: '企业证照', person: '人员健康证', platform: '平台资质', supplier: '供应商资质' };
+
+  var uidSeq = 0;
+  function nextUid(prefix) {
+    uidSeq += 1;
+    return (prefix || 'L') + uidSeq;
+  }
+  /** 从已有条目恢复自增序列（否则重载后新增条目会撞 uid） */
+  function syncSeq(items) {
+    (items || []).forEach(function (it) {
+      var m = /^L(\d+)$/.exec(it.uid || '');
+      if (m && +m[1] > uidSeq) uidSeq = +m[1];
+    });
+  }
+
+  function makeItem(o) {
+    o = o || {};
+    return {
+      uid: o.uid || nextUid(),
+      name: o.name || '',
+      kind: o.kind || 'company',
+      holder: o.holder || '',
+      no: o.no || '',
+      issuer: o.issuer || '',
+      issuedAt: o.issuedAt || '',
+      expireAt: o.expireAt || '',
+      permanent: !!o.permanent,
+      leadDays: leadDaysOf(o.leadDays),
+      state: o.state || '有效',
+      note: o.note || '',
+      demo: !!o.demo,
+    };
+  }
+
+  /* ── 初始台账：模板 + 供应商资质（来自真源），到期日留空者由自检点名 ── */
+  function seedFromSpec(spec) {
+    var items = [];
+    (spec.licenseSeeds || []).forEach(function (s) {
+      items.push(makeItem({
+        name: s.name, kind: s.kind, holder: spec.subject.company,
+        issuer: s.issuer || '', leadDays: s.leadDays, state: '待办理',
+        note: s.why || '',
+      }));
+    });
+    (spec.personSlots || []).forEach(function (p) {
+      items.push(makeItem({
+        name: '从业人员健康证', kind: 'person', holder: p.holder || '',
+        issuer: '疾控中心 / 体检机构', leadDays: 30, state: '待办理', note: p.note || '',
+      }));
+    });
+    (spec.suppliers.list || []).forEach(function (sp) {
+      items.push(makeItem({
+        name: '营业执照', kind: 'supplier', holder: sp.name,
+        no: sp.businessLicense, issuer: '市场监督管理局',
+        expireAt: sp.licenseExpireAt, leadDays: 60, state: '有效', demo: true,
+        note: '供应商资质 · 演示占位值，须替换为真实值',
+      }));
+      items.push(makeItem({
+        name: '食品经营许可证', kind: 'supplier', holder: sp.name,
+        no: sp.foodLicense, issuer: '市场监督管理局',
+        expireAt: sp.licenseExpireAt, leadDays: 60, state: '有效', demo: true,
+        note: '供应商资质 · 演示占位值，须替换为真实值',
+      }));
+    });
+    syncSeq(items);
+    return items;
+  }
+
+  /* ── 到期档位（算出）────────────────────────────────────────── */
+  /* ⭐ 2026-09-26 新增：提醒提前天数的**唯一归一入口**。
+     起因（实测 bug）：输入框清空后 `Number('')` = 0 ⇒ 提醒窗口变成 0 天，
+     于是 30 天后到期的证照被判「有效」、提醒清单归零，而 makeItem 的默认值 30
+     只在 `null` 时兜底 —— 台账唯一的用途（那张提醒清单）就这样静默失效，自检还全绿。
+     ⇒ 空 / 非数 / <1 一律回落真源默认 30（「提前 0 天提醒」等于不提醒，没有意义）。 */
+  function leadDaysOf(v) {
+    var n = Number(v);
+    return (v == null || v === '' || !isFinite(n) || n < 1) ? DEFAULT_LEAD_DAYS : Math.round(n);
+  }
+
+  function expiryOf(item, today) {
+    if (!item) return EXPIRY.unknown;
+    if (item.permanent) return EXPIRY.permanent;
+    // 已注销/停用：即使有到期日也不该再提醒（这张证已经不生效了）
+    // 已注销/停用：即使有到期日也不该再提醒（这张证已经不生效了）
+    // ⚠️ 2026-09-26 修复：原先复用 EXPIRY.processing ⇒ 台账行的「到期档位」列与左栏
+    //    「办理中」KPI 都把已注销的证照标成「办理中」，语义正好相反，
+    //    且 summary.processing 被这些条目污染。已注销是**终态**，要单独一档。
+    if (item.state === '已注销' || item.state === '停用') return EXPIRY.voided;    // ⚠️ 「待办理 / 办理中」**只在没有到期日时**才算「办理中」。
+    //    若已填了到期日，一律按到期日算 —— 否则会出现
+    //    「填了到期日、忘了把状态从『待办理』改过来」⇒ 这条证照**永远提醒不到**，
+    //    而台账最怕的就是「看起来在册、其实没人喊」。
+    if ((item.state === '办理中' || item.state === '待办理') && !item.expireAt) return EXPIRY.processing;
+    if (!item.expireAt || !U.isDate(item.expireAt)) return EXPIRY.unknown;
+    if (!U.isDate(today)) return EXPIRY.unknown;
+    var d = U.diffDays(today, item.expireAt);
+    if (d == null) return EXPIRY.unknown;
+    if (d < 0) return EXPIRY.expired;
+    if (d <= leadDaysOf(item.leadDays)) return EXPIRY.due;
+    return EXPIRY.ok;
+  }
+
+  /** 距到期天数；非数值返回 null（**不要回 0** —— 0 会被读成「今天到期」） */
+  function daysLeft(item, today) {
+    if (!item || !item.expireAt || !U.isDate(item.expireAt) || !U.isDate(today)) return null;
+    return U.diffDays(today, item.expireAt);
+  }
+
+  /* ── 提醒清单：只收「需要动作」的条目 ───────────────────────── */
+  function reminders(items, today) {
+    var out = [];
+    (items || []).forEach(function (it) {
+      var ex = expiryOf(it, today);
+      if (ex.key === 'expired' || ex.key === 'due' || ex.key === 'unknown') {
+        out.push({
+          item: it, expiry: ex, days: daysLeft(it, today),
+          reason: ex.key === 'unknown'
+            ? (it.permanent ? '' : '未登记到期日，到期与否无从判断')
+            : (ex.key === 'expired' ? '已过期 ' + Math.abs(daysLeft(it, today)) + ' 天'
+              : '还有 ' + daysLeft(it, today) + ' 天到期（提醒线 ' + it.leadDays + ' 天）'),
+        });
+      }
+    });
+    return out.sort(function (a, b) {
+      if (a.expiry.rank !== b.expiry.rank) return a.expiry.rank - b.expiry.rank;
+      var da = a.days == null ? 1e9 : a.days, db = b.days == null ? 1e9 : b.days;
+      return da - db;
+    });
+  }
+
+  /* ── 汇总 ────────────────────────────────────────────────────── */
+  function summary(items, today) {
+    var s = { total: 0, expired: 0, due: 0, ok: 0, permanent: 0, processing: 0, unknown: 0 };
+    (items || []).forEach(function (it) {
+      s.total += 1;
+      s[expiryOf(it, today).key] += 1;
+    });
+    s.needAction = s.expired + s.due + s.unknown;
+    return s;
+  }
+
+  function byKind(items) {
+    var out = {};
+    (items || []).forEach(function (it) {
+      out[it.kind] = (out[it.kind] || 0) + 1;
+    });
+    return out;
+  }
+
+  /* ── 校验（返回问题数组，空数组 = 通过）─────────────────────── */
+  function validate(items) {
+    var bad = [];
+    (items || []).forEach(function (it, i) {
+      var tag = (it.name || '未命名') + (it.holder ? '（' + it.holder + '）' : '');
+      if (!it.name) bad.push('第 ' + (i + 1) + ' 条：名称为空');
+      // ⚠️ 只有「已经登记了证号/到期日」却缺主体才算缺陷；
+      //    尚未填写（待办理）的健康证主体为空是**正常待办**，不是数据坏 ——
+      //    把两者混为一谈会让判据一开局就恒红，进而被当成噪声忽略掉。
+      if (!it.holder && (it.no || it.expireAt || it.permanent)) {
+        bad.push(tag + '：已登记证号/到期日，但持证主体为空');
+      }
+      if (it.issuedAt && !U.isDate(it.issuedAt)) bad.push(tag + '：发证日期格式非法（' + it.issuedAt + '）');
+      if (it.expireAt && !U.isDate(it.expireAt)) bad.push(tag + '：到期日格式非法（' + it.expireAt + '）');
+      if (it.expireAt && it.issuedAt && U.isDate(it.expireAt) && U.isDate(it.issuedAt)
+          && U.diffDays(it.issuedAt, it.expireAt) < 0) {
+        bad.push(tag + '：到期日早于发证日');
+      }
+      /* ⚠️ 2026-09-26：原判据 `>= 0` 放过了 0 —— 而 0 正是「清空输入框」的落点，
+         等于允许「提前 0 天提醒」这种永不生效的配置。至少 1 天。 */
+      if (leadDaysOf(it.leadDays) < 1 || Number(it.leadDays) < 1) {
+        bad.push(tag + '：提醒提前天数非法（须 ≥ 1，现为 ' + it.leadDays + '）');
+      }
+    });
+    return bad;
+  }
+
+  g.Model = {
+    EXPIRY: EXPIRY, EXPIRY_ORDER: EXPIRY_ORDER,
+    STATE_OPTS: STATE_OPTS, KIND_LABEL: KIND_LABEL,
+    DEFAULT_LEAD_DAYS: DEFAULT_LEAD_DAYS,
+    makeItem: makeItem, seedFromSpec: seedFromSpec, syncSeq: syncSeq, nextUid: nextUid,
+    expiryOf: expiryOf, daysLeft: daysLeft, leadDaysOf: leadDaysOf, reminders: reminders,
+    summary: summary, byKind: byKind, validate: validate,
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ─────────────────────────────────────────────────────────────
+   R1 证照与资质台账 · 判据层（纯函数 · 一份实现）
+
+   ⚠️ 这一层要同时被**两个地方**调用：页面里给人看、构建期拦住提交。
+      所以它不许碰 DOM，也不许在别处再写一份。
+   ⚠️ 严格区分两类结果（混在一起会让「待办」被读成「缺陷」，或反之）：
+       · rows[].ok=false  ⇒ **结构缺陷**（数据坏了 / 判据被绕过）
+       · todos            ⇒ **待办**（该填还没填，是台账正常状态，不是 bug）
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var U = g.U;
+
+  function run(spec, items, today) {
+    var M = g.Model;
+    var rows = [], todos = [];
+    var add = function (name, ok, detail) { rows.push({ name: name, ok: !!ok, detail: detail || '' }); };
+
+    items = items || [];
+    today = today || U.today();
+
+    /* ① 台账非空 */
+    add('① 台账非空', items.length > 0, items.length + ' 条');
+
+    /* ② uid 唯一（重复 uid 会让编辑落到错行上） */
+    var seen = {}, dup = [];
+    items.forEach(function (it) {
+      if (seen[it.uid]) dup.push(it.uid); else seen[it.uid] = 1;
+    });
+    add('② uid 唯一', dup.length === 0, dup.length ? '重复：' + dup.join(',') : items.length + ' 个唯一 uid');
+
+    /* ③ 应有清单齐全：模板里每类条目至少存在一条（防「删掉就没人知道该有」） */
+    var names = {};
+    items.forEach(function (it) { names[it.name] = (names[it.name] || 0) + 1; });
+    var lack = (spec.licenseSeeds || []).filter(function (s) { return !names[s.name]; })
+      .map(function (s) { return s.name; });
+    add('③ 应有证照清单齐全', lack.length === 0,
+      lack.length ? '缺：' + lack.join('、') : (spec.licenseSeeds || []).length + ' 类齐备');
+
+    /* ④ 供应商资质按真源「每家两项」派生（少一家就是漏了） */
+    var nSup = ((spec.suppliers || {}).list || []).length;
+    var nSupItems = items.filter(function (it) { return it.kind === 'supplier'; }).length;
+    add('④ 供应商资质覆盖全量', nSupItems === nSup * 2,
+      nSupItems + ' 条 / 应 ' + nSup + ' 家 × 2 项 = ' + (nSup * 2));
+
+    /* ⑤ 字段校验全过（日期格式 / 到期早于发证 / 主体为空…） */
+    var vbad = M.validate(items);
+    add('⑤ 字段合法', vbad.length === 0, vbad.length ? vbad.slice(0, 3).join('；') : '无非法字段');
+
+    /* ⑥ 无「非法到期日」——写了值就必须是合法日期（真缺陷，必报） */
+    var ill = items.filter(function (it) { return it.expireAt && !U.isDate(it.expireAt); });
+    add('⑥ 到期日格式合法', ill.length === 0,
+      ill.length ? ill.map(function (x) { return x.name + '=' + x.expireAt; }).join('、') : '全部合法');
+
+    /* ⑦ 汇总自洽：各档之和 == 总数 */
+    var s = M.summary(items, today);
+    var sumKeys = ['expired', 'due', 'ok', 'permanent', 'processing', 'unknown'];
+    var acc = sumKeys.reduce(function (a, k) { return a + s[k]; }, 0);
+    add('⑦ 汇总自洽', acc === s.total, '各档合计 ' + acc + ' / 总数 ' + s.total);
+
+    /* ⑧ 提醒清单无遗漏、无多报（覆盖「需动作」三档，且只覆盖它们） */
+    var need = items.filter(function (it) {
+      var k = M.expiryOf(it, today).key;
+      return k === 'expired' || k === 'due' || k === 'unknown';
+    }).length;
+    var rem = M.reminders(items, today);
+    var remUids = {}, remDup = [];
+    rem.forEach(function (r) {
+      if (remUids[r.item.uid]) remDup.push(r.item.uid); else remUids[r.item.uid] = 1;
+    });
+    add('⑧ 提醒清单完整且不重复', rem.length === need && remDup.length === 0,
+      '清单 ' + rem.length + ' 条 / 需动作 ' + need + ' 条' + (remDup.length ? '（重复 ' + remDup.join(',') + '）' : ''));
+
+    /* ⑨ 提醒清单排序正确（unknown/expired 在前，其后按临近程度） */
+    var okOrder = true;
+    for (var i = 1; i < rem.length; i++) {
+      var a = rem[i - 1], b = rem[i];
+      if (a.expiry.rank > b.expiry.rank) { okOrder = false; break; }
+      if (a.expiry.rank === b.expiry.rank) {
+        var da = a.days == null ? Infinity : a.days, db = b.days == null ? Infinity : b.days;
+        if (da > db) { okOrder = false; break; }
+      }
+    }
+    add('⑨ 提醒清单排序正确', okOrder, rem.length + ' 项有序');
+
+    /* ⑩ 经营状态跟踪项齐全（R1 的另一半职责：公司状态不能只靠记性） */
+    var nTrack = (spec.statusTracks || []).length;
+    add('⑩ 经营状态跟踪齐备', nTrack >= 3, nTrack + ' 项（异常名录 / 税务 / 年报…）');
+
+    /* ⑪ 官方判据的硬核：「会提醒」的前提是**有到期日** ——
+          声称「有效」「停用」却空着到期日，就是系统永远提醒不到的一张证。
+          （「待办理 / 办理中」不算 —— 那时本来就没有到期日，属正常待办。） */
+    var claimed = items.filter(function (it) {
+      return !it.expireAt && !it.permanent && it.state === '有效';
+    });
+    add('⑪ 声称有效者必有到期日', claimed.length === 0,
+      claimed.length ? claimed.map(function (x) { return x.name + '（' + (x.holder || '无主体') + '）'; }).join('、')
+        : items.filter(function (it) { return it.expireAt; }).length + ' 条有到期日，'
+          + items.filter(function (it) { return it.permanent; }).length + ' 条长期有效');
+
+    /* ── 待办（不是缺陷）── */
+    claimed.forEach(function (it) {
+      todos.push('【必须补】' + it.name + (it.holder ? '（' + it.holder + '）' : '')
+        + '：状态写着「' + it.state + '」却没有到期日 —— 这条永远提醒不到');
+    });
+    var draft = items.filter(function (it) {
+      return !it.permanent && (it.state === '办理中' || it.state === '待办理');
+    });
+    draft.forEach(function (it) {
+      todos.push('【待办】' + it.name + (it.holder ? '（' + it.holder + '）' : '（未填持证主体）')
+        + '：' + it.state);
+    });
+
+    var bad = rows.filter(function (r) { return !r.ok; }).length;
+    return { rows: rows, bad: bad, ok: bad === 0, todos: todos, summary: s, reminders: rem };
+  }
+
+  g.SelfCheck = { run: run };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+/* ─────────────────────────────────────────────────────────────
+   R1 证照与资质台账 · DOM 壳（只管渲染 / 交互 / 导出，不含业务判据）
+   ⚠️ 交互监听一律挂 document 用 closest 分发 —— 挂在某个容器上会漏掉
+      兄弟节点里的控件（本项目在 E3 上真踩过：tab 与内容区是兄弟）。
+   ───────────────────────────────────────────────────────────── */
+(function (g) {
+  'use strict';
+
+  var SPEC = g.SPEC, U = g.U, M = g.Model, SC = g.SelfCheck;
+  var KEY = 'abox.r1.ledger.v1';
+  var VERSION = g.TOOL_VERSION;
+
+  var ST = { items: [], today: '', filter: 'all', q: '' };
+
+  function load() {
+    var saved = U.store.get(KEY, null);
+    ST.items = (saved && saved.items && saved.items.length)
+      ? saved.items.map(M.makeItem) : M.seedFromSpec(SPEC);
+    M.syncSeq(ST.items);
+    ST.today = U.today();
+  }
+  function save() {
+    return U.store.set(KEY, { items: ST.items, savedAt: new Date().toISOString() });
+  }
+
+  function esc(s) { return U.esc(s); }
+
+  /* ── 左栏 ───────────────────────────────────────────────────── */
+  function sideHTML() {
+    var s = M.summary(ST.items, ST.today);
+    var storeOk = U.store.ok();
+    var kpi = function (k, v, tone, unit) {
+      return '<div class="kpi' + (tone ? ' ' + tone : '') + '"><div class="k">' + k + '</div>'
+        + '<div class="v">' + v + (unit ? '<span class="u">' + unit + '</span>' : '') + '</div></div>';
+    };
+    return ''
+      + '<div class="card"><h2>台账概览</h2>'
+      + '<div class="kpis">'
+      + kpi('证照条目', s.total)
+      + kpi('需动作', s.needAction, s.needAction ? 'warn' : 'ok', '条')
+      + kpi('已过期', s.expired, s.expired ? 'warn' : '')
+      + kpi('临期', s.due, s.due ? 'warn' : '')
+      + kpi('缺到期日', s.unknown, s.unknown ? 'warn' : '')
+      + kpi('办理中', s.processing)
+      + '</div>'
+      + '<p class="hint" style="margin:10px 0 0">基准日 <b>' + esc(ST.today) + '</b>'
+      + ' · 以本地日期计算</p>'
+      + '</div>'
+
+      + '<div class="card"><h2>筛选</h2>'
+      + '<label class="f"><span>关键字（名称 / 主体 / 证号）</span>'
+      + '<input id="q" value="' + esc(ST.q) + '" placeholder="如 食品经营"></label>'
+      + '<label class="f"><span>到期档位</span><select id="filter">'
+      + '<option value="all">全部</option>'
+      + '<option value="need">仅需动作（过期 / 临期 / 缺到期日）</option>'
+      + M.EXPIRY_ORDER.map(function (k) {
+        return '<option value="' + k + '"' + (ST.filter === k ? ' selected' : '') + '>'
+          + M.EXPIRY[k].label + '</option>';
+      }).join('')
+      + '</select></label>'
+      + '<p class="hint">档位是<b>算出来</b>，不随人工状态改写 —— 人工只填「办理中 / 已注销」这类事实。</p>'
+      + '</div>'
+
+      + '<div class="card"><h2>操作</h2>'
+      + '<div class="btnbar">'
+      + '<button class="btn primary" data-act="add">＋ 新增条目</button>'
+      + '<button class="btn" data-act="export-json">导出 JSON</button>'
+      + '<button class="btn" data-act="export-csv">导出 CSV</button>'
+      + '<button class="btn" data-act="import">导入 JSON</button>'
+      + '<button class="btn ghost" data-act="reset">重置为初始台账</button>'
+      + '</div>'
+      + (storeOk ? '' : '<div class="note warn">浏览器禁用了本地存储，本次改动<b>不会保存</b>。'
+        + '请用「导出 JSON」留档。</div>')
+      + '</div>';
+  }
+
+  /* ── 主区：提醒 ─────────────────────────────────────────────── */
+  function reminderHTML() {
+    var rem = M.reminders(ST.items, ST.today);
+    if (!rem.length) {
+      return '<div class="card"><h2>到期提醒 <span class="n">应做未做 = 卡一个月</span></h2>'
+        + '<div class="note ok">✔ 当前没有任何证照在提醒窗口内。'
+        + '提醒窗口 = 各条目自带的「提前提醒天数」。</div></div>';
+    }
+    return '<div class="card"><h2>到期提醒 <span class="n">' + rem.length + ' 项需动作</span></h2>'
+      + '<div class="tw"><table><thead><tr>'
+      + '<th style="width:120px">档位</th><th>证照 / 持证主体</th>'
+      + '<th style="width:120px">到期日</th><th style="width:88px" class="num">剩余</th>'
+      + '<th>说明与出处</th></tr></thead><tbody>'
+      + rem.map(function (r) {
+        var it = r.item, ex = r.expiry;
+        return '<tr>'
+          + '<td><span class="pill ' + ex.tone + '">' + ex.label + '</span></td>'
+          + '<td><b>' + esc(it.name) + '</b><div class="hint" style="margin:0">'
+          + esc(it.holder || '—') + (it.demo ? ' <span class="pill dim">演示值</span>' : '')
+          + (it.no ? ' · <span class="mono">' + esc(it.no) + '</span>' : '') + '</div></td>'
+          + '<td class="mono">' + esc(it.expireAt || '—') + '</td>'
+          + '<td class="num mono">' + (r.days == null ? '—' : r.days) + '</td>'
+          + '<td style="font-size:12.5px">' + esc(r.reason)
+          + (it.note ? '<div class="hint" style="margin:2px 0 0">' + esc(it.note) + '</div>' : '')
+          + '</td></tr>';
+      }).join('')
+      + '</tbody></table></div></div>';
+  }
+
+  /* ── 主区：台账表（内联编辑）───────────────────────────────── */
+  function rowsHTML() {
+    var q = (ST.q || '').trim().toLowerCase();
+    var list = ST.items.filter(function (it) {
+      var ex = M.expiryOf(it, ST.today);
+      if (ST.filter === 'need' && !(ex.key === 'expired' || ex.key === 'due' || ex.key === 'unknown')) return false;
+      if (ST.filter !== 'all' && ST.filter !== 'need' && ex.key !== ST.filter) return false;
+      if (!q) return true;
+      return (it.name + it.holder + it.no + it.issuer).toLowerCase().indexOf(q) >= 0;
+    });
+    return U.sortBy(list, function (it) { return M.expiryOf(it, ST.today).rank; }, 'asc')
+      .map(function (it) {
+        var ex = M.expiryOf(it, ST.today);
+        var d = M.daysLeft(it, ST.today);
+        return '<tr data-row="' + it.uid + '">'
+          + '<td><input data-uid="' + it.uid + '" data-field="name" value="' + esc(it.name) + '"></td>'
+          + '<td><select data-uid="' + it.uid + '" data-field="kind">'
+          + Object.keys(M.KIND_LABEL).map(function (k) {
+            return '<option value="' + k + '"' + (it.kind === k ? ' selected' : '') + '>'
+              + M.KIND_LABEL[k] + '</option>';
+          }).join('') + '</select></td>'
+          + '<td><input data-uid="' + it.uid + '" data-field="holder" value="' + esc(it.holder) + '"'
+          + ' placeholder="公司 / 姓名 / 供应商名"></td>'
+          + '<td><input data-uid="' + it.uid + '" data-field="no" value="' + esc(it.no) + '"'
+          + ' class="mono" placeholder="证号"></td>'
+          + '<td><input data-uid="' + it.uid + '" data-field="expireAt" type="date" value="'
+          + esc(it.expireAt) + '"></td>'
+          + '<td><input data-uid="' + it.uid + '" data-field="leadDays" type="number" min="0" max="365"'
+          + ' value="' + it.leadDays + '"></td>'
+          + '<td><select data-uid="' + it.uid + '" data-field="state">'
+          + M.STATE_OPTS.map(function (o) {
+            return '<option value="' + o + '"' + (it.state === o ? ' selected' : '') + '>' + o + '</option>';
+          }).join('') + '</select></td>'
+          + '<td class="nowrap"><span class="pill ' + ex.tone + '" data-cell="exp">' + ex.label + '</span>'
+          + '<div class="hint mono" style="margin:2px 0 0" data-cell="days">'
+          + (d == null ? '—' : (d < 0 ? '超期 ' + Math.abs(d) + ' 天' : '剩 ' + d + ' 天')) + '</div></td>'
+          + '<td><button class="btn sm ghost" data-act="del" data-uid="' + it.uid + '" title="删除">删除</button></td>'
+          + '</tr>';
+      }).join('');
+  }
+
+  function tableHTML() {
+    var body = rowsHTML();
+    return '<div class="card"><h2>证照台账 <span class="n">' + ST.items.length + ' 条 · 可直接编辑</span></h2>'
+      + '<p class="hint">到期日与提醒天数决定「会不会被提醒」；状态填<b>事实</b>（办理中 / 已注销），'
+      + '不要用它覆盖「已过期」这类算出来的结论。</p>'
+      + '<div class="tw"><table><thead><tr>'
+      + '<th style="min-width:150px">证照名称</th><th style="width:104px">类别</th>'
+      + '<th style="width:150px">持证主体</th><th style="width:150px">证号</th>'
+      + '<th style="width:146px">到期日</th><th style="width:82px" class="num">提前</th>'
+      + '<th style="width:96px">状态</th><th style="width:118px">到期档位</th><th style="width:64px"></th>'
+      + '</tr></thead><tbody>' + (body || '<tr><td colspan="9" class="hint">没有匹配的条目</td></tr>')
+      + '</tbody></table></div></div>';
+  }
+
+  /* ── 主区：经营状态跟踪 ─────────────────────────────────────── */
+  function statusHTML() {
+    var rows = (SPEC.statusTracks || []).map(function (t) {
+      var tone = /异常|非正常|未移出/.test(t.state) ? 'warn' : (t.state === '待确认' ? 'gold' : 'ok');
+      return '<tr><td><b>' + esc(t.label) + '</b>'
+        + '<div class="hint" style="margin:0">' + esc(t.authority) + ' · ' + esc(t.cycle) + '</div></td>'
+        + '<td><span class="pill ' + tone + '">' + esc(t.state) + '</span>'
+        + (t.since ? '<div class="hint mono" style="margin:2px 0 0">' + esc(t.since) + '</div>' : '') + '</td>'
+        + '<td>' + esc(t.action) + '</td>'
+        + '<td style="font-size:12.5px">' + esc(t.note) + '</td></tr>';
+    }).join('');
+    return '<div class="card"><h2>公司经营状态跟踪 <span class="n">台账的另一半</span></h2>'
+      + '<p class="hint">证照管「资格有没有」，这一栏管「主体状态正不正常」——'
+      + '列入异常 / 税务非正常户<b>都不是到期日能表达的</b>，必须单独盯。</p>'
+      + '<div class="tw"><table><thead><tr><th style="width:190px">事项</th>'
+      + '<th style="width:150px">当前状态</th><th style="width:230px">要做的事</th><th>说明</th>'
+      + '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+      + '<p class="hint" style="margin:10px 0 0">出处：' + esc(SPEC.subject._src)
+      + ' —— 本节为<b>真人事实</b>，需人工更新。</p></div>';
+  }
+
+  /* ── 主区：自检 ─────────────────────────────────────────────── */
+  function gateHTML() {
+    var r = SC.run(SPEC, ST.items, ST.today);
+    return '<div class="card"><h2>自检 <span class="n">' + (r.ok ? '全绿' : r.bad + ' 项不符')
+      + ' · 待办 ' + r.todos.length + '</span></h2>'
+      + '<div class="gate">'
+      + r.rows.map(function (x, i) {
+        return '<div class="g' + (x.ok ? '' : ' bad') + '"><i>' + String(i + 1).padStart(2, '0') + '</i>'
+          + '<span class="t">' + (x.ok ? '✔ ' : '✗ ') + esc(x.name)
+          + (x.detail ? ' —— ' + esc(x.detail) : '') + '</span></div>';
+      }).join('')
+      + '</div>'
+      + (r.todos.length ? '<div class="note warn" style="margin-top:10px"><div><b>待办 '
+        + r.todos.length + ' 条</b>（不是缺陷，是该填还没填）：<br>'
+        + r.todos.map(function (t) { return '· ' + esc(t); }).join('<br>') + '</div></div>' : '')
+      + '</div>';
+  }
+
+  /* ── 渲染 ───────────────────────────────────────────────────── */
+  function render() {
+    U.$('#side').innerHTML = sideHTML();
+    U.$('#main').innerHTML = '<div id="reminder">' + reminderHTML() + '</div>'
+      + '<div id="ledger">' + tableHTML() + '</div>' + statusHTML() + gateHTML();
+    var sel = U.$('#filter'); if (sel) sel.value = ST.filter;
+  }
+  /** 局部刷新某行的派生单元格（避免整体重渲染导致输入框失焦） */
+  function touchRow(uid) {
+    var it = ST.items.filter(function (x) { return x.uid === uid; })[0];
+    var tr = U.$('[data-row="' + uid + '"]');
+    if (!it || !tr) return;
+    var ex = M.expiryOf(it, ST.today), d = M.daysLeft(it, ST.today);
+    var p = tr.querySelector('[data-cell="exp"]'), dd = tr.querySelector('[data-cell="days"]');
+    if (p) { p.className = 'pill ' + ex.tone; p.textContent = ex.label; }
+    if (dd) dd.textContent = (d == null ? '—' : (d < 0 ? '超期 ' + Math.abs(d) + ' 天' : '剩 ' + d + ' 天'));
+  }
+  /** 重排表格，并**把手上的焦点接回原处**（否则每敲一个字符就掉焦点） */
+  function reorderTable(uid, field) {
+    var led = U.$('#ledger'); if (!led) return;
+    var af = document.activeElement;
+    var au = (af && af.getAttribute) ? af.getAttribute('data-uid') : null;
+    var afd = (af && af.getAttribute) ? af.getAttribute('data-field') : null;
+    var ss = null, se = null;
+    try { ss = af ? af.selectionStart : null; se = af ? af.selectionEnd : null; } catch (e) { /* date/number 无选择区 */ }
+    led.innerHTML = tableHTML();
+    var target = U.$('[data-uid="' + (au || uid) + '"][data-field="' + (afd || field) + '"]');
+    if (target && typeof target.focus === 'function') {
+      target.focus();
+      try { target.setSelectionRange(ss, se); } catch (e) { /* 同上 */ }
+    }
+  }
+
+  /* ── 交互 ───────────────────────────────────────────────────── */
+  function onClick(e, t) {
+    var act = t.getAttribute('data-act');
+    if (!act) return;
+    if (act === 'add') {
+      var it = M.makeItem({ name: '新证照', kind: 'company', holder: SPEC.subject.company, leadDays: 60, state: '待办理' });
+      ST.items.push(it); save(); render();
+      var el = U.$('[data-uid="' + it.uid + '"]'); if (el) el.focus();
+    } else if (act === 'del') {
+      var uid = t.getAttribute('data-uid');
+      var cur = ST.items.filter(function (x) { return x.uid === uid; })[0];
+      if (cur && g.confirm('删除「' + cur.name + '」？')) {
+        ST.items = ST.items.filter(function (x) { return x.uid !== uid; });
+        save(); render();
+      }
+    } else if (act === 'export-json') {
+      U.download('ABox证照台账-' + ST.today + '.json', JSON.stringify({
+        product: 'R1 证照与资质台账', version: VERSION, exportedAt: new Date().toISOString(),
+        today: ST.today, items: ST.items,
+      }, null, 2), 'application/json');
+    } else if (act === 'export-csv') {
+      var head = ['序号', '证照名称', '类别', '持证主体', '证号', '发证机关', '发证日', '到期日',
+        '提前提醒天数', '状态', '到期档位', '剩余天数', '备注'];
+      var rows = [head].concat(ST.items.map(function (it, i) {
+        var ex = M.expiryOf(it, ST.today);
+        return [i + 1, it.name, M.KIND_LABEL[it.kind] || it.kind, it.holder, it.no, it.issuer,
+          it.issuedAt, it.expireAt || (it.permanent ? '长期有效' : ''), it.leadDays, it.state,
+          ex.label, (function () { var d = M.daysLeft(it, ST.today); return d == null ? '' : d; })(), it.note];
+      }));
+      U.download('ABox证照台账-' + ST.today + '.csv', '\ufeff' + U.toCSV(rows), 'text/csv');
+    } else if (act === 'import') {
+      U.pickFile('.json', function (txt) {
+        try {
+          var o = JSON.parse(txt);
+          var arr = Array.isArray(o) ? o : (o.items || []);
+          if (!arr.length) throw new Error('文件里没有 items');
+          ST.items = arr.map(M.makeItem); M.syncSeq(ST.items); save(); render();
+          g.alert('已导入 ' + arr.length + ' 条');
+        } catch (err) { g.alert('导入失败：' + err.message); }
+      });
+    } else if (act === 'reset') {
+      if (g.confirm('重置为初始台账？当前编辑将丢失。')) {
+        ST.items = M.seedFromSpec(SPEC); M.syncSeq(ST.items); save(); render();
+      }
+    }
+  }
+
+  function onInput(e, t) {
+    if (t.id === 'q') { ST.q = t.value; render(); var q = U.$('#q'); if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); } return; }
+    if (t.id === 'filter') { ST.filter = t.value; render(); return; }
+    var uid = t.getAttribute('data-uid'), f = t.getAttribute('data-field');
+    if (!uid || !f) return;
+    var it = ST.items.filter(function (x) { return x.uid === uid; })[0];
+    if (!it) return;
+    /* ⚠️ 2026-09-26 修复：原先 `Number(t.value)` ⇒ 清空输入框等价于把提醒窗口设成 0 天，
+       30 天后到期的证照从此不再提醒、提醒清单归零，而自检全绿。
+       ⇒ 空 / 非数 / <1 走 leadDaysOf 回落真源默认 30。 */
+    it[f] = f === 'leadDays' ? M.leadDaysOf(t.value) : t.value;
+    save();
+    // ⚠️ 影响**排序/档位**的字段改了，必须重排表格 —— 否则会出现
+    //    「表里明明写着已过期，却还躺在列表最下面」这种自相矛盾的画面。
+    //    非排序字段只刷新该行的派生单元格（避免整表重建导致输入卡顿）。
+    if (['expireAt', 'state', 'leadDays'].indexOf(f) >= 0) reorderTable(uid, f);
+    else touchRow(uid);
+    // ⚠️ 只刷新行内单元格是不够的：**提醒清单与左栏汇总是编辑的直接后果**，
+    //    不刷新就会出现「表里已显示临期、上方提醒清单还是空的」这种自相矛盾，
+    //    而台账唯一的用途就是那张提醒清单。整体 render() 会让输入框失焦，故按块刷新。
+    var rm = U.$('#reminder'); if (rm) rm.innerHTML = reminderHTML();
+    var sd = U.$('#side'); if (sd) sd.innerHTML = sideHTML();
+    var cur = U.$('[data-uid="' + uid + '"][data-field="' + f + '"]');
+    if (cur && cur !== document.activeElement) { /* 保持原焦点，不抢 */ }
+  }
+
+  function boot() {
+    load();
+    var v = U.$('#ver'); if (v) v.textContent = VERSION;
+    var d = U.$('#date'); if (d) d.textContent = ST.today;
+    U.on('click', '[data-act]', onClick);
+    U.on('input', 'input, select', onInput);
+    U.on('change', 'input, select', onInput);
+    render();
+    document.documentElement.setAttribute('data-tool-ready', '1');
+  }
+
+  g.R1 = {
+    state: function () { return ST; },
+    setItems: function (arr) { ST.items = arr.map(M.makeItem); M.syncSeq(ST.items); render(); },
+    render: render, selfcheck: function () { return SC.run(SPEC, ST.items, ST.today); },
+    summary: function () { return M.summary(ST.items, ST.today); },
+    reminders: function () { return M.reminders(ST.items, ST.today); },
+    seed: function () { return M.seedFromSpec(SPEC); },
+  };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script></body></html>

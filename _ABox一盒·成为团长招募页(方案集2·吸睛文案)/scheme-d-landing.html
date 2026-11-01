@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>ABox 一盒 · 成为团长（方案 D · 一步到位）</title>
+<style>
+  :root {
+    --bg-cream: #F6F0E5; --bg-cream-light: #FBF7EE; --text-brown: #6E5435; --text-brown-light: #8B7355;
+    --accent-gold: #C9A876; --accent-gold-dark: #B8915C; --border-soft: #E6D9C0;
+    --shadow: 0 1px 2px rgba(110,84,53,.06), 0 4px 12px rgba(110,84,53,.07);
+    --shadow-lg: 0 2px 6px rgba(110,84,53,.08), 0 12px 32px rgba(110,84,53,.14);
+    --font-kai: "KaiTi","STKaiti","楷体","Kaiti SC",serif;
+    --radius-md: 14px; --radius-pill: 24px; --sp-4: 20px; --sp-5: 28px; --fs-sm: 12px; --fs-md: 14px; --fs-title: 15.5px; --fs-h1: 20px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: var(--font-kai); background:#2A2118; color:var(--text-brown); -webkit-font-smoothing:antialiased; }
+  .stage-flex { display:flex; justify-content:center; align-items:flex-start; padding:32px 16px 60px; }
+  .phone-shell { width:375px; max-width:100%; background:var(--bg-cream); border-radius:24px; box-shadow:var(--shadow-lg),0 0 0 2px rgba(201,168,118,.3); overflow:hidden; }
+  .scroll { max-height:760px; overflow-y:auto; }
+  .scroll::-webkit-scrollbar { width:6px; }
+  .scroll::-webkit-scrollbar-thumb { background:rgba(201,168,118,.45); border-radius:4px; }
+
+  .wrap { padding: var(--sp-5) var(--sp-4) 0; text-align:center; }
+  .eyebrow { font-size:11px; letter-spacing:3px; color:var(--accent-gold-dark); }
+  .title { font-size:26px; font-weight:bold; letter-spacing:2px; line-height:1.4; margin-top:16px; color:var(--text-brown); }
+  .benefit { font-size:var(--fs-md); color:var(--text-brown-light); line-height:1.85; margin-top:16px; }
+  .benefit b { color:var(--accent-gold-dark); }
+
+  .submit-bar { padding: var(--sp-5) var(--sp-4) 0; }
+  .btn { width:100%; height:52px; line-height:52px; text-align:center; background:var(--text-brown); color:var(--bg-cream); border-radius:var(--radius-pill); font-size:var(--fs-md); letter-spacing:2px; box-shadow:var(--shadow); border:none; font-family:var(--font-kai); }
+  .links { display:flex; gap:12px; margin-top:14px; }
+  .links a { flex:1; font-size:var(--fs-sm); color:var(--accent-gold-dark); background:var(--bg-cream-light); border:1px solid var(--border-soft); border-radius:var(--radius-pill); padding:10px 0; }
+  .foot { font-size:11px; color:var(--text-brown-light); padding:var(--sp-4) var(--sp-4) var(--sp-5); line-height:1.8; margin-top:18px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="stage-flex">
+  <div class="phone-shell">
+    <div class="scroll">
+      <div class="wrap">
+        <div class="eyebrow">团长招募</div>
+        <div class="title">帮同事凑个团<br>顺手带回来</div>
+        <div class="benefit">每单按售价提 <b>8% – 12%</b>（例：一单 ¥25.80 约 ¥2.06–¥3.10）<br>午间一小时 · 零垫资 · 零囤货 · 不跑腿</div>
+      </div>
+      <div class="submit-bar">
+        <button class="btn">申请成为团长</button>
+        <div class="links">
+          <a>介绍朋友当</a>
+        </div>
+      </div>
+      <div class="foot">团长即办公室相熟同事，取货时顺手带给大家；<br>见习 30 天未促单自动取消。介绍奖励仅单层。</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

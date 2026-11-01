@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABox 一盒 · 小程序端联调操作指引 v1.0</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --card:#FFFFFF;
+    --ink:#2E2924; --ink-2:#796C57; --ink-3:#9A8B72;
+    --brown:#6E5435; --brown-soft:#E8DDC9; --line:#DCD2C0; --line-2:#EDE5D6;
+    --red:#9A3412; --red-bg:#FBEDE4; --red-line:#E8C9B4;
+    --amber:#8A6A12; --amber-bg:#FBF3DD; --amber-line:#E8D8A8;
+    --green:#3F6B4A; --green-bg:#EAF1EA; --green-line:#C3D6C5;
+    --blue:#3A5A78; --blue-bg:#EAF0F5; --blue-line:#C2D2E0;
+    --code-bg:#FAF6EE;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+    font-size:15px;line-height:1.8;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1020px;margin:0 auto;padding:44px 26px 100px}
+
+  header{border-bottom:2px solid var(--brown);padding-bottom:20px;margin-bottom:28px}
+  h1{font-family:KaiTi,"STKaiti",simkai,"楷体",serif;font-size:28px;font-weight:700;
+     margin:0 0 8px;letter-spacing:.06em;color:var(--brown)}
+  .sub{color:var(--ink-2);font-size:13.5px}
+  .ver{display:inline-block;margin-left:10px;padding:1px 9px;border:1px solid var(--brown-soft);
+       border-radius:99px;font-size:12px;color:var(--brown);background:#FFF}
+
+  section{margin:0 0 40px;scroll-margin-top:70px}
+  h2{font-family:KaiTi,"STKaiti",simkai,"楷体",serif;font-size:21px;font-weight:700;
+     color:var(--brown);margin:0 0 6px;padding-left:12px;border-left:4px solid var(--brown);
+     letter-spacing:.04em}
+  .lead{color:var(--ink-2);font-size:13.5px;margin:0 0 16px;padding-left:16px}
+  h3{font-size:15.5px;font-weight:700;margin:24px 0 9px;color:var(--ink)}
+  p{margin:0 0 12px}
+  b{color:var(--ink)}
+
+  table{width:100%;border-collapse:collapse;background:#FFF;font-size:14px;
+        border:1px solid var(--line);margin:12px 0}
+  th{background:#FBF8F2;text-align:left;padding:10px 13px;font-weight:700;
+     border-bottom:1px solid var(--line);color:var(--brown);font-size:13px}
+  td{padding:10px 13px;border-bottom:1px solid var(--line-2);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td.k{font-weight:700;white-space:nowrap}
+  code{font-family:ui-monospace,Consolas,"Courier New",monospace;background:var(--code-bg);
+       border:1px solid var(--line-2);border-radius:2px;padding:1px 5px;font-size:13px;
+       color:var(--brown);word-break:break-all}
+
+  .box{border:1px solid var(--line);border-left:4px solid var(--brown);background:#FFF;
+       border-radius:3px;padding:14px 18px;margin:14px 0}
+  .box.ok{border-left-color:var(--green);background:var(--green-bg);border-color:var(--green-line)}
+  .box.warn{border-left-color:var(--amber);background:var(--amber-bg);border-color:var(--amber-line)}
+  .box.danger{border-left-color:var(--red);background:var(--red-bg);border-color:var(--red-line)}
+  .box.info{border-left-color:var(--blue);background:var(--blue-bg);border-color:var(--blue-line)}
+  .box .bt{font-weight:700;margin-bottom:6px;display:block}
+  .box.ok .bt{color:var(--green)}
+  .box.warn .bt{color:var(--amber)}
+  .box.danger .bt{color:var(--red)}
+  .box.info .bt{color:var(--blue)}
+  .box p:last-child,.box ul:last-child,.box ol:last-child{margin-bottom:0}
+
+  .step{background:#FFF;border:1px solid var(--line);border-radius:3px;margin:16px 0;overflow:hidden}
+  .step-h{display:flex;align-items:center;gap:10px;padding:11px 15px;
+          background:#FBF8F2;border-bottom:1px solid var(--line-2)}
+  .step-h .sn{font-family:KaiTi,"STKaiti",simkai,"楷体",serif;font-size:16px;font-weight:700;
+              color:var(--brown);white-space:nowrap}
+  .step-h .st{font-size:14.5px;font-weight:700}
+  .step-b{padding:14px 18px}
+  .where{display:inline-block;font-size:12.5px;padding:2px 10px;border-radius:99px;
+    background:var(--brown-soft);color:var(--brown);font-weight:700;margin-bottom:8px}
+  .why{background:var(--blue-bg);border:1px solid var(--blue-line);border-radius:3px;
+    padding:10px 13px;font-size:13.5px;color:var(--ink-2);margin:10px 0 0}
+  .why b{color:var(--blue)}
+
+  .copyrow{display:flex;align-items:center;gap:8px;background:var(--code-bg);
+    border:1px solid var(--line);border-radius:3px;padding:9px 11px;margin:8px 0}
+  .copyrow code{flex:1;background:none;border:none;padding:0;font-size:13px;user-select:all}
+  .btn{flex:none;border:1px solid var(--brown-soft);background:#FFF;color:var(--brown);
+    border-radius:2px;padding:3px 10px;font-size:12px;cursor:pointer;font-family:inherit}
+  .btn:hover{background:var(--brown);color:#fff;border-color:var(--brown)}
+  .btn.done{background:var(--green);color:#fff;border-color:var(--green)}
+
+  .mono{background:var(--code-bg);border:1px solid var(--line-2);border-radius:3px;
+    padding:11px 13px;font-family:ui-monospace,Consolas,monospace;font-size:12.5px;
+    color:var(--ink);white-space:pre-wrap;word-break:break-all;line-height:1.75;margin:10px 0}
+
+  ol,ul{margin:10px 0;padding-left:22px}
+  li{margin:7px 0}
+  .chk{list-style:none;padding-left:0}
+  .chk li{padding-left:26px;position:relative;margin:9px 0}
+  .chk li:before{content:"";position:absolute;left:0;top:6px;width:13px;height:13px;
+    border:1.5px solid var(--brown);border-radius:2px;background:#FFF}
+  .chk li.done:before{background:var(--brown)}
+  .chk li.done:after{content:"";position:absolute;left:4px;top:8px;width:5px;height:8px;
+    border:solid #F6F0E5;border-width:0 2px 2px 0;transform:rotate(42deg)}
+
+  .pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:700;
+    border:1px solid var(--green-line);background:var(--green-bg);color:var(--green)}
+  .pill.amber{border-color:var(--amber-line);background:var(--amber-bg);color:var(--amber)}
+  .pill.red{border-color:var(--red-line);background:var(--red-bg);color:var(--red)}
+  .pill.brown{border-color:var(--brown-soft);background:#FFF;color:var(--brown)}
+
+  footer{margin-top:50px;padding-top:18px;border-top:1px solid var(--line);
+    color:var(--ink-3);font-size:12.5px}
+  @media(max-width:760px){ .wrap{padding:28px 16px 70px} h1{font-size:22px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>ABox 一盒 · 小程序端联调操作指引<span class="ver">v1.0</span></h1>
+  <div class="sub">你本机要做的事 · 2026-10-01 · 目标：让同事不连同一 WiFi 也能测</div>
+</header>
+
+<section id="s0">
+  <h2>零、先说一件会让后面全白做的事</h2>
+  <div class="box danger">
+    <span class="bt">如果你现在就按「改 .env → 构建 → 上传」做完，同事打开体验版会卡在登录、进不去</span>
+    <p>上一轮我跟你说的「用 <code>dev:1001</code> 登录成李明」——<b>在生产构建下不成立</b>。是我没讲全，这里更正。</p>
+  </div>
+
+  <h3>为什么会卡住（整条链）</h3>
+  <table>
+    <tr><th style="width:46px">#</th><th>环节</th><th>实际情况</th></tr>
+    <tr><td>1</td><td class="k">服务端模式</td><td><code>PROVIDER_MODE=real</code>（我设的，这是对的，不能改回 mock 上线）</td></tr>
+    <tr><td>2</td><td class="k">real 模式怎么登录</td><td>拿 <code>WX_MINI_APPID</code> + <code>WX_MINI_SECRET</code> 去调微信 <code>jscode2session</code></td></tr>
+    <tr><td>3</td><td class="k">这两个值填了吗</td><td><span class="pill red">没填</span> 线上 <code>.env.prod</code> 里这两行是空的 —— 我没有，也不能凭空造</td></tr>
+    <tr><td>4</td><td class="k">小程序发什么 code</td><td><code>pnpm run build:mp</code> 是<b>生产构建</b> → <code>MODE=production</code> → 走<b>真实</b> <code>uni.login</code>，不再用 dev code</td></tr>
+    <tr><td>5</td><td class="k">结果</td><td>真实 code 撞上空 AppID ⇒ <code>code2Session</code> 失败 ⇒ <b>登录失败，进不去</b></td></tr>
+  </table>
+
+  <div class="box info">
+    <span class="bt">代码证据（三处，我都查过了，不是推断）</span>
+    <div class="mono">constants/env.ts:12   demoMode: import.meta.env.MODE !== 'production'
+utils/auth.ts:29     if (ENV.demoMode) return Promise.resolve(currentDevCode());   // 否则走 uni.login
+real-wx-mini.provider.ts:22  WX_MINI_APPID / WX_MINI_SECRET 未配置，真实登录将失败</div>
+    <p>读法：<b>「生产构建」和「dev 登录码」是互斥的</b>，二选一。生产构建一旦产出，<code>dev:1001</code> 这条路就自动关掉了。</p>
+  </div>
+</section>
+
+<section id="s1">
+  <h2>一、已拍板：走 B（临时 mock），拿到 AppSecret 再切 A</h2>
+  <div class="box ok">
+    <span class="bt">服务端已改完并实测通过（2026-10-01 17:57）</span>
+    <p><code>PROVIDER_MODE</code> 已由 <code>real</code> 改为 <code>mock</code>，api 容器已重建，健康校验 ready。
+       实测两个假 code 各建各的号：<b>1006 / 1007</b>，互不干扰 ⇒ 同事会各自拿到独立账号。</p>
+  </div>
+  <p class="lead">下面这张表留着存档，方便日后回看当时为什么这么选。</p>
+  <table>
+    <tr><th style="width:130px">对比项</th><th style="width:44%">A · 配真实 AppID（推荐）</th><th style="width:44%">B · 临时改 mock</th></tr>
+    <tr><td class="k">要你提供</td><td>小程序 <b>AppID + AppSecret</b></td><td>什么都不用</td></tr>
+    <tr><td class="k">同事身份</td><td>各自微信登录，<b>各人独立账号</b>，稳定不变</td><td>也各自独立（按 code 算出 openid），但<b>重新登录会换新账号</b></td></tr>
+    <tr><td class="k">登录是否真</td><td>真实 <code>uni.login</code> + 真实 openid</td><td>真实 <code>uni.login</code>，服务端按 code 造 mock openid</td></tr>
+    <tr><td class="k">支付</td><td><span class="pill amber">走不通</span> 要商户号（现在没有）</td><td><span class="pill">自动置为已支付</span> 能走完整流程</td></tr>
+    <tr><td class="k">上线前</td><td>无需回滚</td><td><span class="pill red">必须改回 real</span>，否则任意 code 免密登录任意身份</td></tr>
+    <tr><td class="k">适合</td><td>想看真实效果、长期用</td><td>这一两天先点通流程、没拿到 AppSecret</td></tr>
+  </table>
+  <div class="box warn">
+    <span class="bt">选择理由（已执行）</span>
+    <p><b>先 B、后 A</b>：这两天先把 <code>PROVIDER_MODE</code> 临时改成 mock，让同事立刻能把下单全流程点通（支付那步会自动成功）；
+       等你拿到 AppSecret 再切回 real 并配好。<b>唯一的风险是「切回」这一步不能忘</b> ——
+       我已在服务器 <code>.env.prod</code> 里紧挨着这行加了两条醒目注释，并记进上线清单。</p>
+  </div>
+  <div class="box info">
+    <span class="bt">为什么 B 也能让同事各有各的账号（这点反直觉，值得知道）</span>
+    <p>mock provider 的规则是：<code>dev:xxx</code> → 固定身份；<b>其它 code → 对 code 取 sha1 前 16 位当 openid</b>。
+       同事真实 <code>uni.login</code> 拿到的 code 各不一样，所以账号也各不一样 ——
+       <b>不需要 devCode，也不需要改构建命令</b>。代价是微信 code 一次性，重新登录就是另一个人（token 有效期内不变，所以别退出登录即可）。</p>
+  </div>
+</section>
+
+<section id="s2">
+  <h2>二、你本机要做的五步（第 1、2 步我已代做）</h2>
+  <div class="box ok">
+    <span class="bt">已完成的：新建 .env + 构建（2026-10-01 18:10）</span>
+    <p>你找不到根目录，加上本机没有系统级 Node/pnpm（只有编辑器自带那份，自己开终端敲会报「不是内部或外部命令」），
+       所以这两步我直接在你本机跑完了。产物已生成在：</p>
+    <div class="copyrow"><code id="c3">C:\Users\herma\WorkBuddy\ABox小程序\abox-onebox\apps\miniprogram\dist\build\mp-weixin</code><button class="btn" onclick="cp('c3',this)">复制</button></div>
+    <p>已核验产物内容：<code>apiBaseUrl:"http://154.8.164.180:8080/api/v1"</code>、<code>demoMode:!1</code>（生产构建）、全文无 localhost。</p>
+  </div>
+  <div class="box info">
+    <span class="bt">「根目录」到底是哪儿的？（三个地方别搞混）</span>
+    <table style="margin:8px 0">
+      <tr><th style="width:120px">我说的</th><th>实际位置</th><th style="width:150px">里面有啥</th></tr>
+      <tr><td class="k">根目录</td><td><code>C:\Users\herma\WorkBuddy\ABox小程序\abox-onebox</code><br><span class="pill brown">本地 C 盘</span></td><td>整个代码仓库（apps / docs / docker-compose / package.json）</td></tr>
+      <tr><td class="k">腾讯云</td><td>154.8.164.180（<code>/opt/abox-onebox</code>）</td><td>跑着的后台 + 数据库，我已经部署好了</td></tr>
+      <tr><td class="k">GitHub / 远端</td><td>origin/main</td><td>代码的云端备份，跟这次联调无关</td></tr>
+    </table>
+    <p>为什么构建必须在<b>本地</b>做：腾讯云上那台机器跑的是<b>后台服务</b>，它不管小程序；
+       而小程序的构建产物最终要<b>用你电脑上的微信开发者工具上传</b>（要你微信扫码），
+       所以这一步只能在本地产、本地传。<b>腾讯云和 GitHub 在这件事上都帮不上忙。</b></p>
+    <p>另外提醒一句：你本机<b>没有系统级 Node/pnpm</b>（查过了，Program Files 和 npm 全局目录里都没有），
+       只有编辑器自带的那一份。所以以后自己开终端敲 <code>pnpm</code> 会报「不是内部或外部命令」——
+       这类命令交给我跑就行。</p>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">第 1 步</span><span class="st">新建 .env 文件（不是改，是新建）<span class="pill">已完成</span></span></div>
+    <div class="step-b">
+      <span class="where">在哪儿做：文件夹 <code>abox-onebox/apps/miniprogram/</code></span>
+      <p>我查过这个目录 —— <b>里面只有 <code>.env.example</code>，没有 <code>.env</code></b>。所以要新建，不是改。</p>
+      <p>做法：复制一份 <code>.env.example</code>，改名为 <code>.env</code>，然后把第 10 行改成：</p>
+      <div class="copyrow"><code id="c1">VITE_API_BASE_URL=http://154.8.164.180:8080/api/v1</code><button class="btn" onclick="cp('c1',this)">复制</button></div>
+      <p>另一行 <code>VITE_WX_MINI_APPID=</code> <b>保持空着就行</b>（我查了，这个变量在端上定义了但没有任何地方用它）。</p>
+      <div class="why"><b>为什么：</b>小程序里写死了兜底值 <code>http://localhost:3000/api/v1</code>。不建这个 .env，
+        你同事手机上「localhost」指的是他自己的手机，必然连不上。建了它，请求才会打到 154.8.164.180。<br>
+        <b>为什么是 .env 而不是改代码：</b>代码里那行兜底是给大家本地调试用的，动它会污染仓库；.env 已在 .gitignore 里，只影响你本机。</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">第 2 步</span><span class="st">重新构建<span class="pill">已完成</span></span></div>
+    <div class="step-b">
+      <span class="where">在哪儿做：终端，<code>abox-onebox/</code> <b>根目录</b>（不是 apps/miniprogram/）</span>
+      <div class="copyrow"><code id="c2">pnpm run build:mp</code><button class="btn" onclick="cp('c2',this)">复制</button></div>
+      <div class="why"><b>为什么必须重新构建：</b><code>VITE_*</code> 是<b>构建期</b>注入的 —— 构建时直接把值写进产物，
+        运行时读不到环境变量。改完 .env 不重新构建，等于没改。这是小程序端和后台唯一的差别：
+        后台的 <code>baseURL</code> 走相对路径 + 容器 nginx 反代，所以零改动就能上线。<br>
+        <b>为什么在根目录跑：</b><code>build:mp</code> 是根 package.json 的别名，它会先编 shared 包再编小程序；
+        进到 <code>apps/miniprogram/</code> 里没有这个命令（那里只有 <code>build:mp-weixin</code>）。</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">第 3 步</span><span class="st">开发者工具里上传体验版</span></div>
+    <div class="step-b">
+      <span class="where">在哪儿做：浏览器（查 AppID）+ 微信开发者工具（填 AppID、上传）</span>
+
+      <h3>3-A · 先查出你的 AppID</h3>
+      <ol>
+        <li>电脑浏览器打开 <b>mp.weixin.qq.com</b>，用<b>管理员的微信扫码</b>登录（不是用密码登录）。</li>
+        <li>登录后左边菜单：<b>设置与开发 → 开发管理</b>（旧版叫「开发 → 开发管理」）。</li>
+        <li>上方标签页选 <b>开发设置</b>。</li>
+        <li>页面最上面的「<b>开发者 ID</b>」区块里，第一行就是 <b>AppID(小程序 ID)</b>，
+            形如 <code>wx</code> 开头加一串字符（18 位），右边有「复制」按钮。</li>
+      </ol>
+      <div class="box info">
+        <span class="bt">同一个页面上还有 AppSecret —— 顺手一起拿，后面要用</span>
+        <p>就在 AppID 下面一行。<b>它默认不显示</b>，要点「重置」或「查看」，需要管理员扫码 + 手机验证，
+           而且<b>只完整显示这一次</b>，关掉就再也看不到明文（只能再重置）。
+           ⇒ 拿到后<b>立刻存进密码本</b>，然后发给我 —— 切回真实登录模式时必须用它。
+           <b>别发在微信聊天里</b>，那是明文会被留存。</p>
+      </div>
+      <div class="box danger">
+        <span class="bt">如果登录进去发现「还没有小程序」</span>
+        <p>说明小程序还没注册，这一步先做不了。注册路径：mp.weixin.qq.com 首页 → <b>立即注册 → 小程序</b>，
+           需要一个<b>没注册过公众号/小程序的邮箱</b>，注册时选主体（企业/个人）。
+           注册完主体信息要审核（个人即时、企业微信认证约 1–3 天且 300 元/年），之后才能拿到 AppID。
+           <b>注册好把 AppID 给我，我重新构建一次就行。</b></p>
+      </div>
+
+      <h3>3-B · 在开发者工具里填 AppID 并上传</h3>
+      <ol>
+        <li>打开<b>微信开发者工具</b>（没装的话：搜「微信开发者工具」下载 <b>稳定版 Stable Build · Windows 64</b>）。</li>
+        <li>点「<b>导入项目</b>」，目录选（<b>注意是 dist/build 下这层</b>，里面有 <code>project.config.json</code> 的那层）：
+          <div class="copyrow"><code id="c4">C:\Users\herma\WorkBuddy\ABox小程序\abox-onebox\apps\miniprogram\dist\build\mp-weixin</code><button class="btn" onclick="cp('c4',this)">复制</button></div></li>
+        <li><b>AppID 那一栏</b>：现在应该<b>已经自动显示</b> <code>wx389db239bcec75ca</code> 了（我已写进源码）。
+            如果仍是「测试号」，点开它选「<b>填写 AppID</b>」手工粘一次即可。</li>
+        <li>点「导入」。进来后右上角 <b>上传</b> → 填版本号和备注 → 确定。</li>
+      </ol>
+      <div class="box ok">
+        <span class="bt">AppID 已填好并重建（2026-10-01 18:47）—— 你不用手动改了</span>
+        <p>已写入源码 <code>apps/miniprogram/src/manifest.json</code> 的 <code>mp-weixin.appid</code>，并重新构建。核验结果：<br>
+           · 产物 <code>project.config.json</code> → <code>"appid": "wx389db239bcec75ca"</code><br>
+           · <code>touristappid</code> 残留 <b>0 次</b><br>
+           ⇒ 你在开发者工具里导入时，AppID 会<b>自动带出</b>，直接点导入即可，不用手动填。</p>
+        <p style="margin-top:8px"><b>提醒：</b>源码里其实有<b>两个</b> <code>appid</code> —— 顶层那个是 DCloud 用的、跟微信无关，<b>保持空着</b>；
+           只有 <code>mp-weixin.appid</code> 才是微信的。别改错。</p>
+      </div>
+      <div class="why"><b>为什么要导 dist 而不是 src：</b>微信开发者工具只认编译产物（app.json / app.js / pages），
+        <code>src</code> 里是 Vue 源码它读不懂。第 2 步就是在生成这个目录。<br>
+        <b>别用「预览」代替「上传」：</b>预览生成的二维码只能用一次、且有效期短，同事没法反复进；<b>体验版是长期入口</b>。<br>
+        <b>顺带安心：</b>上传体验版<b>不需要类目审核</b>，餐饮 / 食品那套类目资质是<b>正式发布</b>时才要的，不影响这一步。</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">第 4 步</span><span class="st">设为体验版 + 加体验成员</span></div>
+    <div class="step-b">
+      <span class="where">在哪儿做：浏览器打开 mp.weixin.qq.com（微信公众平台）</span>
+      <ol>
+        <li>管理 → 版本管理 → 开发版本 / 体验版本，把刚上传那次<b>选为体验版</b>。</li>
+        <li>管理 → 成员管理 → <b>体验成员</b> → 把同事加进去。</li>
+      </ol>
+      <div class="why"><b>为什么要加体验成员：</b>未发布的小程序只对这些人可见。（企业主体未发布：30–60 人；体验二维码 7 天有效。）<br>
+        <b>为什么必须走这条路：</b>小程序<b>没发布</b>，所以不能用正式版；而服务器是<b>国内未备案 IP</b>，
+        不在小程序的 request 合法域名里 —— 靠下一步的「调试」绕开。</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><span class="sn">第 5 步</span><span class="st">同事每次进都要开一次调试</span></div>
+    <div class="step-b">
+      <span class="where">在哪儿做：同事手机上（你转告即可）</span>
+      <ol>
+        <li>微信里打开体验版小程序。</li>
+        <li>右上角 <b>…</b> → <b>打开调试</b>。</li>
+        <li>弹窗提示会重启小程序，点确定。</li>
+      </ol>
+      <div class="why"><b>为什么非要这一步：</b>调试模式会<b>跳过 request 合法域名校验</b>，
+        这是没备案的情况下唯一能让 <code>http://154.8.164.180:8080</code> 通的办法；顺带 HTTP（非 HTTPS）也能过。<br>
+        <b>代价：</b>关掉小程序再进就要重开一次。这是用 IP 直连换来的必要成本，等备案 + HTTPS 之后就不用了。</div>
+    </div>
+  </div>
+</section>
+
+<section id="s3">
+  <h2>三、做完怎么确认成了</h2>
+  <ul class="chk">
+    <li>你手机开体验版 + 打开调试 → 能进首页、能看到菜品列表（说明接口通了）</li>
+    <li>能下单 → 后台 <code>http://154.8.164.180:8080</code> 订单列表里能看到这条（说明写入通了）</li>
+    <li>让一个<b>不在公司 WiFi</b> 的同事走一遍第 5 步 → 同样能下单（说明「不在同一 WiFi」这个目标达成）</li>
+  </ul>
+  <div class="box warn">
+    <span class="bt">mock 模式下的四个行为，转告同事前先看懂（不然会以为出 bug 了）</span>
+    <ol>
+      <li><b>各人是各人的号</b>：服务端按登录 code 算 openid，所以同事 A 和 B 是不同账号 —— 这是好事，订单不混。</li>
+      <li><b>别点「退出登录」</b>：微信的登录 code 是一次性的，重新登录会拿到新 code ⇒ <b>换成一个新账号</b>，之前的订单就看不到了。
+          只要不退出、不卸载小程序，token 存在本地，身份就一直是同一个（已核对：<code>ensureLogin</code> 有「已登录就不重登」的判断）。</li>
+      <li><b>7 天后会换号</b>：token 有效期是 7 天，过期自动重登 ⇒ 换号。联调期注意这个节奏，别把 7 天前的数据当丢了。</li>
+      <li><b>支付会自动成功</b>：不用真付钱也能走完下单全流程，方便测；<b>但这意味着现在测出来的支付环节不代表真实情况</b>，接了商户号还要重测。</li>
+    </ol>
+  </div>
+  <div class="box">
+    <span class="bt">同事打不开时，按这个顺序排查</span>
+    <ol>
+      <li>他是体验成员吗？（不是 → 加成员）</li>
+      <li>他开调试了吗？（没开 → 一定连不上，因为域名没备案）</li>
+      <li>你自己现在打得开 <code>http://154.8.164.180:8080</code> 吗？（打得开说明服务没挂，问题在小程序侧）</li>
+      <li>还不行 → 让他把报错截图发我，我看服务端日志。</li>
+    </ol>
+  </div>
+  <div class="box ok">
+    <span class="bt">顺带一个今天就能用的</span>
+    <p>运营后台 <code>http://154.8.164.180:8080</code> <b>现在就能在手机浏览器里直接开</b>，不用等小程序。
+      想让同事先看后台效果，今天就可以发这个地址。（后台移动端只做了关键路径，不是全功能。）</p>
+  </div>
+</section>
+
+<section id="s4">
+  <h2>四、这一步做完之后，还欠什么</h2>
+  <table>
+    <tr><th style="width:150px">事项</th><th>说明</th><th style="width:80px">紧急度</th></tr>
+    <tr><td class="k">切回 real</td><td>已选 B：<b>上线前必须把 <code>PROVIDER_MODE</code> 改回 real</b> 并配 AppID+Secret；否则任意 code 免密登录任意身份</td><td><span class="pill red">上线前</span></td></tr>
+    <tr><td class="k">域名 + 备案</td><td>做完之后同事就不用每次开调试了</td><td><span class="pill amber">近期</span></td></tr>
+    <tr><td class="k">HTTPS</td><td>调试模式能过，正式版不行；必须配</td><td><span class="pill amber">近期</span></td></tr>
+    <tr><td class="k">微信支付商户号</td><td>选 A 的话，支付那步走不通；选 B 自动成功</td><td><span class="pill amber">近期</span></td></tr>
+    <tr><td class="k">税务非正常户</td><td>与工商异常是两条线，至今没人确认过；不影响联调，影响开票收款</td><td><span class="pill amber">卖餐前</span></td></tr>
+  </table>
+</section>
+
+<footer>
+  ABox 一盒 · 小程序端联调操作指引 v1.0 · 2026-10-01 · 北京巡礼之年科技有限公司<br>
+  文中所有路径、变量名、行为均已在本仓库源码中核对过，非推断。
+</footer>
+
+</div>
+<script>
+function cp(id,btn){
+  var t=document.getElementById(id).innerText;
+  var done=function(){var o=btn.innerText;btn.innerText='已复制';btn.classList.add('done');
+    setTimeout(function(){btn.innerText=o;btn.classList.remove('done');},1400);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(done,function(){fb();});
+  } else { fb(); }
+  function fb(){var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';
+    ta.style.left='-9999px';document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');done();}catch(e){btn.innerText='复制失败';}
+    document.body.removeChild(ta);}
+}
+</script>
+</body>
+</html>

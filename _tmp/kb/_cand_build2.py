@@ -1,0 +1,977 @@
+# -*- coding: utf-8 -*-
+"""构建「ABox 内部助手 v4.0」单文件页 —— 一期检索 + 二期问答 + 三期问数 + 四期体检。
+
+产物（同一份内容，写两处）：
+  C:\\...\\_app\\abox-kb\\index.html          应用入口（发布用）
+  C:\\...\\_ABox一盒知识问答v2.0.html          交付物（本地双击可看检索部分）
+
+与一期 build.py 的关系：
+  · 检索层（tokenize / score / snippet / 闸门 / 权威度）**逐字复用**，没改一行
+    —— 二期是「在检索之上加一层问答」，不是重写
+  · 新增：证据挑选 → 拼 prompt → 云服务流式调用 → 引用号回链
+  · endpoint / publishableKey 来自云服务开通时的 publicConfig，构建期注入
+    （单文件 HTML 无构建步骤、无服务端，这是唯一来源；同 appId 复用域名，不会失效）
+
+设计约束（都不是偏好，是链路上的硬要求）：
+  · stream:true 必传 —— 云服务只支持流式，传 false 会被 SDK 直接拒（request_stream_required）
+  · messages[0] 必须是 system —— SDK 不替你插默认的
+  · 引用用 [n] 标注并在 UI 里可点回原文 —— 否则「挂出处」是句空话
+"""
+import io
+import os
+import gzip
+import json
+import base64
+import sys
+import time
+import shutil
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.join(HERE, 'out')
+ROOT = r'C:\Users\herma\WorkBuddy\ABox小程序'
+APP_DIR = os.path.join(ROOT, '_app', 'abox-kb')
+TARGETS = [
+    os.path.join(APP_DIR, 'index.html'),
+    os.path.join(ROOT, '_ABox一盒知识助手v4.0.html'),
+]
+
+# 云服务 publicConfig（开通结果原样注入）
+CLOUD_CFG = {
+    'endpoint': 'https://abox-kb.app.workbuddy.host',
+    'publishableKey': 'wbpk_dFBh87mqVSTg0akdyqVy4d_VDzI7pTxkk40jl95zzDUclowbv16lVNs',
+}
+
+# 调参常量（K_EVIDENCE / CLIP / HIST_MAX）声明在 JS 侧 —— 见 JS 里同名 const。
+# 生成器只是把 JS 原文整体搬进产物，不做字符串插值；在 Python 这边再写一遍
+# 就会出现「两处真源」，改一处忘另一处 ⇒ 运行时 ReferenceError（本页第一版就踩了）。
+
+CSS = r"""
+:root{
+  --bg:#F6F0E5; --card:#FFFDF8; --brand:#6E5435; --brand-soft:#EDE3D2;
+  --ink:#2E2A24; --ink2:#796C57; --line:#E4D9C6; --mark:#F3E2B8; --warn:#A33;
+  --serif:"KaiTi","楷体",STKaiti,"Songti SC",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.7 var(--sans)}
+header{position:sticky;top:0;z-index:9;background:var(--bg);border-bottom:1px solid var(--line);
+  padding:16px 0 11px}
+.wrap{max-width:920px;margin:0 auto;padding:0 22px}
+.brandline{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.brand{font:400 25px/1.3 var(--serif);color:var(--brand);letter-spacing:.06em}
+.meta{font-size:12.5px;color:var(--ink2);margin-top:3px}
+.tabs{display:flex;gap:2px;margin-top:12px}
+.tab{font:14px var(--sans);padding:7px 16px;border:1px solid var(--line);border-bottom:none;
+  background:transparent;color:var(--ink2);cursor:pointer;border-radius:8px 8px 0 0}
+.tab.on{background:var(--card);color:var(--brand);font-weight:600}
+.bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px}
+#q{flex:1;min-width:240px;padding:10px 14px;font:15px var(--sans);color:var(--ink);
+  background:var(--card);border:1px solid var(--line);border-radius:9px;outline:none}
+#q:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(110,84,53,.10)}
+.bar label{font-size:13px;color:var(--ink2);display:flex;align-items:center;gap:5px;
+  cursor:pointer;white-space:nowrap}
+main{padding:20px 0 90px}
+.hint{font-size:13.5px;color:var(--ink2);line-height:1.9}
+.hint b{color:var(--brand);font-weight:400}
+.tip{margin:14px 0 22px;padding:11px 14px;background:var(--brand-soft);
+  border-left:2px solid var(--brand);border-radius:0 7px 7px 0;font-size:13px;color:var(--ink2)}
+.tip b{color:var(--brand);font-weight:600}
+/* ---- 检索（一期样式，原样保留） ---- */
+.r{background:var(--card);border:1px solid var(--line);border-radius:11px;
+  padding:13px 16px 14px;margin-bottom:11px}
+.r .hd{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap}
+.r .doc{font-size:13.5px;color:var(--brand);font-weight:400}
+.tag{font-size:11.5px;padding:1px 7px;border-radius:20px;background:var(--brand-soft);
+  color:var(--brand);white-space:nowrap}
+.tag.b{background:#EDEAE0;color:#6C6858}
+.r .sco{margin-left:auto;font:11.5px var(--sans);color:var(--ink2)}
+.r .sec{font:400 15.5px/1.5 var(--serif);margin:5px 0 7px}
+.r .snip{font-size:14px;color:var(--ink)}
+.r .snip mark{background:var(--mark);color:var(--ink);padding:0 1px;border-radius:2px}
+.r .why{margin-top:9px;font-size:12px;color:var(--ink2);display:flex;gap:8px;flex-wrap:wrap}
+.r .why i{font-style:normal;background:#F1EDE3;border-radius:5px;padding:1px 7px}
+.r .full{display:none;margin-top:11px;padding-top:11px;border-top:1px dashed var(--line);
+  font-size:13px;color:var(--ink2);white-space:pre-wrap;word-break:break-word;
+  max-height:420px;overflow:auto}
+.r.open .full{display:block}
+.r .more{margin-top:8px;font-size:12.5px;color:var(--brand);cursor:pointer;user-select:none}
+.toc{columns:2;column-gap:26px;font-size:13.5px}
+.toc a{display:block;color:var(--ink);text-decoration:none;padding:3px 0;
+  break-inside:avoid;border-bottom:1px solid #F0EAE0}
+.toc a:hover{color:var(--brand)}
+.toc .g{color:var(--ink2);font-size:11.5px;margin-left:6px}
+.sechead{font:400 17px/1.4 var(--serif);color:var(--brand);margin:22px 0 10px}
+.empty{color:var(--ink2);font-size:14px;padding:26px 0}
+/* ---- 问答（二期新增） ---- */
+#chat{padding-bottom:8px}
+.msg{display:flex;gap:11px;margin-bottom:16px;align-items:flex-start}
+.msg .av{flex:0 0 30px;height:30px;border-radius:50%;background:var(--brand-soft);color:var(--brand);
+  display:flex;align-items:center;justify-content:center;font:600 13px var(--sans)}
+.msg.user .av{background:#E7E2D6;color:#6C6858}
+.msg .bd{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);
+  border-radius:11px;padding:11px 15px 12px}
+.msg.user .bd{background:var(--brand-soft);border-color:#E0D5C0}
+.msg.user .bd{font-size:14.5px;white-space:pre-wrap;word-break:break-word}
+.ans{font-size:14.5px;white-space:pre-wrap;word-break:break-word}
+.ans code{font:13px ui-monospace,Menlo,Consolas,monospace;background:#F1EDE3;padding:1px 4px;border-radius:4px}
+.ans strong{color:var(--brand)}
+.ans p{margin:0 0 9px}
+.ans p:last-child{margin-bottom:0}
+.ans ul,.ans ol{margin:6px 0 10px;padding-left:22px}
+.ans li{margin:3px 0}
+.ans h4{font:400 15.5px/1.5 var(--serif);color:var(--brand);margin:13px 0 6px}
+.ans table{border-collapse:collapse;margin:9px 0 11px;font-size:13.5px;width:100%}
+.ans th,.ans td{border:1px solid var(--line);padding:5px 10px;text-align:left;vertical-align:top}
+.ans th{background:var(--brand-soft);color:var(--brand);font-weight:600}
+.ans tr:nth-child(even) td{background:#FBF8F1}
+.cite{display:inline-block;font:600 10.5px var(--sans);line-height:1.4;padding:0 4px;margin:0 1px;
+  background:var(--brand);color:#fff;border-radius:9px;cursor:pointer;vertical-align:2px;
+  text-decoration:none}
+.cite:hover{background:#5A4530}
+.cite.hot{outline:2px solid var(--mark);outline-offset:1px}
+.cursor:after{content:"▍";color:var(--brand);animation:bl 1s steps(1) infinite}
+@keyframes bl{50%{opacity:0}}
+.sys{font-size:13.5px;color:var(--warn);background:#FBF2EA;border:1px solid #EEDCCB;
+  border-radius:9px;padding:9px 13px;margin-bottom:16px;white-space:pre-wrap}
+.sys.info{color:var(--ink2);background:#F4F1E9;border-color:var(--line)}
+.sys .bt{display:inline-block;margin-top:6px;margin-right:8px;font-size:12.5px;color:var(--brand);
+  border:1px solid var(--line);background:var(--card);border-radius:6px;padding:2px 10px;cursor:pointer}
+/* 证据区 */
+.evi{margin-top:11px;border-top:1px dashed var(--line);padding-top:9px}
+.evi-h{font-size:12.5px;color:var(--ink2);cursor:pointer;user-select:none;display:flex;
+  gap:9px;align-items:center;flex-wrap:wrap}
+.evi-h b{color:var(--brand);font-weight:600}
+.evi-h .x{margin-left:auto;color:var(--brand)}
+.evi-b{display:none;margin-top:9px}
+.evi.open .evi-b{display:block}
+.e{background:#FCFAF4;border:1px solid var(--line);border-radius:9px;padding:9px 12px;margin-bottom:8px}
+.e.hot{border-color:var(--brand);box-shadow:0 0 0 3px rgba(110,84,53,.13)}
+.e-h{font-size:12.5px;color:var(--ink2);display:flex;gap:7px;align-items:baseline;flex-wrap:wrap;
+  cursor:pointer;user-select:none}
+.e-h b{color:var(--brand);font:600 12px var(--sans)}
+.e-h .nm{color:var(--ink);font-weight:600}
+.e-h i{margin-left:auto;font-style:normal;font-size:11.5px}
+.e-t{display:none;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);
+  font-size:13px;color:var(--ink2);white-space:pre-wrap;word-break:break-word;
+  max-height:320px;overflow:auto}
+.e.open .e-t{display:block}
+/* 输入区 */
+.composer{position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--line);
+  padding:11px 0 13px;margin-top:8px}
+.crow{display:flex;gap:10px;align-items:flex-end;max-width:920px;margin:0 auto;padding:0 22px}
+#qi{flex:1;min-height:46px;max-height:150px;resize:none;padding:12px 14px;font:15px var(--sans);
+  line-height:1.5;color:var(--ink);background:var(--card);border:1px solid var(--line);
+  border-radius:10px;outline:none}
+#qi:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(110,84,53,.10)}
+.btn{font:15px var(--sans);padding:12px 22px;border-radius:10px;border:1px solid var(--brand);
+  background:var(--brand);color:#fff;cursor:pointer;white-space:nowrap}
+.btn:hover{background:#5A4530}
+.btn[disabled]{opacity:.45;cursor:default}
+.btn.gh{background:var(--card);color:var(--brand)}
+.sel{font:13px var(--sans);color:var(--ink);background:var(--card);border:1px solid var(--line);
+  border-radius:8px;padding:6px 9px;outline:none}
+.sug{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.sug span{font-size:13px;color:var(--brand);background:var(--card);border:1px solid var(--line);
+  border-radius:20px;padding:5px 13px;cursor:pointer}
+.sug span:hover{border-color:var(--brand)}
+@media (max-width:640px){.toc{columns:1}.brand{font-size:21px}.crow{padding:0 14px}.wrap{padding:0 14px}}
+"""
+
+JS = r"""
+/* ══════════════ 通用 ══════════════ */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const tidy = (s, keep) => {
+  let t = String(s)
+    .replace(/^\s{0,3}#{1,6}[ \t]+/gm, '')
+    .replace(/^\s*[-*=_]{3,}\s*$/gm, '')
+    .replace(/^\s*\|?[\s:|-]{5,}\|?\s*$/gm, '')
+    .replace(/\*\*|`|\*/g, '')
+    .replace(/^\s*\|\s*/gm, '')
+    .replace(/\s*\|\s*$/gm, '')
+    .replace(/[ \t]+/g, ' ');
+  return keep ? t.replace(/\n{3,}/g, '\n\n').trim()
+              : t.replace(/\s*\n\s*/g, ' ').trim();
+};
+
+/* 调参常量 —— 单一真源在这里。Python 生成器是把 JS 原文整体搬过去（不做字符串插值），
+   所以这些值只能声明在 JS 侧：在 Python 那边再定义一份就会出现两个真源。 */
+const K_EVIDENCE = 8;    // 每次问答取几段作证据
+const CLIP = 700;        // 每段截多长（字符）
+const HIST_MAX = 4;      // 带几轮历史（user + assistant 计 2 条）
+
+let DOCS = [], SEGS = [], ready = false;
+const G = {A:true, B:true};
+
+/* ══════════════ 语料 ══════════════ */
+async function boot(){
+  const b64 = document.getElementById('corpus').textContent.replace(/\s+/g, '');
+  const bin = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const txt = await new Response(
+    new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'))
+  ).text();
+  const data = JSON.parse(txt);
+  DOCS = data.docs;
+  for (const d of DOCS){
+    d._n = d.name.toLowerCase();
+    d.auth = authority(d.name);
+    for (const s of d.sections){
+      SEGS.push({d, t:s.text, _t:s.text.toLowerCase(),
+                 ti:s.title||d.name, _ti:(s.title||d.name).toLowerCase(),
+                 line:s.line, len:s.text.length});
+    }
+  }
+  ready = true;
+  document.getElementById('meta').textContent =
+    DOCS.length + ' 份文档 · ' + SEGS.length.toLocaleString() + ' 段 · 检索全离线 · 问答经云服务';
+  showToc();
+  initCloud();
+}
+
+const AUTH_HI = /接口规范|ER\s?设计|数据库ER|状态机|结算口径|PRD|业务运作理解|表结构评审|基线冻结|数据结构/;
+const AUTH_LO = /页面稿|实录|实跑结果|全量页面|体检报告|看板|提案/;
+function authority(name){
+  if (AUTH_HI.test(name)) return 1.28;
+  if (AUTH_LO.test(name)) return 0.90;
+  return 1.0;
+}
+
+/* ══════════════ 检索层（与一期一致） ══════════════ */
+function tokenize(q){
+  const out = [], seen = new Set();
+  const push = (t, w) => { if(!seen.has(t)){ seen.add(t); out.push({t, w}); } };
+  for (const w of (q.toLowerCase().match(/[a-z0-9_.]{2,}/g) || [])) push(w, w.length >= 4 ? 3 : 2);
+  for (const run of (q.match(/[\u4e00-\u9fa5]+/g) || [])){
+    if (run.length === 1){ push(run, 1); continue; }
+    for (let n = 3; n >= 2; n--)
+      for (let i = 0; i + n <= run.length; i++) push(run.slice(i, i + n), n === 2 ? 2 : 3);
+  }
+  return out;
+}
+function countIn(hay, needle, cap){
+  let i = 0, c = 0;
+  while ((i = hay.indexOf(needle, i)) >= 0){ c++; i += needle.length; if (c >= cap) break; }
+  return c;
+}
+function score(seg, toks, full){
+  let sc = 0, hitN = 0; const why = [];
+  for (const tk of toks){
+    const c = countIn(seg._t, tk.t, 14);
+    if (c > 0){ hitN++; const v = tk.w * (1 + Math.log(c)); sc += v; why.push([tk.t, v]); }
+    if (seg._ti.includes(tk.t)) sc += tk.w * 4;
+    if (seg.d._n.includes(tk.t)) sc += tk.w * 2;
+  }
+  if (sc === 0) return null;
+  if (full.length >= 2 && seg._t.includes(full)){ sc += 26; why.push([full + '（整串）', 26]); }
+  sc *= seg.d.auth;
+  if (seg.d.grade === 'A') sc *= 1.12;
+  const nrm = 1 + Math.log10(Math.max(1, seg.len / 400));
+  const final = sc / nrm;
+  const weak = final < 4.0 || (toks.length >= 7 && hitN <= 1);
+  return {score: final, why: why.sort((a, b) => b[1] - a[1]), cover: hitN / toks.length, weak: weak};
+}
+function snippet(seg, toks){
+  let t = tidy(seg.t);
+  const ti = tidy(seg.ti);
+  if (ti.length > 6 && t.startsWith(ti)) t = t.slice(ti.length).trim();
+  if (t.length <= 300) return t;
+  const full = toks.map(x => x.t);
+  let best = 0, bestS = -1;
+  for (let i = 0; i < t.length - 60; i += 30){
+    const w = t.slice(i, i + 300);
+    let s = 0;
+    for (const tk of full) if (w.includes(tk)) s += tk.length;
+    if (s > bestS){ bestS = s; best = i; }
+  }
+  return (best > 0 ? '…' : '') + t.slice(best, best + 300) +
+         (best + 300 < t.length ? '…' : '');
+}
+function highlight(s, toks){
+  const pat = toks.map(x => x.t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+                  .sort((a, b) => b.length - a.length);
+  if (!pat.length) return esc(s);
+  const re = new RegExp('(' + pat.join('|') + ')', 'g');
+  return esc(s).replace(re, '<mark>$1</mark>');
+}
+
+/* 检索全过程：返回 {hits, weak, ms, toks}，不碰 DOM（问答与检索两种用法共用） */
+function runSearch(q, need){
+  const t0 = performance.now();
+  const toks = tokenize(q);
+  const full = q.toLowerCase();
+  const hits = []; let weak = 0;
+  for (const seg of SEGS){
+    if (!G[seg.d.grade]) continue;
+    const r = score(seg, toks, full);
+    if (!r) continue;
+    if (r.weak){ weak++; continue; }
+    hits.push({seg: seg, score: r.score, why: r.why});
+    if (need && hits.length >= need * 6) break;      // 问答只要前 48 条就够排了
+  }
+  hits.sort((a, b) => b.score - a.score);
+  return {hits, weak, ms: Math.round(performance.now() - t0), toks};
+}
+
+/* 疑问词剥离 —— 只作「原查询 0 命中」时的兜底，不改主检索口径 */
+const STOP = /(怎么样|怎么|如何|是什么|是啥|有哪些|哪些|哪个|多少|几个|为什么|是否|可以|能不能|吗|呢|的|了|请|帮我|告诉|我)/g;
+function stripQuery(q){ return q.replace(STOP, ' ').replace(/\s+/g, ' ').trim(); }
+
+function retrieve(q){
+  let r = runSearch(q, K_EVIDENCE);
+  if (!r.hits.length){
+    const s = stripQuery(q);
+    if (s && s !== q){
+      const r2 = runSearch(s, K_EVIDENCE);
+      if (r2.hits.length) return r2;
+    }
+  }
+  return r;
+}
+
+/* ══════════════ 证据挑选与截窗 ══════════════ */
+function pickWindow(seg, toks, cap){
+  let t = tidy(seg.t, true);
+  const ti = tidy(seg.ti);
+  if (ti.length > 6 && t.startsWith(ti)) t = t.slice(ti.length).trim();
+  if (t.length <= cap) return t;
+  const keys = toks.map(x => x.t);
+  let best = 0, bestS = -1;
+  for (let i = 0; i < t.length - 80; i += 40){
+    const w = t.slice(i, i + cap);
+    let s = 0;
+    for (const k of keys) if (w.includes(k)) s += k.length;
+    if (s > bestS){ bestS = s; best = i; }
+  }
+  return (best > 0 ? '…' : '') + t.slice(best, best + cap) +
+         (best + cap < t.length ? '…' : '');
+}
+
+function pickEvidence(hits, toks, k){
+  const out = [], perDoc = new Map();
+  for (const h of hits){
+    const n = perDoc.get(h.seg.d.name) || 0;
+    if (n >= 3) continue;                       // 同一份文档最多 3 段，防单文档霸屏
+    perDoc.set(h.seg.d.name, n + 1);
+    out.push(h);
+    if (out.length >= k) break;
+  }
+  return out;
+}
+
+/* ══════════════ 云服务 ══════════════ */
+let cloud = null, MODELS = [], MODEL = null, busy = false, ctl = null;
+let CLOUD_STATE = 'init', CLOUD_WHY = '';
+const HIST = [];
+const RATE = {t: 0, n: 0};
+let CONV = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+function errBrief(e){
+  if (!e) return '未知错误';
+  const c = (e.error && e.error.code) || e.code || '';
+  const m = (e.error && e.error.message) || e.message || String(e);
+  return (c ? '[' + c + '] ' : '') + m + (e.requestId ? '（请求号 ' + e.requestId + '）' : '');
+}
+
+async function initCloud(){
+  const cfg = window.__CLOUD_CFG;
+  const box = document.getElementById('cstate');
+  if (!cfg || !window.WorkBuddyCloud){
+    CLOUD_STATE = 'nokit';
+    box.textContent = '问答需联网并从发布链接打开';
+    return;
+  }
+  // 来源自检 —— 云服务按 exact Origin 放行（models.list 不校验，chat 校验）。
+  // 不做这一步的后果实测过：本地打开时列表照样刷出来、看着一切正常，一点提问才被
+  // CORS 拦掉，而错误码落进 gateway_ 分支 ⇒ 提示「稍后重试」，用户会一直点、永远不通。
+  if (cfg.endpoint){
+    let ep = '';
+    try { ep = new URL(cfg.endpoint).origin; } catch (e){ ep = ''; }
+    if (ep && ep !== location.origin){
+      CLOUD_STATE = 'origin';
+      CLOUD_WHY = location.origin;
+      box.textContent = '当前不是发布地址 · 问答不可用';
+      addSys(stateHint(), []);
+      return;
+    }
+  }
+  try {
+    cloud = WorkBuddyCloud.createWorkBuddyCloud({
+      endpoint: cfg.endpoint,
+      publishableKey: cfg.publishableKey,
+    });
+  } catch (e){ CLOUD_STATE = 'err'; CLOUD_WHY = errBrief(e); box.textContent = '云服务初始化失败'; return; }
+  try {
+    const list = await cloud.llm.models.list();
+    MODELS = (list || []).filter(m => m && m.disabled !== true);
+    if (!MODELS.length){
+      CLOUD_STATE = 'nomodel';
+      box.textContent = '云服务未返回可用模型';
+      return;
+    }
+    MODEL = MODELS[0];
+    CLOUD_STATE = 'ok';
+    box.textContent = '模型 ' + (MODEL.name || MODEL.id);
+    const sel = document.getElementById('model');
+    sel.innerHTML = MODELS.map(m =>
+      '<option value="' + esc(m.id) + '">' + esc(m.name || m.id) + '</option>').join('');
+    sel.hidden = false;
+    document.getElementById('send').disabled = false;
+    document.getElementById('qi').disabled = false;
+    document.getElementById('qi').placeholder = '问文档里的任何口径 —— 比如「结算周期是多久」';
+  } catch (e){
+    CLOUD_STATE = 'err';
+    CLOUD_WHY = errBrief(e);
+    box.textContent = '云服务不可用';
+  }
+}
+
+function stateHint(){
+  if (CLOUD_STATE === 'nokit')
+    return '问答要联网，并且必须从应用的发布地址打开（云服务校验来源域名）。\n'
+         + '当前这个文件是本地副本 —— 检索功能完全可用，问答请用发布链接。';
+  if (CLOUD_STATE === 'origin')
+    return '这个页面是从 ' + CLOUD_WHY + ' 打开的，不是应用的发布地址 —— 云服务只放行发布域名，'
+         + '所以问答在这里连不上（重试没有用，不是网络抖动）。\n'
+         + '检索功能完全不受影响，可以照常用。要问答，请从发布链接打开。';
+  if (CLOUD_STATE === 'nomodel')
+    return '云服务没有返回可用模型，问答暂不可用。检索功能不受影响。';
+  if (CLOUD_STATE === 'err')
+    return '云服务连接失败：' + CLOUD_WHY + '\n检索功能不受影响。';
+  if (CLOUD_STATE === 'init')
+    return '正在连接云服务，请稍候再试。';
+  return '';
+}
+
+function rateOk(){
+  const now = Date.now();
+  if (now - RATE.t > 60000){ RATE.t = now; RATE.n = 0; }
+  RATE.n++;
+  return RATE.n <= 12;
+}
+
+/* ══════════════ 问答 UI ══════════════ */
+let SYS_PROMPT = [
+'你是「ABox 一盒」项目内部的文档助手。你唯一的依据是本次提问附上的【资料】，',
+'不得使用你自己的既有知识、行业常识或推测来补充。',
+'',
+'铁律（任一条违反，这次回答即失效）：',
+'1. 挂出处：每个结论的句末必须标出资料编号，如 [1] 或 [2][3]。没有资料支撑的句子不要写。',
+'2. 没写就说没写：资料里找不到答案，直接回答「文档里没写」，并说明你实际查到了什么。禁止用常识或行业惯例替代。',
+'   ⚠️ 例外：问的是业务数量/金额/比例/排名/合计时，「资料里没有」不是不回答的理由 —— 必须先按文末',
+'   【业务数据】的取数协议去取数（资料是文档，业务数在数据快照里）；取数也失败才说查不到。',
+'3. 不许自己算数：数字要么原样引自资料，要么来自【业务数据】的取数结果。资料与数据都给不全时，明确说「不足，无法计算」，不要给估算值、也不要顺手估算。',
+'4. 口径冲突要指出：若资料之间说法不一致，指出是哪两条冲突、冲突点是什么，不要把两个口径揉成一句。',
+'',
+'回答风格：中文；先给结论再给细节；能列表就不用长段落；不要寒暄、不要复述问题；',
+'资料里的标注符号（✅⚠️等）与括注按原意表述。',
+].join('\n');
+
+function scrollChat(){ window.scrollTo({top: document.body.scrollHeight}); }
+
+function addMsg(role){
+  const d = document.createElement('div');
+  d.className = 'msg ' + role;
+  d.innerHTML = '<div class="av">' + (role === 'user' ? '你' : '盒') + '</div><div class="bd"></div>';
+  document.getElementById('chat').appendChild(d);
+  scrollChat();
+  return d.querySelector('.bd');
+}
+
+function addSys(text, btns){
+  const d = document.createElement('div');
+  d.className = 'sys' + (btns && btns.length ? '' : ' info');
+  d.textContent = text;
+  for (const b of (btns || [])){
+    const el = document.createElement('span');
+    el.className = 'bt'; el.textContent = b.label; el.onclick = b.fn;
+    d.appendChild(el);
+  }
+  document.getElementById('chat').appendChild(d);
+  scrollChat();
+  return d;
+}
+
+/* 回答文本 → HTML。
+   ⚠️ 必须自己渲染 Markdown：system prompt 里要求「能列表就不用长段落」，模型于是大量
+   输出 **粗体** 与表格；只做 esc 的话，用户看到的是满屏字面的 ** 和 |（实测第一版如此）。
+   不引外部库 —— 页面要单文件离线自包含。顺序铁律：**先整体 esc，再做结构替换**，
+   否则模型输出会被当 HTML 执行。 */
+function chipRefs(s, n){
+  return s.replace(/\[(\d{1,2})\]/g, (m, d) => {
+    const i = parseInt(d, 10);
+    if (!isFinite(i) || i < 1 || i > n) return m;
+    return '<a class="cite" data-n="' + i + '">' + i + '</a>';
+  });
+}
+function inlineMd(s, n){
+  return chipRefs(
+    s.replace(/`([^`]+)`/g, '<code>$1</code>')
+     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>'), n);
+}
+const isTblSep = s => s.includes('-') && s.includes('|') && /^[\s|:-]+$/.test(s);
+function tblCells(s){
+  let t = s.trim();
+  if (t.startsWith('|')) t = t.slice(1);
+  if (t.endsWith('|')) t = t.slice(0, -1);
+  return t.split('|').map(x => x.trim());
+}
+const UL = /^\s*[-*•]\s+/, OL = /^\s*\d+[.)]\s+/, HD = /^\s{0,3}#{1,4}\s+/;
+function md2html(text, n){
+  const L = esc(text).replace(/\r/g, '').split('\n');
+  const out = []; let i = 0;
+  while (i < L.length){
+    const ln = L[i];
+    if (!ln.trim()){ i++; continue; }
+    if (ln.includes('|') && i + 1 < L.length && isTblSep(L[i + 1]) && L[i + 1].includes('|')){
+      const head = tblCells(ln);
+      i += 2;
+      const rows = [];
+      while (i < L.length && L[i].includes('|') && L[i].trim()){ rows.push(tblCells(L[i])); i++; }
+      out.push('<table><thead><tr>' + head.map(c => '<th>' + inlineMd(c, n) + '</th>').join('')
+        + '</tr></thead><tbody>' + rows.map(r =>
+          '<tr>' + head.map((_, k) => '<td>' + inlineMd(r[k] || '', n) + '</td>').join('') + '</tr>'
+        ).join('') + '</tbody></table>');
+      continue;
+    }
+    let m = ln.match(HD);
+    if (m){ out.push('<h4>' + inlineMd(ln.replace(HD, ''), n) + '</h4>'); i++; continue; }
+    if (UL.test(ln) || OL.test(ln)){
+      const re = UL.test(ln) ? UL : OL;
+      const tag = re === UL ? 'ul' : 'ol';
+      const items = [];
+      while (i < L.length && re.test(L[i])){ items.push(inlineMd(L[i].replace(re, ''), n)); i++; }
+      out.push('<' + tag + '>' + items.map(x => '<li>' + x + '</li>').join('') + '</' + tag + '>');
+      continue;
+    }
+    const para = [];
+    while (i < L.length && L[i].trim() && !isTblSep(L[i]) && !UL.test(L[i]) && !OL.test(L[i])
+           && !HD.test(L[i])
+           && !(L[i].includes('|') && i + 1 < L.length && isTblSep(L[i + 1]) && L[i + 1].includes('|'))){
+      para.push(inlineMd(L[i], n)); i++;
+    }
+    if (para.length) out.push('<p>' + para.join('<br>') + '</p>');
+  }
+  return out.join('');
+}
+
+function evidenceHtml(ev, ms){
+  const rows = ev.map((h, i) => {
+    return '<div class="e" data-n="' + (i + 1) + '">'
+      + '<div class="e-h"><b>[' + (i + 1) + ']</b>'
+      + '<span class="nm">' + esc(h.seg.d.name) + '</span>'
+      + '<span>· ' + esc(tidy(h.seg.ti)) + '（第 ' + h.seg.line + ' 行）</span>'
+      + '<i>得分 ' + h.score.toFixed(1) + '</i></div>'
+      + '<div class="e-t">' + esc(tidy(h.seg.t, true)) + '</div></div>';
+  }).join('');
+  return '<div class="evi">'
+    + '<div class="evi-h"><b>依据 ' + ev.length + ' 条</b>'
+    + '<span>（检索 ' + ms + ' 毫秒 · 点击标题看原文）</span>'
+    + '<span class="x">展开 ▾</span></div>'
+    + '<div class="evi-b">' + rows + '</div></div>';
+}
+
+function wireEvidence(root){
+  const box = root.querySelector('.evi');
+  if (!box) return;
+  box.querySelector('.evi-h').onclick = () => {
+    box.classList.toggle('open');
+    box.querySelector('.x').textContent = box.classList.contains('open') ? '收起 ▴' : '展开 ▾';
+  };
+  for (const e of box.querySelectorAll('.e'))
+    e.querySelector('.e-h').onclick = () => e.classList.toggle('open');
+  for (const a of root.querySelectorAll('.cite'))
+    a.onclick = () => {
+      box.classList.add('open');
+      box.querySelector('.x').textContent = '收起 ▴';
+      const t = box.querySelector('.e[data-n="' + a.dataset.n + '"]');
+      if (!t) return;
+      t.classList.add('open', 'hot');
+      t.scrollIntoView({block: 'center', behavior: 'smooth'});
+      setTimeout(() => t.classList.remove('hot'), 1600);
+    };
+}
+
+function noDocReply(q, r){
+  return '文档里没写。\n\n'
+    + '（按关键词与连续片段检索全文 ' + SEGS.length.toLocaleString() + ' 段，没有任何一段与这个问题相关'
+    + (r && r.weak ? '；另有 ' + r.weak.toLocaleString() + ' 段只蹭到零碎字词，匹配度太低已排除' : '')
+    + '。检索不做同义词扩展 —— 换成文档里更可能出现的说法再问，或切到「检索」页看命中了什么。）';
+}
+
+/* 三期：hideQ 藏取数块（默认恒等，由 calc.js 覆写）；Q 即问数引擎（由 calc.js 注入） */
+let hideQ = s => s;
+let Q = null;
+let AUDIT = null;
+
+async function ask(q){
+  if (busy || !q.trim()) return;
+  q = q.trim();
+  const input = document.getElementById('qi');
+  input.value = ''; input.style.height = 'auto';
+
+  addMsg('user').textContent = q;
+
+  if (CLOUD_STATE !== 'ok'){
+    addSys(stateHint(), CLOUD_STATE === 'err'
+      ? [{label: '重试', fn: () => { CLOUD_STATE = 'init'; initCloud(); }}] : null);
+    return;
+  }
+  if (!rateOk()){
+    addSys('一分钟内问得太多了（上限 12 次）—— 等一下再问，避免把额度打光。');
+    return;
+  }
+
+  const r = retrieve(q);
+  if (!r.hits.length){
+    addSys(noDocReply(q, r));
+    HIST.push({role: 'user', content: q});
+    HIST.push({role: 'assistant', content: '文档里没写。'});
+    trimHist();
+    return;
+  }
+
+  const ev = pickEvidence(r.hits, r.toks, K_EVIDENCE);
+  const ctx = ev.map((h, i) =>
+    '【' + (i + 1) + '】《' + h.seg.d.name + '》· ' + tidy(h.seg.ti) + '（第 ' + h.seg.line + ' 行）\n'
+    + pickWindow(h.seg, r.toks, CLIP)).join('\n\n');
+
+  const body = addMsg('');
+  const ansEl = document.createElement('div');
+  ansEl.className = 'ans cursor';
+  body.appendChild(ansEl);
+  const meta = document.createElement('div');
+  meta.className = 'hint';
+  meta.style.cssText = 'font-size:12.5px;margin-top:6px';
+  meta.textContent = '检索到 ' + r.hits.length + ' 段，取相关度最高的 ' + ev.length + ' 段作答…';
+  body.appendChild(meta);
+
+  busy = true; ctl = new AbortController();
+  const send = document.getElementById('send'), stop = document.getElementById('stop');
+  send.disabled = true; stop.hidden = false;
+
+  let full = '', done = false;
+  const model = MODELS.find(m => m.id === document.getElementById('model').value) || MODEL;
+
+  try {
+    const base = [
+      {role: 'system', content: SYS_PROMPT},
+      ...HIST.slice(-HIST_MAX),
+      {role: 'user', content: '【资料】\n' + ctx + '\n\n【问题】' + q},
+    ];
+    full = await streamRound(base, ansEl, meta, ev.length, model);
+    /* 三期 · 取数：模型要"算数"就必须先写 <<Q>> 取数块 —— 这里替它算（它一个加减乘除都不许做），
+       再把结果原样回灌，让它把结果写成中文。**只续一轮**，防止来回取数停不下来。 */
+    const plans = Q ? Q.extract(full) : [];
+    if (plans.length){
+      const outs = plans.map(p => Q.run(p));
+      meta.textContent = '正在取数…（' + plans.length + ' 项）';
+      const cardEl = document.createElement('div');
+      cardEl.innerHTML = Q.card(outs);
+      body.appendChild(cardEl);
+      full = await streamRound(
+        base.concat([{role: 'assistant', content: full},
+                     {role: 'user', content: Q.brief(outs)}]),
+        ansEl, meta, ev.length, model);
+    }
+    done = true;
+  } catch (e){
+    const code = (e && e.error && e.error.code) || '';
+    const raw = (e && e.error && e.error.message) || (e && e.message) || '';
+    let msg = '回答中断：' + errBrief(e);
+    if (/Failed to fetch|NetworkError|ERR_FAILED|Access-Control|CORS/i.test(raw))
+      msg = '这次调用没能发出去：浏览器按来源策略拦下了它（当前页面地址 ' + location.origin
+          + ' 不在云服务放行的域名里）。\n'
+          + '问答必须从应用的发布地址打开 —— 本地副本只能用检索。重试不会有区别，所以没给你重试按钮。';
+    else if (/^auth_/.test(code))
+      msg = '云服务拒绝了这次调用（来源校验未通过）。问答必须从应用的发布地址打开 —— '
+          + '本地双击的副本连不上。\n技术信息：' + errBrief(e);
+    else if (/^quota_/.test(code))
+      msg = '云服务额度用尽或被限流，暂时问不了。' + (e.retryAfterMs ? '建议 ' + Math.ceil(e.retryAfterMs / 1000) + ' 秒后再试。' : '');
+    else if (/^(gateway_|model_)/.test(code))
+      msg = '模型服务暂时不可用，稍后重试。';
+    addSys(full ? msg + '\n（上面的半截回答已保留）' : msg,
+           /Failed to fetch|NetworkError|ERR_FAILED|Access-Control|CORS/i.test(raw)
+             ? [] : [{label: '重试', fn: () => ask(q)}]);
+  } finally {
+    ansEl.classList.remove('cursor');
+    busy = false; send.disabled = false; stop.hidden = true;
+    if (done && full){
+      meta.textContent = '检索到 ' + r.hits.length + ' 段 · 取 ' + ev.length + ' 段作答 · 检索 ' + r.ms + ' 毫秒';
+      const wrap = document.createElement('div');
+      wrap.innerHTML = evidenceHtml(ev, r.ms);
+      body.appendChild(wrap);
+      wireEvidence(body);
+      HIST.push({role: 'user', content: q});
+      HIST.push({role: 'assistant', content: full});
+      trimHist();
+    }
+    scrollChat();
+  }
+}
+
+/* 流式一问 —— 抽成函数，是因为三期要连问两轮：先取数，再据数作答。
+   hideQ 默认恒等；calc.js 载入后会把它换成「藏掉取数块」的版本，
+   否则用户会看着一行丑 JSON 在屏幕上滚。 */
+async function streamRound(messages, ansEl, meta, ncite, model){
+  let out = '';
+  const stream = cloud.llm.chat.completions.create({
+    model: model.id,
+    messages: messages,
+    stream: true,
+    temperature: 0.3,
+    conversationId: CONV,
+    signal: ctl.signal,
+  });
+  for await (const chunk of stream){
+    const d = chunk.choices && chunk.choices[0] && chunk.choices[0].delta;
+    if (d && d.content){ out += d.content; ansEl.innerHTML = md2html(hideQ(out), ncite); scrollChat(); }
+    if (chunk.usage) meta.textContent = '本次用量 ' + chunk.usage.total_tokens + ' tokens';
+  }
+  return out;
+}
+
+function trimHist(){ while (HIST.length > HIST_MAX) HIST.shift(); }
+
+/* ══════════════ 检索 UI（一期原样） ══════════════ */
+function search(raw){
+  const out = document.getElementById('out');
+  const q = raw.trim();
+  if (!ready) return;
+  if (!q){ showToc(); return; }
+  const r = runSearch(q);
+  const toks = r.toks, hits = r.hits, weak = r.weak, ms = r.ms;
+  const top = hits.slice(0, 40);
+
+  if (!top.length){
+    out.innerHTML = '<div class="empty">没找到。'
+      + (weak ? '有 ' + weak.toLocaleString() + ' 段只蹭到查询里的零碎字词（匹配度太低，已隐藏）。' : '')
+      + '<br>检索按关键词与连续片段匹配，不做同义词扩展 —— 换成文档里更可能出现的说法再试，'
+      + '或关掉上面某个分级开关。'
+      + '<br>本次词元：' + toks.slice(0, 8).map(x => esc(x.t)).join(' · ')
+      + (toks.length > 8 ? ' …共 ' + toks.length + ' 个' : '') + '</div>';
+    return;
+  }
+  const h = ['<div class="hint">命中 <b>' + hits.length.toLocaleString() + '</b> 段，'
+    + '显示前 ' + top.length + ' 条 · 用时 ' + ms + ' 毫秒'
+    + '（词元：' + toks.map(x => esc(x.t)).join(' · ') + '）</div>'];
+  for (const it of top){
+    const d = it.seg.d;
+    const why = it.why.slice(0, 7)
+      .map(([w, v]) => '<i>' + esc(w) + ' ' + v.toFixed(1) + '</i>').join('');
+    h.push('<div class="r">'
+      + '<div class="hd"><span class="doc">' + esc(d.name) + '</span>'
+      + '<span class="tag' + (d.grade === 'B' ? ' b' : '') + '">' + d.grade + '</span>'
+      + '<span class="sco">得分 ' + it.score.toFixed(1) + '</span></div>'
+      + '<div class="sec">' + esc(tidy(it.seg.ti)) + '</div>'
+      + '<div class="snip">' + highlight(snippet(it.seg, toks), toks) + '</div>'
+      + '<div class="why">命中：' + why + '</div>'
+      + '<div class="more" onclick="this.parentNode.classList.toggle(\'open\')">展开整段 ▾</div>'
+      + '<div class="full">' + esc(tidy(it.seg.t, true)) + '</div>'
+      + '</div>');
+  }
+  out.innerHTML = h.join('');
+}
+
+function showToc(){
+  const out = document.getElementById('out');
+  const byG = {A: [], B: []};
+  for (const d of DOCS) byG[d.grade] && byG[d.grade].push(d);
+  for (const k in byG) byG[k].sort((a, b) => b.chars - a.chars);
+  const blocks = [];
+  const mk = (title, arr) => {
+    blocks.push('<div class="sechead">' + title + '（' + arr.length + '）</div>'
+      + '<div class="toc">' + arr.map(d =>
+        '<a href="#" onclick="document.getElementById(\'q\').value=' + JSON.stringify(d.name)
+        + ';search(' + JSON.stringify(d.name) + ');return false">'
+        + esc(d.name) + '<span class="g">' + d.sections.length + ' 段</span></a>').join('')
+      + '</div>');
+  };
+  blocks.unshift('<div class="tip">还没输入。下面是全部语料目录 —— 点任意一份可直接搜它。'
+    + '<br>输入框支持整句话：「佣金费率有几档」「状态机怎么流转」「留样要求」——'
+    + '检索会按关键词与连续片段命中，并把命中依据摊在每条结果下面。</div>');
+  mk('正文级 · 契约与判据', byG.A);
+  if (byG.B.length) mk('实录 · 抄屏与落点', byG.B);
+  out.innerHTML = blocks.join('');
+}
+
+/* ══════════════ 事件与启动 ══════════════ */
+const SUGGESTIONS = [
+  '佣金费率有几档', '订单状态机怎么流转', '结算周期是多久',
+  '一饭四菜包含什么', '团长等级怎么划分', '留样有什么要求',
+];
+document.getElementById('sug').innerHTML =
+  SUGGESTIONS.map(s => '<span>' + esc(s) + '</span>').join('');
+document.getElementById('sug').onclick = e => {
+  if (e.target.tagName !== 'SPAN') return;
+  document.getElementById('qi').value = e.target.textContent;
+  document.getElementById('qi').focus();
+};
+
+for (const t of document.querySelectorAll('.tab'))
+  t.onclick = () => {
+    const v = t.dataset.v;
+    for (const x of document.querySelectorAll('.tab')) x.classList.toggle('on', x === t);
+    document.getElementById('view-ask').hidden = v !== 'ask';
+    document.getElementById('view-calc').hidden = v !== 'calc';
+    document.getElementById('view-audit').hidden = v !== 'audit';
+    document.getElementById('view-search').hidden = v !== 'search';
+    document.getElementById('hask').style.display = v === 'ask' ? '' : 'none';
+    document.getElementById('hcalc').style.display = v === 'calc' ? '' : 'none';
+    document.getElementById('haudit').style.display = v === 'audit' ? '' : 'none';
+    document.getElementById('hsearch').style.display = v === 'search' ? '' : 'none';
+    document.querySelector('.composer').style.display = v === 'ask' ? '' : 'none';
+    if (v === 'calc') showCalc();
+  };
+
+document.getElementById('send').onclick = () => ask(document.getElementById('qi').value);
+document.getElementById('stop').onclick = () => { if (ctl) ctl.abort(); };
+document.getElementById('qi').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); ask(e.target.value); }
+});
+document.getElementById('qi').addEventListener('input', e => {
+  e.target.style.height = 'auto';
+  e.target.style.height = Math.min(150, e.target.scrollHeight) + 'px';
+});
+document.getElementById('q').addEventListener('input', (() => {
+  let h = 0;
+  return e => {
+    clearTimeout(h);
+    const v = e.target.value;
+    h = setTimeout(() => search(v), 190);
+  };
+})());
+for (const g of ['A', 'B'])
+  document.getElementById('g' + g).addEventListener('change', e => {
+    G[g] = e.target.checked;
+    search(document.getElementById('q').value);
+  });
+
+document.getElementById('send').disabled = true;
+document.getElementById('qi').disabled = true;
+document.getElementById('qi').placeholder = '正在连接云服务…';
+addSys('问之前先说清三件事：回答只依据本项目的文档，每句都挂出处，文档里没写的直说没写。', []);
+boot();
+"""
+
+
+# 三期源件（与 build2.py 分开放，避免在这种「大段 JS 塞进 Python 字面量」的写法里改错；
+# 它们仍是本生成器的源 —— 不存在第二份产物真源）
+CALC_CSS = io.open(os.path.join(HERE, 'calc.css'), encoding='utf-8').read()
+CALC_JS = io.open(os.path.join(HERE, 'calc.js'), encoding='utf-8').read()
+AUDIT_CSS = io.open(os.path.join(HERE, 'audit.css'), encoding='utf-8').read()
+AUDIT_JS = io.open(os.path.join(HERE, 'audit.js'), encoding='utf-8').read()
+
+
+def main():
+    t0 = time.time()
+    corpus = json.load(io.open(os.path.join(OUT, 'corpus.json'), encoding='utf-8'))
+    docs = []
+    for d in corpus['docs']:
+        docs.append({'name': d['name'], 'grade': d['grade'], 'chars': d['chars'],
+                     'sections': [{'title': s['title'], 'line': s['line'], 'text': s['text']}
+                                  for s in d['sections']]})
+    payload = json.dumps({'docs': docs}, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+    gz = gzip.compress(payload, 9)
+    b64 = base64.b64encode(gz).decode('ascii')
+    b64_wrapped = '\n'.join(b64[i:i + 200] for i in range(0, len(b64), 200))
+
+    nseg = sum(len(d['sections']) for d in docs)
+    nchar = sum(d['chars'] for d in docs)
+    title = 'ABox 一盒 · 内部助手 v4.0'
+    cfg_js = json.dumps(CLOUD_CFG, ensure_ascii=False)
+
+    mraw = io.open(os.path.join(OUT, 'metrics.json'), 'rb').read()
+    mgz = gzip.compress(mraw, 9)
+    mb64 = base64.b64encode(mgz).decode('ascii')
+    mb64_wrapped = '\n'.join(mb64[i:i + 200] for i in range(0, len(mb64), 200))
+
+    araw = io.open(os.path.join(OUT, 'audit.json'), 'rb').read()
+    agz = gzip.compress(araw, 9)
+    ab64 = base64.b64encode(agz).decode('ascii')
+    ab64_wrapped = '\n'.join(ab64[i:i + 200] for i in range(0, len(ab64), 200))
+    html = (
+        '<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
+        '<link rel="icon" href="data:,">\n'
+        '<title>' + title + '</title>\n<style>' + CSS + CALC_CSS + AUDIT_CSS + '</style>\n</head>\n<body>\n'
+        '<header><div class="wrap">'
+        '<div class="brandline"><span class="brand">ABox 一盒 · 内部助手</span>'
+        '<span class="meta" id="cstate">正在连接云服务…</span></div>'
+        '<div class="meta" id="meta">正在载入语料…</div>'
+        '<div class="meta" id="meta2"></div>'
+        '<div class="tabs"><button class="tab on" data-v="ask">问答</button>'
+        '<button class="tab" data-v="calc">问数</button>'
+        '<button class="tab" data-v="audit">体检</button>'
+        '<button class="tab" data-v="search">检索</button></div>'
+        '<div class="bar" id="hask">'
+        '<select class="sel" id="model" hidden></select>'
+        '<span class="meta">文档答口径 · 数据答数字（数字由本页引擎算）· 两者都挂出处</span>'
+        '</div>'
+        '<div class="bar" id="hcalc" style="display:none">'
+        '<span class="meta">口径 · 时间轴 · 区间 · 分组都由你定；结果连同等价 SQL 与命中行数一并给出</span>'
+        '<span class="meta" id="cquick" style="margin-left:auto;color:var(--brand);cursor:pointer">近 7 天</span>'
+        '</div>'
+        '<div class="bar" id="haudit" style="display:none">'
+        '<span class="meta">语料自检 · 口径 / 覆盖 / 引用 / 时效 —— 全部确定性计算，不耗模型额度</span>'
+        '</div>'
+        '<div class="bar" id="hsearch" style="display:none">'
+        '<input id="q" type="search" autocomplete="off" '
+        'placeholder="搜关键词，或直接问一句话 —— 比如「佣金费率有几档」「状态机怎么流转」">'
+        '<label><input type="checkbox" id="gA" checked> 正文级</label>'
+        '<label><input type="checkbox" id="gB" checked> 实录</label>'
+        '</div></div></header>\n'
+        '<main><div class="wrap">'
+        '<div id="view-ask"><div id="chat"></div><div class="sug" id="sug"></div></div>'
+        '<div id="view-calc" hidden>'
+        '<div class="tip">「问数」走的是<b>确定性引擎</b>：口径、时间轴、区间、分组都在下面指定，'
+        '结果连同<b>等价 SQL</b> 与命中行数一并给出。问答页提问时，语言模型只负责把你的话翻成'
+        '<b>取数块</b> —— 它自己不参与任何计算。</div>'
+        '<div class="panel"><div class="frow">'
+        '<div class="f"><label>指标</label><select id="cm"></select></div>'
+        '<div class="f"><label>口径</label><select id="cs"></select></div>'
+        '<div class="f"><label>时间轴</label><select id="ct"></select></div>'
+        '<div class="f"><label>起（含）</label><input id="cfrom" type="date"></div>'
+        '<div class="f"><label>止（含）</label><input id="cto" type="date"></div>'
+        '<div class="f"><label>&nbsp;</label><button class="btn gh" id="cgo">算一下</button></div>'
+        '</div><div class="chk" id="cg"></div></div>'
+        '<div class="res" id="cout"></div>'
+        '<div class="sechead">指标口径卡 —— 口径的唯一真源</div>'
+        '<div class="mgrid" id="cmlist"></div>'
+        '</div>'
+        '<div id="view-audit" hidden></div>'
+        '<div id="view-search" hidden><div id="out"></div></div>'
+        '</div></main>\n'
+        '<div class="composer"><div class="crow">'
+        '<textarea id="qi" rows="1" placeholder="正在连接云服务…"></textarea>'
+        '<button class="btn gh" id="stop" hidden>停止</button>'
+        '<button class="btn" id="send">提问</button>'
+        '</div></div>\n'
+        '<script>window.__CLOUD_CFG = ' + cfg_js + ';</script>\n'
+        '<script src="https://cdn.jsdelivr.net/npm/@tencent-ai/workbuddy-cloud-sdk@dev/lib/index.global.js"></script>\n'
+        '<script id="corpus" type="application/gzip+base64">\n' + b64_wrapped + '\n</script>\n'
+        '<script id="metrics" type="application/gzip+base64">\n' + mb64_wrapped + '\n</script>\n'
+        '<script>' + JS + '</script>\n'
+        '<script id="audit" type="application/gzip+base64">\n' + ab64_wrapped + '\n</script>\n'
+        '<script>' + CALC_JS + '</script>\n'
+        '<script>' + AUDIT_JS + '</script>\n</body>\n</html>\n'
+    )
+
+    os.makedirs(APP_DIR, exist_ok=True)
+    for t in TARGETS:
+        io.open(t, 'w', encoding='utf-8', newline='\n').write(html)
+    size = os.path.getsize(TARGETS[0])
+    print(f'✔ {len(TARGETS)} 处产物已写入')
+    for t in TARGETS:
+        print(f'  {t}  {os.path.getsize(t):,} 字节')
+    print(f'  文档 {len(docs)} 份 · 段落 {nseg:,} · 语料 {nchar:,} 字符')
+    print(f'  载荷 {len(payload):,} 字节 → gzip {len(gz):,} → base64 {len(b64):,}')
+    print(f'  快照 {len(mraw):,} 字节 → gzip {len(mgz):,} → base64 {len(mb64):,}')
+    print(f'  三期源件 calc.css {len(CALC_CSS):,} / calc.js {len(CALC_JS):,} 字符')
+    print(f'  体检 {len(araw):,} 字节 → gzip {len(agz):,} → base64 {len(ab64):,}')
+    print(f'  四期源件 audit.css {len(AUDIT_CSS):,} / audit.js {len(AUDIT_JS):,} 字符')
+    print(f'  产物 {size:,} 字节（{size / 1048576:.2f} MB）· 耗时 {time.time() - t0:.1f}s')
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
