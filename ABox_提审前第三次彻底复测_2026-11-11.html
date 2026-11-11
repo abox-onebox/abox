@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ABox 一盒 · 提审前第三次彻底复测（2026-11-11）</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --paper:#FFFDF8; --ink:#3A2E20; --brown:#6E5435;
+    --line:#E4D8C2; --muted:#7A6B55; --red:#B3261E; --orange:#B26A00;
+    --amber:#8A6D3B; --green:#2E7D32; --soft:#F1E8D6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Kaiti SC","STKaiti","KaiTi","楷体",serif;font-size:15.5px;line-height:1.75}
+  .wrap{max-width:960px;margin:0 auto;padding:38px 28px 70px}
+  header{border-bottom:2px solid var(--brown);padding-bottom:20px;margin-bottom:28px}
+  .eyebrow{font-size:13px;letter-spacing:.22em;color:var(--brown);text-transform:uppercase}
+  h1{font-size:30px;font-weight:600;margin:10px 0 6px;letter-spacing:.03em}
+  .meta{color:var(--muted);font-size:13.5px}
+  h2{font-size:21px;margin:36px 0 14px;padding-left:12px;border-left:5px solid var(--brown);
+    font-weight:600;letter-spacing:.02em}
+  h3{font-size:17px;margin:22px 0 10px;color:var(--brown);font-weight:600}
+  p{margin:10px 0}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:10px;
+    padding:20px 22px;margin:16px 0;box-shadow:0 2px 10px rgba(110,84,53,.05)}
+  .verdict{border-left:6px solid var(--orange);background:#FFF9ED}
+  .verdict .big{font-size:20px;font-weight:600;color:var(--orange);margin:0 0 8px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+  .kpi{background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:14px;text-align:center}
+  .kpi b{display:block;font-size:23px;color:var(--brown);line-height:1.3}
+  .kpi span{font-size:12.5px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:12px 0 18px;background:var(--paper);
+    border:1px solid var(--line);font-size:14px}
+  th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+  th{background:var(--soft);color:var(--brown);font-weight:600;white-space:nowrap}
+  td code,.mono{font-family:Consolas,"Courier New",monospace;font-size:12.8px;
+    background:#F5EFE2;padding:1px 4px;border-radius:3px}
+  .ok{color:var(--green);font-weight:600}
+  .warn{color:var(--orange);font-weight:600}
+  .bad{color:var(--red);font-weight:600}
+  .tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:20px;
+    border:1px solid currentColor;margin-right:6px;white-space:nowrap}
+  .tag.p0{color:var(--red)} .tag.p1{color:var(--orange)}
+  .tag.p2{color:var(--amber)} .tag.ok{color:var(--green)}
+  ul,ol{margin:8px 0 12px;padding-left:24px}
+  li{margin:5px 0}
+  .note{font-size:13.5px;color:var(--muted)}
+  .quote{background:var(--soft);border-radius:7px;padding:12px 15px;margin:12px 0;
+    font-size:14px;color:#5A4831}
+  .foot{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;
+    font-size:13px;color:var(--muted)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.kpis{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">ABox 一盒 · 微信小程序 · 提审前质量复核</div>
+  <h1>提审前第三次彻底复测报告</h1>
+  <div class="meta">复测时间：2026-11-11 18:22–18:4x（GMT+8）　·　范围：本轮整改独立复验 + 全量门禁 + 审核员同路径端到端实测　·　结论先行</div>
+</header>
+
+<div class="card verdict">
+  <p class="big">🟡 技术侧已具备「上传体验版 + 真机复测」条件，但仍不建议现在点「提交审核」</p>
+  <p>上一轮报告的第 5 项 P0（6 栋楼能看不能买）<strong>本轮已独立复验收口</strong>：选楼列表只返回 4 栋有在职团长的楼、绕过列表直绑 5 栋坏楼全被拦、4 栋逐栋下单全成功、支付 1000ms 转 <code>paid</code>。全量门禁 <strong>35/35 全绿</strong>，正式包 189 文件静态契约全过。</p>
+  <p>本轮报告即您 18:3x 要等的「<strong>新测试结果</strong>」的技术侧部分：<strong>技术侧复测通过</strong>。按您 18:3x 的冻结指令，仍<strong>不推进任何新动作</strong>，两个恢复信号缺一不继续 —— ① 微信后台《用户隐私保护指引》<strong>已按 v1.7 重提、现「审核中，不可修改」</strong>，等通知中心结果（1–3 工作日，⛔ 勿重复提交）；② 最新正式包<strong>尚未上传体验版</strong>、35 条真机用例<strong>尚未实跑并回收</strong>，且 <code>urlCheck=true</code> 后需在真机确认合法域名。另发现 1 项<strong>存量用户仍能看不能买</strong>的残留缺陷（不影响审核员，但发布前必修）。</p>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><b>35/35</b><span>全量门禁全绿 · EXIT=0 · 8m56s</span></div>
+  <div class="kpi"><b>4 / 4 栋</b><span>逐栋下单全部 code=0</span></div>
+  <div class="kpi"><b>1000ms</b><span>下单→支付转 paid 实测</span></div>
+  <div class="kpi"><b>189 文件</b><span>正式包静态契约 0 裸 IP / 0 字体</span></div>
+</div>
+
+<h2>一、本轮做了什么（与上一轮的区别）</h2>
+<div class="card">
+  <p>不重复上轮全盘，改为「<strong>独立复验 16:33–16:48 整改是否真落进源码、产物与生产</strong> + 审核员同款全新账号端到端实测 + 全量门禁与带自证扫描」。</p>
+  <table>
+    <tr><th>层次</th><th>实跑内容</th><th>结果</th></tr>
+    <tr><td>源码 / 部署</td><td>git diff 逐文件核对；生产服务器源码时间戳与容器内编译 JS；<code>.deploy-state</code></td><td class="ok">16:44 已部署，三处修复标记在线上编译产物中</td></tr>
+    <tr><td>全量门禁</td><td><code>gate.mjs all</code>（35 道）、<code>verify</code>（6 道）、<code>tsc --noEmit</code>、<code>check-di-forfeature</code></td><td class="ok">all 35/35 EXIT=0；verify 5/6（假红，见 §五）；tsc 0；DI 208 注入点 OK</td></tr>
+    <tr><td>静态 / 隐私</td><td>正式包 189 文件契约扫描、隐私接口扫描器（79 文件）</td><td class="ok">两组扫描器必报/必不报自证均 PASS</td></tr>
+    <tr><td>接口实测</td><td>逐栋下单矩阵、支付全链路、邀请落地页、冷启动第一屏、团长分享、商品图、负样本</td><td class="ok">全部有正反对照，见 §二 / §三</td></tr>
+    <tr><td>生产只读</td><td>团长覆盖、排期、图片域名、存量用户、测试残留</td><td class="ok">只读，未删改任何生产数据</td></tr>
+  </table>
+</div>
+
+<h2>二、上一轮 P0 逐项复验</h2>
+<table>
+  <tr><th>项</th><th>判定</th><th>硬证据（本轮实测，不采信文档回执）</th></tr>
+  <tr>
+    <td><strong>P0-5</strong><br>6 栋楼能看不能买</td>
+    <td class="ok">✅ 已收口<br>（三层封堵）</td>
+    <td>① <code>GET /building</code> 返回 <strong>4 栋</strong>（1 国贸三期A/李明、4 国贸三期D/王芳、5 建外SOHO/张磊、6 银泰1栋/赵静），<code>leaderName</code> 全非空，<strong>列表首项 id=1 是好楼</strong>；② 绕过列表直 <code>PUT /me/building</code> 绑楼 8/9/11/12/7，<strong>5/5 全被 <code>60001</code> 拦下</strong>（「暂未开放预订」）；③ 4 栋逐栋 绑楼→首页→真实下单，<strong>4/4 全部 <code>code=0</code></strong>；④ 非在职团长邀请码 <code>LDR0005</code> → U3 <code>valid=false</code>、登录 <code>30007</code>，旁路也封死。</td>
+  </tr>
+  <tr>
+    <td><strong>P0-2</strong><br>支付模式冲突</td>
+    <td class="ok">✅ 已闭环</td>
+    <td>正式包 <code>use-wechat-pay.js</code> 含 <code>mock_pay_sign</code> 与 <code>prepay_id=mock_</code> 双判据；服务端实返 <code>paySign=mock_pay_sign</code>；跳过收银台后 <code>0ms pending_pay → 500ms pending_pay → 1000ms paid</code>，前端 3s 轮询窗口有余量。订单终态 <code>paid</code>。</td>
+  </tr>
+  <tr>
+    <td><strong>P0-3</strong><br>空首页 / 图片</td>
+    <td class="ok">✅ 已收口</td>
+    <td>生产库 <code>ab_meal_assignment</code> 实测 <strong>11-12～11-20 共 9 天 × 5 楼群 = 45 行 active</strong>（上轮只到 11-14）；<code>/home/daily</code> 的 3 张商品图全为 <code>https://api.xunlizhinian.cn/static/...</code>，公网实取 <code>200 + image/png</code>（295KB / 219KB / 356KB）；443 证书 <code>CN=api.xunlizhinian.cn</code> 有效至 2027-02-08。</td>
+  </tr>
+  <tr>
+    <td><strong>P0-4</strong><br>urlCheck 固化</td>
+    <td class="ok">✅ 已收口</td>
+    <td><code>manifest.json</code> 与产物 <code>project.config.json</code> 均 <code>urlCheck:true</code>；全包 <strong>裸 IP 0 / 明文 http 0 / 字体二进制 0</strong>；域名集合仅 <code>api.xunlizhinian.cn</code>（业务）+ 2 个框架文档域名；主包 0.48 MB / 32 页。</td>
+  </tr>
+  <tr>
+    <td><strong>分享页三处未完成态</strong></td>
+    <td class="ok">✅ 已收口</td>
+    <td>产物 <code>share.wxml</code>：「生成二维码海报」按钮被 <code>wx:if="{{m}}"</code> 包裹、小程序码卡片被 <code>wx:if="{{C}}"</code> 包裹，且 <code>share.js</code> 里 <code>m = material &amp;&amp; !mock</code>、<code>C = qrcode &amp;&amp; !qrcode.mock</code>，服务端恒 <code>mock=true</code> ⇒ 两个入口真隐藏；<code>share.js</code> 已无「微信码能力未接入」toast；服务端 <code>/leader/share</code> 与 <code>/leader/share/qrcode</code> 两条 tips 均改为中性文案，7 个餐饮/未完成态旧词在出参上 <strong>0 命中</strong>。</td>
+  </tr>
+  <tr>
+    <td><strong>P0-1</strong><br>隐私指引剪切板</td>
+    <td class="warn">⏸ 已重提 · 审核中</td>
+    <td>带自证扫描器重扫 <code>src/</code> 79 文件，<code>setClipboardData</code> 仍 <strong>10 处</strong>，正式包同样 10 处 ⇒ 确实必须声明「读取你的剪切板」。17:4x 曾因昵称头像用途驳回，<strong>18:3x 您已按底稿 v1.7 §三·2 全部改完并重新提交，页面现重新锁定为「审核中，不可修改」</strong> ⇒ 逐栏动作均为已完成的历史操作卡，<strong>⛔ 勿重复提交</strong>。等待期间唯一建议动作是<strong>只读回读 6 项</strong>（平台存在部分字段回滚）；审核结果我无法代为确认。</td>
+  </tr>
+</table>
+
+<h2>三、本轮新增：审核员同路径端到端实测</h2>
+<div class="card">
+  <h3>3.1 冷启动第一屏（最容易被忽略的一条）</h3>
+  <p>全新微信号登录 → <code>buildingId=null</code> → <code>GET /home/daily</code> 返回 <code>20016 你还没有选择办公楼，选好即可查看次日套餐</code>。回源 <code>pages/index/index.vue</code>：<code>needsBuilding</code> 专属空态 → 主标题「你还没有选择办公楼」+ 按钮「选择办公楼」→ 直达选楼页，<strong>用户可自助闭环，不是缺陷</strong>。</p>
+  <div class="quote">⚠️ 但审核员第一次打开看到的<strong>不是商品页而是选楼引导</strong>。提审说明的「审核说明 / 功能页面」栏必须写明「首次进入需先选楼」，否则审核员可能误判小程序无内容。提审说明 v1.2 §3.4 已写清，请确保在提审表单里也写进去。</div>
+
+  <h3>3.2 邀请落地页链路（本轮新改的 LANDING_PATH）</h3>
+  <table>
+    <tr><th>环节</th><th>实测</th><th>判定</th></tr>
+    <tr><td>分享 path 拼装</td><td><code>onShareAppMessage</code> 出参 <code>pages/leader-invite/leader-invite?leaderCode=LDR0001</code>；服务端 <code>path</code> 已由首页改为落地页</td><td class="ok">通</td></tr>
+    <tr><td>U3 落地信息（免登录）</td><td><code>GET /leader/invite/LDR0001</code> → <code>code=0 / valid=true / leaderName=李明</code></td><td class="ok">通</td></tr>
+    <tr><td>登录即绑定</td><td>新用户带 <code>inviteCode=LDR0001</code> 登录 → <code>buildingId=1 / teamLeaderId=1</code></td><td class="ok">通</td></tr>
+    <tr><td>绑定后直接下单</td><td>不手动选楼，<code>POST /orders</code> → <code>code=0</code>，订单 <code>AB2026111105718373</code></td><td class="ok">通</td></tr>
+    <tr><td>无效邀请码</td><td><code>LDR9999</code> → <code>30007 团长邀请码无效</code>；端上 <code>bindLeaderByInvite</code> 回落普通登录</td><td class="ok">通</td></tr>
+    <tr><td>非在职团长码</td><td><code>LDR0005</code>（楼 2，团长 status=2）→ U3 <code>valid=false</code> + 登录 <code>30007</code></td><td class="ok">旁路已封</td></tr>
+  </table>
+  <p class="note">另核实：产物 <code>app.json</code> 无 tabBar，一度怀疑落地页 <code>switchTab</code> 会失败；回源 <code>utils/router.js</code> 发现 <code>exports.switchTab = r</code>（<code>r</code> 即 <code>reLaunch</code>）⇒ <strong>刻意设计，假警报已排除</strong>。</p>
+
+  <h3>3.3 负样本与鉴权边界</h3>
+  <p><code>GET /building</code> 不带 token → <code>401 + 10002</code>；普通用户访问 <code>/leader/share</code> → <code>403 + 10003</code>；未绑楼绕过 UI 直调下单 → <code>30007</code>；无团长楼绑楼 → <code>60001</code>。四组判据均在必报/必不报样本上自证有效。</p>
+</div>
+
+<h2>四、本轮新发现的问题（按发布风险分级）</h2>
+
+<div class="card">
+  <p><span class="tag p1">P1 · 发布前必修</span><strong>存量用户仍「能看不能买」——P0-5 只堵了新用户，没迁移老用户</strong></p>
+  <p>生产库只读：活跃用户中<strong>仍有 4 人绑在无在职团长的楼</strong> —— <code>1005 陈强(楼2)</code>、<code>1016 / 1017 / 1019(楼8)</code>。用 <code>dev:1005</code> 真实复现：<code>GET /home/daily → code=0 / canOrder=true</code>，紧接 <code>POST /orders → 30007 未绑定团长</code>。</p>
+  <p><strong>根因</strong>：两套判据不同源 —— <code>meal.service.ts:143</code> 的 <code>canOrder</code> 只判排期与截单，<code>order.service.ts:250-251</code> 的 <code>resolveLeader</code> 才判在职团长。本轮修复只改了「选楼列表」(<code>building.service.ts:96</code>) 与「绑楼口」(<code>user.service.ts:127</code>)，<strong>没改 <code>canOrder</code> 本身，也没清理历史绑定</strong>。</p>
+  <p><strong>建议（二选一，根治选 A）</strong>：A. 让 <code>/home/daily</code> 的 <code>canOrder</code> 同判在职团长，无团长时显示 <code>canOrder=false</code> + 「本楼暂未开放，去选楼」；B. 数据侧把 4 人 <code>building_id</code> 置空（走 20016 选楼引导）或迁移到 4 栋开放楼。<strong>审核员是全新用户不受影响，故不阻断提审；但发布后真实用户会撞。</strong></p>
+</div>
+
+<div class="card">
+  <p><span class="tag p1">P1 · 工程纪律</span><strong><code>verify</code> 5/6 报红已判定为「校验器基线陈旧」的假红，不是产品缺陷</strong></p>
+  <p><code>gate.mjs verify</code> 中 <code>e2e:m3</code> 报 <code>1352/1354</code>，失败两条 D57 断言。单独重跑抓到实际值：<code>code=0 groups=10</code>（断言写死 8）、<code>items=45 total=45</code>（断言写死 38，但<strong>「明细=汇总」自洽本身通过</strong>）。回源 <code>config.specs.ts</code>：<code>CONFIG_GROUPS</code> 实为 10 组（新增 <code>catalog</code> 品类可配置、<code>compliance</code> 124 号令公示），<code>CONFIG_SPECS</code> 实为 45 项。</p>
+  <p>⇒ <strong>产物完全正确，是 <code>e2e-m3.mjs:7184/7189</code> 把历史基数 8 组 / 38 项写死</strong>，11-10 加功能后没同步。且 <code>gate.mjs all</code> 的 35 道<strong>不含 e2e:m3</strong>，所以 35/35 全绿也照不出这个红。建议把两处期望改为「从 <code>CONFIG_SPECS</code> 派生」而非硬编码，避免下次加配置再红。</p>
+  <p class="note">另：不带门禁时钟注入单独跑 <code>e2e-m3.mjs</code> 会多出 20 条时间窗口相关失败（1332/1354），属探针环境缺失，不是回归；正式验收以 <code>gate.mjs verify</code> 为准。</p>
+</div>
+
+<div class="card">
+  <p><span class="tag p2">P2</span><strong>文案 / 文档失真（不改代码功能，但会误导人和审核）</strong></p>
+  <ul>
+    <li><code>order.service.ts:1757</code> 的 <code>30007</code> 仍写「请通过团长邀请链接进入」，而现在支持自助选楼，且列表只开放 4 栋 ⇒ 与 P0-5 的新口径冲突。</li>
+    <li>提审说明 v1.2 <strong>§3.3</strong> 仍写「正式切 real 之后审核员就进不去了」，与同文件 §3.4「审核员是全新真微信用户、dev 账号本就不生效」<strong>自相矛盾</strong>；<strong>§四</strong> 表格「mock 时登录用 <code>dev:</code> 标识」同样失真；<strong>§3.2</strong> 后台口令仍是旧种子明文（现行 admin 口令已变）。</li>
+    <li><code>share.vue:194</code> 注释仍写旧跳转串 <code>pages/index/index?leaderCode=...</code>，实际已改 <code>pages/leader-invite/leader-invite</code>。</li>
+    <li>mock 模式下真微信 <code>code</code> 按 <code>sha1</code> 生成 openid（<code>mock-wx-mini.provider.ts:51</code>），而 <code>wx.login</code> 的 code 一次性 ⇒ 审核员清缓存 / 换设备后会变成全新用户，历史订单不连续。提审期影响小，但需知悉。</li>
+    <li>产物 <code>pages/building/switch.js</code> 残留 1 处「暂未开放」文案（列表恒有团长 ⇒ 不可达死代码），可顺手清掉。</li>
+    <li>已知遗留（上轮已报、本轮未改）：Q3 送达凭证 <code>proofs</code> 端上零引用；C 端 <code>/ai-cs/ask</code> 后端可用但小程序端零调用。均在非审核路径，不阻断提审。</li>
+  </ul>
+</div>
+
+<h2>五、门禁与扫描结果（真实退出码）</h2>
+<table>
+  <tr><th>项目</th><th>命令 / 范围</th><th>结果</th></tr>
+  <tr><td>全量门禁</td><td><code>node scripts/gate.mjs all</code></td><td class="ok">通过 35/35 · EXIT=0 · 8m56s（jest 58 suites / 815 tests、build:api/admin/mp 全过）</td></tr>
+  <tr><td>验收链</td><td><code>node scripts/gate.mjs verify</code></td><td class="warn">5/6 · EXIT=1（e2e:m3 两条 D57 假红，见 §四）</td></tr>
+  <tr><td>类型检查</td><td><code>tsc --noEmit -p apps/api-server</code></td><td class="ok">EXIT=0</td></tr>
+  <tr><td>DI 对账</td><td><code>scripts/check-di-forfeature.mjs</code></td><td class="ok">EXIT=0 · 全局 12 实体 / 30 模块 / 208 注入点，无「注入未登记」</td></tr>
+  <tr><td>正式包静态扫描</td><td>189 文件，带 4 组自证</td><td class="ok"><code>demoMode:!1</code>、https 域名、<code>urlCheck:true</code>、<code>mock_pay_sign</code>、分享页条件渲染、裸 IP 0 / 字体 0 / 明文 http 0 / 未完成态 toast 0；剪切板 10 处</td></tr>
+  <tr><td>隐私接口扫描器</td><td><code>src/</code> 79 文件，必报/必不报/纯注释三组自证</td><td class="ok">自证 PASS；唯一需声明项「读取你的剪切板」10 处</td></tr>
+</table>
+<p class="note">产物在门禁 <code>build:mp</code> 重建后已二次抽验，9 项关键值与重建前一致 —— 避免「全绿之后产物被改掉」。</p>
+
+<h2>六、探针自纠记录（保证结论可信）</h2>
+<div class="card two">
+  <div>
+    <p><strong>被自证 / 回源拦下的探针失误</strong></p>
+    <ul>
+      <li>静态扫描器必报样本词序写错（「能力接入后生成」vs 实际「接入微信能力后生成」）→ 自证先红，改正后才跑；</li>
+      <li>冷启动下单忘带 <code>Idempotency-Key</code> → 返回 10001 是探针错，补头后得到真实的 30007；</li>
+      <li>二维码接口写成 <code>/leader/qrcode</code> → 10004，回源 <code>api/leader.ts:144</code> 改为 <code>/leader/share/qrcode</code>；</li>
+      <li>生产库查询用了不存在的列 <code>total_amount_fen</code> → 回源列名为 <code>total_amount</code>；</li>
+      <li>DI 检查在根目录跑导致 ENOENT → 切回 <code>abox-onebox/</code> 重跑；管道里的 <code>DI_EXIT=0</code> 是 <code>tail</code> 的退出码，已改为重定向后单独取 <code>$?</code>。</li>
+    </ul>
+  </div>
+  <div>
+    <p><strong>环境事实</strong></p>
+    <ul>
+      <li>线上 <code>NODE_ENV=production / PROVIDER_MODE=mock</code>（提审期刻意保持，发布后必须切 real，否则真实用户下单不扣款）；</li>
+      <li>5 容器 healthy；<code>/static/</code> 443 反代生效；</li>
+      <li>本轮未改任何源码、未 commit / push；工作区 8 个 <code>M</code> 是技术 16:33–16:48 与 14:38 的未提交整改。</li>
+    </ul>
+  </div>
+</div>
+
+<h2>七、恢复条件与后续动作清单（冻结中，等您发话后按序）</h2>
+<ol>
+  <li><span class="tag p0">等待项 A</span><strong>隐私指引：等通知中心结果，不做新动作</strong>。18:3x 已按《填报底稿 v1.7》§三·2 完成重提（用途官方原话 / 补勾剪切板 / 重传仅改附一的 txt / 5.1 不动），现「审核中，不可修改」⇒ <strong>⛔ 勿重复提交</strong>。等待期间如尚未回读，只做<strong>只读</strong>核对 6 项（平台存在部分字段回滚）：昵称头像用途、剪切板已勾且用途正确、照片视频仍「头像上传」、微信号 <code>ke17778178002</code>、5.1 仍「● 最短时间 / 0 天占位」、第 9 节是新 txt。结果通过或再驳回后<strong>等您发话</strong>再走分支。</li>
+  <li><span class="tag p0">等待项 B</span><strong>上传最新正式包并设体验版（等您发话再执行）</strong>（<code>dist/build/mp-weixin</code>，189 文件 / <code>urlCheck:true</code>），本地「不校验合法域名」保持关闭；加体验成员、发《提审前真机复测包》二维码，<strong>真机跑完 35 条用例并回收结果</strong> —— 尤其确认合法域名（request / downloadFile 含 <code>api.xunlizhinian.cn</code>）、商品图不出白图、冷启动选楼引导、mock 支付自动成功。</li>
+  <li><span class="tag p1">发布前</span>修 P1 存量用户：改 <code>canOrder</code> 判据与 <code>resolveLeader</code> 同源，或清理 4 人历史绑定；同步更新 <code>e2e-m3.mjs</code> 两处 D57 期望（8→10、38→45，最好改派生）后重跑 <code>verify</code> 至 6/6。</li>
+  <li><span class="tag p1">发布前</span>明确 <strong>mock → real 切换时点</strong>：顺序锁死「提审（mock）→ 审核通过 + 发布 → 才切 real → 小额真实支付闭环」；发布后若忘记切，真实用户下单会静默自动置 <code>paid</code>、不扣款。</li>
+  <li><span class="tag p2">收尾</span>清理测试残留（不擅自删）：用户 <code>1081–1086</code>、本轮 5 笔订单（<code>AB2026111147906387</code> 已 paid；<code>...40440569 / ...86854072 / ...56235757 / ...05718373</code> 为 pending_pay）、以及历史 <code>1005 / 1016 / 1017 / 1019</code> 的无团长楼绑定。</li>
+  <li>按《提审表单填报清单》填简介 / 类目 / 审核说明，<strong>审核说明写明「首次进入需先选择办公楼」</strong>；提审入口2 按新包重扫隐私接口，若提示有出入在<strong>入口2 当前页</strong>调整（属提醒非驳回）→ 提交审核。</li>
+</ol>
+
+<div class="card verdict">
+  <p><strong>一句话结论</strong>：这一轮整改是真的、可验证地落地了，门禁与端到端都过；<strong>技术侧「新测试结果」= 通过</strong>，可以作为您 18:3x 冻结指令里的恢复信号之一。但<strong>另一个恢复信号（35 条真机复测结果）尚未回收，隐私指引仍在审核中</strong>，因此现在仍不能说「提审不出问题」、也不能点提交审核。按冻结指令，本报告只交结果与风险，<strong>不触发任何新动作，等您发话</strong>。</p>
+</div>
+
+<p class="foot">ABox 一盒 · 提审前第三次彻底复测　|　生成 2026-11-11　|　所有接口结论均来自实跑响应体，生产库仅只读查询；未删除或修改任何生产数据。</p>
+
+</div>
+</body>
+</html>

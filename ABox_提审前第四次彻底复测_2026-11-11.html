@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ABox 一盒 · 提审前第四次彻底复测（2026-11-11）</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --paper:#FFFDF8; --ink:#3A2E20; --brown:#6E5435;
+    --line:#E4D8C2; --muted:#7A6B55; --red:#B3261E; --orange:#B26A00;
+    --amber:#8A6D3B; --green:#2E7D32; --soft:#F1E8D6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Kaiti SC","STKaiti","KaiTi","楷体",serif;font-size:15.5px;line-height:1.75}
+  .wrap{max-width:980px;margin:0 auto;padding:38px 28px 70px}
+  header{border-bottom:2px solid var(--brown);padding-bottom:20px;margin-bottom:28px}
+  .eyebrow{font-size:13px;letter-spacing:.22em;color:var(--brown);text-transform:uppercase}
+  h1{font-size:30px;font-weight:600;margin:10px 0 6px;letter-spacing:.03em}
+  .meta{color:var(--muted);font-size:13.5px}
+  h2{font-size:21px;margin:36px 0 14px;padding-left:12px;border-left:5px solid var(--brown);
+    font-weight:600;letter-spacing:.02em}
+  h3{font-size:17px;margin:22px 0 10px;color:var(--brown);font-weight:600}
+  p{margin:10px 0}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:10px;
+    padding:20px 22px;margin:16px 0;box-shadow:0 2px 10px rgba(110,84,53,.05)}
+  .verdict{border-left:6px solid var(--green);background:#F3FAF3}
+  .verdict .big{font-size:21px;font-weight:600;color:var(--green);margin:0 0 8px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+  .kpi{background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:14px;text-align:center}
+  .kpi b{display:block;font-size:22px;color:var(--brown);line-height:1.3}
+  .kpi span{font-size:12px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:12px 0 18px;background:var(--paper);
+    border:1px solid var(--line);font-size:14px}
+  th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+  th{background:var(--soft);color:var(--brown);font-weight:600;white-space:nowrap}
+  td code,.mono{font-family:Consolas,"Courier New",monospace;font-size:12.8px;
+    background:#F5EFE2;padding:1px 4px;border-radius:3px}
+  .ok{color:var(--green);font-weight:600}
+  .warn{color:var(--orange);font-weight:600}
+  .bad{color:var(--red);font-weight:600}
+  .tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:20px;
+    border:1px solid currentColor;margin-right:6px;white-space:nowrap}
+  .tag.p0{color:var(--red)} .tag.p1{color:var(--orange)}
+  .tag.p2{color:var(--amber)} .tag.ok{color:var(--green)}
+  ul,ol{margin:8px 0 12px;padding-left:24px}
+  li{margin:5px 0}
+  .note{font-size:13.5px;color:var(--muted)}
+  .quote{background:var(--soft);border-radius:7px;padding:12px 15px;margin:12px 0;
+    font-size:14px;color:#5A4831}
+  .foot{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;
+    font-size:13px;color:var(--muted)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .codebox{background:#2A2018;color:#F1E8D6;border-radius:8px;padding:14px 16px;
+    font-family:Consolas,"Courier New",monospace;font-size:12.5px;line-height:1.6;overflow:auto}
+  .codebox .g{color:#8FCF8F} .codebox .r{color:#F0A0A0} .codebox .y{color:#F0D090}
+  @media(max-width:720px){.kpis{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">ABox 一盒 · 微信小程序 · 提审前质量复核</div>
+  <h1>提审前第四次彻底复测报告</h1>
+  <div class="meta">复测时间：2026-11-11 19:2x–20:4x（GMT+8）　·　范围：隐私指引通过后独立终验 + 全量门禁 + 审核员同路径端到端实测 + 合规公示核验　·　结论先行</div>
+</header>
+
+<div class="card verdict">
+  <p class="big">🟢 放行结论：技术侧与合规侧均已具备提审条件（GO）</p>
+  <p>您通知的《用户隐私保护指引》<strong>审核通过</strong>，是此前唯一的外部分块阻断项，现已解除。本轮在第三轮基础上独立复验：<strong>P1「能看不能买」根因修复已落地生产且端到端闭环</strong>（新用户 建单→统一下单→支付转 <code>paid</code> 全绿）；<strong>全量门禁 35/35 全绿</strong>、<strong>jest 818 测试全过</strong>、<strong>DI 209 注入点零漏登记</strong>；<strong>124 号令合规公示已填充真实备案值</strong>；静态/隐私扫描零敏感残留。</p>
+  <p>唯一尚未发生的是<strong>微信后台的两步手动动作</strong>（非技术缺陷）：① 把最新小程序包作为<strong>体验版上传</strong>（本轮 <code>build:mp</code> 已本地重建，189 文件零字体二进制）；② 在微信后台<strong>确认隐私指引状态=已通过</strong>并<strong>点击提交审核</strong>。完成这两步即可进入审核队列。</p>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><b>35/35</b><span>全量门禁全绿 · EXIT=0 · 8m46s</span></div>
+  <div class="kpi"><b>818</b><span>jest 测试全过（58 套件）</span></div>
+  <div class="kpi"><b>209</b><span>DI 注入点零漏登记</span></div>
+  <div class="kpi"><b>4 / 4 栋</b><span>楼栋列表仅好楼 · 直绑坏楼 60001</span></div>
+  <div class="kpi"><b>paid</b><span>新用户建单→prepay→支付 实测闭环</span></div>
+  <div class="kpi"><b>189 文件</b><span>正式包静态契约 0 字体 / 0 裸 IP</span></div>
+  <div class="kpi"><b>10 / 45</b><span>配置 D57（组 / 项）自派生校准</span></div>
+  <div class="kpi"><b>6 + 8</b><span>124 号令资质 / GB7718 标签全填充</span></div>
+</div>
+
+<h2>一、本轮与第三轮的区别（独立终验，不采信回执）</h2>
+<div class="card">
+  <p>第三轮冻结点是「隐私指引审核中 + 体验版未上传 + 存量用户能看不能买」。本轮隐私指引已通过，故以<strong>终验</strong>标准重跑：逐文件核对生产编译产物、用审核员同款全新账号走完整下单支付链路、全量门禁与带自证扫描、并新增对 124 号令合规公示的真实值核验。</p>
+  <table>
+    <tr><th>层次</th><th>实跑内容</th><th>结果</th></tr>
+    <tr><td>生产产物</td><td>容器内编译 JS 是否含 <code>leader_unavailable</code>；与源码逐字比对</td><td class="ok">生产已是 19:43 部署的新代码（orderability 重构在线上）</td></tr>
+    <tr><td>全量门禁</td><td><code>gate.mjs all</code>（35 道）、<code>verify</code>（6 道）、<code>tsc</code>、<code>check-di-forfeature</code></td><td class="ok">all 35/35 EXIT=0；DI 209 注入点 OK；jest 818 通过</td></tr>
+    <tr><td>接口实测</td><td>审核员同款全新账号：楼栋列表→绑楼→首页→下单→统一下单→支付轮询→直绑坏楼→未登录</td><td class="ok">U0–U10 全绿（仅 U11 为良性预期偏差，见 §三）</td></tr>
+    <tr><td>合规公示</td><td><code>GET /ai-cs/compliance/124</code>（端上「关于我们」数据源）</td><td class="ok">公开可访问，6 项资质 + 8 项 GB7718 标签全部填充真实值</td></tr>
+    <tr><td>静态 / 隐私</td><td><code>mp:no-font</code>（189 文件）、<code>security:scan</code>、<code>design:spec 35/35</code></td><td class="ok">零字体二进制、零 FAIL 级安全命中</td></tr>
+  </table>
+</div>
+
+<h2>二、触发条件：隐私指引已通过（外部硬阻断解除）</h2>
+<div class="card">
+  <p>您确认《用户隐私保护指引》<strong>审核通过</strong>。这是此前第三轮报告里「不建议现在点提交审核」的两个外部信号之一，现已解除。另一外部信号（体验版上传 + 真机复测）属微信后台手动动作，见 §十。</p>
+  <p class="note">建议提交前在微信后台「开发管理 → 用户隐私保护指引」再目视确认一次状态为「已通过」，并核对指引覆盖的接口/字段与当前端上实际采集一致（本仓端上采集已收敛，无第三方平台名/链接/口令外传）。</p>
+</div>
+
+<h2>三、P1「能看不能买」根因修复 —— 终验（本轮核心）</h2>
+<div class="card">
+  <p>第三轮发现的 P1：存量用户绑在<strong>无在职团长</strong>的楼上，首页 <code>canOrder=true</code> 但下单必抛 <code>30007</code>。根因是「能不能下单」的判据散落在首页与下单两处、下单侧不查团长。</p>
+  <p><strong>修复</strong>（2026-11-11 19:20 提交，19:43 部署）：新增纯函数 <code>orderability.ts#evaluateAvailability</code> 把 <code>hasActiveLeader</code> 并进唯一判据，由 <code>OrderAvailabilityService</code> 统一装载；<code>order.service.ts</code> 显式拦截 <code>leader_unavailable</code> → <code>30007</code> + 唯一出口文案。</p>
+  <h3>三重证据</h3>
+  <ul>
+    <li><span class="tag ok">源码</span> 本地 <code>orderability.ts</code> 第 124 行 <code>if (!i.hasActiveLeader) return { canOrder:false, reason:'leader_unavailable' }</code>；编排层第 126–130 行装载 <code>hasActiveLeader</code>。</li>
+    <li><span class="tag ok">生产</span> 容器内 <code>/app/apps/api-server/dist/</code> 编译产物含 <code>leader_unavailable</code> 字符串 → 线上已是新逻辑。</li>
+    <li><span class="tag ok">单元</span> <code>gate all</code> 的 jest 共 <strong>818 测试全过</strong>，含 orderability 全序判定用例（结构层 fail-closed、leader_unavailable 位置不可调换）。</li>
+  </ul>
+  <h3>端到端实测（审核员同款全新账号，本伦实跑）</h3>
+  <div class="codebox">
+<span class="g">PASS</span> U0 登录身份(id/楼)            uid=1096 bld=null
+<span class="g">PASS</span> U1 楼栋列表只含有团长楼      ids=[1,4,5,6]
+<span class="g">PASS</span> U2 列表首项为好楼(id=1)
+<span class="g">PASS</span> U3 未绑楼首页引导选楼(20016)
+<span class="g">PASS</span> U4 PUT 绑楼1 code=0
+<span class="g">PASS</span> U5 好楼首页 canOrder=true
+<span class="g">PASS</span> U7 好楼下单 code=0
+<span class="g">PASS</span> U7b 统一下单 prepay code=0   paySign=true
+<span class="g">PASS</span> U8 支付闭环 paid           orderNo=AB2026111165695925
+<span class="g">PASS</span> U9 直绑无团长楼被拦(60001)
+<span class="g">PASS</span> U10 无 token→10002
+<span class="r">FAIL</span> U11 P1用户1005已解绑       bld=1   ← 见下方解读
+  </div>
+  <div class="quote">
+    <strong>U11「FAIL」解读（非缺陷，属良性预期偏差）：</strong>探针原假设「存量用户 1005 应处于未绑楼状态」。实测 <code>dev:1005</code> 稳定映射到数据库用户 <strong>1005（陈强）</strong>，其当前 <code>buildingId=1</code>——而楼 1 是<strong>有在职团长李明的好楼</strong>。这意味着即便 1005 被绑定，也<strong>不存在「能看不能买」</strong>（好楼可正常下单）。P1 的<strong>权威 cure 是代码修复</strong>（任何无团长楼现在都会被首页判 <code>canOrder=false</code> 并引导换楼，下单侧显式 30007）；解绑存量用户只是辅助清理。结论：U11 失败是探针的旧预期未随修复更新，<strong>不构成提审阻断</strong>。
+  </div>
+</div>
+
+<h2>四、P0-5 复核：选楼列表与绑楼闸门（三层封堵仍在）</h2>
+<div class="card">
+  <table>
+    <tr><th>项</th><th>判定</th><th>本轮实测证据</th></tr>
+    <tr><td><strong>P0-5</strong><br>坏楼能看不能买</td><td class="ok">✅ 仍收口</td><td>① <code>GET /building</code> 仅返回 <strong>4 栋</strong>（1 国贸三期A/李明、4 国贸三期D/王芳、5 建外SOHO/张磊、6 银泰1栋/赵静），首项 id=1 为好楼；② 绕过列表直 <code>PUT /me/building</code> 绑楼 2（无在职团长）→ <strong>60001</strong> 拦截（「暂未开放预订」）；③ 好楼绑定→首页 <code>canOrder=true</code>→真实下单 <code>code=0</code> 全通。</td></tr>
+    <tr><td><strong>P0-2</strong><br>支付模式冲突</td><td class="ok">✅ 闭环</td><td>统一下单 <code>POST /orders/{orderNo}/pay</code> 实返 <code>paySign=mock_pay_sign</code>；mock 模式后端 <code>setTimeout</code> 自动 <code>simulatePaid</code>，前端 3s 轮询窗口有余量，订单终态 <code>paid</code>（U7b/U8 实证）。</td></tr>
+    <tr><td><strong>P0-3</strong><br>空首页 / 图片</td><td class="ok">✅ 仍收口</td><td>好楼 <code>/home/daily</code> 返回 3 个真实预包装单品（康师傅/达利园/旺旺），<code>imageUrl</code> 为 <code>https://api.xunlizhinian.cn/static/...</code>；抽验 <code>snack-01-kangshifu.png</code> → <strong>HTTP 200 / image/png / 295KB</strong> 公网可取；<code>leader.name=李明</code>、<code>setName</code> 非空。</td></tr>
+    <tr><td><strong>P0-4</strong><br>urlCheck 固化</td><td class="ok">✅ 仍收口</td><td><code>manifest.json</code> 与产物 <code>project.config.json</code> 均 <code>urlCheck:true</code>；本轮 <code>build:mp</code> 重建 189 文件，<code>mp:no-bare-call</code> 75 个调用点 0 裸调；域名集合仅 <code>api.xunlizhinian.cn</code> + 框架文档域名。</td></tr>
+  </table>
+</div>
+
+<h2>五、支付闭环（新用户路径，本轮补验）</h2>
+<div class="card">
+  <p>第三轮仅实证了既有用户支付闭环；本轮以<strong>全新账号</strong>走完整两步模型，确认对所有人一致：</p>
+  <ol>
+    <li><code>POST /orders</code> 建单（<code>Idempotency-Key</code> 头）→ <code>code=0</code>，返回 <code>orderNo</code>（pending_pay）。</li>
+    <li><code>POST /orders/{orderNo}/pay</code>（createPrepay，幂等键 <code>idem:pay:*</code>）→ <code>code=0</code>，返回 <code>paySign=mock_pay_sign</code>。</li>
+    <li>轮询 <code>GET /orders/{orderNo}/pay-result</code>：mock 模式 ~1s 内由后端自动置 <code>paid</code>（U8 实证 <code>orderNo=AB2026111165695925</code>）。</li>
+  </ol>
+  <p class="note">注意：真实支付回调 <code>/pay/notify</code> 在 real 模式下由 <code>RealWxPayProvider</code> 验签；<code>/pay/mock/paid</code> 仅 mock 模式可用、生产 nginx 已拦。审核阶段走 mock 闭环即可，真实微信支付需在<strong>正式公开发布前</strong>切 <code>PROVIDER_MODE=real</code> 并配置商户号（见 §十）。</p>
+</div>
+
+<h2>六、124 号令合规公示（提审强相关，本轮新增核验）</h2>
+<div class="card">
+  <p>端上「我的 → 关于我们」读取 <code>GET /ai-cs/compliance/124</code>（公开接口，带/不带 token 均 <code>code=0</code>）。本轮确认其已填充<strong>真实备案值</strong>，非空占位：</p>
+  <ul>
+    <li><strong>主体</strong>：北京巡礼之年科技有限公司</li>
+    <li><strong>备案号</strong>：YB11114062536671（仅销售预包装食品备案，与「预包装快消品」经营口径一致）</li>
+    <li><strong>信用代码</strong>：91110114MA01A27Q5E　·　<strong>经营场所</strong>：北京市昌平区东小口镇天通中苑二区21号楼2层1732</li>
+    <li><strong>经营范围</strong>：食品销售（仅销售预包装食品）；食品互联网销售（仅销售预包装食品）</li>
+    <li><strong>备案日期</strong>：2026-09-11</li>
+    <li><strong>GB 7718 标签字段（8 项）</strong>：食品名称 / 配料表 / 净含量 / 生产日期 / 保质期 / 贮存条件 / 生产者名称及地址 / 食品生产许可证编号</li>
+  </ul>
+  <p class="note">该公示为「预包装食品」而非「餐饮自营」口径，与 2026-10-21 起的项目定性（预包装快消品，非餐饮自营 ⇒ 食安/EDI/ICP 均不需要）自洽，审核风险低。</p>
+</div>
+
+<h2>七、全量门禁 / 测试 / DI（本轮实跑）</h2>
+<div class="card">
+  <p><code>node scripts/gate.mjs all</code> → <strong>通过 35/35 · 全绿 · EXIT=0 · 8m46s</strong>。关键门禁摘录：</p>
+  <table>
+    <tr><th>门禁</th><th>结果</th></tr>
+    <tr><td>typecheck:api / admin / mp（tsc / vue-tsc）</td><td class="ok">通过（重构无类型错误）</td></tr>
+    <tr><td>jest（单元 + 集成）</td><td class="ok">Test Suites 58 passed · Tests 818 passed</td></tr>
+    <tr><td>lint（eslint . --ext .ts,.vue）</td><td class="ok">通过</td></tr>
+    <tr><td>check-di-forfeature（DI 对账）</td><td class="ok">209 处 @InjectRepository 注入点全部在 CommonModule/本模块登记；新增 <code>OrderAvailabilityService</code> 已正确接线</td></tr>
+    <tr><td>design:spec</td><td class="ok">35/35 通过</td></tr>
+    <tr><td>mp:no-font / mp:no-bare-call</td><td class="ok">189 产物文件零字体二进制；39 页面 75 调用点 0 裸调</td></tr>
+    <tr><td>security:scan / gate:parity / nav:consistency / admin:coverage / wecom:catalog</td><td class="ok">0 FAIL；44 道定义 ↔ 35 all / 6 verify 一致；215 端点白名单全覆盖；148 企微端点目录一致</td></tr>
+    <tr><td>build:api / build:admin / build:mp</td><td class="ok">三端构建均成功（产物已重新生成）</td></tr>
+  </table>
+  <p class="note">D57（配置分组/项数）此前为写死 8 组/38 项的假红，本轮已确认其断言改为从 <code>config.specs.ts</code> 派生，实测生产与声明一致：<strong>10 组 / 45 项</strong>（pricing/commission/settlement/order/building/timeline/service/master/catalog/compliance）。</p>
+</div>
+
+<h2>八、静态与隐私扫描</h2>
+<div class="card">
+  <ul>
+    <li><span class="tag ok">字体</span> 小程序包 189 文件，<code>mp:no-font</code> 4/4 自证：woff/woff2/ttf/otf 零命中（楷体以条件编译排除、不进包，合规）。</li>
+    <li><span class="tag ok">域名</span> 全包裸 IP 0 / 明文 http 0；合法域名仅业务域 <code>api.xunlizhinian.cn</code>。</li>
+    <li><span class="tag ok">安全</span> <code>security:scan</code> 全历史扫描：FAIL 0 / WARN 2（待人工确认，非阻断）/ 显式豁免 4。</li>
+    <li><span class="tag ok">隐私</span> 端上无第三方平台名/链接/口令外传；采集字段与隐私指引口径一致。</li>
+  </ul>
+</div>
+
+<h2>九、配置口径（D57 自派生校准）</h2>
+<div class="card">
+  <p>《接口规范》D57 要求后台配置出参分组与文案齐全。<code>config.specs.ts</code> 为唯一真源，本轮确认其声明与线上返回一致：</p>
+  <table>
+    <tr><th>维度</th><th>声明值</th><th>说明</th></tr>
+    <tr><td>CONFIG_GROUPS</td><td class="ok">10 组</td><td>pricing / commission / settlement / order / building / timeline / service / master / catalog / compliance</td></tr>
+    <tr><td>CONFIG_SPECS</td><td class="ok">45 项</td><td>覆盖 <code>ab_config</code> 全量键；未列入清单的键 = D58 不可写（白名单，不开后门）</td></tr>
+    <tr><td>compliance 组</td><td class="ok">已接线</td><td>为 124 号令公示提供公司级备案信息配置来源，端上「资质与标签公示」读取此处</td></tr>
+  </table>
+</div>
+
+<h2>十、残留与注意事项（非阻断，提交前后须知）</h2>
+<div class="card">
+  <ol>
+    <li><strong>体验版尚未上传（手动动作）</strong>：本轮 <code>build:mp</code> 已在本地重建最新包，但<strong>微信后台的体验版仍是旧包</strong>。提审前须把当前 <code>apps/miniprogram/dist/build/mp-weixin</code> 作为体验版上传，并建议做一次真机冒烟（审核员同路径：选楼→绑楼→首页→下单→支付→订单列表）。</li>
+    <li><strong>隐私指引状态目视确认</strong>：微信后台「用户隐私保护指引」确认 = 已通过，且覆盖字段与端上一致。</li>
+    <li><strong>mock → real 支付切换（发布前，非审核前）</strong>：生产当前 <code>PROVIDER_MODE=mock</code>，审核阶段走 mock 闭环即可；<strong>正式公开发布前</strong>必须切 <code>real</code> 并配置微信支付商户号/证书，否则真实用户无法付费。</li>
+    <li><strong>存量用户绑定态（良性）</strong>：用户 1005 当前绑在好楼 1（有团长），无「能看不能买」风险；其余 P1 队列用户即便残留无团长楼绑定，也会被新代码在首页判 <code>canOrder=false</code> 并引导换楼，不会报错。无需为此阻塞提审。</li>
+    <li><strong>排期覆盖（沿用第三轮结论）</strong>：生产库 <code>ab_meal_assignment</code> 11-12～11-20 共 45 行 active，审核期每日有可下单套餐；发布后须保持排期维护节奏。</li>
+  </ol>
+</div>
+
+<h2>十一、提审动作清单（Go / No-Go）</h2>
+<div class="card">
+  <table>
+    <tr><th>动作</th><th>负责方</th><th>状态</th></tr>
+    <tr><td>隐私指引审核通过</td><td>微信平台</td><td class="ok">✅ 已通过（用户确认）</td></tr>
+    <tr><td>代码修复（P1 等）部署生产</td><td>技术</td><td class="ok">✅ 19:43 部署，产物已核</td></tr>
+    <tr><td>全量门禁 / 测试 / DI 终验</td><td>技术</td><td class="ok">✅ 35/35 · 818 · 209</td></tr>
+    <tr><td>上传最新小程序包为体验版</td><td>您（微信后台）</td><td class="warn">⏳ 待操作（包已本地重建）</td></tr>
+    <tr><td>真机自测体验版（建议）</td><td>您</td><td class="warn">⏳ 建议做</td></tr>
+    <tr><td>点击「提交审核」</td><td>您（微信后台）</td><td class="warn">⏳ 待操作</td></tr>
+    <tr><td>发布前切 real 支付 + 配商户号</td><td>技术</td><td class="warn">⏳ 发布前（非审核前）</td></tr>
+  </table>
+  <p class="big" style="color:var(--green);font-weight:600">综合判定：<span class="ok">GO</span> —— 技术与合规侧具备提审条件；完成「上传体验版 + 点提交审核」两步手动动作即可进入审核队列。</p>
+</div>
+
+<h2>附录 · 证据链（本轮实测留痕）</h2>
+<div class="card">
+  <p class="note">A. 端到端探针（审核员同路径，生产只读 + 1 笔 mock 订单）：U0–U10 全绿，U11 为良性预期偏差（见 §三）。<br>
+  B. <code>gate.mjs all</code>：通过 35/35 · EXIT=0 · 8m46s；jest 818/818；build:api/admin/mp 成功；mp:no-font 189 文件 0 二进制；security:scan FAIL 0。<br>
+  C. DI 对账：209 注入点零漏登记。<br>
+  D. <code>GET /ai-cs/compliance/124</code>：6 资质 + 8 标签全填充真实值（备案号 YB11114062536671）。<br>
+  E. <code>GET /building</code>：返回 [1,4,5,6]，首项好楼；直绑坏楼 60001。<br>
+  F. <code>GET /home/daily</code>（好楼）：3 预包装单品 + 图 200/image/png/295KB。</p>
+  <p class="note">注：本伦临时探针脚本已按项目纪律清理（<code>_qa_e2e_round4.cjs</code> / <code>_qa_artifact.cjs</code> / <code>_qa_count_config.cjs</code> 已删除），不再留痕于仓库。</p>
+</div>
+
+<div class="foot">
+  ABox 一盒 · 提审前第四次彻底复测 · 2026-11-11 · 终验报告（隐私指引通过后）<br>
+  口径依据：项目分册《接口口径》《工程纪律》《缺陷与陷阱》《部署与外网测试》《设计替换》《企微助手》。
+</div>
+
+</div>
+</body>
+</html>

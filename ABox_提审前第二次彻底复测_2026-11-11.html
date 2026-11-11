@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 提审前第二次彻底复测（2026-11-11）</title>
+<style>
+  :root{
+    --paper:#F6F0E5; --ink:#6E5435; --ink-soft:#8a7050; --line:#e0d5c2; --card:#fffdf8;
+    --warn-bg:#fdf3e3; --warn-line:#d9b382; --ok-bg:#eef5ea; --ok-line:#8fa97e;
+    --gap-bg:#fbe9e9; --gap-line:#b23b3b; --new-bg:#eaf1f7; --new-line:#5b7f9e;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;padding:32px 20px 64px;background:var(--paper);color:var(--ink);
+    font-family:"KaiTi","STKaiti","simkai","楷体",serif;font-size:16px;line-height:1.85;}
+  .wrap{max-width:1060px;margin:0 auto;}
+  header{border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:24px;}
+  h1{font-size:27px;margin:0 0 6px;letter-spacing:1px;}
+  .sub{color:var(--ink-soft);font-size:15px;}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:12px;font-size:14px;color:var(--ink-soft);}
+  .meta b{color:var(--ink);font-weight:normal;}
+  h2{font-size:21px;margin:34px 0 12px;padding-left:12px;border-left:5px solid var(--ink);}
+  h3{font-size:17px;margin:22px 0 8px;}
+  p{margin:8px 0;} ul,ol{margin:8px 0;padding-left:24px;} li{margin:5px 0;}
+  code{background:#efe7d8;padding:1px 6px;border-radius:3px;font-family:Consolas,"Courier New",monospace;font-size:13.5px;}
+  .warn{background:var(--warn-bg);border:1px solid var(--warn-line);border-left:5px solid var(--warn-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .gap{background:var(--gap-bg);border:1px solid var(--gap-line);border-left:5px solid var(--gap-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .ok{background:var(--ok-bg);border:1px solid var(--ok-line);border-left:5px solid var(--ok-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .box-new{background:var(--new-bg);border:1px solid var(--new-line);border-left:5px solid var(--new-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .t{font-weight:bold;margin-bottom:6px;}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14.5px;background:var(--card);}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
+  th{background:#efe7d8;font-weight:normal;}
+  td.c,th.c{text-align:center;}
+  .b{display:inline-block;font-size:12px;padding:1px 7px;border-radius:10px;color:#fff;white-space:nowrap;}
+  .b-ok{background:#5f8a52;} .b-gap{background:#b23b3b;} .b-part{background:#b07d2b;} .b-new{background:#5b7f9e;}
+  footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:14px;}
+  .big{font-size:19px;font-weight:bold;}
+  .small{font-size:13.5px;color:var(--ink-soft);}
+  .kv{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0;}
+  .kv div{flex:1 1 150px;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:10px 12px;font-size:14px;}
+  .kv span{display:block;font-size:19px;font-weight:bold;margin-top:2px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>提审前第二次彻底复测</h1>
+  <div class="sub">2026-11-11 15:47–16:1x · 独立复验 14:52–15:19 整改 + 全量门禁 + 生产环境审核员同路径实测</div>
+  <div class="meta">
+    <span><b>全量门禁</b> <b>35/35 全绿 · EXIT=0</b></span>
+    <span><b>端到端支付</b> <b>844ms 自动 paid</b></span>
+    <span><b>12 栋楼矩阵</b> <b>6 栋能看不能买</b></span>
+    <span><b>结论</b> <b class="big">仍有 1 项新 P0 阻断，暂不提交审核</b></span>
+  </div>
+</header>
+
+<div class="gap">
+  <div class="t">结论先行：技术整改确实落地了，但「补排期」这一步引出了新的阻断</div>
+  上一轮 14:14 报的 3 项 P0，本轮逐项回源复验：<b>支付模式冲突已真闭环</b>（production 包识别 mock 假参数跳过收银台，
+  实测 844ms 自动入账）、<b>商品图域名与排期已补齐</b>（7 条 URL 全 https、11-12/13/14 共 15 行 active）、
+  <b>隐私指引补勾仍属外部待办</b>。<b>门禁 35/35 全绿、9 分 09 秒实跑、退出码 0</b>。<br>
+  但我把「审核员从零开始」这条路按 <b>10 栋可选楼逐栋</b>重跑了一遍，抓到一条上轮完全没覆盖的 P0：
+  <b>有 6 栋楼没有在职团长，首页却照样显示 ¥25.80 和完整商品、<code>canOrder=true</code>，一点下单就报
+  <code>30007 未绑定团长，请通过团长邀请链接进入</code></b>——而审核员是全新微信用户，手上根本没有邀请链接。
+  选楼列表<b>第一项「华贸 1 号楼」恰好就是这 6 栋之一</b>。<br>
+  <b>这正是「门禁全绿 ≠ 用户能用」的典型：静态门禁验的是代码契约，验不出生产数据缺团长、也验不出运行时文案。</b>
+</div>
+
+<div class="kv">
+  <div>门禁全量<span>35 / 35</span></div>
+  <div>生产只读接口实测<span>9 类端点</span></div>
+  <div>逐栋楼矩阵<span>10 栋</span></div>
+  <div>不可下单楼<span>6 栋 / 60%</span></div>
+  <div>隐私接口扫描（带自证）<span>79 文件 · 10 处</span></div>
+  <div>负样本自证<span>4 / 4 有效</span></div>
+</div>
+
+<h2>一、P0（新）　6 栋楼「能看不能买」：审核员大概率踩中</h2>
+
+<p>用真实 <code>wx.login</code> 形态的 code（非 <code>dev:</code>）新建用户，逐栋 <code>PUT /me/building</code> →
+<code>GET /home/daily</code> → <code>POST /orders</code>，实测矩阵：</p>
+
+<table>
+  <tr><th>楼宇 id</th><th>名称</th><th class="c">团长</th><th class="c">/home/daily</th><th class="c">canOrder</th><th class="c">价格</th><th class="c">商品图</th></tr>
+  <tr><td class="c"><b>8</b></td><td><b>华贸 1 号楼（列表第 1 项）</b></td><td class="c">—</td><td class="c">code=0</td><td class="c">true</td><td class="c">¥25.80</td><td class="c">6 张全 https</td></tr>
+  <tr><td class="c">9</td><td>华贸 2 号楼</td><td class="c">—</td><td class="c">code=0</td><td class="c">true</td><td class="c">¥25.80</td><td class="c">6 张全 https</td></tr>
+  <tr><td class="c">2</td><td>国贸三期 B 座</td><td class="c">—</td><td class="c">code=0</td><td class="c">true</td><td class="c">¥25.80</td><td class="c">6 张全 https</td></tr>
+  <tr><td class="c">11</td><td>远洋光华 AB 座</td><td class="c">—</td><td class="c">code=0</td><td class="c">true</td><td class="c">¥25.80</td><td class="c">6 张全 https</td></tr>
+  <tr><td class="c">12</td><td>远洋光华 C 座</td><td class="c">—</td><td class="c">code=0</td><td class="c">true</td><td class="c">¥25.80</td><td class="c">6 张全 https</td></tr>
+  <tr><td class="c">7</td><td>银泰中心 2 栋</td><td class="c">—</td><td class="c">code=0</td><td class="c">true</td><td class="c">¥25.80</td><td class="c">6 张全 https</td></tr>
+  <tr><td class="c">1</td><td>国贸三期 A 座</td><td class="c">李明</td><td class="c">code=0</td><td class="c">true</td><td class="c">¥25.80</td><td class="c">下单成功</td></tr>
+  <tr><td class="c">4</td><td>国贸三期 D 座</td><td class="c">王芳</td><td class="c">code=0</td><td class="c">true</td><td class="c">¥25.80</td><td class="c">—</td></tr>
+  <tr><td class="c">5</td><td>建外 SOHO 北区</td><td class="c">张磊</td><td class="c">code=0</td><td class="c">true</td><td class="c">¥25.80</td><td class="c">—</td></tr>
+  <tr><td class="c">6</td><td>银泰中心 1 栋</td><td class="c">赵静</td><td class="c">code=0</td><td class="c">true</td><td class="c">¥25.80</td><td class="c">—</td></tr>
+</table>
+
+<table>
+  <tr><th style="width:24%">环节</th><th>实测证据</th></tr>
+  <tr><td>无团长楼真下单</td><td><code>POST /orders</code>（id=8）⇒ <b><code>code=30007</code></b>、
+    <code>message=「未绑定团长，请通过团长邀请链接进入」</code>、<code>orderNo=null</code>（不落单）</td></tr>
+  <tr><td>对照：有团长楼</td><td>同一用户切到 id=1 ⇒ <code>code=0</code>、订单
+    <code>AB2026111112900859</code>、<code>payAmountFen=2580</code> ⇒ <b>证明 30007 的根因就是团长归属，不是别的</b></td></tr>
+  <tr><td>根因（代码 + 库）</td><td><code>order.service.ts:250</code> 的 <code>resolveLeader</code> 三级兜底：
+    「用户 <code>team_leader_id</code> → 新楼在职团长 → 抛 30007」。新用户没有绑定，生产库
+    <code>ab_team_leader</code> 只有 5 行，<code>building_id</code> 为 1/4/5/6/2，
+    <b>楼群 4（8/9/10）与楼群 5（11/12）完全没有在职团长</b>。</td></tr>
+  <tr><td>为什么现在才暴露</td><td>14:52 为修「空首页」手动补了 <b>5 个楼群 × 3 天 = 15 行 active 排期</b>，
+    但<b>没有同步补团长</b>。原设计里「无团长 → 30005 未开团」，前端选楼页还会提示「看不到次日组合」；
+    排期一补，<code>/home/daily</code> 变成 <code>code=0 / canOrder=true</code>，
+    <b>把「空首页」改成了「能看不能买」</b>，而提示文案仍停在旧口径。</td></tr>
+  <tr><td>用户可见后果</td><td>首页显示完整商品与「立即预订」→ 点下单弹出
+    <code>toastApiError</code> 的<b>原始业务文案「未绑定团长，请通过团长邀请链接进入」</b>。
+    审核员是全新微信用户，<b>没有任何邀请链接入口</b>，无法自救；且列表首项就是坏楼。</td></tr>
+</table>
+
+<div class="gap">
+  <p style="margin:0"><b>修法（二选一，建议 ①）：</b></p>
+  <ol style="margin-bottom:0">
+    <li><b>给 5 个开团楼群各配至少 1 名在职团长</b>（生产库补 <code>ab_team_leader</code>，或后台走团长审批），
+      让「有排期」与「有团长」一一对应；这是最贴合业务口径的做法。</li>
+    <li>若某些楼群确实不打算配团长，则让 <code>/home/daily</code> 对无团长楼返回
+      <code>canOrder=false</code> + 明确引导文案，前端隐藏「立即预订」，避免把人引到必失败的按钮上；
+      同时把选楼页 <code>switch.vue:144</code> 的旧提示「绑定后仍可能看不到次日组合」改成与现状一致。</li>
+  </ol>
+</div>
+
+<h2>二、上轮 3 项 P0 的独立复验结果</h2>
+
+<table>
+  <tr><th style="width:18%">项</th><th style="width:13%" class="c">本轮判定</th><th>证据（均为实测，不是读文档）</th></tr>
+  <tr><td>P0-1 隐私指引漏声明剪切板</td><td class="c"><span class="b b-gap">仍待外部动作</span></td>
+    <td>带自证的扫描器重扫 79 个源文件：<code>setClipboardData</code> <b>10 处</b>，自证 PASS；
+      产物里是 uni 代理的 <code>e.index.setClipboardData</code>。微信后台那份仍「审核中」的话，
+      <b>不要重复提交</b>，等结果后「去更新」补勾「读取你的剪切板」，或在提审入口2 按平台识别结果补齐，并同步修订补充文档 txt 第 79 行。<b>本轮无法代为确认后台审核状态</b>。</td></tr>
+  <tr><td>P0-2 支付模式冲突</td><td class="c"><span class="b b-ok">已闭环</span></td>
+    <td>源码 <code>use-wechat-pay.ts:48</code> 的 <code>isMockPrepay()</code> 已编译进产物
+      （<code>mock_pay_sign</code> / <code>prepay_id=mock_</code> 两个判据都在）。
+      服务端实返 <code>paySign=mock_pay_sign</code>、<code>package=prepay_id=mock_prepay_…</code> ⇒
+      <b>前端判据与服务端常量一致</b>。不调收银台 → 轮询 <code>paid</code>：
+      <b>428ms 未付、844ms 已付</b>，前端 <code>pollResult</code> 窗口 6×500ms=3s <b>足够</b>；
+      订单终态 <code>paid</code>。<code>real</code> 模式判断恒 false 的行为未变。</td></tr>
+  <tr><td>P0-3 新用户空首页</td><td class="c"><span class="b b-part">排期已补 / 引出新问题</span></td>
+    <td>11-12 / 13 / 14 各 5 行 active 已落库，全新用户选楼后 <code>/home/daily</code>
+      <code>code=0 / canOrder=true / ¥25.80</code>，6 张图全 https、公网逐一 200 + <code>image/png</code>
+      （295393 / 219384 字节）。<b>但排期只补到 11-14</b>，且补排期引出了第一节的 30007。</td></tr>
+</table>
+
+<div class="warn">
+  <p style="margin:0"><b>⚠️ 发布前必须拍板的一件事（比提审本身更重要）</b>：现在 production 包在
+  <code>PROVIDER_MODE=mock</code> 下会<b>静默跳过收银台、自动把订单置为已支付</b>，全程无任何提示。
+  提审能过，但<b>发布后若仍是 mock，真实用户下单不扣款</b>。而线上 <code>.env.prod</code> 注释写
+  「<b>上线前必须改回 <code>PROVIDER_MODE=real</code></b>」，技术《自检清单》硬约束却写
+  「提审 → 审核通过+发布 → <b>才</b>切 real」。两份口径冲突，且切 real 还需商户号/证书与
+  「73 个老用户 openid 断层」方案。⇒ <b>请在发布前明确决策并写进《提审说明》，不要让这个开关带着歧义上线。</b></p>
+</div>
+
+<h2>三、P1　「改 A 没改 B」三连：隐藏了卡片，没堵住其它入口</h2>
+
+<table>
+  <tr><th style="width:24%">问题</th><th>证据与影响</th></tr>
+  <tr><td>分享页底部常驻「能力未接入」文案</td>
+    <td>技术把「小程序码」卡片改成 <code>v-if="qrcode &amp;&amp; !qrcode.mock"</code>（产物 <code>wx:if="{{B}}"</code> ✓），
+      但页面底部 <code>&lt;text class="tips"&gt;{{P}}&lt;/text&gt;</code> 渲染的是<b>服务端下发的分享物料 tips</b>。
+      线上 <code>GET /leader/share</code> 实返
+      <code>tips=「小程序码将在接入微信能力后生成；当前可先用「分享给朋友」转发小程序卡片」</code>、<code>mock=true</code>。
+      ⇒ <b>不用点任何按钮，进页面就能看到「未接入」字样</b>。真机复测包 U31 明确「出现即 P1」。</td></tr>
+  <tr><td>「生成二维码海报」按钮仍弹未完成态 toast</td>
+    <td>产物 <code>share.wxml</code> 的 <code>bindtap="{{o}}"</code> 仍绑定生成函数 <code>y()</code>；
+      <code>share.js</code> 里 <code>t.qrcodeUrl || showToast("微信码能力未接入，已展示占位说明")</code>。
+      而 <code>LeaderQrcodeData</code> 源码注释写明「<code>qrcodeUrl</code> 当前恒 null」⇒
+      <b>该 toast 必弹</b>。隐藏卡片只挡住了卡片内的按钮，没挡住「2 种分享方式」里的那个入口。</td></tr>
+  <tr><td>团长邀请落地页是死页 + 分享路径指错</td>
+    <td>静态扫描 32 个注册页面，<b>唯一零引用</b>的是 <code>pages/leader-invite/leader-invite</code>
+      （该页会读 <code>leaderCode</code> 并调 <code>bindLeaderByInvite</code>）。但线上
+      <code>GET /leader/share</code> 下发的 <code>path=pages/index/index</code>、
+      <code>shareQuery=leaderCode=LDR0001</code>，而 <b>首页与 <code>App.vue</code> 都不读 <code>leaderCode</code></b>
+      （<code>App.vue</code> 只读 <code>devCode</code>）。⇒ 邀请码/分享链接落到首页后参数被丢弃，
+      <b>团长拉新归属链路不通</b>，落地页永远到不了。建议把分享 <code>path</code> 改为落地页路径，或在首页消费该参数。</td></tr>
+</table>
+
+<p class="small">分级说明：以上三处都在<b>团长端</b>，审核员是全新普通用户、看不到团长页，因此<b>不阻断提审</b>；
+但属于你明确担心的「逻辑做了、入口没打通 / 改一处漏一处」，上线后会直接影响团长招募，建议提审前顺手收口。</p>
+
+<h2>四、P1 / P2　其它需要处理的项</h2>
+
+<table>
+  <tr><th style="width:24%">项</th><th style="width:11%" class="c">级别</th><th>证据与建议</th></tr>
+  <tr><td>排期只到 11-14，审核排队跨日会空首页</td><td class="c"><span class="b b-gap">P1</span></td>
+    <td>生产库 <code>ab_meal_assignment</code> 11-11 之后只有 11-12/13/14 三天。微信审核常 1–3 天甚至更久，
+      <b>审核员若在 11-15 之后打开，首页又会变空</b>。项目口径「明日开团手动 SOP、禁自动定时」，
+      故建议<b>手动补齐覆盖审核窗口的排期</b>（如到 11-20），或约定每日有人补。</td></tr>
+  <tr><td><code>urlCheck:false</code> 固化在产物里</td><td class="c"><span class="b b-gap">P1</span></td>
+    <td><code>src/manifest.json:12</code> 写死 <code>"urlCheck": false</code>，每次构建都会写进
+      <code>dist/build/mp-weixin/project.config.json</code>（本轮门禁重建后复验仍是 false）。
+      而《真机复测包》三禁令第 1 条与《自检清单》都要求「关掉不校验合法域名再测」。
+      ⇒ <b>手动关掉后一重新编译就被覆盖</b>，本地会假绿、测不出白图。建议改 manifest 为 <code>true</code> 后重建。</td></tr>
+  <tr><td>Q3 送达凭证端上仍无上传入口</td><td class="c"><span class="b b-part">P1</span></td>
+    <td>小程序 <code>src/</code> 全量扫 <code>chooseMedia / proofs / 送达凭证 / uploadFile</code> <b>零命中</b>；
+      后台 <code>/proofs</code> 有 3 处调用。上轮遗留项本轮<b>未整改</b>，团长仍传不了凭证。不补就从「已完成」里划掉。</td></tr>
+  <tr><td>C 端智能客服问答无消费者入口</td><td class="c"><span class="b b-part">P1</span></td>
+    <td><code>POST /ai-cs/ask</code> 后端规则问答实测可用（<code>intent=qualification</code>、
+      有答案、挂载 124 公示块），但<b>小程序端调用数 = 0</b>，只有后台 <code>views/stats/ai-cs.vue</code> 在用。
+      控制器注释写「面向未登录访客（含微信审核与首次来客）」，与端上无入口矛盾。属功能可达性缺口，不阻塞提审。</td></tr>
+  <tr><td>本轮测试残留需清理</td><td class="c"><span class="b b-new">P2</span></td>
+    <td>新建用户 <b>1079（绑楼 8）、1080（绑楼 1）</b>，订单
+      <code>AB2026111112900859</code>（paid，¥25.80），并触发 1 条 AI 台账写入。
+      另有更早的 <b>1070–1073</b> 四个「微信用户」历史测试账号仍 ALIVE（上轮只软删了 1074–1078，共 5 个、业务可见用户 73）。
+      <b>本轮未擅自删任何生产数据</b>，请按上轮同款 9 表关联清理流程处理。</td></tr>
+  <tr><td>「有入口没内容」复核</td><td class="c"><span class="b b-ok">通过</span></td>
+    <td>后台新增 4 页（<code>stats/ai-insight</code>、<code>stats/ai-cs</code>、
+      <code>meal/launch-draft</code>、<code>meal/template-draft</code>）<b>路由 + 侧边菜单均已挂载</b>；
+      32 个小程序页面全部注册进产物 <code>app.json</code>；<code>pages/about/about</code> 有 2 处跳转引用。
+      124 公示实测 8 项标签字段齐、备案号 <code>YB11114062536671</code>。</td></tr>
+  <tr><td>鉴权边界</td><td class="c"><span class="b b-ok">通过</span></td>
+    <td>无 token <code>/home/daily</code> ⇒ <code>401 + 10002</code>；C 端 token 访问
+      <code>/admin/ai-insight</code> ⇒ <code>403 + 10003</code>；空问题问客服 ⇒ <code>10001</code>；
+      假订单号查支付结果 ⇒ <code>10001</code>。<b>4 组负样本均非恒绿，探针可信</b>。</td></tr>
+</table>
+
+<h2>五、本轮已验证通过（可放心）</h2>
+<table>
+  <tr><th style="width:30%">项</th><th style="width:14%" class="c">结果</th><th>证据</th></tr>
+  <tr><td>全量门禁</td><td class="c"><span class="b b-ok">35/35</span></td><td><code>node scripts/gate.mjs all</code> 实跑 9m09s、<code>EXIT=0</code>；含 build:mp / tsc / 单测 / DI / 安全扫描 / 路由审计 / 导航一致性；重建产物 189 文件</td></tr>
+  <tr><td>整改确实进包</td><td class="c"><span class="b b-ok">通过</span></td><td>源码 14:38 改、产物 14:51 重建；门禁 16:05 再重建后<b>二次抽验</b>：<code>demoMode:!1</code>、https 域名、两个 mock 判据、卡片 <code>wx:if</code> 全在</td></tr>
+  <tr><td>支付全链路</td><td class="c"><span class="b b-ok">通过</span></td><td>下单 → createPrepay → 跳过收银台 → 844ms paid → 订单 <code>paid</code>；前端 3s 轮询窗口有余量</td></tr>
+  <tr><td>商品图 / 静态资源</td><td class="c"><span class="b b-ok">通过</span></td><td>7 条 <code>ab_item.image_url</code> 全 https、裸 IP 0；公网 200 + <code>image/png</code>；443 <code>/static/</code> 反代生效</td></tr>
+  <tr><td>服务健康 / 合规 / AI 后端</td><td class="c"><span class="b b-ok">通过</span></td><td><code>/health/ready</code> ready；124 公示 <code>code=0</code>；AI 客服规则问答返回答案 + 公示块；生产库 38 表 = 37 业务表 + <code>migrations</code></td></tr>
+  <tr><td>隐私接口扫描器</td><td class="c"><span class="b b-ok">自证 PASS</span></td><td>必报 / 必不报 / 纯注释三组自证全过，实扫 79 文件检出 10 处剪切板调用</td></tr>
+  <tr><td>appid 与项目配置</td><td class="c"><span class="b b-ok">通过</span></td><td><code>project.config.json</code> 存在、<code>appid=wx389db239bcec75ca</code>、32 页注册</td></tr>
+</table>
+
+<h2>六、提审动作清单（按依赖顺序）</h2>
+<ol>
+  <li><b>先修第一节的 P0</b>：5 个开团楼群补齐在职团长（推荐），或让无团长楼 <code>canOrder=false</code> + 明确引导；
+    同步订正选楼页旧提示。<b>修完必须用全新微信账号重跑「选楼 → 首页 → 下单 → 支付」</b>，
+    且<b>至少覆盖列表第一项与一栋无团长楼</b>。</li>
+  <li><b>补排期覆盖审核窗口</b>：11-15 之后至少再补 5–7 天，避免审核排队跨日空首页。</li>
+  <li><b>补隐私声明</b>：等入口1 审核结果 → 补勾「读取你的剪切板」+ 用途；或走提审入口2 补齐；同步修订补充文档 txt 第 79 行。<b>不要重复提交正在审核的版本</b>。</li>
+  <li><b>把 <code>manifest.json</code> 的 <code>urlCheck</code> 改为 <code>true</code> 并重建</b>，再冷启动复测商品图，确保不是靠「不校验合法域名」测出来的绿。</li>
+  <li><b>收口分享页三处</b>：底部 tips（服务端下发）、「生成二维码海报」toast、邀请落地页 path；这一步不阻塞提审，但建议同批做掉。</li>
+  <li><b>明确 mock→real 的切换时点与责任人</b>，写进《提审说明》；把 <code>.env.prod</code> 注释与《自检清单》硬约束改成一致。</li>
+  <li><b>清理测试残留</b>：用户 1079 / 1080、订单 <code>AB2026111112900859</code>，顺带确认 1070–1073 是否也要清。</li>
+  <li>以上做完，再上传正式包并提交审核；提审页隐私勾选与本次包保持一致。</li>
+</ol>
+
+<h2>七、取证方式与我这轮的三次自我纠正</h2>
+<p class="small">
+取证：生产 HTTPS 接口实调（登录 / 选楼 / 逐栋绑楼 / home/daily / 下单 / createPrepay / pay-result / 订单详情 /
+leader/share / ai-cs/ask / compliance/124 / health/ready）+ 生产库只读（<code>ab_building</code>、
+<code>ab_team_leader</code>、<code>ab_meal_assignment</code>、<code>ab_item</code>、<code>ab_user</code>、表清单）+
+正式包静态扫描（带自证的未完成态文案 / 页面可达性 / 端点调用方扫描器）+ 隐私接口扫描器 +
+<code>gate.mjs all</code> 全量实跑。<b>未做任何生产写操作</b>（除测试本身必然产生的 2 个用户、1 笔订单、1 条 AI 台账）。<br>
+三次自我纠正已并入结论、不作为问题上报：① 首版探针 <code>GET /building</code> <b>漏带 token</b> 拿到 10002，
+先怀疑探针而非产品，补 token 后拿到 10 栋真实列表；② 只测 1 栋楼就差点下「支付不通」的结论，
+改成 10 栋矩阵后才定位到「团长归属」这个真根因；③ 门禁 <code>build:mp</code> 会重建产物，
+故在 16:05 重建后对全部关键值做了二次抽验，确认未被覆盖。<br>
+另：静态扫描把「下单窗口未开放」判为未完成态文案，人工复核是正常业务文案，已剔除；
+<code>pages/leader-invite</code> 零引用经回源确认不是「页面漏注册」，而是「入口指错」，见第三节。
+</p>
+
+<footer>
+  ABox 一盒 · 提审前第二次彻底复测 · 2026-11-11 · 面向「微信审核员真机路径」而非「功能清单」<br>
+  配套：14:14《提审前彻底复核报告》· 15:26《提审前自检清单》· 15:39《提审前真机复测包》。
+  本轮结论与三者冲突处，<b>以本轮的实测证据为准</b>。
+</footer>
+
+</div>
+</body>
+</html>

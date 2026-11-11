@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ABox 一盒 · AI 编排智能化工作流方案（评审版 v1）</title>
+<style>
+  :root{
+    --bg:#F6F0E5; --ink:#6E5435; --paper:#fffdf8; --line:#e3d8c4;
+    --ok:#3f7d52; --warn:#b07a2b; --bad:#a8432f; --muted:#8a7a63;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:#33291c;
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.7;}
+  .wrap{max-width:960px;margin:0 auto;padding:40px 28px 64px;}
+  header{border-bottom:3px solid var(--ink);padding-bottom:18px;margin-bottom:8px;}
+  h1{font-family:"KaiTi","STKaiti",serif;color:var(--ink);font-size:30px;margin:0 0 6px;}
+  .sub{color:var(--muted);font-size:14px;}
+  .banner{background:var(--ink);color:#fff7ea;padding:14px 18px;border-radius:10px;
+    margin:22px 0;font-size:15px;line-height:1.6;}
+  .banner b{color:#ffe9c7;}
+  h2{font-family:"KaiTi","STKaiti",serif;color:var(--ink);font-size:22px;
+    border-left:5px solid var(--ink);padding-left:12px;margin:38px 0 14px;}
+  h3{color:#4a3a26;font-size:17px;margin:22px 0 8px;}
+  p{margin:10px 0;}
+  table{width:100%;border-collapse:collapse;margin:14px 0;background:var(--paper);
+    font-size:13.5px;border:1px solid var(--line);}
+  th,td{border:1px solid var(--line);padding:9px 11px;vertical-align:top;text-align:left;}
+  th{background:#efe6d4;color:var(--ink);font-weight:700;}
+  tr:nth-child(even) td{background:#fbf7ee;}
+  .tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:20px;
+    background:#efe6d4;color:var(--ink);margin-right:4px;}
+  .tag.ok{background:#e4f0e7;color:var(--ok);}
+  .tag.warn{background:#fbeede;color:var(--warn);}
+  .tag.bad{background:#f7e4df;color:var(--bad);}
+  .card{border:1px solid var(--line);border-radius:10px;background:var(--paper);
+    padding:16px 18px;margin:14px 0;}
+  .card .h{font-family:"KaiTi","STKaiti",serif;color:var(--ink);font-size:18px;font-weight:700;margin:0 0 8px;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0;}
+  .k{color:var(--muted);min-width:84px;font-weight:600;}
+  ul{margin:8px 0 8px 4px;padding-left:20px;}
+  li{margin:5px 0;}
+  .note{background:#fbf7ee;border:1px dashed var(--line);border-radius:8px;
+    padding:12px 16px;color:#5a4a33;font-size:13.5px;margin:14px 0;}
+  .foot{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:12.5px;}
+  code{background:#efe6d4;padding:1px 5px;border-radius:4px;font-size:12.5px;color:#5a3f22;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>ABox 一盒 · AI 编排智能化工作流方案</h1>
+  <div class="sub">评审版 v1 · 2026-11-02 · 覆盖「开发→测试→提审→运营」四阶段 · 复用现有体系（自研 API + 企微助手 + 微信 + 云服务免密钥 LLM）</div>
+</header>
+
+<div class="banner">
+  <b>原则零（用户硬约束，最高优先级）：</b>AI 为<b>可剥离的旁路增强</b>，绝不影响小程序的发布与使用。
+  任何 AI 节点失效或整体摘除，传统人工模式必须仍能正常运营。本方案所有设计均以此为不可逾越的红线。
+</div>
+
+<h2>一、设计原则</h2>
+<table>
+  <tr><th>编号</th><th>原则</th><th>说明</th></tr>
+  <tr><td>原则零</td><td>AI 可剥离 / 可降级</td><td>任一节点失效，传统模式照常运营；AI 是"叠加"不是"替换"。</td></tr>
+  <tr><td>原则一</td><td>AI 不进交易主链路</td><td>下单 / 配送 / 支付 / 门禁 不受任何 AI 服务影响（A、C 为 CI 期；B 为发布前；D 为售后客服）。</td></tr>
+  <tr><td>原则二</td><td>门禁唯一真源</td><td><code>scripts/gate.mjs</code> 是硬闸，AI 审查仅作软建议，绝不 fork 门禁清单。</td></tr>
+  <tr><td>原则三</td><td>确定性优先</td><td>企微助手默认走规则/意图确定性路径；LLM 仅作增强分支，配置可关、失败即跳过。</td></tr>
+  <tr><td>原则四</td><td>人工终审闸</td><td>所有 AI 产出需人工确认；资金 / 不可逆操作走既有 <code>op-policy</code> tier 人工确认。</td></tr>
+  <tr><td>原则五</td><td>不做静默降级</td><td>AI 失效即<b>显式</b>降级到传统路径或转人工，不假装成功（呼应项目"不做静默降级"纪律）。</td></tr>
+</table>
+
+<h2>二、端到端流程拆解（含传统兜底路径）</h2>
+<table>
+  <tr><th>阶段</th><th>环节</th><th>承担者</th><th>输入</th><th>输出</th><th>传统兜底路径（无 AI 时）</th></tr>
+  <tr>
+    <td>开发</td><td>提交 PR</td><td>人 + CI</td><td>代码 diff</td><td>PR</td>
+    <td>—（本就无 AI）</td>
+  </tr>
+  <tr>
+    <td>开发</td><td><b>A 代码审查</b></td><td>AI 审查 Agent + gate.mjs</td><td>PR diff、门禁结果、ref 口径</td><td>审查报告 + 修复建议</td>
+    <td><span class="tag ok">已具备</span>仅靠 <code>gate.mjs</code> 门禁 + 人工 review（即现状）。AI 关闭不影响合并。</td>
+  </tr>
+  <tr>
+    <td>测试</td><td>门禁 / 验证</td><td>gate.mjs（CI）</td><td>代码</td><td>全绿 / 红</td>
+    <td>不变，无 AI 依赖。红→阻断。</td>
+  </tr>
+  <tr>
+    <td>发版</td><td><b>C 提审材料</b></td><td>Launch-Prep Agent</td><td>备案通过信号、gate 全绿、op-catalog</td><td>提审包</td>
+    <td><span class="tag ok">已具备</span>人工按既有《备案后上线清单》《提审前最后一公里复核》手工汇编（文档模板已存在）。</td>
+  </tr>
+  <tr>
+    <td>运营</td><td><b>B 文案素材</b></td><td>Content-Studio Agent</td><td>活动 brief、品牌规范</td><td>招募页 / 卖点 / 配图</td>
+    <td><span class="tag ok">已具备</span>人工按品牌规范（#F6F0E5/#6E5435/楷体）手写或套现有招募页 HTML 体系。</td>
+  </tr>
+  <tr>
+    <td>运营</td><td><b>D 智能客服</b></td><td>企微助手 + LLM 层</td><td>用户消息、KB、137 端点</td><td>应答 / 转人工</td>
+    <td><span class="tag ok">已具备</span>回退到现有<b>规则/意图驱动</b>企微助手（137 端点 + stats，2026-11-02 已上线）；LLM 关即纯确定性。</td>
+  </tr>
+</table>
+
+<div class="note">
+  <b>关键事实支撑：</b>① 企微操作助手当前是<b>规则/意图驱动、未接任何 LLM</b>（package.json 无 openai/anthropic 依赖），因此 D 节点加 LLM 是纯"叠加"，摘除即回到已上线状态；
+  ② CI 门禁由 <code>gate.mjs</code> 独立执行，AI 审查是<b>独立并行 job</b>，不改动既有 <code>gates</code>/<code>verify</code>；
+  ③ B/C 均为"发布前生成助手"，不参与用户下单交易。
+</div>
+
+<h2>三、AI 编排总体架构（叠加式，非替换式）</h2>
+<div class="card">
+  <p class="h">两层平面 + 一个已存在的路由中枢</p>
+  <ul>
+    <li><b>核心系统（独立存在，不依赖 AI）：</b>小程序下单/配送/支付链路 · <code>gate.mjs</code> CI 门禁 · 企微助手确定性路径（137 端点 + stats 意图）。</li>
+    <li><b>Dev/Release 平面（GitHub Actions）：</b>在现有 CI 上<b>新增</b>两个独立 job——<code>ai-review</code>（PR 时）、<code>release-prep</code>（备案通过时）。不改动现有 <code>gates</code>/<code>verify</code>。</li>
+    <li><b>Ops 平面（企微助手 + 云服务 LLM）：</b>把 <code>wecom-chat.service.reply()</code> 扩为"路由层"——确定性意图走既有 ops/stats，开放意图走 LLM（检索 KB 增强）。企微助手即运营编排中枢。</li>
+    <li><b>共享能力：</b>① 云服务免密钥 LLM（唯一模型源，不引新付费）；② ref 口径 + 品牌规范作知识约束；③ <code>op-policy</code> tier 作资金/不可逆人工闸。</li>
+  </ul>
+  <p style="margin:10px 0 0;color:var(--muted);font-size:13px;">隔离要点：所有新增文件（<code>scripts/ai-pr-review.mjs</code>、<code>scripts/gen-launch-pack.mjs</code>、<code>scripts/gen-campaign.mjs</code>、<code>llm.adapter.ts</code>）均为<b>独立新增</b>，不修改 <code>gate.mjs</code>/<code>deploy.sh</code>/既有企微确定性逻辑；摘除即还原。</p>
+</div>
+
+<h2>四、四节点角色卡（含降级 / 传统兜底）</h2>
+
+<div class="card">
+  <p class="h">A · AI 代码审查（Dev 平面）</p>
+  <div class="row"><span class="k">工具</span><span>云服务 LLM + <code>gh api</code>（PR diff）+ <code>gate.mjs</code>（门禁漂移）</span></div>
+  <div class="row"><span class="k">边界</span><span>仅"软建议"，不自动 merge；安全/高风险项转人工</span></div>
+  <div class="row"><span class="k">降级</span><span>LLM 不可用 → 仅转发门禁结果；误报 → @人复核</span></div>
+  <div class="row"><span class="k">传统兜底</span><span>无 AI 时等于当前状态：<code>gate.mjs</code> 门禁 + 人工 review，完全不受影响</span></div>
+  <div class="row"><span class="k">触发/落地</span><span>PR 到 main/develop · 新增 <code>scripts/ai-pr-review.mjs</code> + CI 扩展（独立 job）</span></div>
+</div>
+
+<div class="card">
+  <p class="h">B · 文案与素材生成（Ops 平面）</p>
+  <div class="row"><span class="k">工具</span><span>云服务 LLM（文案）+ 品牌模板（HTML/SVG，#F6F0E5/#6E5435/楷体）+（可选）ImageGen</span></div>
+  <div class="row"><span class="k">边界</span><span>不自动发布；须人工确认；偏离品牌规范拦截重写</span></div>
+  <div class="row"><span class="k">降级</span><span>偏规范 → 重写；LLM 超时 → 退回模板占位</span></div>
+  <div class="row"><span class="k">传统兜底</span><span>人工按规范手写 / 套现有招募页 HTML 体系（已有大量成品）</span></div>
+  <div class="row"><span class="k">触发/落地</span><span>新团/新菜品/活动，或企微"生成招募页 &lt;brief&gt;" · <code>scripts/gen-campaign.mjs</code> / command-parser 加指令</span></div>
+</div>
+
+<div class="card">
+  <p class="h">C · 提审材料准备（Release 平面）</p>
+  <div class="row"><span class="k">工具</span><span><code>gate.mjs --json</code> + <code>op-catalog</code>（137 端点）+ 云服务 LLM（起草说明）+ 备案状态</span></div>
+  <div class="row"><span class="k">边界</span><span>门禁非全绿 → 阻断；不替人做合规判断</span></div>
+  <div class="row"><span class="k">降级</span><span>缺项 → 列待补；gate 红 → 停</span></div>
+  <div class="row"><span class="k">传统兜底</span><span>人工按《备案后上线清单》《提审前最后一公里复核》手工汇编（模板已存在）</span></div>
+  <div class="row"><span class="k">触发/落地</span><span><b>备案通过</b>（workflow_dispatch 一键 / 手动脚本）· <code>scripts/gen-launch-pack.mjs</code></span></div>
+</div>
+
+<div class="card">
+  <p class="h">D · 智能客服（Ops 平面 · <span class="tag warn">重点隔离</span>）</p>
+  <div class="row"><span class="k">工具</span><span>云服务 LLM + KB 检索（<code>_app/abox-kb</code>）+ 137 端点 + op-policy</span></div>
+  <div class="row"><span class="k">边界</span><span>钱的口径/不可逆操作仍走 tier 人工确认；LLM 仅起草/应答，不越权执行写</span></div>
+  <div class="row"><span class="k">降级</span><span><b>幻觉/超时 → 跳过 LLM，走确定性路径或转人工</b>（绝不阻塞消息回路）</span></div>
+  <div class="row"><span class="k">传统兜底</span><span>LLM 关闭即回到已上线的规则/意图驱动企微助手（100% 可用）</span></div>
+  <div class="row"><span class="k">触发/落地</span><span>企微消息回调 · 新增 <code>llm.adapter.ts</code>（云服务免密钥）+ <code>reply()</code> 加 LLM 分支 + KB RAG；<b>配置开关 <code>LLM_ASSIST_ENABLED</code>，默认关或失败即关</b></span></div>
+</div>
+
+<h2>五、关键隔离措施（确保原则零成立）</h2>
+<ul>
+  <li><b>D 节点是唯一需重点隔离者</b>：LLM 分支必须置于 <code>reply()</code> 的"可跳过"包装内（try/catch + 超时），失败时原样回到 <code>parseIntent → 确定性 ops/stats</code>，绝不在消息主循环里 await 阻塞或抛错。</li>
+  <li>新增 <code>LLM_ASSIST_ENABLED</code> 开关：关闭后，企微助手行为与"未接 LLM 的当前线上版本"完全一致——这是<b>可剥离性的硬验证点</b>。</li>
+  <li>A/C 的新 CI job 与现有 <code>gates</code>/<code>verify</code> 解耦：删除新 job，CI 退回当前绿态；不影响发布。</li>
+  <li>B/C 的新脚本为独立文件：删除后，人工按既有文档/模板照常工作。</li>
+  <li>所有新增代码不触碰 <code>gate.mjs</code>、<code>deploy.sh</code>、订单/配送/支付核心逻辑与企微确定性逻辑（只"加"不"改核心"）。</li>
+</ul>
+
+<h2>六、上线检查清单（含"可剥离性"组）</h2>
+<table>
+  <tr><th>分组</th><th>检查项</th></tr>
+  <tr><td><span class="tag">可剥离性</span></td><td>① 每个 AI 节点能否独立禁用而不影响核心？② 摘除后传统路径是否完整可用？③ D 节点关闭 LLM 后是否 = 当前线上行为？</td></tr>
+  <tr><td><span class="tag">可靠性</span></td><td>① LLM 超时/重试/降级策略；② 门禁漂移检测；③ 不静默降级（失效显式可见）</td></tr>
+  <tr><td><span class="tag">成本</span></td><td>① 每次 PR / 每条消息的 token 预算；② 限流与熔断；③ 自费/免密钥边界</td></tr>
+  <tr><td><span class="tag">权限</span></td><td>① 云服务 LLM 密钥来源（免密钥）；② 企微回调主体与限流；③ op tier 人工确认覆盖资金/不可逆</td></tr>
+  <tr><td><span class="tag">可维护性</span></td><td>① 门禁唯一真源（gate.mjs）；② 口径/品牌规范版本化；③ AI prompt 随 ref 更新机制</td></tr>
+</table>
+
+<h2>七、执行顺序与触发</h2>
+<ol>
+  <li><b>开发期（现在起）</b>：提交 PR → 触发 A 代码审查（与 CI gates 并发，AI 软建议）</li>
+  <li>合并 main，门禁全绿</li>
+  <li><b>备案通过（主触发）</b> → 触发 C 提审材料自动生成提审包 → 人工终审 → 微信提审</li>
+  <li>提审通过 / 上线 → 运营期并发：B 文案素材（按活动触发）+ D 智能客服（7×24 企微应答）</li>
+</ol>
+
+<div class="note">
+  <b>对"不影响发布与传统运营"的承诺小结：</b>四个节点里，A/C 是 CI 期的"建议/助手"，B 是发布前"草稿生成"，D 是在已上线确定性助手之上"叠加 LLM 增强"。
+  任意节点失效，系统均退化为你<b>今天已经在用的传统模式</b>——这一点由"确定性路径优先 + 独立新增文件 + 配置开关"三重保障。
+</div>
+
+<div class="foot">
+  评审版 v1 · 待确认后逐节点展开：① 详细角色卡 ② 触发条件精确定义 ③ 实现路径（具体脚本/文件/接入点代码）④ 上线检查清单勾选项。
+  建议优先深 C（离"备案通过即提审"最近）与 D（唯一需重点隔离的节点）。
+</div>
+</div>
+</body>
+</html>

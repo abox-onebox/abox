@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox 一盒 · 提审前彻底复核（2026-11-11）</title>
+<style>
+  :root{
+    --paper:#F6F0E5; --ink:#6E5435; --ink-soft:#8a7050; --line:#e0d5c2; --card:#fffdf8;
+    --warn-bg:#fdf3e3; --warn-line:#d9b382; --ok-bg:#eef5ea; --ok-line:#8fa97e;
+    --gap-bg:#fbe9e9; --gap-line:#b23b3b; --new-bg:#eaf1f7; --new-line:#5b7f9e;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;padding:32px 20px 64px;background:var(--paper);color:var(--ink);
+    font-family:"KaiTi","STKaiti","simkai","楷体",serif;font-size:16px;line-height:1.85;}
+  .wrap{max-width:1040px;margin:0 auto;}
+  header{border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:24px;}
+  h1{font-size:27px;margin:0 0 6px;letter-spacing:1px;}
+  .sub{color:var(--ink-soft);font-size:15px;}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:12px;font-size:14px;color:var(--ink-soft);}
+  .meta b{color:var(--ink);font-weight:normal;}
+  h2{font-size:21px;margin:34px 0 12px;padding-left:12px;border-left:5px solid var(--ink);}
+  h3{font-size:17px;margin:22px 0 8px;}
+  p{margin:8px 0;} ul,ol{margin:8px 0;padding-left:24px;} li{margin:5px 0;}
+  code{background:#efe7d8;padding:1px 6px;border-radius:3px;font-family:Consolas,"Courier New",monospace;font-size:13.5px;}
+  .warn{background:var(--warn-bg);border:1px solid var(--warn-line);border-left:5px solid var(--warn-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .gap{background:var(--gap-bg);border:1px solid var(--gap-line);border-left:5px solid var(--gap-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .ok{background:var(--ok-bg);border:1px solid var(--ok-line);border-left:5px solid var(--ok-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .box-new{background:var(--new-bg);border:1px solid var(--new-line);border-left:5px solid var(--new-line);border-radius:4px;padding:14px 18px;margin:16px 0;}
+  .t{font-weight:bold;margin-bottom:6px;}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14.5px;background:var(--card);}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
+  th{background:#efe7d8;font-weight:normal;}
+  td.c,th.c{text-align:center;}
+  .b{display:inline-block;font-size:12px;padding:1px 7px;border-radius:10px;color:#fff;white-space:nowrap;}
+  .b-ok{background:#5f8a52;} .b-gap{background:#b23b3b;} .b-part{background:#b07d2b;} .b-new{background:#5b7f9e;}
+  footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:14px;}
+  .big{font-size:19px;font-weight:bold;}
+  .small{font-size:13.5px;color:var(--ink-soft);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>提审前彻底复核</h1>
+  <div class="sub">2026-11-11 · 面向「微信审核」而非「功能是否完整」的一次全面检查</div>
+  <div class="meta">
+    <span><b>门禁 all</b> <b>35/35 全绿</b></span>
+    <span><b>HTTPS / 证书</b> <b>已通过</b></span>
+    <span><b>隐私接口扫描</b> <b>自证 PASS</b></span>
+    <span><b>结论</b> <b class="big">3 项阻断，暂不提交审核</b></span>
+  </div>
+</header>
+
+<div class="gap">
+  <div class="t">结论先行：备案与代码质量都没问题，但有 3 项会让审核员实测失败</div>
+  技术 11-11 出的《提审前自检清单》结论是「全部就绪，仅等隐私指引审核」。我把每个环节按<b>审核员真机视角</b>重跑了一遍，
+  发现<b>清单里一处自相矛盾的假设</b>：A3 写「正式包 <code>demoMode:!1</code>（false）」，但「审核体验路径」写的是
+  「打开即自动登录 <code>dev:1001</code> 首席团长」「点确认支付约 1 秒自动成功、不产生真实扣款」——
+  <b>后者只可能在 <code>demoMode=true</code> 的 development 包里发生</b>。<br>
+  按当前磁盘上的 production 包实测，审核员会遇到：<b>全新无楼宇用户 → 明日未开团 → 看不到商品；点支付 → 假签名参数调起收银台失败</b>。
+  另外，正在审核的《用户隐私保护指引》<b>漏声明了「读取你的剪切板」</b>，且补充文档写了与代码相反的陈述。
+</div>
+
+<h2>一、P0-1　隐私指引漏声明「读取你的剪切板」（正对着你正在审的那份）</h2>
+
+<table>
+  <tr><th style="width:24%">证据</th><th>内容</th></tr>
+  <tr><td>官方清单</td><td>微信《小程序用户隐私保护指引内容介绍》原文：「<b>读取你的剪切板</b>」对应接口
+    <code>wx.setClipboardData</code>、<code>wx.getClipboardData</code>（<b>写入也算</b>）。官方社区运营专员答复：
+    只使用 <code>setClipboardData</code> 仍需声明，<b>隐私弹窗为微信强制要求，无法规避</b>；未声明则接口被禁用。</td></tr>
+  <tr><td>端上实扫</td><td>带自证的扫描器扫 <code>src/</code> 79 个文件：<b>唯一需声明项 = 读取你的剪切板，10 处</b>
+    <code>uni.setClipboardData</code>。分布在：订单详情、账号注销、团长订单导出、团长分享（4 处）、推荐页、客服页、团长邀请等。</td></tr>
+  <tr><td>构建产物</td><td>产物里是 <code>e.index.setClipboardData</code>（uni 代理）<b>10 处</b>，
+    字面 <code>wx.setClipboardData</code> = <b>0</b>。这正是漏判原因：按字面串扫确实「无调用」，
+    但 <b>uni 在 mp-weixin 平台运行时映射到 wx</b>，隐私管控是接口级运行时拦截，不是只扫字面量。</td></tr>
+  <tr><td><b>技术底稿</b></td><td>《填报底稿》§99：「位置 / 地址 / 发票 / 麦克风 / 摄像头 / 蓝牙 / 传感器 /
+    <b>剪切板</b>等｜<b>保持未选，全包无调用</b>」；《补充文档》txt 第 79 行：「本小程序待提审版本的代码中，
+    未调用以下微信隐私接口或组件：…<b>剪切板</b>」。⇒ <b>与代码事实相反</b>。</td></tr>
+</table>
+
+<div class="warn">
+  <p style="margin:0"><b>后果有两层：</b>① 指引未声明 ⇒ 10 处复制功能（订单号、邀请码、分享链接、客服微信号、订单导出）
+  在真机上会被隐私管控拦掉；② 补充文档里「未调用剪切板」属<b>与事实不符的陈述</b>，审核员核实即是硬伤。<br>
+  <b>修法（成本很低）</b>：在「开发者处理的信息」补勾<b>「读取你的剪切板」</b>，用途写
+  「用于复制订单号、邀请码、分享链接及客服微信号等文本」；同步把补充文档 txt 第 79 行的「剪切板」删掉；
+  端内《隐私政策》v1.1 补一句剪贴板说明。<b>多声明一项不会导致驳回，少声明会让接口失效</b>，宁可多勾。</p>
+</div>
+
+<div class="box-new">
+  <p style="margin:0"><b>操作窗口（结合你当前状态）</b>：入口1 现网指引正「审核中、不可修改」——
+  <b>不要重复提交</b>。等审核结果出来后点「去更新」补这一项并重新提交；或按官方运营口径，
+  直接在<b>入口2「版本管理 → 提交代码审核 → 信息填写页」</b>按平台识别结果补齐（入口2 的修改不影响现网版）。
+  官方明确：<b>提审被隐私拦截时必须在入口2 改，回入口1 改无效</b>。同时提审页别勾「未采集隐私」。</p>
+</div>
+
+<div class="ok">
+  <p style="margin:0"><b>顺带肯定技术做对的三点</b>（我已回官方文档核实）：<code>wx.login</code> 不属该指引限制的隐私接口；
+  <code>open-type="contact"</code> 客服按钮不在清单；2023-10-17 后 <code>__usePrivacyCheck__</code> 已废弃、隐私检查默认强制，
+  且<b>未注册自管回调时微信会自动弹官方隐私框</b> ⇒ <b>端上不写隐私授权代码反而是对的</b>，不要为此补代码。</p>
+</div>
+
+<h2>二、P0-2　支付模式冲突：production 包 + 线上 mock = 点支付必失败</h2>
+
+<table>
+  <tr><th style="width:26%">环节</th><th>实测</th></tr>
+  <tr><td>线上配置</td><td><code>.env.prod</code>：<code>NODE_ENV=production</code>、<b><code>PROVIDER_MODE=mock</code></b>；
+    只配了 <code>WX_MINI_APPID / WX_MINI_SECRET</code>，<b>没有商户号</b></td></tr>
+  <tr><td>正式包</td><td><code>constants/env.js</code> → <code>demoMode:!1</code>（<b>false</b> = production 构建）；
+    <code>apiBaseUrl</code> 已是 <code>https://api.xunlizhinian.cn/api/v1</code></td></tr>
+  <tr><td>支付分支</td><td><code>use-wechat-pay.ts</code>：<code>demoMode</code> 为 <b>false</b> ⇒
+    <code>await requestPayment(prepay)</code>（真实微信收银台）；<code>mockPaid()</code> 兜底<b>只在 true 时走</b></td></tr>
+  <tr><td>服务端参数</td><td><code>mock-wx-pay.provider.ts</code> 头注原文：「createPrepay 返回<b>假 prepay_id 与假 payParams
+    （小程序端会调起失败，属预期）</b>」</td></tr>
+  <tr><td><b>结果</b></td><td>假参数调真实收银台 ⇒ <code>requestPayment</code> reject ⇒ 直接抛出，
+    <b>连 <code>pollResult()</code> 都不会执行</b>。即便 800ms 后 mock 自动把订单置为 paid，端上仍显示支付失败。</td></tr>
+</table>
+
+<div class="gap">
+  <p style="margin:0"><b>两条路都不通，必须由你和技术拍板，不能维持现状：</b></p>
+  <ul style="margin-bottom:0">
+    <li><b>提交 production 包（当前磁盘这个）</b> → 审核员点「确认支付」报错，大概率驳回。</li>
+    <li><b>改提交 development 包（<code>demoMode=true</code>）</b> → 走 <code>mockPaid</code> 自动「支付成功」，不弹收银台、
+      不扣钱。审核员可能判定支付功能不真实；更严重的是<b>发布后用户付款不实际扣款</b>。</li>
+    <li><b>提审前切 <code>PROVIDER_MODE=real</code></b> → 需配齐商户号与证书，且 <code>dev:</code> 账号全部失效；
+      但审核员用自己微信可以自助登录（见下一节），并需准备真实支付闭环。</li>
+  </ul>
+</div>
+
+<p class="small">技术《提审说明》§3.3 定的顺序是「① 提审（MOCK）→ ② 审核通过+发布 → ③ 才切 real」，理由是切 real 后
+<code>dev:</code> 账号失效、审核员进不去。这个顾虑成立，但<b>它默认了「提审用的是体验版」</b>——
+而<b>提交审核上传的是开发版代码包，不是体验版</b>。请先确认「本次到底上传哪个目录、用什么 mode 构建」，
+再把 A3 与体验路径改成一致。</p>
+
+<h2>三、P0-3　审核员视角：全新用户 + 明日未开团 = 看不到任何商品</h2>
+
+<p>我用「真实 <code>wx.login</code> 格式的 code」模拟审核员登录（不传 <code>dev:</code>），实测链路：</p>
+<table>
+  <tr><th style="width:30%">步骤</th><th>结果</th></tr>
+  <tr><td>登录</td><td><code>HTTP 201 / code=0</code>，但每次都是<b>全新用户</b>（id 1074 / 1075 / 1076），
+    <code>nickname="微信用户"</code>、<b><code>buildingId=null</code></b>、<code>isLeader=false</code></td></tr>
+  <tr><td><code>GET /home/daily</code></td><td><b><code>20016</code>「你还没有选择办公楼，选好即可查看次日套餐」</b></td></tr>
+  <tr><td>自助选楼</td><td>✅ <code>GET /building</code> 返回 12+ 栋；<code>PUT /me/building</code> 绑定成功
+    （<code>changed=true</code>）——<b>这条闭环是通的</b></td></tr>
+  <tr><td>绑楼后 <code>/home/daily</code></td><td>🔴 <b><code>30005</code>「2026-11-12 该办公楼未开团」</b></td></tr>
+  <tr><td>生产库佐证</td><td><code>ab_meal_assignment</code> 中 <b><code>meal_date=2026-11-12 AND status=active</code> 共 0 行</b></td></tr>
+</table>
+
+<div class="warn">
+  <p style="margin:0"><b>提审前必须手动开团</b>（项目口径「明日开团手动 SOP、禁自动定时」）：至少把
+  <b>11-12 / 11-13 / 11-14</b> 三天的排期、套餐、供应商生产计划配好，避免审核排队跨日又变成空首页；
+  且要确认「新用户自助选楼 → 看到商品 → 能下单」整条路在真机走通。审核员不会用 <code>dev:1001</code>。</p>
+</div>
+
+<h2>四、P1　其余需要处理的问题</h2>
+<table>
+  <tr><th style="width:22%">问题</th><th style="width:11%" class="c">级别</th><th>证据与建议</th></tr>
+  <tr><td>团长分享页「功能未完成」文案</td><td class="c"><span class="b b-gap">P1</span></td>
+    <td><code>pages/leader/share.wxml</code> 用户可见「<b>小程序码待接入</b>」「<b>当前为模拟态（scene = …）：微信小程序码生成能力尚未接入</b>」；
+      <code>wx:if="{{E}}"</code> 的 E = <code>material.mock</code>，而线上 <code>GET /leader/share</code> 实测
+      <b><code>mock: true</code></b>、<code>posterUrl/qrcodeUrl = null</code> ⇒ <b>一定会显示</b>。
+      建议提审前隐藏该分支或补上小程序码能力。「功能未完成」是常见驳回点。</td></tr>
+  <tr><td>隐私政策正文与代码口径不符</td><td class="c"><span class="b b-part">P1</span></td>
+    <td>v1.1 声明收集「微信账号标识、<b>昵称、头像</b>」「<b>手机号</b>」、共享给「<b>团长及第三方运力</b>」「<b>对象存储服务</b>存储图片」；
+      但端上 <code>chooseAvatar / nickname / getPhoneNumber</code> 组件<b>零命中</b>，业务口径是「团长送工位、无第三方运力」，
+      且 <code>chooseMedia</code> 零命中（无图片上传）。建议按「实际处理」收紧表述，避免审核员对照代码时产生疑问。</td></tr>
+  <tr><td>Q3 送达凭证仍缺端上入口</td><td class="c"><span class="b b-part">P1</span></td>
+    <td>上轮遗留有进展：后台 <code>api/delivery.ts:217/233/238</code> 已接 <code>proofs</code> 三个接口；
+      但<b>小程序端 <code>chooseMedia / proofs / 送达凭证</code> 仍零引用</b> ⇒ 团长还是传不了凭证。
+      不补就从「已完成」里划掉。</td></tr>
+  <tr><td>定时任务自动执行证据仍缺</td><td class="c"><span class="b b-part">P1</span></td>
+    <td>生产库 <code>ab_supplier_share</code> 共 4 行、<b><code>channel</code> 全 manual、auto=0</code></b>；
+      <code>ab_commission</code> 仍 1 行（10-29 那笔）。留痕不落库，无法反推自动跑批。
+      上线后需盯一天 02:00 佣金结算 / 02:10 供应商结算单。</td></tr>
+  <tr><td>生产环境接受任意 code 登录</td><td class="c"><span class="b b-part">P1</span></td>
+    <td>mock 模式下不校验微信服务器，任意字符串 code 都建新用户（我实测造出 id 1074–1077）。
+      提审不一定被查出，但属生产身份伪造面。切 real 后自动收口。<br>
+      ⚠️ <b>需清理本轮测试残留用户 1074 / 1075 / 1076 / 1077</b>（其中 1077 已绑定楼宇 id=8）。</td></tr>
+  <tr><td>安全扫描 2 项 WARN</td><td class="c"><span class="b b-part">提示</span></td>
+    <td><code>mock-wx-mini.provider.ts:32</code> 日志打印 <code>code + openid</code>、
+      <code>:42</code> 打印固定测试手机号。非 FAIL，但生产日志含 PII，建议切 real 前降噪。</td></tr>
+  <tr><td>小程序备案号展示</td><td class="c"><span class="b b-new">待确认</span></td>
+    <td><code>pages/about/about.wxml</code> 的「备案编号」展示的是 <b><code>YB11114062536671</code></b>
+      （仅销售预包装食品备案，接口 <code>/ai-cs/compliance/124</code> 实测回读正确），
+      <b>不是小程序备案号 / ICP 备案号</b>。请在 mp 后台确认是否还需在端内公示小程序备案号。</td></tr>
+</table>
+
+<h2>五、本轮已验证通过的部分（可以放心）</h2>
+<table>
+  <tr><th style="width:30%">项</th><th style="width:14%" class="c">结果</th><th>证据</th></tr>
+  <tr><td>门禁全量</td><td class="c"><span class="b b-ok">35/35</span></td><td>含 tsc / 单测 / DI / 安全扫描 / 路由审计 215 端点 / 导航一致性</td></tr>
+  <tr><td>HTTPS 与证书</td><td class="c"><span class="b b-ok">通过</span></td><td><code>/api/v1/health</code> → 200 <code>code=0</code>；
+    Let's Encrypt <code>CN=api.xunlizhinian.cn</code>，<code>ssl_verify_result=0</code>，有效至 2027-02-08</td></tr>
+  <tr><td>正式包地址与构建</td><td class="c"><span class="b b-ok">通过</span></td><td>无裸 IP / 无 <code>http://</code>；
+    <code>demoMode:false</code>；字体二进制 0 个；appid <code>wx389db239bcec75ca</code></td></tr>
+  <tr><td>124 号令资质公示</td><td class="c"><span class="b b-ok">通过</span></td><td>六项资质 + 8 项 GB 7718 标签字段，
+    <code>filingNo=YB11114062536671</code>、经营场所地址已补（<code>b069353</code>）</td></tr>
+  <tr><td>自助选楼闭环</td><td class="c"><span class="b b-ok">通过</span></td><td><code>GET /building</code> → 12+ 栋；
+    <code>PUT /me/building</code> 绑定成功</td></tr>
+  <tr><td>H9 可退时限</td><td class="c"><span class="b b-ok">已闭环</span></td><td>生产库 <code>refund.completed_window_hours = 24</code>
+    （上次「未落库」已解决）</td></tr>
+  <tr><td>端上隐私授权代码</td><td class="c"><span class="b b-ok">无需补</span></td><td>无自管回调 ⇒ 微信自动弹官方隐私框，正确做法</td></tr>
+</table>
+
+<h2>六、提审动作清单（按依赖顺序）</h2>
+<ol>
+  <li><b>先定包与模式</b>：确认本次上传目录 + 构建 mode，把《自检清单》A3 与「审核体验路径」改成一致；
+    就「MOCK 提审 / 提审前切 real」做一次明确决策并写进《提审说明》。</li>
+  <li><b>补隐私声明</b>：等入口1 审核结果 → 补勾「读取你的剪切板」+ 用途；改补充文档 txt 第 79 行；
+    端内隐私政策补剪贴板说明。或在提审<b>入口2</b> 按平台识别结果直接补齐。</li>
+  <li><b>手动开团</b>：11-12、11-13、11-14 三天的排期 / 套餐 / 生产计划；真机走一遍
+    「新微信登录 → 选楼 → 看商品 → 下单 → 支付」。</li>
+  <li><b>隐藏模拟态文案</b>：团长分享页「小程序码待接入 / 当前为模拟态」，或补上小程序码能力。</li>
+  <li><b>收紧隐私政策口径</b>：昵称头像、手机号、第三方运力、对象存储图片四项按实际处理修订。</li>
+  <li><b>清理测试残留</b>：用户 1074–1077；确认 mp 后台 <code>request 合法域名</code> 仍是
+    <code>https://api.xunlizhinian.cn</code>；确认小程序备案号是否需端内公示。</li>
+  <li>以上做完再上传正式包并提交审核；提审页隐私声明勾选与本次包保持一致。</li>
+</ol>
+
+<div class="warn">
+  <p style="margin:0"><b>一处时间线说明（避免拿旧证据下结论）</b>：测试期间 <code>dist/build/mp-weixin</code> 于
+  <b>14:02 被重新构建</b>。我已按当前磁盘状态重验关键值——<code>demoMode:!1</code>、https 域名、
+  模拟态文案、无新提交——<b>均未变化</b>，故上述结论成立。</p>
+</div>
+
+<footer>
+  ABox 一盒 · 提审前彻底复核 · 2026-11-11<br>
+  取证方式：微信官方文档（隐私指引填写说明 / 内容介绍 / 隐私协议开发指南）+ 生产 HTTPS 接口实调
+  （登录、选楼、绑楼、home/daily、compliance/124、leader/share）+ 生产库只读（<code>ab_config</code>、
+  <code>ab_meal_assignment</code>、<code>ab_supplier_share</code>、<code>ab_commission</code>）+
+  正式包静态扫描（含带自证的隐私接口扫描器）+ <code>gate.mjs all</code> 实跑 35/35。<br>
+  凡属推断而非实测的结论，文中均已显式标注；本轮三次自我纠正（误把 v1.1 新协议中的
+  「第三方运力」当成旧包残留、首轮只搜 <code>wx.*</code> 得零命中后取数改扫 <code>uni.*</code>、
+  探针脚本两次解包错误）已并入结论，不作为问题上报。
+</footer>
+
+</div>
+</body>
+</html>

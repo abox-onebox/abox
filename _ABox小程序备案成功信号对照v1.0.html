@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABox一盒 · 小程序备案成功信号对照</title>
+<style>
+  :root{ --bg:#F6F0E5; --brown:#6E5435; --brown-weak:#796C57; --line:#D9CDB8; --green:#2E7D32; --red:#B23B3B; --card:#FBF8F1; }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--brown);font-family:"KaiTi","楷体",STKaiti,serif;line-height:1.7;padding:28px 16px;}
+  .wrap{max-width:760px;margin:0 auto;}
+  h1{font-size:26px;margin:0 0 4px;letter-spacing:1px;}
+  .sub{color:var(--brown-weak);font-size:14px;margin:0 0 22px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:16px 0;box-shadow:0 2px 10px rgba(110,84,53,.06);}
+  .card h2{font-size:18px;margin:0 0 12px;display:flex;align-items:center;gap:8px;}
+  .tag{font-size:12px;padding:2px 10px;border-radius:999px;color:#fff;font-family:sans-serif;}
+  .t-ok{background:var(--green);} .t-no{background:var(--red);} .t-dot{background:var(--brown);}
+  table{width:100%;border-collapse:collapse;font-family:sans-serif;font-size:14px;}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{color:var(--brown-weak);font-weight:600;}
+  .ok{color:var(--green);font-weight:700;}
+  .no{color:var(--red);font-weight:700;}
+  .pill{display:inline-block;font-family:sans-serif;font-size:13px;background:var(--brown);color:#fff;border-radius:6px;padding:2px 9px;margin:2px 4px 2px 0;}
+  .note{font-family:sans-serif;font-size:13px;color:var(--brown-weak);margin-top:8px;}
+  ul{font-family:sans-serif;font-size:14px;padding-left:20px;margin:8px 0;}
+  li{margin:5px 0;}
+  .big{font-size:18px;font-weight:700;}
+  .foot{text-align:center;color:var(--brown-weak);font-size:12px;font-family:sans-serif;margin-top:24px;}
+  b{color:#4a3826;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>小程序备案成功信号对照</h1>
+  <p class="sub">ABox一盒 · 微信小程序备案（wx389db239bcec75ca）· 2026-11-10 工信部短信信号 + 后台确认指引</p>
+
+  <div class="card">
+    <h2><span class="tag t-ok">结论</span> 你收到的短信 = 通过信号</h2>
+    <p class="big">「您的备案信息已变更」＝ 小程序备案管局审核 <span class="ok">通过</span> 的官方通知。</p>
+    <p class="note">这是工信部下发的通知，是备案通过的强信号。但短信会先于后台 6–24 小时到达，最终以「mp 后台状态变已备案」或「beian.miit.gov.cn 查到备案号」为准，二者任一出现即铁证。</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag t-dot">对照</span> 工信部短信措辞：通过 vs 驳回</h2>
+    <table>
+      <tr><th>结果</th><th>短信关键措辞</th><th>你收到的</th></tr>
+      <tr><td class="ok">通过</td><td>「您的备案信息已变更 / 已被变更，详情请咨询您的接入服务商」</td><td class="ok">✓ 就是这条</td></tr>
+      <tr><td class="no">驳回</td><td>「您的备案不完全符合备案要求，现已被退回，详情请咨询…」</td><td>—</td></tr>
+    </table>
+    <p class="note">两条模板完全不同，你收到的是「已变更」版，安心。</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag t-dot">铁证</span> 真正的成功三件（缺一不可看前两项）</h2>
+    <ul>
+      <li><b>① 工信部短信「已变更」</b> —— 你刚收到的，是信号。</li>
+      <li><b>② mp 后台「设置 → 小程序备案」状态变「已备案」</b> —— 需你登录确认（你反馈后台尚未变化，属正常同步延迟，等几小时再刷）。</li>
+      <li><b>③ 在 beian.miit.gov.cn 能查到备案号</b>（格式 京ICP备XXXXXXXX号-X）。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag t-no">注意</span> 收到短信 ≠ 后台立刻变</h2>
+    <p>管局同步到微信 / 工信部系统需 <b>6–24 小时</b>。所以：</p>
+    <ul>
+      <li>短信先于后台状态变化，属正常；现在后台若还没跳「已备案」，等几小时再刷。</li>
+      <li>这期间别重复提交、别改备案信息，等同步完成。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="tag t-dot">下一步</span> 通过后还要做两件事</h2>
+    <ul>
+      <li><b>备案号下发后 48 小时内</b>，在 mp 后台完成备案号绑定。</li>
+      <li><b>提审前置（当日已核对，仍有硬缺口）</b>：① 接口须换成已备案 HTTPS 域名（现仍是裸 IP+HTTP，线上会白屏）② 124 号令资质公示端上已做「我的→关于我们」入口，备案编号待补录。两者齐了才能提审发布。</li>
+    </ul>
+    <p class="note">注：微信支付商户号（主体须北京巡礼之年）提审不需要，但上线收款需要——尚未确认是否办好。</p>
+  </div>
+
+  <p class="foot">本卡依据 2026-11-10 用户实收工信部短信 + 备案流程公开口径整理；最终以 mp 后台状态 / 备案号查询为准</p>
+</div>
+</body>
+</html>
