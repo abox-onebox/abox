@@ -2,18 +2,18 @@
 
 > 2026-11-17 收口。范围 = 后台（api + admin），**小程序端 / h5 一行未改**。
 > 定位：AI 出结构化卡 → 运营逐卡确认 → 只吐执行清单 + 台账；真动作仍由人去原后台点。
-> 状态：本地 6 commit 已提交、门禁全绿；**生产未动**（待今晚 24:00 截单后窗口）。
+> 状态：2026-11-17 22:36 已上线生产（tag `manual-20261117223132`）；终检 35/35 全绿、投后验收全过。回滚 `./scripts/rollback.sh` → `manual-20261111-194112`。
 
-## 一、六个节点全景（A 已上线 / G M H N P 本批待投）
+## 一、六个节点全景（A 已上线 / G M H N P 已上线）
 
 | 节点 | 功能 | 后台页 | 关键端点 | AI 出什么 | 真动作谁做 | 提交 | 状态 |
 |---|---|---|---|---|---|---|---|
 | A | 套餐模板草稿 | 招募-模板草稿 | `/admin/meal/template-draft/generate` + `/confirm` | 模板 JSON（itemId 白名单） | confirm 真建模板（负责人确认） | `075a93e`（早已上线） | ✅ 生产验收通过（模板 9→9、闸口拦假 id） |
-| G | 招募任务卡 | `/recruit/taskcard-draft` | `/admin/recruit-taskcard/generate` + `/confirm` | 缺口楼 + 话术卡 | 运营拿清单去投放申请链接 | `a1e63c3` | 本地待投 |
-| M | 用户召回 | `/user/recall-campaign` | `/admin/recall-campaign/preview` + `/confirm` | 复购/流失两档圈人 | confirm 真建券+发券（默认 dryRun=true，负责人二次确认） | `338fb32` | 本地待投 |
-| H | 发券策略卡 | `/user/coupon-taskcard` | `/admin/coupon-taskcard/generate` + `/confirm` | 四类券策略卡 | 运营拿清单去券管理页人工发 | `c7d80f8`+`fbf3b38` | 本地待投 |
-| N | 团长处置卡 | `/leader/taskcard` | `/admin/leader-taskcard/generate` + `/confirm` | 四类处置卡（含 suspend 红边警示） | 运营拿清单去 D22 人工处置 | `48b58df` | 本地待投 |
-| P | 社群排期卡 | `/user/community-taskcard` | `/admin/community-taskcard/generate` + `/confirm` | 一周排期 + 4 档话术 | 运营拿清单去群里手动发 | `0392774` | 本地待投 |
+| G | 招募任务卡 | `/recruit/taskcard-draft` | `/admin/recruit-taskcard/generate` + `/confirm` | 缺口楼 + 话术卡 | 运营拿清单去投放申请链接 | `a1e63c3` | ✅ 已上线 |
+| M | 用户召回 | `/user/recall-campaign` | `/admin/recall-campaign/preview` + `/confirm` | 复购/流失两档圈人 | confirm 真建券+发券（默认 dryRun=true，负责人二次确认） | `338fb32` | ✅ 已上线 |
+| H | 发券策略卡 | `/user/coupon-taskcard` | `/admin/coupon-taskcard/generate` + `/confirm` | 四类券策略卡 | 运营拿清单去券管理页人工发 | `c7d80f8`+`fbf3b38` | ✅ 已上线 |
+| N | 团长处置卡 | `/leader/taskcard` | `/admin/leader-taskcard/generate` + `/confirm` | 四类处置卡（含 suspend 红边警示） | 运营拿清单去 D22 人工处置 | `48b58df` | ✅ 已上线 |
+| P | 社群排期卡 | `/user/community-taskcard` | `/admin/community-taskcard/generate` + `/confirm` | 一周排期 + 4 档话术 | 运营拿清单去群里手动发 | `0392774` | ✅ 已上线 |
 
 ## 二、统一安全模型（五节点同构，红线均写死）
 
@@ -61,5 +61,6 @@
 
 ## 六、下一步
 
-今晚 24:00 截单后窗口，按 `_ABox一盒_后台AI接执行_部署执行卡v1.md` 一次投递（一次 api 重启同时上 G+M+H+N+P）。
-红线判据：部署前后小程序用户侧零感知、零报错、零数据变化。
+✅ 2026-11-17 22:36 已投递上线（G+M+H+N+P + 报告中心/口语卡/数据体检/周报，共 10 commit），tag `manual-20261117223132`。
+终检 35/35 全绿、启动守护闸 226 路由 13 新端点全映射；投后 8080/8081 ready、13 端点鉴权生效、h5 未重建 ⇒ 小程序零感。
+回滚：`cd /opt/abox-onebox && ./scripts/rollback.sh`（回 `manual-20261111-194112`）。详见当日 memory 日志。

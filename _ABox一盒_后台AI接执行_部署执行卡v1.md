@@ -1,8 +1,8 @@
 # ABox 一盒 ·「后台 AI 接执行」部署执行卡 v1
 
-> 窗口：2026-11-17（周一）24:00 截单后。祝总红线：**小程序用户侧零感知、零报错、零数据变化**。
+> 口径：2026-11-17 祝总纠正「还没正式运作、不存在截单」⇒ 取消 24:00 时间窗口，随时可投。祝总红线：**小程序用户侧零感知、零报错、零数据变化**。
 > 范围：一次投递同时上 G/M/H/N/P（本地 6 commit），只动 api + admin；h5 容器不重启、小程序端不碰。
-> 本卡是操作顺序，不是已执行记录。**未报备祝总确认前不跑 deploy.sh**；失败立即 rollback.sh。
+> 本卡已执行：2026-11-17 22:36 投递成功（tag `manual-20261117223132`，回滚目标 `manual-20261111-194112`）。失败时 `./scripts/rollback.sh`。
 
 ## 0. 为什么这个窗口可行（回源结论）
 
@@ -16,7 +16,7 @@
 | 1 | `node scripts/gate.mjs all` | 35/35 全绿 |
 | 2 | `node scripts/check-di-forfeature.mjs` | `OK —— 未发现注入了但没登记的仓储` |
 | 3 | `node node_modules/typescript/bin/tsc -p apps/api-server/tsconfig.json --noEmit` | exit 0（防 HEAD 引用未跟踪文件打包炸） |
-| 4 | op 目录解码核对 10 条新端点 roles（generate=3 / confirm=2） | 全 OK、总数 156 |
+| 4 | op 目录解码核对 13 条新端点 roles（generate/preview=3 角色可读 / confirm=2 角色） | 全 OK、总数 159（实测） |
 | 5 | `git status --short \| grep -v '^??'` | 空（历史 `??` 文件一律不 add） |
 
 ## 2. 阶段二 · 真实启动自检（红线守护闸，投前必过）
@@ -28,7 +28,7 @@ cd apps/api-server && ../../node_modules/.bin/nest build && node dist/main.js
 ```
 - 判据：日志出现 **全部模块初始化 + Nest application successfully started**，进程不崩不退出；Ctrl-C 收尾。
 - 崩在这里（如 DI 缺登记）⇒ **停止投递**，修完重跑阶段一+二。
-- ✅ **已于 2026-11-17 20:04 本地预跑通过**：本地 `.env` 为 `DB_DRIVER=sqlite` + `PROVIDER_MODE=mock` + `QUEUE_DRIVER=memory`（连本地 dev sqlite，零生产影响）；`nest build` exit 0、`node dist/main.js` 真实启动 → `Nest application successfully started`、`Mapped` 路由 **223** 条、错误 **0**、定时任务 9/9；**10 条新端点全部真实映射**（G/M/H/N/P 各 generate+confirm）。服务已停、3000 端口已释放。
+- ✅ **已于 2026-11-17 22:29 用当前 HEAD 重跑通过**（20:04 旧记录早于 4 个新提交、已过期，禁止引用）：本地 `.env` 为 `DB_DRIVER=sqlite` + `PROVIDER_MODE=mock` + `QUEUE_DRIVER=memory`（连本地 dev sqlite，零生产影响）；`nest build` exit 0、`node dist/main.js` 真实启动 → `Nest application successfully started`、`Mapped` 路由 **226** 条、错误 **0**、定时任务 9/9；**13 条新端点全部真实映射**（G/M/H/N/P 各 generate+confirm=10 + ai-report 的 generate/preflight/weekly-digest=3）。服务已停、3000 端口已释放。
 - ⚠️ 启动日志里 `WecomCryptoService 自检跳过（凭据未配置，属预期）` 是本地 mock 预期告警，非缺陷。
 
 ## 3. 阶段三 · 双备份（服务器上，动代码前）
